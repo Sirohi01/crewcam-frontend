@@ -10,6 +10,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, FileText, Plus, Save, ShieldCheck, Trash2 } from 'lucide-react';
 import api from '@/lib/axios';
 import { ArrayFieldConfig, getHiringStepById, HiringStepConfig, StepField } from '@/lib/hiringSteps';
+import { openFileUrl } from '@/lib/fileUrls';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StepGate from './StepGate';
@@ -262,7 +263,7 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
       queryClient.invalidateQueries({ queryKey: ['candidate-pipeline', candidateId] });
       queryClient.invalidateQueries({ queryKey: ['hiring-step-records', step?.id, entityId] });
       const url = data.pdfUrl || data.loi?.pdfUrl || data.offer?.pdfUrl || data.nda?.pdfUrl || data.letter?.pdfUrl || data.card?.pdfUrl;
-      if (url) window.open(`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1').replace('/api/v1', '')}${url}`, '_blank');
+      openFileUrl(url);
     },
   });
 

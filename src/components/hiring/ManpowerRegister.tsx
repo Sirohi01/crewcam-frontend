@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/lib/axios';
+import { openFileUrl } from '@/lib/fileUrls';
 
 export default function ManpowerRegister() {
   const qc = useQueryClient();
@@ -15,7 +16,7 @@ export default function ManpowerRegister() {
   const { data: requests = [], isLoading } = useQuery<any[]>({ queryKey: ['manpower-requests'], queryFn: async () => (await api.get('/hiring/manpower-request')).data });
   const refresh = () => qc.invalidateQueries({ queryKey: ['manpower-requests'] });
   const changeStatus = useMutation({ mutationFn: async ({ id, nextStatus }: { id: string; nextStatus: 'Approved' | 'Rejected' }) => (await api.put(`/hiring/manpower-request/${id}/status`, { status: nextStatus })).data, onSuccess: refresh });
-  const generatePdf = useMutation({ mutationFn: async (id: string) => (await api.post(`/hiring/manpower-request/${id}/generate-pdf`)).data, onSuccess: (data) => { refresh(); if (data.pdfUrl) window.open(`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1').replace('/api/v1', '')}${data.pdfUrl}`, '_blank'); } });
+  const generatePdf = useMutation({ mutationFn: async (id: string) => (await api.post(`/hiring/manpower-request/${id}/generate-pdf`)).data, onSuccess: (data) => { refresh(); openFileUrl(data.pdfUrl); } });
   const visible = useMemo(() => requests.filter((request) => {
     const text = `${request.jobTitle || ''} ${request.designation || ''} ${request.departmentId?.name || ''} ${request.locationBranchId?.name || ''}`.toLowerCase();
     return text.includes(query.toLowerCase()) && (status === 'All' || request.status === status);

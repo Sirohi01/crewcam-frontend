@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Download, CheckCircle2, Circle, ExternalLink, ClipboardList, Mail, Phone, UserRound, Sparkles } from 'lucide-react';
 import { HIRING_STEPS } from '@/lib/hiringSteps';
 import api from '@/lib/axios';
+import { openFileUrl } from '@/lib/fileUrls';
 import StepGate from './StepGate';
 import StepChecklist from './StepChecklist';
 import ResumeScreeningPanel from './ResumeScreeningPanel';
@@ -82,9 +83,7 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
     },
     onSuccess: (data, vars) => {
       queryClient.invalidateQueries();
-      if (data.pdfUrl) {
-        window.open(`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1').replace('/api/v1', '')}${data.pdfUrl}`, '_blank');
-      }
+      openFileUrl(data.pdfUrl);
     }
   });
 
@@ -101,7 +100,7 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
   const completedSteps = (pipeline?.steps || []).filter((step) => ['completed', 'approved'].includes(step.status)).length;
 
   return (
-    <div className="flex w-full max-w-[1600px] flex-col gap-4 mx-auto pb-10">
+    <div className="flex w-full max-w-[1600px] flex-col gap-3 mx-auto pb-8">
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-zinc-950 via-zinc-900 to-indigo-950 p-6 text-white shadow-lg">
         <div className="absolute -right-12 -top-16 h-52 w-52 rounded-full bg-indigo-400/15" />
         <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -164,7 +163,7 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
             <CardTitle className="text-sm">{phase}</CardTitle>
             <p className="mt-1 text-xs text-zinc-500">Open each form to add details. Locked steps show what needs completion first.</p>
           </CardHeader>
-          <CardContent className="flex flex-col gap-2">
+          <CardContent className="flex flex-col gap-0.5 py-2">
             {HIRING_STEPS.filter(s => s.phase === phase).map(step => {
               const idx = HIRING_STEPS.indexOf(step);
               const records = stepRecordQueries[idx].data || [];
@@ -176,7 +175,7 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
               const locked = step.entityField === 'employeeId' ? !entityId : pipelineStep?.gate.unlocked === false;
 
               return (
-                <div key={step.id} className="grid gap-3 py-3 border-b border-zinc-100 dark:border-zinc-800 last:border-0 md:grid-cols-[1fr_auto]">
+                <div key={step.id} className="grid gap-2 py-2 border-b border-zinc-100 dark:border-zinc-800 last:border-0 md:grid-cols-[1fr_auto]">
                   <div className="flex min-w-0 items-start gap-3">
                     <div className="pt-0.5">
                       {hasRecord ? <CheckCircle2 size={16} className="text-emerald-500" /> : <Circle size={16} className="text-zinc-300" />}
@@ -187,7 +186,7 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
                         <StepGate unlocked={!locked} blockedBy={step.entityField === 'employeeId' && !entityId ? ['employeeId'] : pipelineStep?.gate.blockedBy || []} compact />
                         <span className="text-xs text-zinc-500">{pipelineStep?.status || 'pending'}</span>
                       </div>
-                      {pipelineStep && <div className="mt-2 max-w-md"><StepChecklist items={pipelineStep.checklist} /></div>}
+                      {pipelineStep && <div className="mt-1 max-w-md"><StepChecklist items={pipelineStep.checklist} /></div>}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

@@ -416,6 +416,11 @@ export default function CompanyProfilePage() {
                       </div>
                     </div>
                   </div>
+                  <div className="col-span-2 space-y-1.5">
+                    <Label className="text-xs font-md">Hiring PDF Footer Text</Label>
+                    <Input name="documentFooterText" value={formData.documentFooterText || ''} onChange={handleChange} className="h-9 text-sm bg-white" placeholder="e.g. This is a system-generated document." />
+                    <p className="text-[10px] text-zinc-500">This footer is printed on all hiring PDFs. Leave empty to use the system default.</p>
+                  </div>
                   <div className="col-span-2 space-y-2 mb-2 pb-4 border-b border-zinc-100 dark:border-zinc-800">
                     <Label className="text-xs font-md">Hiring PDF Header Image</Label>
                     <p className="text-[10px] text-zinc-500">This wide banner appears on every generated hiring document. Your logo is used if no banner is uploaded.</p>

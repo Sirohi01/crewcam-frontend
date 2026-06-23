@@ -1,2 +1,2 @@
-import CandidateCreateForm from '@/components/hiring/CandidateCreateForm';
-export default function AddCandidatePage() { return <CandidateCreateForm />; }
+import CandidateRegister from '@/components/hiring/CandidateRegister';
+export default function AddCandidatePage() { return <CandidateRegister />; }

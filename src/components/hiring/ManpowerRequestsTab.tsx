@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ClipboardList, FileText, RotateCcw, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
+import { openFileUrl } from '@/lib/fileUrls';
 
 const input = 'mt-1 h-9 w-full rounded border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-[#0e4778] focus:ring-2 focus:ring-blue-100';
 const textArea = `${input} h-24 resize-y py-2`;
@@ -48,7 +49,7 @@ export default function ManpowerRequestsTab({ formOnly = false }: { formOnly?: b
     }, onSuccess: () => { refresh(); setForm(empty()); },
   });
   const changeStatus = useMutation({ mutationFn: async ({ id, status }: { id: string; status: 'Approved' | 'Rejected' }) => (await api.put(`/hiring/manpower-request/${id}/status`, { status })).data, onSuccess: refresh });
-  const generatePdf = useMutation({ mutationFn: async (id: string) => (await api.post(`/hiring/manpower-request/${id}/generate-pdf`)).data, onSuccess: (data) => { refresh(); if (data.pdfUrl) window.open(`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1').replace('/api/v1', '')}${data.pdfUrl}`, '_blank'); } });
+  const generatePdf = useMutation({ mutationFn: async (id: string) => (await api.post(`/hiring/manpower-request/${id}/generate-pdf`)).data, onSuccess: (data) => { refresh(); openFileUrl(data.pdfUrl); } });
   const employeeOptions = employees.map((employee) => <option key={employee._id} value={employee._id}>{employee.firstName} {employee.lastName}</option>);
   const filteredDesignations = form.departmentId ? designations.filter((item) => item.departmentId?._id === form.departmentId || item.departmentId === form.departmentId) : designations;
 
