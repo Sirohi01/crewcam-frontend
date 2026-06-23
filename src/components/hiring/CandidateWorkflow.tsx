@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, Circle, ClipboardList, Download, ExternalLink, FileText, Mail, Phone, Sparkles, UserRound } from 'lucide-react';
 import { HIRING_STEPS } from '@/lib/hiringSteps';
 import api from '@/lib/axios';
-import { openFileUrl } from '@/lib/fileUrls';
+import { openFileUrl, toAssetUrl } from '@/lib/fileUrls';
 import StepGate from './StepGate';
 import StepChecklist from './StepChecklist';
 import ResumeScreeningPanel from './ResumeScreeningPanel';
@@ -26,6 +26,7 @@ interface Candidate {
   status: string;
   source?: string;
   resumeUrl?: string;
+  profileImageUrl?: string;
 }
 
 interface PipelineState {
@@ -106,25 +107,26 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
   const interviewStep = pipelineStepByKey.get('interview');
   const completedSteps = (pipeline?.steps || []).filter((step) => ['completed', 'approved'].includes(step.status)).length;
   const percent = Math.round((completedSteps / 24) * 100);
+  const candidatePhotoUrl = toAssetUrl(candidate.profileImageUrl);
 
   return (
     <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-4 pb-8">
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 bg-gradient-to-r from-[#073a69] via-[#0e4778] to-slate-900 px-5 py-5 text-white">
+        <div className="border-b border-slate-100 bg-white px-5 py-5 text-slate-900">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex min-w-0 items-center gap-4">
-              <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/12 ring-1 ring-white/15">
-                <UserRound size={26} />
+              <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200">
+                {candidatePhotoUrl ? <img src={candidatePhotoUrl} alt={`${candidate.firstName} ${candidate.lastName}`} className="h-full w-full object-cover" /> : <UserRound size={26} />}
               </div>
               <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-100">Hiring workflow</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0e4778]">Hiring workflow</p>
                 <h1 className="mt-1 truncate text-2xl font-semibold">{candidate.firstName} {candidate.lastName}</h1>
-                <p className="mt-1 text-sm text-blue-100">{candidate.jobRole}{candidate.source ? ` • ${candidate.source}` : ''}</p>
+                <p className="mt-1 text-sm text-slate-500">{candidate.jobRole}{candidate.source ? ` • ${candidate.source}` : ''}</p>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <span className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${statusClass(candidate.status)}`}>{candidate.status}</span>
-              <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white ring-1 ring-white/15">{completedSteps}/24 complete</span>
+              <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">{completedSteps}/24 complete</span>
             </div>
           </div>
         </div>
