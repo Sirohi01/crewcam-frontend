@@ -47,7 +47,6 @@ export const HIRING_STEPS: HiringStepConfig[] = [
       { name: 'comments', label: 'Comments', type: 'textarea' }
     ]
   },
-  /*
   {
     id: 'selection-approval', stepKey: 'selectionApproval', step: 3, phase: 'Offer & Legal', title: 'Selection Approval Note',
     apiPath: '/hiring/selection-approval', entityField: 'candidateId',
@@ -323,8 +322,15 @@ export const HIRING_STEPS: HiringStepConfig[] = [
       { name: 'validTo', label: 'Valid To', type: 'date' }
     ],
     postCreateActions: [{ label: 'Mark Issued', method: 'PUT', pathSuffix: '/issue' }]
+  },
+  {
+    id: 'release-qa', stepKey: 'releaseQA', step: 25, phase: 'Post-Joining', title: 'Release QA Checks',
+    apiPath: '/hiring/release-qa', entityField: 'employeeId',
+    fields: [
+      { name: 'qaStatus', label: 'QA Status', type: 'select', options: ['Pending', 'Passed', 'Failed'] },
+      { name: 'remarks', label: 'Remarks', type: 'textarea' }
+    ]
   }
-  */
 ];
 
 export const getHiringStepById = (stepId: string) => HIRING_STEPS.find((step) => step.id === stepId);
