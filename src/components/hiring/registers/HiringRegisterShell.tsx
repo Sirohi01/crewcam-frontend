@@ -7,6 +7,7 @@ import { Search, ExternalLink, RefreshCw, ChevronLeft, ChevronRight, Eye, Edit2,
 import api from '@/lib/axios';
 import { getHiringStepById } from '@/lib/hiringSteps';
 import { openFileUrl } from '@/lib/fileUrls';
+import { Button } from '@/components/ui/button';
 
 export default function HiringRegisterShell({ stepId }: { stepId: string }) {
   const router = useRouter();

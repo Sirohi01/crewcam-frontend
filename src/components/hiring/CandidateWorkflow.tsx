@@ -50,18 +50,23 @@ const statusClass = (status?: string) => {
 
 const compactList = (items: string[] = []) => items.filter(Boolean).join(', ') || '—';
 
+const isValidObjectId = (value: string) => /^[0-9a-fA-F]{24}$/.test(value);
+
 export default function CandidateWorkflow({ candidateId }: { candidateId: string }) {
   const queryClient = useQueryClient();
-  const { data: candidate } = useQuery<Candidate>({
+  const validId = isValidObjectId(candidateId);
+
+  const { data: candidate, isError: candidateError } = useQuery<Candidate>({
     queryKey: ['candidate', candidateId],
     queryFn: async () => (await api.get(`/hiring/candidates/${candidateId}`)).data,
-    enabled: !!candidateId
+    enabled: validId,
+    retry: false
   });
 
   const { data: pipeline } = useQuery<PipelineState>({
     queryKey: ['candidate-pipeline', candidateId],
     queryFn: async () => (await api.get(`/hiring/candidates/${candidateId}/pipeline`)).data,
-    enabled: !!candidateId
+    enabled: validId
   });
 
   const { data: employees } = useQuery<any[]>({
@@ -83,7 +88,7 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
     return useQuery({
       queryKey: [step.id, entityId],
       queryFn: async () => (await api.get(`${step.apiPath}?${step.entityField}=${entityId}`)).data,
-      enabled: !!entityId
+      enabled: validId && !!entityId
     });
   });
 
@@ -97,6 +102,16 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
 
   const pipelineStepByKey = new Map((pipeline?.steps || []).map((step) => [step.key, step]));
   const resolvedEmployeeId = pipeline?.employeeId || '';
+
+  if (!validId || candidateError) {
+    return (
+      <div className="py-10 text-center text-sm text-zinc-500">
+        Candidate not found. Open this page from the{' '}
+        <Link href="/dashboard/hiring/pipeline" className="text-[#0e4778] underline">Candidate Pipeline</Link>{' '}
+        instead of typing the URL directly.
+      </div>
+    );
+  }
 
   if (!candidate) {
     return <div className="py-10 text-center text-sm text-zinc-500">Loading candidate...</div>;
