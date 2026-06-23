@@ -47,6 +47,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
       { name: 'comments', label: 'Comments', type: 'textarea' }
     ]
   },
+  /*
   {
     id: 'selection-approval', stepKey: 'selectionApproval', step: 3, phase: 'Offer & Legal', title: 'Selection Approval Note',
     apiPath: '/hiring/selection-approval', entityField: 'candidateId',
@@ -323,6 +324,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     ],
     postCreateActions: [{ label: 'Mark Issued', method: 'PUT', pathSuffix: '/issue' }]
   }
+  */
 ];
 
 export const getHiringStepById = (stepId: string) => HIRING_STEPS.find((step) => step.id === stepId);

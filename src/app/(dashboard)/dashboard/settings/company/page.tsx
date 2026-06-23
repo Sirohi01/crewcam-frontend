@@ -21,6 +21,7 @@ export default function CompanyProfilePage() {
   const [activeTab, setActiveTab] = useState('basic');
   const [formData, setFormData] = useState<any>({});
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingDocumentHeader, setUploadingDocumentHeader] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -109,6 +110,23 @@ export default function CompanyProfilePage() {
       alert('Failed to upload logo');
     } finally {
       setUploadingLogo(false);
+    }
+  };
+
+  const handleDocumentHeaderUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingDocumentHeader(true);
+    const form = new FormData();
+    form.append('file', file);
+    try {
+      const res = await api.post('/upload', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+      setFormData((prev: any) => ({ ...prev, documentHeaderImageUrl: res.data.url }));
+    } catch (err) {
+      console.error('Error uploading document header', err);
+      alert('Failed to upload document header image');
+    } finally {
+      setUploadingDocumentHeader(false);
     }
   };
 
@@ -396,6 +414,22 @@ export default function CompanyProfilePage() {
                           <span className="text-[10px] text-zinc-500 mt-1.5 block">Upload a square image (JPG, PNG). Max 5MB.</span>
                         )}
                       </div>
+                    </div>
+                  </div>
+                  <div className="col-span-2 space-y-2 mb-2 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+                    <Label className="text-xs font-md">Hiring PDF Header Image</Label>
+                    <p className="text-[10px] text-zinc-500">This wide banner appears on every generated hiring document. Your logo is used if no banner is uploaded.</p>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                      <div className="h-16 w-full max-w-sm overflow-hidden rounded-md border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+                        {formData.documentHeaderImageUrl ? (
+                          <Image src={formData.documentHeaderImageUrl} alt="Hiring PDF header preview" width={480} height={96} className="h-full w-full object-contain" />
+                        ) : <div className="grid h-full place-items-center text-[10px] text-zinc-400">No hiring document header uploaded</div>}
+                      </div>
+                      <div className="flex-1 max-w-sm">
+                        <Input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleDocumentHeaderUpload} disabled={uploadingDocumentHeader} className="h-9 text-xs file:bg-zinc-100 file:border-0 file:text-xs file:font-md file:px-3 file:py-1 file:rounded-sm file:mr-3 hover:file:bg-zinc-200 cursor-pointer bg-white dark:bg-zinc-900" />
+                        <span className="mt-1.5 block text-[10px] text-zinc-500">Use a wide JPG, PNG or WEBP image. Recommended ratio: 5:1. Max 5MB.</span>
+                      </div>
+                      {formData.documentHeaderImageUrl && <Button type="button" variant="outline" size="sm" onClick={() => setFormData((prev: any) => ({ ...prev, documentHeaderImageUrl: '' }))}>Remove</Button>}
                     </div>
                   </div>
                   <div className="space-y-1.5">
