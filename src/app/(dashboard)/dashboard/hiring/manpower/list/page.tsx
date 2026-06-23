@@ -1,5 +1,5 @@
 import ManpowerRegister from '@/components/hiring/ManpowerRegister';
 
-export default function ManpowerRequestsPage() {
+export default function ManpowerRegisterPage() {
   return <ManpowerRegister />;
 }

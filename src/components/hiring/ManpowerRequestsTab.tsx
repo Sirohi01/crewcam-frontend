@@ -29,7 +29,7 @@ function CheckGroup({ values, onChange, options }: { values: string[]; onChange:
   return <div className="mt-2 flex flex-wrap gap-x-6 gap-y-2">{options.map((option) => <label key={option} className="flex items-center gap-2 text-xs font-medium text-slate-700"><input type="checkbox" checked={values.includes(option)} onChange={() => onChange(toggle(values, option))} className="h-4 w-4" />{option}</label>)}</div>;
 }
 
-export default function ManpowerRequestsTab() {
+export default function ManpowerRequestsTab({ formOnly = false }: { formOnly?: boolean }) {
   const qc = useQueryClient();
   const [form, setForm] = useState(empty);
   const set = (patch: Partial<ReturnType<typeof empty>>) => setForm((current) => ({ ...current, ...patch }));
@@ -52,7 +52,8 @@ export default function ManpowerRequestsTab() {
   const employeeOptions = employees.map((employee) => <option key={employee._id} value={employee._id}>{employee.firstName} {employee.lastName}</option>);
   const filteredDesignations = form.departmentId ? designations.filter((item) => item.departmentId?._id === form.departmentId || item.departmentId === form.departmentId) : designations;
 
-  return <div className="mx-auto max-w-[1500px] pb-10 font-sans text-slate-900">
+  return <div className={`mx-auto max-w-[1500px] pb-10 font-sans text-slate-900${formOnly ? ' manpower-form-only' : ''}`}>
+    {formOnly && <style>{`.manpower-form-only > section { display: none; }`}</style>}
     <div className="border-b-2 border-[#0e4778] px-1 pb-2 pt-1"><p className="text-[11px] font-bold uppercase tracking-wider text-[#0e4778]">Hiring process · Step 1</p><h1 className="text-2xl font-extrabold tracking-tight text-[#073a69]">Manpower Requisition Form</h1><p className="mt-1 text-sm text-slate-600">Create a complete approved requirement before candidates can be added.</p></div>
     <form className="mt-4 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm" onSubmit={(event) => { event.preventDefault(); create.mutate(); }}>
       <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-4"><div className="flex items-center gap-3 text-base font-bold text-[#073a69]"><ClipboardList size={19} /> For Internal Use — HR & Recruitment Department</div><Button type="button" variant="outline" onClick={() => setForm(empty())}><RotateCcw size={15} className="mr-2" /> Reset</Button></div>
