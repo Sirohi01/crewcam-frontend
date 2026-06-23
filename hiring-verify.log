@@ -1,0 +1,106 @@
+
+> frontend@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.9 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.132:3000
+- Environments: .env
+✓ Ready in 2.7s
+Creating turbopack project { dir: 'D:\\CRUCAM\\frontend', testMode: true }
+
+○ Compiling /dashboard/hiring/pipeline ...
+ GET /dashboard/hiring/pipeline 200 in 6.8s (next.js: 5.2s, proxy.ts: 431ms, application-code: 1232ms)
+ GET /dashboard/hiring/pipeline 200 in 717ms (next.js: 261ms, proxy.ts: 213ms, application-code: 243ms)
+✓ Compiled in 1111ms
+ GET /dashboard/hiring/pipeline 200 in 534ms (next.js: 153ms, proxy.ts: 61ms, application-code: 320ms)
+ GET /dashboard/hiring/pipeline 200 in 288ms (next.js: 12ms, proxy.ts: 20ms, application-code: 257ms)
+ GET /dashboard/hiring/pipeline 200 in 125ms (next.js: 17ms, proxy.ts: 14ms, application-code: 93ms)
+ GET /dashboard/hiring/pipeline 200 in 4.5s (next.js: 193ms, proxy.ts: 3.2s, application-code: 1181ms)
+ GET /dashboard/hiring/ai-resume-screening 200 in 585ms (next.js: 255ms, proxy.ts: 30ms, application-code: 300ms)
+ GET /dashboard/hiring/interviews/new 200 in 3.1s (next.js: 2.8s, proxy.ts: 40ms, application-code: 299ms)
+ GET /dashboard/hiring/ai-resume-screening 200 in 236ms (next.js: 52ms, proxy.ts: 43ms, application-code: 141ms)
+ GET /dashboard/hiring/6a35ce5d39a3fd02a1e406aa 200 in 1440ms (next.js: 1272ms, proxy.ts: 29ms, application-code: 139ms)
+ GET /dashboard/hiring/interviews/list 200 in 165ms (next.js: 35ms, proxy.ts: 23ms, application-code: 107ms)
+ GET /dashboard/hiring/interviews/walk-in 200 in 108ms (next.js: 23ms, proxy.ts: 8ms, application-code: 77ms)
+ GET /dashboard/hiring/steps/evaluation 200 in 1415ms (next.js: 1255ms, proxy.ts: 10ms, application-code: 150ms)
+○ Compiling /dashboard/hiring/[candidateId]/steps/[stepId] ...
+ GET /dashboard/hiring/6a35ce5d39a3fd02a1e406aa/steps/evaluation 200 in 9.0s (next.js: 8.8s, proxy.ts: 19ms, application-code: 140ms)
+ GET /dashboard/hiring/manpower 200 in 138ms (next.js: 77ms, proxy.ts: 12ms, application-code: 49ms)
+ GET /dashboard/hiring/candidates/new 200 in 134ms (next.js: 61ms, proxy.ts: 19ms, application-code: 54ms)
+ GET /dashboard/hiring/pipeline 200 in 38ms (next.js: 5ms, proxy.ts: 6ms, application-code: 28ms)
+ GET /dashboard/hiring/ai-resume-screening 200 in 35ms (next.js: 4ms, proxy.ts: 5ms, application-code: 26ms)
+ GET /dashboard/hiring/interviews/new 200 in 228ms (next.js: 63ms, proxy.ts: 39ms, application-code: 126ms)
+ GET /dashboard/hiring/interviews/list 200 in 85ms (next.js: 20ms, proxy.ts: 8ms, application-code: 56ms)
+ GET /dashboard/hiring/interviews/new 200 in 55ms (next.js: 14ms, proxy.ts: 5ms, application-code: 36ms)
+ GET /dashboard/hiring/interviews/list 200 in 56ms (next.js: 14ms, proxy.ts: 6ms, application-code: 36ms)
+ GET /dashboard/hiring/interviews/walk-in 200 in 48ms (next.js: 12ms, proxy.ts: 5ms, application-code: 32ms)
+ GET /dashboard/hiring/interviews/telephonic 200 in 47ms (next.js: 13ms, proxy.ts: 4ms, application-code: 30ms)
+ GET /dashboard/hiring/interviews/hr-hod 200 in 53ms (next.js: 14ms, proxy.ts: 5ms, application-code: 35ms)
+ GET /dashboard/hiring/interviews/final 200 in 50ms (next.js: 13ms, proxy.ts: 4ms, application-code: 33ms)
+ GET /dashboard/hiring/interviews/statistics 200 in 49ms (next.js: 13ms, proxy.ts: 4ms, application-code: 32ms)
+ GET /dashboard/hiring/interviews/telephonic 200 in 53ms (next.js: 14ms, proxy.ts: 5ms, application-code: 34ms)
+ GET /dashboard/hiring/interviews/walk-in 200 in 51ms (next.js: 12ms, proxy.ts: 4ms, application-code: 35ms)
+ GET /dashboard/hiring/interviews/list 200 in 63ms (next.js: 18ms, proxy.ts: 6ms, application-code: 39ms)
+ GET /dashboard/hiring/manpower 200 in 884ms (next.js: 147ms, proxy.ts: 177ms, application-code: 561ms)
+ GET /dashboard/hiring/manpower 200 in 99ms (next.js: 14ms, proxy.ts: 11ms, application-code: 74ms)
+ GET /dashboard/hiring/candidates/new 200 in 48ms (next.js: 9ms, proxy.ts: 6ms, application-code: 33ms)
+ GET /dashboard/hiring/pipeline 200 in 41ms (next.js: 7ms, proxy.ts: 5ms, application-code: 29ms)
+ GET /dashboard/hiring/ai-resume-screening 200 in 46ms (next.js: 7ms, proxy.ts: 5ms, application-code: 33ms)
+ GET /dashboard/hiring/interviews/new 200 in 72ms (next.js: 23ms, proxy.ts: 5ms, application-code: 44ms)
+○ Compiling /dashboard/attendance/out-in ...
+ GET /dashboard/attendance/out-in 200 in 5.4s (next.js: 4.6s, proxy.ts: 17ms, application-code: 784ms)
+ GET /dashboard/hiring/manpower 200 in 371ms (next.js: 93ms, proxy.ts: 79ms, application-code: 199ms)
+✓ Compiled in 10.8s
+ GET /dashboard/hiring/manpower 200 in 6.3s (next.js: 2.1s, proxy.ts: 2.4s, application-code: 1819ms)
+ GET /dashboard/hiring/manpower 200 in 294ms (next.js: 19ms, proxy.ts: 109ms, application-code: 165ms)
+ GET /dashboard/hiring/manpower 200 in 272ms (next.js: 17ms, proxy.ts: 17ms, application-code: 238ms)
+✓ Finished filesystem cache database compaction in 13.3s
+✓ Compiled in 10.1s
+ GET /dashboard/hiring/manpower 200 in 5.2s (next.js: 2.5s, proxy.ts: 1073ms, application-code: 1641ms)
+✓ Compiled in 8.3s
+ GET /dashboard/hiring/candidates/new 200 in 14.9s (next.js: 10.6s, proxy.ts: 160ms, application-code: 4.2s)
+ GET /dashboard/hiring/manpower 200 in 17.9s (next.js: 8.4s, proxy.ts: 309ms, application-code: 9.2s)
+ GET /dashboard/hiring/candidates/new 200 in 5.2s (next.js: 1458ms, proxy.ts: 820ms, application-code: 2.9s)
+ GET /dashboard/hiring/candidates/new 200 in 1719ms (next.js: 947ms, proxy.ts: 417ms, application-code: 355ms)
+ GET /dashboard/hiring/candidates/new 200 in 1797ms (next.js: 157ms, proxy.ts: 425ms, application-code: 1215ms)
+ GET /dashboard/hiring/candidates/new 200 in 931ms (next.js: 183ms, proxy.ts: 98ms, application-code: 650ms)
+ GET /dashboard/hiring/candidates/new 200 in 1378ms (next.js: 147ms, proxy.ts: 51ms, application-code: 1179ms)
+ GET /dashboard/hiring/candidates/new 200 in 717ms (next.js: 19ms, proxy.ts: 47ms, application-code: 650ms)
+ GET /dashboard/hiring/manpower 200 in 2.2s (next.js: 772ms, proxy.ts: 659ms, application-code: 804ms)
+ GET /dashboard/hiring/candidates/new 200 in 217ms (next.js: 42ms, proxy.ts: 25ms, application-code: 150ms)
+ GET /dashboard/hiring/ai-resume-screening 200 in 1716ms (next.js: 1029ms, proxy.ts: 98ms, application-code: 589ms)
+ GET /dashboard/hiring/steps/evaluation 200 in 1495ms (next.js: 752ms, proxy.ts: 26ms, application-code: 716ms)
+✓ Compiled in 8.6s
+✓ Compiled in 7.5s
+ GET /dashboard/hiring/steps/evaluation 200 in 16.6s (next.js: 9.7s, proxy.ts: 4.3s, application-code: 2.6s)
+ GET /dashboard/hiring/steps/evaluation 200 in 705ms (next.js: 254ms, proxy.ts: 51ms, application-code: 400ms)
+ GET /dashboard/hiring/steps/evaluation 200 in 529ms (next.js: 42ms, proxy.ts: 15ms, application-code: 472ms)
+ GET /dashboard/hiring/steps/evaluation 200 in 2.2s (next.js: 287ms, proxy.ts: 381ms, application-code: 1562ms)
+ GET /dashboard/hiring/6a35ce5d39a3fd02a1e406aa/steps/evaluation 200 in 332ms (next.js: 245ms, proxy.ts: 8ms, application-code: 78ms)
+ GET /dashboard/attendance/out-in 200 in 557ms (next.js: 178ms, proxy.ts: 98ms, application-code: 280ms)
+○ Compiling /dashboard/leaves ...
+ GET /dashboard/leaves 200 in 21.6s (next.js: 19.4s, proxy.ts: 54ms, application-code: 2.1s)
+ GET /dashboard/leaves/credit 200 in 16.8s (next.js: 15.3s, proxy.ts: 71ms, application-code: 1377ms)
+ GET /dashboard/attendance/out-in 200 in 7.5s (next.js: 5.5s, proxy.ts: 839ms, application-code: 1154ms)
+ GET /dashboard 200 in 1044ms (next.js: 772ms, proxy.ts: 73ms, application-code: 199ms)
+✓ Compiled in 18.5s
+ GET /dashboard 200 in 16.6s (next.js: 15.6s, proxy.ts: 862ms, application-code: 207ms)
+ GET /dashboard 200 in 291ms (next.js: 60ms, proxy.ts: 114ms, application-code: 117ms)
+ GET /dashboard 200 in 417ms (next.js: 14ms, proxy.ts: 40ms, application-code: 364ms)
+ GET /dashboard 200 in 718ms (next.js: 29ms, proxy.ts: 23ms, application-code: 666ms)
+ GET /dashboard 200 in 539ms (next.js: 186ms, proxy.ts: 42ms, application-code: 312ms)
+ GET /dashboard 200 in 534ms (next.js: 322ms, proxy.ts: 40ms, application-code: 173ms)
+ GET /dashboard 200 in 550ms (next.js: 30ms, proxy.ts: 43ms, application-code: 478ms)
+✓ Compiled in 3.9s
+ GET /dashboard 200 in 603ms (next.js: 287ms, proxy.ts: 73ms, application-code: 243ms)
+ GET /dashboard 200 in 116ms (next.js: 8ms, proxy.ts: 12ms, application-code: 97ms)
+ GET /dashboard 200 in 112ms (next.js: 8ms, proxy.ts: 11ms, application-code: 93ms)
+ GET /dashboard 200 in 2.3s (next.js: 84ms, proxy.ts: 186ms, application-code: 2.1s)
+ GET /dashboard/hiring/pipeline 200 in 442ms (next.js: 299ms, proxy.ts: 19ms, application-code: 124ms)
+✓ Compiled in 3.9s
+ GET /dashboard 200 in 651ms (next.js: 290ms, proxy.ts: 127ms, application-code: 233ms)
+✓ Compiled in 478ms
+ GET /dashboard 200 in 402ms (next.js: 205ms, proxy.ts: 47ms, application-code: 150ms)
+ GET /dashboard 200 in 2.3s (next.js: 311ms, proxy.ts: 1142ms, application-code: 864ms)
+[?25h
