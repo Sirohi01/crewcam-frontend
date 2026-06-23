@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ClipboardList, FileText, RotateCcw, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,10 +30,14 @@ function CheckGroup({ values, onChange, options }: { values: string[]; onChange:
   return <div className="mt-2 flex flex-wrap gap-x-6 gap-y-2">{options.map((option) => <label key={option} className="flex items-center gap-2 text-xs font-medium text-slate-700"><input type="checkbox" checked={values.includes(option)} onChange={() => onChange(toggle(values, option))} className="h-4 w-4" />{option}</label>)}</div>;
 }
 
-export default function ManpowerRequestsTab({ formOnly = false }: { formOnly?: boolean }) {
+const toId = (value: any) => value?._id || value || '';
+const toDateInput = (value: any) => value ? new Date(value).toISOString().slice(0, 10) : '';
+
+export default function ManpowerRequestsTab({ formOnly = false, requestId }: { formOnly?: boolean; requestId?: string }) {
   const qc = useQueryClient();
   const [form, setForm] = useState(empty);
   const set = (patch: Partial<ReturnType<typeof empty>>) => setForm((current) => ({ ...current, ...patch }));
+  const { data: existing } = useQuery<any>({ queryKey: ['manpower-request', requestId], queryFn: async () => (await api.get(`/hiring/manpower-request/${requestId}`)).data, enabled: Boolean(requestId) });
   const { data: requests = [] } = useQuery<any[]>({ queryKey: ['manpower-requests'], queryFn: async () => (await api.get('/hiring/manpower-request')).data });
   const { data: employees = [] } = useQuery<any[]>({ queryKey: ['employees-picker'], queryFn: async () => (await api.get('/employees')).data.data || [] });
   const { data: departments = [] } = useQuery<any[]>({ queryKey: ['departments'], queryFn: async () => (await api.get('/companies/departments')).data.data || [] });
@@ -41,12 +45,47 @@ export default function ManpowerRequestsTab({ formOnly = false }: { formOnly?: b
   const { data: designations = [] } = useQuery<any[]>({ queryKey: ['designations'], queryFn: async () => (await api.get('/companies/designations')).data.data || [] });
   const refresh = () => qc.invalidateQueries({ queryKey: ['manpower-requests'] });
 
+  useEffect(() => {
+    if (!existing) return;
+    setForm({
+      departmentId: toId(existing.departmentId),
+      requestDate: toDateInput(existing.requestDate) || today,
+      locationBranchId: toId(existing.locationBranchId),
+      jobTitle: existing.jobTitle || '',
+      designation: existing.designation || '',
+      reportingTo: toId(existing.reportingTo),
+      numberOfPositions: String(existing.numberOfPositions || 1),
+      employmentTypes: existing.employmentTypes || (existing.employmentType ? [existing.employmentType] : []),
+      hiringReasons: existing.hiringReasons || (existing.reasonForHiring ? [existing.reasonForHiring] : []),
+      replacementName: existing.replacementName || '',
+      detailedJustification: existing.detailedJustification || '',
+      jobDescriptionSummary: existing.jobDescriptionSummary || '',
+      kraReport: existing.kraReport || '',
+      keyResponsibilitiesText: (existing.keyResponsibilities || []).join('\n'),
+      qualificationReq: existing.qualificationReq || '',
+      experienceReq: existing.experienceReq || '',
+      technicalSkills: existing.technicalSkills || '',
+      softSkills: existing.softSkills || '',
+      salaryCtcMin: existing.salaryCtcMin ? String(existing.salaryCtcMin) : '',
+      salaryCtcMax: existing.salaryCtcMax ? String(existing.salaryCtcMax) : '',
+      budgetApprovedBy: toId(existing.budgetApprovedBy),
+      benefits: existing.benefits || [],
+      otherBenefits: existing.otherBenefits || '',
+      requiredJoiningDate: toDateInput(existing.requiredJoiningDate),
+      isUrgent: Boolean(existing.isUrgent || existing.priority === 'Urgent'),
+      requestReceivedOn: toDateInput(existing.requestReceivedOn),
+      recruitmentStartDate: toDateInput(existing.recruitmentStartDate),
+      recruitmentStatus: existing.recruitmentStatus || 'Pending',
+      declarationAccepted: Boolean(existing.declarationAccepted),
+    });
+  }, [existing]);
+
   const create = useMutation({
     mutationFn: async () => {
       const { keyResponsibilitiesText, ...rest } = form;
       const payload = { ...rest, keyResponsibilities: keyResponsibilitiesText.split('\n').map((item) => item.trim()).filter(Boolean), numberOfPositions: Number(form.numberOfPositions), employmentType: form.employmentTypes[0] || 'Full-time', reasonForHiring: form.hiringReasons[0] || 'New Position', priority: form.isUrgent ? 'Urgent' : 'Medium', salaryCtcMin: form.salaryCtcMin ? Number(form.salaryCtcMin) : undefined, salaryCtcMax: form.salaryCtcMax ? Number(form.salaryCtcMax) : undefined, budgetCTC: form.salaryCtcMax ? Number(form.salaryCtcMax) : undefined };
-      return (await api.post('/hiring/manpower-request', payload)).data;
-    }, onSuccess: () => { refresh(); setForm(empty()); },
+      return requestId ? (await api.put(`/hiring/manpower-request/${requestId}`, payload)).data : (await api.post('/hiring/manpower-request', payload)).data;
+    }, onSuccess: () => { refresh(); if (!requestId) setForm(empty()); qc.invalidateQueries({ queryKey: ['manpower-request', requestId] }); },
   });
   const changeStatus = useMutation({ mutationFn: async ({ id, status }: { id: string; status: 'Approved' | 'Rejected' }) => (await api.put(`/hiring/manpower-request/${id}/status`, { status })).data, onSuccess: refresh });
   const generatePdf = useMutation({ mutationFn: async (id: string) => (await api.post(`/hiring/manpower-request/${id}/generate-pdf`)).data, onSuccess: (data) => { refresh(); openFileUrl(data.pdfUrl); } });
