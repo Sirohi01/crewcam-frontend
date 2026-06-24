@@ -38,9 +38,7 @@ export default function DynamicSidebar() {
   const handleSignOut = async () => {
     try {
       await api.post('/auth/logout');
-    } catch {
-      // Best-effort server-side revoke; clear local session regardless.
-    }
+    } catch {}
     logout();
     router.replace('/login');
   };
@@ -58,7 +56,6 @@ export default function DynamicSidebar() {
       group = { section: item.section, items: [] };
       sections.push(group);
     }
-
     if (item.parent) {
       let parentGroup = group.items.find((i) => 'isGroup' in i && i.label === item.parent) as { isGroup: true; label: string; children: SidebarItem[] } | undefined;
       if (!parentGroup) {
@@ -72,60 +69,101 @@ export default function DynamicSidebar() {
   });
 
   return (
-    <aside className="w-56 flex-shrink-0 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col">
-      <div className="flex h-14 items-center border-b border-zinc-200 px-3 dark:border-zinc-800">
-        <Image
-          src="/crewcam.png"
-          alt="Crewcam"
-          width={1073}
-          height={156}
-          priority
-          className="h-auto w-full max-w-[170px] object-contain"
-        />
-      </div>
-
-      <div className="flex-1 overflow-y-auto py-2">
-        <div className="px-2 space-y-4">
-          {sections.map((group) => (
-            <nav key={group.section} className="space-y-0.5">
-              <SectionLabel>{group.section}</SectionLabel>
-              {group.items.map((item, idx) => {
-                if ('isGroup' in item) {
-                  return <NavGroup key={item.label} label={item.label} items={item.children} pathname={pathname} />;
-                }
-                return (
-                  <NavItem
-                    key={item._id}
-                    href={item.href}
-                    icon={React.createElement(ICONS[item.icon] || Circle, { size: 14 })}
-                    label={item.label}
-                    active={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
-                    disabled={item.href.includes('/coming-soon')}
-                  />
-                );
-              })}
-            </nav>
-          ))}
+    <>
+      <style>{`
+        .sidebar-scroll::-webkit-scrollbar {
+          width: 3px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+          background: rgba(255,255,255,0.15);
+          border-radius: 4px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+          background: rgba(255,255,255,0.25);
+        }
+        .sidebar-scroll {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(255,255,255,0.15) transparent;
+          overflow-x: hidden;
+        }
+      `}</style>
+      <aside
+        className="w-64 flex-shrink-0 flex flex-col"
+        style={{
+          background: 'linear-gradient(180deg, #0f172a 0%, #1e1b4b 60%, #0f172a 100%)',
+          borderRight: '1px solid rgba(99,102,241,0.2)',
+        }}
+      >
+        {/* Logo */}
+        <div
+          className="flex h-14 items-center px-4"
+          style={{ borderBottom: '1px solid rgba(99,102,241,0.2)' }}
+        >
+          <Image
+            src="/crewcam.png"
+            alt="Crewcam"
+            width={1073}
+            height={156}
+            priority
+            className="h-auto w-full max-w-[190px] object-contain"
+            style={{ filter: 'brightness(0) invert(1)' }}
+          />
         </div>
-      </div>
 
-      <div className="p-2 border-t border-zinc-200 dark:border-zinc-800">
-        <nav className="space-y-0.5">
+        {/* Nav */}
+        <div className="sidebar-scroll flex-1 overflow-y-auto py-2">
+          <div className="px-2 space-y-4">
+            {sections.map((group) => (
+              <nav key={group.section} className="space-y-0.5">
+                <SectionLabel>{group.section}</SectionLabel>
+                {group.items.map((item) => {
+                  if ('isGroup' in item) {
+                    return <NavGroup key={item.label} label={item.label} items={item.children} pathname={pathname} />;
+                  }
+                  return (
+                    <NavItem
+                      key={item._id}
+                      href={item.href}
+                      icon={React.createElement(ICONS[item.icon] || Circle, { size: 14 })}
+                      label={item.label}
+                      active={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
+                      disabled={item.href.includes('/coming-soon')}
+                    />
+                  );
+                })}
+              </nav>
+            ))}
+          </div>
+        </div>
+
+        {/* Sign out */}
+        <div className="p-2" style={{ borderTop: '1px solid rgba(99,102,241,0.2)' }}>
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-500 dark:hover:text-red-400 dark:hover:bg-red-950/50 rounded-md transition-colors text-left"
+            className="w-full flex items-center gap-2 px-2 py-1.5 text-xs font-medium rounded-md transition-colors text-left"
+            style={{ color: '#fca5a5' }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(248,113,113,0.15)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent'; }}
           >
             <LogOut size={14} />
             <span>Sign Out</span>
           </button>
-        </nav>
-      </div>
-    </aside>
+        </div>
+      </aside>
+    </>
   );
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <div className="px-2 pb-1 text-[10px] font-md uppercase tracking-wider text-zinc-400">{children}</div>;
+  return (
+    // was #818cf8 — bumped to #a5b4fc for better visibility
+    <div className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#a5b4fc' }}>
+      {children}
+    </div>
+  );
 }
 
 function NavItem({
@@ -135,11 +173,12 @@ function NavItem({
     return (
       <div
         title="Not built yet"
-        className="flex items-center gap-2 px-2 py-1.5 text-xs font-medium rounded-md text-zinc-400 dark:text-zinc-600 opacity-50 cursor-not-allowed select-none"
+        className="flex items-center gap-2 px-2 py-1.5 text-xs font-medium rounded-md opacity-50 cursor-not-allowed select-none"
+        style={{ color: '#e2e8f0' }} // was #94a3b8
       >
         {icon}
         <span className="flex-1 truncate">{label}</span>
-        <span className="text-[9px] font-md uppercase tracking-wide text-zinc-400 dark:text-zinc-600">Soon</span>
+        <span className="text-[9px] font-semibold uppercase tracking-wide" style={{ color: '#94a3b8' }}>Soon</span>
       </div>
     );
   }
@@ -147,13 +186,27 @@ function NavItem({
   return (
     <Link
       href={href}
-      className={`flex items-center gap-2 px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${active
-        ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50'
-        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
-        }`}
+      className="flex items-center gap-2 px-2 py-1.5 text-xs font-medium rounded-md transition-colors"
+      style={
+        active
+          ? { backgroundColor: 'rgba(99,102,241,0.3)', color: '#ffffff', borderLeft: '2px solid #a5b4fc' }
+          : { color: '#e2e8f0' } // was #cbd5e1 — brighter now
+      }
+      onMouseEnter={(e) => {
+        if (!active) {
+          (e.currentTarget as HTMLAnchorElement).style.backgroundColor = 'rgba(99,102,241,0.15)';
+          (e.currentTarget as HTMLAnchorElement).style.color = '#ffffff';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!active) {
+          (e.currentTarget as HTMLAnchorElement).style.backgroundColor = 'transparent';
+          (e.currentTarget as HTMLAnchorElement).style.color = '#e2e8f0';
+        }
+      }}
     >
       {icon}
-      <span>{label}</span>
+      <span className="truncate">{label}</span>
     </Link>
   );
 }
@@ -166,30 +219,71 @@ function NavGroup({ label, items, pathname }: { label: string; items: SidebarIte
     <div className="space-y-0.5">
       <button
         onClick={() => setExpanded(!expanded)}
-        className={`w-full flex items-center justify-between px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${isAnyChildActive ? 'text-indigo-600 dark:text-indigo-400 font-md bg-indigo-50/50 dark:bg-indigo-900/10' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
-          }`}
+        className="w-full flex items-center justify-between px-2 py-1.5 text-xs font-medium rounded-md transition-colors"
+        style={
+          isAnyChildActive
+            ? { color: '#c7d2fe', backgroundColor: 'rgba(99,102,241,0.15)' } // was #a5b4fc
+            : { color: '#e2e8f0' } // was #cbd5e1
+        }
+        onMouseEnter={(e) => {
+          if (!isAnyChildActive) {
+            (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(99,102,241,0.15)';
+            (e.currentTarget as HTMLButtonElement).style.color = '#ffffff';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isAnyChildActive) {
+            (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent';
+            (e.currentTarget as HTMLButtonElement).style.color = '#e2e8f0';
+          }
+        }}
       >
-        <div className="flex items-center gap-2">
-          <Briefcase size={14} />
-          <span>{label}</span>
+        <div className="flex items-center gap-2 min-w-0">
+          <Briefcase size={14} className="flex-shrink-0" />
+          <span className="truncate">{label}</span>
         </div>
-        {expanded ? <ChevronDown size={14} className="opacity-50" /> : <ChevronRight size={14} className="opacity-50" />}
+        <span className="flex-shrink-0 ml-1">
+          {expanded
+            ? <ChevronDown size={14} style={{ opacity: 0.6 }} />
+            : <ChevronRight size={14} style={{ opacity: 0.6 }} />
+          }
+        </span>
       </button>
 
       {expanded && (
-        <div className="pl-6 space-y-0.5 border-l-2 border-zinc-100 dark:border-zinc-800/50 ml-3 py-1">
-          {items.map((item) => (
-            <Link
-              key={item._id}
-              href={item.href}
-              className={`block px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
-                ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50'
-                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
-                }`}
-            >
-              {item.label}
-            </Link>
-          ))}
+        <div
+          className="pl-5 space-y-0.5 ml-3 py-1"
+          style={{ borderLeft: '1px solid rgba(99,102,241,0.35)' }}
+        >
+          {items.map((item) => {
+            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+            return (
+              <Link
+                key={item._id}
+                href={item.href}
+                className="block px-2 py-1.5 text-xs font-medium rounded-md transition-colors"
+                style={
+                  isActive
+                    ? { backgroundColor: 'rgba(99,102,241,0.3)', color: '#ffffff' }
+                    : { color: '#e2e8f0' } // was #cbd5e1
+                }
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLAnchorElement).style.backgroundColor = 'rgba(99,102,241,0.15)';
+                    (e.currentTarget as HTMLAnchorElement).style.color = '#ffffff';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLAnchorElement).style.backgroundColor = 'transparent';
+                    (e.currentTarget as HTMLAnchorElement).style.color = '#e2e8f0';
+                  }
+                }}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
