@@ -124,6 +124,7 @@ const maskSensitive = (key: string, value: unknown) => {
 
 const recordDisplayValue = (key: string, value: any) => {
   if (value === undefined || value === null || value === '') return '—';
+  if (typeof value === 'number') return Math.round(value).toLocaleString('en-IN');
   if (key === 'candidateId' && typeof value === 'object') return `${value.firstName || ''} ${value.lastName || ''}`.trim() || 'Candidate';
   if (key === 'employeeId' && typeof value === 'object') return `${value.firstName || ''} ${value.lastName || ''}`.trim() || value.employeeCode || 'Employee';
   if (key === 'approvalChain' && Array.isArray(value)) return value.map((entry: any) => {
@@ -131,7 +132,7 @@ const recordDisplayValue = (key: string, value: any) => {
     const name = typeof approver === 'object' ? `${approver.firstName || ''} ${approver.lastName || ''}`.trim() : 'Selected approver';
     return `${entry.role || 'Approver'}: ${name} — ${entry.status || 'Pending'}`;
   }).join(' | ');
-  if (Array.isArray(value)) return value.map((entry) => typeof entry === 'object' ? JSON.stringify(entry) : String(entry)).join(', ');
+  if (Array.isArray(value)) return value.map((entry) => typeof entry === 'number' ? Math.round(entry).toLocaleString('en-IN') : (typeof entry === 'object' ? JSON.stringify(entry) : String(entry))).join(', ');
   if (typeof value === 'object') return value.firstName ? `${value.firstName} ${value.lastName || ''}`.trim() : (value.name || value.title || 'Saved details');
   return maskSensitive(key, value);
 };
