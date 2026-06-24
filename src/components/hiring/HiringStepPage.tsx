@@ -351,6 +351,16 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
     },
   });
 
+  const loiStatusMutation = useMutation({
+    mutationFn: async ({ recordId, status }: { recordId: string; status: string }) => (await api.put(`/hiring/loi/${recordId}/status`, { status })).data,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['candidate-pipeline', candidateId] });
+      queryClient.invalidateQueries({ queryKey: ['hiring-step-records', step?.id, entityId] });
+      queryClient.invalidateQueries({ queryKey: ['candidate-hiring-profile', candidateId] });
+    },
+    onError: (error: any) => window.alert(error?.response?.data?.message || 'Unable to update LOI status'),
+  });
+
   const pdfMutation = useMutation({
     mutationFn: async (recordId: string) => (await api.post(`${step!.apiPath}/${recordId}/generate-pdf`)).data,
     onSuccess: (data) => {
@@ -450,12 +460,13 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
               {records.length === 0 && <div className="text-sm text-zinc-500">No records for this step yet.</div>}
               {records.map((record) => (
                 <div key={record._id} className="rounded-md border border-zinc-200 p-3 text-sm dark:border-zinc-800">
-                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                    <div className="font-md text-zinc-900 dark:text-zinc-100">{record.status || record.finalStatus || record.overallStatus || record.signedStatus || 'Saved'}</div>
-                    <div className="flex gap-2">
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                      <div className="font-md text-zinc-900 dark:text-zinc-100">{record.status || record.finalStatus || record.overallStatus || record.signedStatus || 'Saved'}</div>
+                      <div className="flex gap-2">
+                      {step.id === 'loi' && <select value={record.status || 'Draft'} onChange={(event) => loiStatusMutation.mutate({ recordId: record._id, status: event.target.value })} className="h-8 rounded-md border border-zinc-300 bg-white px-2 text-xs dark:border-zinc-700 dark:bg-zinc-950"><option>Draft</option><option>Sent</option><option>Accepted</option><option>Declined</option><option>Expired</option></select>}
                       {step.hasPdf && (
                         <Button type="button" variant="outline" className="h-8 gap-2 px-2 text-xs" onClick={() => pdfMutation.mutate(record._id)}>
-                          <FileText size={14} /> PDF
+                          <FileText size={14} /> {step.id === 'loi' && record.status === 'Draft' ? 'Generate & Send LOI' : 'PDF'}
                         </Button>
                       )}
                       {(step.postCreateActions || []).filter((action) => !(step.id === 'selection-approval' && record.finalStatus && record.finalStatus !== 'Pending')).map((action) => (

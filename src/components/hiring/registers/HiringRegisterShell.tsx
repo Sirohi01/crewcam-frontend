@@ -95,6 +95,11 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
       queryClient.invalidateQueries({ queryKey: ['hiring-register', step?.apiPath] });
     },
   });
+  const loiStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => (await api.put(`/hiring/loi/${id}/status`, { status })).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hiring-register', step?.apiPath] }),
+    onError: (error: any) => window.alert(error?.response?.data?.message || 'Unable to update LOI status'),
+  });
 
   if (!step) return <div className="p-8 text-center text-sm text-zinc-500">Unknown register step.</div>;
 
@@ -223,9 +228,9 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                       </td>
                     ))}
                     <td className="px-3 py-2 border-r border-slate-100">
-                      <span className="font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[2px] border border-emerald-200">
+                      {step.id === 'loi' ? <select value={row.status || 'Draft'} onChange={(event) => loiStatusMutation.mutate({ id: row._id, status: event.target.value })} className="rounded border border-slate-300 bg-white px-2 py-1 text-[10px] font-bold uppercase text-slate-700"><option>Draft</option><option>Sent</option><option>Accepted</option><option>Declined</option><option>Expired</option></select> : <span className="font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[2px] border border-emerald-200">
                         {row.status || row.finalStatus || 'Active'}
-                      </span>
+                      </span>}
                     </td>
                     <td className="px-3 py-2 text-center">
                       <div className="flex items-center justify-center gap-1">
