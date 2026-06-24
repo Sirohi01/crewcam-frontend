@@ -103,7 +103,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     apiPath: '/hiring/joining-confirmation', entityField: 'candidateId', hasPdf: true,
     fields: [
       { name: 'confirmedJoiningDate', label: 'Confirmed Joining Date', type: 'date', required: true },
-      { name: 'reportingManagerId', label: 'Reporting Manager Employee ID', type: 'text' },
+      { name: 'reportingManagerName', label: 'Reporting Manager', type: 'text' },
       { name: 'reportingTime', label: 'Reporting Time', type: 'text' },
       { name: 'reportingLocation', label: 'Reporting Location', type: 'text' },
     ],

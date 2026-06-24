@@ -275,6 +275,7 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
     const selection = hiringProfile.selectionApproval || {};
     const ctc = hiringProfile.ctcBreakup || {};
     const loi = hiringProfile.loi || {};
+    const joiningConfirmation = hiringProfile.joiningConfirmation || {};
     const joining = hiringProfile.joiningForm || {};
     const personal = joining.personalDetails || {};
     const contact = joining.contactDetails || {};
@@ -291,7 +292,10 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
       approvalNotes: selection.approvalNotes || evaluation.hodRemarks || evaluation.hrRemarks || evaluation.interviewerRemarks || '',
       annualCTC: ctc.annualCTC || selection.proposedCTC || evaluation.proposedSalaryMax || '',
       joiningDate: loi.joiningDate || position.joiningDate || manpower.requiredJoiningDate || '',
-      confirmedJoiningDate: hiringProfile.joiningConfirmation?.confirmedJoiningDate || loi.joiningDate || manpower.requiredJoiningDate || '',
+      confirmedJoiningDate: joiningConfirmation.confirmedJoiningDate || loi.joiningDate || manpower.requiredJoiningDate || '',
+      reportingManagerName: joiningConfirmation.reportingManagerName || `${manpower.reportingTo?.firstName || ''} ${manpower.reportingTo?.lastName || ''}`.trim() || '',
+      reportingTime: joiningConfirmation.reportingTime || '09:30 AM',
+      reportingLocation: joiningConfirmation.reportingLocation || manpower.workLocation || manpower.locationBranchId?.location || manpower.locationBranchId?.address || '',
       'personalDetails.fullName': personal.fullName || `${profileCandidate.firstName || ''} ${profileCandidate.lastName || ''}`.trim(),
       'personalDetails.dob': personal.dob || profileCandidate.applicationDetails?.dateOfBirth || '',
       'contactDetails.mobileNumber': contact.mobileNumber || profileCandidate.phone || '',
