@@ -76,15 +76,18 @@ export default function ManpowerRegister() {
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1180px] text-left text-xs">
-            <thead className="bg-zinc-50 text-zinc-500 dark:bg-zinc-900"><tr><th className="px-4 py-3 font-medium">Request date</th><th className="px-4 py-3 font-medium">Position</th><th className="px-4 py-3 font-medium">Department</th><th className="px-4 py-3 font-medium">Branch</th><th className="px-4 py-3 font-medium">Positions</th><th className="px-4 py-3 font-medium">Joining date</th><th className="px-4 py-3 font-medium">Priority</th><th className="px-4 py-3 font-medium">Status</th><th className="px-4 py-3 text-right font-medium">Actions</th></tr></thead>
+          <table className="w-full min-w-[1760px] text-left text-xs">
+            <thead className="bg-zinc-50 text-zinc-500 dark:bg-zinc-900"><tr><th className="px-4 py-3 font-medium">Request date</th><th className="px-4 py-3 font-medium">Position</th><th className="px-4 py-3 font-medium">Department</th><th className="px-4 py-3 font-medium">Work location</th><th className="px-4 py-3 font-medium">Reporting to</th><th className="px-4 py-3 font-medium">Salary range (CTC)</th><th className="px-4 py-3 font-medium">Requirement notes</th><th className="px-4 py-3 font-medium">Positions</th><th className="px-4 py-3 font-medium">Joining date</th><th className="px-4 py-3 font-medium">Priority</th><th className="px-4 py-3 font-medium">Status</th><th className="px-4 py-3 text-right font-medium">Actions</th></tr></thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-              {isLoading && <tr><td colSpan={9} className="px-4 py-7 text-zinc-500">Loading requisitions...</td></tr>}
+              {isLoading && <tr><td colSpan={12} className="px-4 py-7 text-zinc-500">Loading requisitions...</td></tr>}
               {rows.map((request: any) => <tr key={request._id}>
                 <td className="px-4 py-3">{request.requestDate ? new Date(request.requestDate).toLocaleDateString() : '-'}</td>
                 <td className="px-4 py-3 font-medium">{request.jobTitle}<span className="mt-0.5 block font-normal text-zinc-500">{request.designation || '-'}</span></td>
                 <td className="px-4 py-3">{request.departmentId?.name || '-'}</td>
-                <td className="px-4 py-3">{request.locationBranchId?.name || request.workLocation || '-'}</td>
+                <td className="px-4 py-3"><span className="font-medium">{request.workLocation || '-'}</span><span className="mt-0.5 block text-zinc-500">{request.locationBranchId?.name || ''}</span></td>
+                <td className="px-4 py-3">{request.reportingTo?.firstName ? `${request.reportingTo.firstName} ${request.reportingTo.lastName || ''}`.trim() : '-'}</td>
+                <td className="px-4 py-3 whitespace-nowrap">{request.salaryCtcMin || request.salaryCtcMax ? `₹${Number(request.salaryCtcMin || 0).toLocaleString('en-IN')} – ₹${Number(request.salaryCtcMax || 0).toLocaleString('en-IN')}` : request.budgetCTC ? `₹${Number(request.budgetCTC).toLocaleString('en-IN')}` : '-'}</td>
+                <td className="max-w-[260px] px-4 py-3"><p className="line-clamp-2 text-zinc-700 dark:text-zinc-300" title={request.detailedJustification || request.justification || request.jobDescriptionSummary || ''}>{request.detailedJustification || request.justification || request.jobDescriptionSummary || '-'}</p></td>
                 <td className="px-4 py-3 text-center">{request.numberOfPositions}</td>
                 <td className="px-4 py-3">{request.requiredJoiningDate ? new Date(request.requiredJoiningDate).toLocaleDateString() : '-'}</td>
                 <td className="px-4 py-3">{request.priority || '-'}</td>
@@ -96,7 +99,7 @@ export default function ManpowerRegister() {
                   <Button size="sm" variant="outline" disabled={generatePdf.isPending} onClick={() => generatePdf.mutate(request._id)}><FileText size={13} className="mr-1" />PDF</Button>
                 </div></td>
               </tr>)}
-              {!isLoading && !rows.length && <tr><td colSpan={9} className="px-4 py-8 text-center text-zinc-500">No requisitions match the selected filters.</td></tr>}
+              {!isLoading && !rows.length && <tr><td colSpan={12} className="px-4 py-8 text-center text-zinc-500">No requisitions match the selected filters.</td></tr>}
             </tbody>
           </table>
         </div>

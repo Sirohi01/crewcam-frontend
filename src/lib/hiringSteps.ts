@@ -13,6 +13,7 @@ export interface ArrayFieldConfig {
   label: string;
   subFields: StepField[];
   scalarArray?: boolean;
+  employeePicker?: boolean;
 }
 
 export interface HiringStepConfig {
@@ -37,7 +38,7 @@ export interface HiringStepConfig {
 export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'evaluation', stepKey: 'interviewEvaluation', step: 2, phase: 'Offer & Legal', title: 'Interview Evaluation Sheet',
-    apiPath: '/hiring/evaluation', entityField: 'candidateId',
+    apiPath: '/hiring/evaluation', entityField: 'candidateId', hasPdf: true,
     fields: [
       { name: 'roundType', label: 'Round Type', type: 'select', options: ['Telephonic', 'Technical', 'HR', 'Managerial', 'Final'], required: true },
       { name: 'recommendation', label: 'Recommendation', type: 'select', options: ['Strongly Recommend', 'Recommend', 'Neutral', 'Not Recommend', 'Strongly Reject'], required: true },
@@ -46,6 +47,88 @@ export const HIRING_STEPS: HiringStepConfig[] = [
       { name: 'weaknesses', label: 'Weaknesses', type: 'textarea' },
       { name: 'comments', label: 'Comments', type: 'textarea' },
     ]
+  },
+  {
+    id: 'selection-approval', stepKey: 'selectionApproval', step: 3, phase: 'Offer & Legal', title: 'Selection Approval Note',
+    apiPath: '/hiring/selection-approval', entityField: 'candidateId', hasPdf: true,
+    fields: [
+      { name: 'jobRole', label: 'Proposed Position', type: 'text', required: true },
+      { name: 'recruitmentSource', label: 'Recruitment Source', type: 'text' },
+      { name: 'proposedCTC', label: 'Proposed Annual CTC', type: 'number', required: true },
+      { name: 'budgetedCTC', label: 'Budgeted CTC', type: 'number' },
+      { name: 'recruitmentSummary', label: 'Recruitment Summary', type: 'textarea' },
+      { name: 'justificationForVariance', label: 'Justification for Variance', type: 'textarea' },
+      { name: 'approvalNotes', label: 'Approval Notes', type: 'textarea' },
+    ],
+    arrayFields: [{ name: 'approvalChain', label: 'Approval Chain', employeePicker: true, subFields: [
+      { name: 'role', label: 'Approver Role', type: 'text', required: true },
+      { name: 'approverId', label: 'Approver', type: 'select', required: true },
+    ] }],
+    postCreateActions: [
+      { label: 'Approve', method: 'PUT', pathSuffix: '/decision', payload: { finalStatus: 'Approved' } },
+      { label: 'Reject', method: 'PUT', pathSuffix: '/decision', payload: { finalStatus: 'Rejected' } },
+    ]
+  },
+  {
+    id: 'ctc-breakup', stepKey: 'ctcBreakup', step: 4, phase: 'Offer & Legal', title: 'CTC Breakup',
+    apiPath: '/hiring/ctc-breakup', entityField: 'candidateId', hasPdf: true,
+    fields: [
+      { name: 'annualCTC', label: 'Annual CTC', type: 'number', required: true },
+      { name: 'currency', label: 'Currency', type: 'select', options: ['INR', 'USD', 'EUR'] },
+      { name: 'breakup.basic', label: 'Annual Basic', type: 'number' },
+      { name: 'breakup.hra', label: 'Annual HRA', type: 'number' },
+      { name: 'breakup.conveyance', label: 'Annual Conveyance', type: 'number' },
+      { name: 'breakup.medicalAllowance', label: 'Annual Medical Allowance', type: 'number' },
+      { name: 'breakup.specialAllowance', label: 'Annual Special Allowance', type: 'number' },
+      { name: 'breakup.pfEmployer', label: 'Annual Employer PF', type: 'number' },
+      { name: 'breakup.pfEmployee', label: 'Annual Employee PF', type: 'number' },
+      { name: 'breakup.gratuity', label: 'Annual Gratuity', type: 'number' },
+      { name: 'breakup.bonus', label: 'Annual Bonus', type: 'number' },
+      { name: 'breakup.otherAllowances', label: 'Other Allowances', type: 'number' },
+    ]
+  },
+  {
+    id: 'loi', stepKey: 'loi', step: 5, phase: 'Offer & Legal', title: 'Letter of Intent',
+    apiPath: '/hiring/loi', entityField: 'candidateId', hasPdf: true,
+    fields: [
+      { name: 'designation', label: 'Designation', type: 'text', required: true },
+      { name: 'proposedCTC', label: 'Proposed Annual CTC', type: 'number' },
+      { name: 'joiningDate', label: 'Joining Date', type: 'date' },
+      { name: 'validUntil', label: 'Valid Until', type: 'date' },
+      { name: 'letterContent', label: 'Letter Content', type: 'textarea' },
+    ]
+  },
+  {
+    id: 'joining-confirmation', stepKey: 'joiningConfirmation', step: 6, phase: 'Pre-Joining', title: 'Joining Confirmation',
+    apiPath: '/hiring/joining-confirmation', entityField: 'candidateId', hasPdf: true,
+    fields: [
+      { name: 'confirmedJoiningDate', label: 'Confirmed Joining Date', type: 'date', required: true },
+      { name: 'reportingManagerId', label: 'Reporting Manager Employee ID', type: 'text' },
+      { name: 'reportingTime', label: 'Reporting Time', type: 'text' },
+      { name: 'reportingLocation', label: 'Reporting Location', type: 'text' },
+    ],
+    postCreateActions: [{ label: 'Mark Candidate Confirmed', method: 'PUT', pathSuffix: '/confirm' }]
+  },
+  {
+    id: 'doc-checklist', stepKey: 'documentChecklist', step: 7, phase: 'Pre-Joining', title: 'Document Checklist',
+    apiPath: '/hiring/doc-checklist', entityField: 'candidateId', hasPdf: true,
+    fields: [],
+    arrayFields: [{ name: 'items', label: 'Documents', subFields: [
+      { name: 'documentName', label: 'Document Name', type: 'text', required: true },
+      { name: 'isMandatory', label: 'Mandatory', type: 'select', options: ['true', 'false'] },
+      { name: 'status', label: 'Status', type: 'select', options: ['Pending', 'Submitted', 'Verified', 'Rejected'] },
+      { name: 'fileUrl', label: 'Document URL', type: 'text' },
+      { name: 'remarks', label: 'Remarks', type: 'text' },
+    ] }]
+  },
+  {
+    id: 'bgv', stepKey: 'bgvRequest', step: 8, phase: 'Pre-Joining', title: 'Background Verification',
+    apiPath: '/hiring/bgv', entityField: 'candidateId', hasPdf: true,
+    fields: [
+      { name: 'vendor', label: 'BGV Vendor', type: 'text' },
+      { name: 'overallResult', label: 'Current Result', type: 'select', options: ['Pending', 'Clear', 'Discrepancy'] },
+    ],
+    arrayFields: [{ name: 'checksRequested', label: 'Checks Requested', scalarArray: true, subFields: [{ name: 'value', label: 'Check', type: 'text', required: true }] }]
   },
   {
     id: 'joining-form', stepKey: 'joiningForm', step: 9, phase: 'Onboarding', title: 'Employee Joining Form',
@@ -174,7 +257,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   },
   {
     id: 'emergency-contact', stepKey: 'emergencyContact', step: 12, phase: 'Onboarding', title: 'Emergency Contact Details',
-    apiPath: '/hiring/emergency-contact', entityField: 'candidateId',
+    apiPath: '/hiring/emergency-contact', entityField: 'candidateId', hasPdf: true,
     fields: [
       // Medical Info
       { name: 'medicalInfo.bloodGroup', label: 'Blood Group', type: 'select', options: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] },
@@ -269,7 +352,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   },
   {
     id: 'asset-access', stepKey: 'assetAccessForm', step: 18, phase: 'Onboarding', title: 'IT Assets, Access & Stationery',
-    apiPath: '/hiring/asset-access', entityField: 'candidateId',
+    apiPath: '/hiring/asset-access', entityField: 'candidateId', hasPdf: true,
     fields: [],
     arrayFields: [
       {
@@ -295,14 +378,14 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   },
   {
     id: 'engagement-confirm', stepKey: 'engagementConfirmation', step: 19, phase: 'Onboarding', title: 'Engagement Confirmation',
-    apiPath: '/hiring/engagement-confirm', entityField: 'candidateId',
+    apiPath: '/hiring/engagement-confirm', entityField: 'candidateId', hasPdf: true,
     fields: [
       { name: 'engagementType', label: 'Engagement Type', type: 'select', options: ['Full-time', 'Contract', 'Consultant'] }
     ]
   },
   {
     id: 'induction', stepKey: 'induction', step: 20, phase: 'Onboarding', title: 'Induction Form',
-    apiPath: '/hiring/induction', entityField: 'candidateId',
+    apiPath: '/hiring/induction', entityField: 'candidateId', hasPdf: true,
     fields: [
       { name: 'inductionDate', label: 'Induction Date', type: 'date' }
     ],
@@ -317,7 +400,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   },
   {
     id: 'team-intro', stepKey: 'teamIntro', step: 21, phase: 'Onboarding', title: 'Team Introduction Note',
-    apiPath: '/hiring/team-intro', entityField: 'candidateId',
+    apiPath: '/hiring/team-intro', entityField: 'candidateId', hasPdf: true,
     fields: [
       { name: 'introductionNote', label: 'Introduction Note', type: 'textarea' }
     ],
@@ -332,7 +415,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   },
   {
     id: 'probation-review', stepKey: 'probationReview', step: 22, phase: 'Post-Joining', title: 'Probation Review Form',
-    apiPath: '/hiring/probation-review', entityField: 'employeeId',
+    apiPath: '/hiring/probation-review', entityField: 'employeeId', hasPdf: true,
     fields: [
       { name: 'reviewPeriodStart', label: 'Review Period Start', type: 'date' },
       { name: 'reviewPeriodEnd', label: 'Review Period End', type: 'date' }
@@ -353,7 +436,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   },
   {
     id: 'perf-eval', stepKey: 'performanceEval', step: 23, phase: 'Post-Joining', title: 'Employee Performance Evaluation',
-    apiPath: '/hiring/perf-eval', entityField: 'employeeId',
+    apiPath: '/hiring/perf-eval', entityField: 'employeeId', hasPdf: true,
     fields: [
       { name: 'evaluationPeriod', label: 'Evaluation Period', type: 'text' },
       { name: 'strengths', label: 'Strengths', type: 'textarea' },
@@ -377,6 +460,10 @@ export const HIRING_STEPS: HiringStepConfig[] = [
       { name: 'employeeCode', label: 'Employee Code', type: 'text' },
       { name: 'designation', label: 'Designation', type: 'text' },
       { name: 'bloodGroup', label: 'Blood Group', type: 'text' },
+      { name: 'cardTheme', label: 'Card Theme Hex Colour', type: 'text' },
+      { name: 'frontLabel', label: 'Front Label', type: 'text' },
+      { name: 'backNote', label: 'Back Note', type: 'textarea' },
+      { name: 'qrPayload', label: 'QR Payload (optional)', type: 'textarea' },
       { name: 'validFrom', label: 'Valid From', type: 'date' },
       { name: 'validTo', label: 'Valid To', type: 'date' }
     ],

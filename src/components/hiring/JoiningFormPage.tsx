@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StepGate from './StepGate';
+import { openFileUrl } from '@/lib/fileUrls';
 
 const inp = 'w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-50 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-indigo-500';
 const lbl = 'block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1';
@@ -32,24 +33,41 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
     queryKey: ['candidate-pipeline', candidateId],
     queryFn: async () => (await api.get(`/hiring/candidates/${candidateId}/pipeline`)).data,
   });
+  const { data: hiringProfile } = useQuery<any>({
+    queryKey: ['candidate-hiring-profile', candidateId],
+    queryFn: async () => (await api.get(`/hiring/candidates/${candidateId}/hiring-profile`)).data,
+  });
   const { data: records = [] } = useQuery<any[]>({
     queryKey: ['hiring-step-records', 'joining-form', candidateId],
     queryFn: async () => (await api.get(`/hiring/joining-form?candidateId=${candidateId}`)).data,
-  });
-  const { data: employees = [] } = useQuery<any[]>({
-    queryKey: ['employees-picker'],
-    queryFn: async () => (await api.get('/employees')).data.data || [],
   });
 
   const stepState = pipeline?.steps?.find((s: any) => s.key === 'joiningForm');
   const locked = stepState?.gate?.unlocked === false;
 
-  const { register, control, handleSubmit, formState: { errors } } = useForm({
+  const { register, control, handleSubmit, reset, formState: { errors, isDirty } } = useForm<any>({
     defaultValues: {
       educationDetails: [{ qualification: '', institution: '', yearOfPassing: '', percentage: '' }],
       previousEmployment: [{ companyName: '', designation: '', fromDate: '', toDate: '', lastSalary: '', reasonForLeaving: '' }],
     }
   });
+
+  useEffect(() => {
+    if (!hiringProfile || isDirty) return;
+    const c = hiringProfile.candidate || {};
+    const m = hiringProfile.manpower || {};
+    const previous = hiringProfile.joiningForm || {};
+    const p = previous.personalDetails || {};
+    const contact = previous.contactDetails || {};
+    const position = previous.positionDetails || {};
+    reset({
+      personalDetails: { ...p, fullName: p.fullName || `${c.firstName || ''} ${c.lastName || ''}`.trim(), dob: p.dob || c.applicationDetails?.dateOfBirth || '' },
+      contactDetails: { ...contact, mobileNumber: contact.mobileNumber || c.phone || '', personalEmail: contact.personalEmail || c.email || '' },
+      positionDetails: { ...position, designation: position.designation || m.designation || c.jobRole || '', department: position.department || m.departmentName || '', joiningDate: position.joiningDate || hiringProfile.loi?.joiningDate || m.requiredJoiningDate || '', workLocation: position.workLocation || m.workLocation || '' },
+      educationDetails: previous.educationDetails?.length ? previous.educationDetails : [{ qualification: '', institution: '', yearOfPassing: '', percentage: '' }],
+      previousEmployment: previous.previousEmployment?.length ? previous.previousEmployment : [{ companyName: '', designation: '', fromDate: '', toDate: '', lastSalary: '', reasonForLeaving: '' }],
+    });
+  }, [hiringProfile, isDirty, reset]);
 
   const { fields: eduFields, append: appendEdu, remove: removeEdu } = useFieldArray({ control, name: 'educationDetails' });
   const { fields: empFields, append: appendEmp, remove: removeEmp } = useFieldArray({ control, name: 'previousEmployment' });
@@ -66,14 +84,18 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
     mutationFn: async (id: string) => (await api.post(`/hiring/joining-form/${id}/generate-pdf`)).data,
     onSuccess: (data) => {
       const url = data.pdfUrl;
-      if (url) window.open(`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1').replace('/api/v1', '')}${url}`, '_blank');
+      if (url) openFileUrl(url);
       queryClient.invalidateQueries({ queryKey: ['hiring-step-records', 'joining-form', candidateId] });
     },
   });
 
   const verifyMutation = useMutation({
     mutationFn: async (id: string) => (await api.put(`/hiring/joining-form/${id}/verify`, {})).data,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hiring-step-records', 'joining-form', candidateId] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hiring-step-records', 'joining-form', candidateId] });
+      queryClient.invalidateQueries({ queryKey: ['candidate-pipeline', candidateId] });
+      queryClient.invalidateQueries({ queryKey: ['employees-picker'] });
+    },
   });
 
   const sections = ['Personal', 'Contact & Address', 'Position', 'Identity', 'Emergency', 'Education', 'Employment', 'Operational'];
@@ -211,7 +233,6 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
                 <label><span className={lbl}>Link Employee Record</span>
                   <select {...register('employeeId' as any)} className={inp}>
                     <option value="">— Link existing employee (optional) —</option>
-                    {employees.map((e: any) => <option key={e._id} value={e._id}>{e.firstName} {e.lastName} ({e.email})</option>)}
                   </select>
                 </label>
               </div>

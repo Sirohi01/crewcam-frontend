@@ -9,6 +9,29 @@ import { getHiringStepById } from '@/lib/hiringSteps';
 import { openFileUrl } from '@/lib/fileUrls';
 import { Button } from '@/components/ui/button';
 
+const idOf = (value: any) => typeof value === 'object' && value ? String(value._id || '') : String(value || '');
+const nameOf = (value: any) => value && typeof value === 'object' && value.firstName ? `${value.firstName} ${value.lastName || ''}`.trim() : '';
+const prettyKey = (key: string) => key.replace(/([A-Z])/g, ' $1').replace(/[._]/g, ' ').replace(/^./, (letter) => letter.toUpperCase());
+const displayValue = (value: any): string => {
+  if (value === undefined || value === null || value === '') return '—';
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (value instanceof Date) return value.toLocaleDateString();
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) return new Date(value).toLocaleDateString();
+  if (Array.isArray(value)) return value.map(displayValue).join(', ');
+  if (typeof value === 'object') return nameOf(value) || value.name || value.title || 'Saved details';
+  return String(value);
+};
+const nestedValue = (row: Record<string, any>, path: string) => path.split('.').reduce((value, key) => value?.[key], row);
+const detailRows = (value: any, prefix = ''): { label: string; value: string }[] => {
+  if (value === undefined || value === null || value === '') return [];
+  if (Array.isArray(value)) return value.flatMap((item, index) => detailRows(item, `${prefix || 'Item'} ${index + 1}`));
+  if (typeof value === 'object' && !(value instanceof Date)) return Object.entries(value)
+    .filter(([key]) => !['_id', '__v', 'tenantId', 'passwordHash'].includes(key))
+    .flatMap(([key, item]) => detailRows(item, prefix ? `${prefix} · ${prettyKey(key)}` : prettyKey(key)));
+  const masked = /aadhaar|pan|account number/i.test(prefix) ? `••••${String(value).slice(-4)}` : displayValue(value);
+  return [{ label: prefix || 'Value', value: masked }];
+};
+
 export default function HiringRegisterShell({ stepId }: { stepId: string }) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -20,16 +43,30 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
   
   const [showAddModal, setShowAddModal] = useState(false);
   const [candidateSearch, setCandidateSearch] = useState('');
+  const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
 
-  const { data: candidates = [] } = useQuery<any[]>({
-    queryKey: ['candidates-for-modal'],
-    queryFn: async () => (await api.get('/hiring/candidates')).data,
+  const { data: people = [] } = useQuery<any[]>({
+    queryKey: ['hiring-register-people', step?.entityField],
+    queryFn: async () => step?.entityField === 'employeeId'
+      ? (await api.get('/employees')).data.data || []
+      : (await api.get('/hiring/candidates')).data,
     enabled: showAddModal,
+  });
+  const { data: candidateDirectory = [] } = useQuery<any[]>({
+    queryKey: ['hiring-candidate-directory'],
+    queryFn: async () => (await api.get('/hiring/candidates')).data,
+  });
+  const { data: employeeDirectory = [] } = useQuery<any[]>({
+    queryKey: ['hiring-employee-directory'],
+    queryFn: async () => (await api.get('/employees')).data.data || [],
   });
 
   const { data: records = [], isLoading, refetch } = useQuery<any[]>({
     queryKey: ['hiring-register', step?.apiPath],
-    queryFn: async () => (await api.get(step!.apiPath)).data,
+    queryFn: async () => {
+      const response = await api.get(step!.apiPath, { params: { details: 'true' } });
+      return Array.isArray(response.data) ? response.data : (response.data.data || []);
+    },
     enabled: !!step,
   });
 
@@ -62,6 +99,27 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
   if (!step) return <div className="p-8 text-center text-sm text-zinc-500">Unknown register step.</div>;
 
   const dynamicColumns = step.fields.slice(0, 3).map((f) => ({ key: f.name, label: f.label }));
+  const subjectName = (row: any) => {
+    const linked = step.entityField === 'employeeId' ? row.employeeId : row.candidateId;
+    const direct = nameOf(linked);
+    if (direct) return direct;
+    if (row.candidateName) return row.candidateName;
+    const source = step.entityField === 'employeeId' ? employeeDirectory : candidateDirectory;
+    const person = source.find((entry: any) => String(entry._id) === idOf(linked));
+    return person ? `${person.firstName} ${person.lastName || ''}`.trim() : 'Not linked';
+  };
+  const openRecordForm = async (row: any) => {
+    if (step.entityField === 'employeeId') {
+      const employeeId = idOf(row.employeeId);
+      if (!employeeId) return;
+      const response = await api.get(`/hiring/employees/${employeeId}/candidate`);
+      router.push(`/dashboard/hiring/${response.data.candidateId}/steps/${stepId}?edit=${row._id}`);
+      return;
+    }
+    const candidateId = idOf(row.candidateId);
+    if (!candidateId) return;
+    router.push(`/dashboard/hiring/${candidateId}/steps/${stepId}?edit=${row._id}`);
+  };
 
   const filteredData = records.filter((item: any) => {
     const searchMatch = Object.values(item).some((v) => String(v).toLowerCase().includes(search.toLowerCase()));
@@ -156,11 +214,12 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                       {(page - 1) * pageSize + index + 1}
                     </td>
                     <td className="px-3 py-2 border-r border-slate-100 font-bold text-[#0d3c68]">
-                      {row.candidateId || row.employeeId || 'Unknown'}
+                      <div className="font-semibold">{subjectName(row)}</div>
+                      <div className="mt-0.5 text-[10px] font-normal text-slate-400">{step.entityField === 'employeeId' ? 'Employee' : 'Candidate'}</div>
                     </td>
                     {dynamicColumns.map((col) => (
                       <td key={col.key} className="px-3 py-2 border-r border-slate-100 text-slate-700">
-                        {String(row[col.key] || '—')}
+                        {displayValue(nestedValue(row, col.key))}
                       </td>
                     ))}
                     <td className="px-3 py-2 border-r border-slate-100">
@@ -170,7 +229,10 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                     </td>
                     <td className="px-3 py-2 text-center">
                       <div className="flex items-center justify-center gap-1">
-                        <button onClick={() => router.push(`/dashboard/hiring/${row.candidateId || row.employeeId}/steps/${stepId}?edit=${row._id}`)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
+                        <button onClick={() => setSelectedRecord(row)} className="p-1.5 text-slate-700 hover:bg-slate-100 rounded transition-colors" title="View complete details">
+                          <Eye size={13} />
+                        </button>
+                        <button onClick={() => openRecordForm(row)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
                           <Edit2 size={13} />
                         </button>
                         <button onClick={() => { if(confirm('Are you sure you want to delete this record?')) deleteMutation.mutate(row._id); }} className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete">
@@ -258,12 +320,19 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
             </div>
 
             <div className="max-h-[60vh] overflow-y-auto divide-y divide-slate-50">
-              {candidates
-                .filter((c) => `${c.firstName} ${c.lastName} ${c.jobRole} ${c.email}`.toLowerCase().includes(candidateSearch.toLowerCase()))
+              {people
+                .filter((candidate) => `${candidate.firstName} ${candidate.lastName} ${candidate.jobRole || candidate.employeeCode || ''} ${candidate.email}`.toLowerCase().includes(candidateSearch.toLowerCase()))
                 .map((candidate) => (
                   <button
                     key={candidate._id}
-                    onClick={() => router.push(`/dashboard/hiring/${candidate._id}/steps/${stepId}`)}
+                    onClick={async () => {
+                      if (step.entityField === 'employeeId') {
+                        const response = await api.get(`/hiring/employees/${candidate._id}/candidate`);
+                        router.push(`/dashboard/hiring/${response.data.candidateId}/steps/${stepId}`);
+                        return;
+                      }
+                      router.push(`/dashboard/hiring/${candidate._id}/steps/${stepId}`);
+                    }}
                     className="w-full group flex items-center justify-between gap-3 p-4 transition-colors hover:bg-blue-50/50 text-left"
                   >
                     <div className="flex min-w-0 items-center gap-3">
@@ -280,6 +349,19 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                     </span>
                   </button>
                 ))}
+            </div>
+          </div>
+        </div>
+      )}
+      {selectedRecord && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+              <div><h3 className="text-base font-semibold text-slate-900">{step.title} Details</h3><p className="text-xs text-slate-500">{subjectName(selectedRecord)}</p></div>
+              <button onClick={() => setSelectedRecord(null)} className="rounded p-1.5 text-slate-500 hover:bg-slate-100"><X size={18} /></button>
+            </div>
+            <div className="grid flex-1 gap-x-6 gap-y-3 overflow-y-auto p-5 md:grid-cols-2">
+              {detailRows(selectedRecord).map((entry, index) => <div key={`${entry.label}-${index}`} className="border-b border-slate-100 pb-2"><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{entry.label}</p><p className="mt-1 break-words text-sm text-slate-800">{entry.value}</p></div>)}
             </div>
           </div>
         </div>

@@ -92,7 +92,9 @@ const buildSchema = (step: HiringStepConfig) => {
 const defaultValuesFor = (step: HiringStepConfig) => {
   const defaults: Record<string, unknown> = {};
   for (const field of step.arrayFields || []) {
-    defaults[field.name] = [{}];
+    // Optional multi-record sections must stay empty until the user explicitly
+    // adds a row; a blank required row otherwise blocks a valid submission.
+    defaults[field.name] = [];
   }
   return defaults;
 };
@@ -148,7 +150,7 @@ function FieldInput({ field, register, error }: { field: StepField; register: an
   );
 }
 
-function ArrayFieldEditor({ field, control, register }: { field: ArrayFieldConfig; control: any; register: any }) {
+function ArrayFieldEditor({ field, control, register, setValue, employees = [] }: { field: ArrayFieldConfig; control: any; register: any; setValue: any; employees?: any[] }) {
   const { fields, append, remove } = useFieldArray({ control, name: field.name });
 
   return (
@@ -166,7 +168,19 @@ function ArrayFieldEditor({ field, control, register }: { field: ArrayFieldConfi
               {field.subFields.map((subField) => (
                 <label key={subField.name} className="text-xs font-md text-zinc-600 dark:text-zinc-300">
                   {subField.label}
-                  {subField.type === 'select' ? (
+                  {field.employeePicker && subField.name === 'approverId' ? (() => {
+                    const registration = register(`${field.name}.${index}.${subField.name}`);
+                    return <select {...registration} onChange={(event) => {
+                      registration.onChange(event);
+                      const employee = employees.find((entry: any) => entry._id === event.target.value);
+                      setValue(`${field.name}.${index}.role`, employee?.roleId?.name || 'Employee', { shouldDirty: true, shouldValidate: true });
+                    }} className={`${inputClass} mt-1`}>
+                      <option value="">Select employee...</option>
+                      {employees.map((employee: any) => <option key={employee._id} value={employee._id}>{employee.firstName} {employee.lastName} {employee.employeeCode ? `(${employee.employeeCode})` : ''}</option>)}
+                    </select>
+                  })() : field.employeePicker && subField.name === 'role' ? (
+                    <input {...register(`${field.name}.${index}.${subField.name}`)} readOnly className={`${inputClass} mt-1 bg-zinc-100 text-zinc-600`} placeholder="Auto-filled from selected employee" />
+                  ) : subField.type === 'select' ? (
                     <select {...register(`${field.name}.${index}.${subField.name}`)} className={`${inputClass} mt-1`}>
                       <option value="">Select...</option>
                       {subField.options?.map((option) => <option key={option} value={option}>{option}</option>)}
@@ -191,7 +205,6 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
   const router = useRouter();
   const queryClient = useQueryClient();
   const step = getHiringStepById(stepId);
-  const [joiningEmployeeId, setJoiningEmployeeId] = React.useState('');
 
   const { data: candidate } = useQuery<Candidate>({
     queryKey: ['candidate', candidateId],
@@ -205,21 +218,27 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
     enabled: !!candidateId,
   });
 
+  const { data: hiringProfile } = useQuery<any>({
+    queryKey: ['candidate-hiring-profile', candidateId],
+    queryFn: async () => (await api.get(`/hiring/candidates/${candidateId}/hiring-profile`)).data,
+    enabled: !!candidateId,
+  });
+
   const entityId = step?.entityField === 'employeeId' ? pipeline?.employeeId : candidateId;
   const stepState = step ? pipeline?.steps.find((entry) => entry.key === step.stepKey) : undefined;
 
-  const { data: employees = [] } = useQuery<any[]>({
-    queryKey: ['employees-picker'],
-    queryFn: async () => {
-      const res = await api.get('/employees');
-      return res.data.data || [];
-    },
-    enabled: step?.id === 'joining-form',
+  const { data: approvalEmployees = [] } = useQuery<any[]>({
+    queryKey: ['selection-approval-employees'],
+    queryFn: async () => (await api.get('/employees')).data.data || [],
+    enabled: step?.id === 'selection-approval',
   });
 
   const { data: records = [] } = useQuery<any[]>({
     queryKey: ['hiring-step-records', step?.id, entityId],
-    queryFn: async () => (await api.get(`${step!.apiPath}?${step!.entityField}=${entityId}`)).data,
+    queryFn: async () => {
+      const response = await api.get(`${step!.apiPath}?${step!.entityField}=${entityId}`);
+      return Array.isArray(response.data) ? response.data : (response.data.data || []);
+    },
     enabled: !!step && !!entityId,
   });
 
@@ -227,6 +246,55 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
     resolver: step ? zodResolver(buildSchema(step)) : undefined,
     defaultValues: step ? defaultValuesFor(step) : {},
   });
+
+  React.useEffect(() => {
+    if (!step || !hiringProfile || form.formState.isDirty) return;
+    const profileCandidate = hiringProfile.candidate || {};
+    const manpower = hiringProfile.manpower || {};
+    const evaluation = hiringProfile.evaluation || {};
+    const selection = hiringProfile.selectionApproval || {};
+    const ctc = hiringProfile.ctcBreakup || {};
+    const loi = hiringProfile.loi || {};
+    const joining = hiringProfile.joiningForm || {};
+    const personal = joining.personalDetails || {};
+    const contact = joining.contactDetails || {};
+    const position = joining.positionDetails || {};
+
+    const shared = {
+      designation: manpower.designation || loi.designation || position.designation || profileCandidate.jobRole || '',
+      jobRole: manpower.designation || position.designation || profileCandidate.jobRole || '',
+      proposedCTC: selection.proposedCTC || ctc.annualCTC || evaluation.proposedSalaryMax || '',
+      budgetedCTC: selection.budgetedCTC || manpower.budgetCTC || manpower.salaryCtcMax || '',
+      recruitmentSource: selection.recruitmentSource || profileCandidate.source || '',
+      recruitmentSummary: selection.recruitmentSummary || manpower.jobDescriptionSummary || '',
+      justificationForVariance: selection.justificationForVariance || manpower.detailedJustification || manpower.justification || '',
+      approvalNotes: selection.approvalNotes || evaluation.hodRemarks || evaluation.hrRemarks || evaluation.interviewerRemarks || '',
+      annualCTC: ctc.annualCTC || selection.proposedCTC || evaluation.proposedSalaryMax || '',
+      joiningDate: loi.joiningDate || position.joiningDate || manpower.requiredJoiningDate || '',
+      confirmedJoiningDate: hiringProfile.joiningConfirmation?.confirmedJoiningDate || loi.joiningDate || manpower.requiredJoiningDate || '',
+      'personalDetails.fullName': personal.fullName || `${profileCandidate.firstName || ''} ${profileCandidate.lastName || ''}`.trim(),
+      'personalDetails.dob': personal.dob || profileCandidate.applicationDetails?.dateOfBirth || '',
+      'contactDetails.mobileNumber': contact.mobileNumber || profileCandidate.phone || '',
+      'contactDetails.personalEmail': contact.personalEmail || profileCandidate.email || '',
+      'positionDetails.designation': position.designation || manpower.designation || profileCandidate.jobRole || '',
+      'positionDetails.department': position.department || manpower.departmentName || '',
+      'positionDetails.joiningDate': position.joiningDate || loi.joiningDate || manpower.requiredJoiningDate || '',
+      'positionDetails.reportingManager': position.reportingManager || manpower.reportingToName || '',
+      'positionDetails.workLocation': position.workLocation || manpower.workLocation || '',
+      strengths: evaluation.strengths || '',
+      areasOfImprovement: evaluation.improvementAreas || '',
+    };
+    const values: Record<string, any> = defaultValuesFor(step);
+    Object.entries(shared).forEach(([key, value]) => {
+      if (value === '' || value === undefined || value === null) return;
+      const parts = key.split('.');
+      let cursor = values;
+      parts.slice(0, -1).forEach((part) => { cursor[part] = cursor[part] || {}; cursor = cursor[part]; });
+      const isDateField = /date$/i.test(parts[parts.length - 1]);
+      cursor[parts[parts.length - 1]] = value instanceof Date ? value.toISOString().slice(0, 10) : (isDateField && typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value) ? value.slice(0, 10) : value);
+    });
+    form.reset(values);
+  }, [form, hiringProfile, step]);
   const annualCtc = Number(form.watch('annualCTC') || 0);
   const monthlyGross = annualCtc > 0 ? annualCtc / 12 : 0;
 
@@ -234,13 +302,15 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
     mutationFn: async (values: FieldValues) => {
       if (!step || !entityId) throw new Error('Step is not ready');
       const payload = normalizePayload(values, step, entityId);
-      if (step.id === 'joining-form' && joiningEmployeeId) payload.employeeId = joiningEmployeeId;
       return (await api.post(step.apiPath, payload)).data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['candidate-pipeline', candidateId] });
+      queryClient.invalidateQueries({ queryKey: ['candidate-hiring-profile', candidateId] });
       queryClient.invalidateQueries({ queryKey: ['hiring-step-records', step?.id, entityId] });
-      form.reset(step ? defaultValuesFor(step) : {});
+    },
+    onError: (error: any) => {
+      window.alert(error?.response?.data?.message || error?.response?.data?.error || `Unable to save ${step?.title || 'this record'}`);
     },
   });
 
@@ -325,18 +395,6 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
                     </div>
                   )}
 
-                  {step.id === 'joining-form' && (
-                    <label className="block text-xs font-md text-zinc-600 dark:text-zinc-300">
-                      Link Employee Record
-                      <select value={joiningEmployeeId} onChange={(event) => setJoiningEmployeeId(event.target.value)} className={`${inputClass} mt-1`}>
-                        <option value="">Select employee for post-joining steps...</option>
-                        {employees.map((employee: any) => (
-                          <option key={employee._id} value={employee._id}>{employee.firstName} {employee.lastName} ({employee.email})</option>
-                        ))}
-                      </select>
-                    </label>
-                  )}
-
                   <div className="grid gap-3 md:grid-cols-2">
                     {step.fields.map((field) => (
                       <label key={field.name} className={field.type === 'textarea' ? 'text-xs font-md text-zinc-600 dark:text-zinc-300 md:col-span-2' : 'text-xs font-md text-zinc-600 dark:text-zinc-300'}>
@@ -349,7 +407,7 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
                   </div>
 
                   {(step.arrayFields || []).map((field) => (
-                    <ArrayFieldEditor key={field.name} field={field} control={form.control} register={form.register} />
+                    <ArrayFieldEditor key={field.name} field={field} control={form.control} register={form.register} setValue={form.setValue} employees={approvalEmployees} />
                   ))}
 
                   <Button type="submit" disabled={createMutation.isPending} className="gap-2 bg-zinc-900 text-white hover:bg-zinc-800">

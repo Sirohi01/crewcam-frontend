@@ -87,7 +87,10 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
     const entityId = step.entityField === 'employeeId' ? resolvedEmployeeId : candidateId;
     return useQuery({
       queryKey: [step.id, entityId],
-      queryFn: async () => (await api.get(`${step.apiPath}?${step.entityField}=${entityId}`)).data,
+      queryFn: async () => {
+        const response = await api.get(`${step.apiPath}?${step.entityField}=${entityId}`);
+        return Array.isArray(response.data) ? response.data : (response.data.data || []);
+      },
       enabled: validId && !!entityId
     });
   });
