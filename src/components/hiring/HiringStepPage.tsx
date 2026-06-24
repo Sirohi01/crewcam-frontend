@@ -122,6 +122,25 @@ const maskSensitive = (key: string, value: unknown) => {
   return text;
 };
 
+const recordDisplayValue = (key: string, value: any) => {
+  if (value === undefined || value === null || value === '') return '—';
+  if (key === 'candidateId' && typeof value === 'object') return `${value.firstName || ''} ${value.lastName || ''}`.trim() || 'Candidate';
+  if (key === 'employeeId' && typeof value === 'object') return `${value.firstName || ''} ${value.lastName || ''}`.trim() || value.employeeCode || 'Employee';
+  if (key === 'approvalChain' && Array.isArray(value)) return value.map((entry: any) => {
+    const approver = entry.approverId;
+    const name = typeof approver === 'object' ? `${approver.firstName || ''} ${approver.lastName || ''}`.trim() : 'Selected approver';
+    return `${entry.role || 'Approver'}: ${name} — ${entry.status || 'Pending'}`;
+  }).join(' | ');
+  if (Array.isArray(value)) return value.map((entry) => typeof entry === 'object' ? JSON.stringify(entry) : String(entry)).join(', ');
+  if (typeof value === 'object') return value.firstName ? `${value.firstName} ${value.lastName || ''}`.trim() : (value.name || value.title || 'Saved details');
+  return maskSensitive(key, value);
+};
+const recordLabel = (key: string) => key
+  .replace(/([A-Z])/g, ' $1')
+  .replace(/[._]/g, ' ')
+  .replace(/\b\w/g, (letter) => letter.toUpperCase())
+  .trim();
+
 function FieldInput({ field, register, error }: { field: StepField; register: any; error?: string }) {
   if (field.type === 'select') {
     return (
@@ -323,7 +342,11 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['candidate-pipeline', candidateId] });
+      queryClient.invalidateQueries({ queryKey: ['candidate-hiring-profile', candidateId] });
       queryClient.invalidateQueries({ queryKey: ['hiring-step-records', step?.id, entityId] });
+    },
+    onError: (error: any) => {
+      window.alert(error?.response?.data?.message || error?.response?.data?.error || `Unable to complete this action for ${step?.title || 'this record'}`);
     },
   });
 
@@ -434,7 +457,7 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
                           <FileText size={14} /> PDF
                         </Button>
                       )}
-                      {(step.postCreateActions || []).map((action) => (
+                      {(step.postCreateActions || []).filter((action) => !(step.id === 'selection-approval' && record.finalStatus && record.finalStatus !== 'Pending')).map((action) => (
                         <Button
                           key={action.label}
                           type="button"
@@ -447,11 +470,11 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
                       ))}
                     </div>
                   </div>
-                  <div className="grid gap-1 text-xs text-zinc-500 md:grid-cols-2">
-                    {Object.entries(record).filter(([key]) => !['_id', '__v', 'tenantId'].includes(key)).slice(0, 8).map(([key, value]) => (
-                      <div key={key} className="truncate">
-                        <span className="font-md text-zinc-600 dark:text-zinc-300">{key}: </span>
-                        {typeof value === 'object' ? JSON.stringify(value).slice(0, 80) : maskSensitive(key, value)}
+                  <div className="grid gap-x-5 gap-y-2 text-xs text-zinc-500 md:grid-cols-2">
+                    {Object.entries(record).filter(([key]) => !['_id', '__v', 'tenantId', 'createdAt', 'updatedAt'].includes(key)).map(([key, value]) => (
+                      <div key={key} className={key === 'approvalChain' || typeof value === 'object' ? 'md:col-span-2' : ''}>
+                        <span className="font-md text-zinc-600 dark:text-zinc-300">{recordLabel(key)}: </span>
+                        <span className="break-words">{recordDisplayValue(key, value)}</span>
                       </div>
                     ))}
                   </div>
