@@ -13,13 +13,8 @@ export default function DashboardTopbar() {
     const fetchProfile = async () => {
       try {
         const res = await api.get('/companies/profile');
-        if (res.data?.legalName) {
-          setCompanyName(res.data.legalName);
-        } else {
-          setCompanyName('Company Profile Incomplete');
-        }
-      } catch (error) {
-        console.error('Failed to fetch company profile for topbar', error);
+        setCompanyName(res.data?.legalName || 'Company Profile Incomplete');
+      } catch {
         setCompanyName('Company Name');
       }
     };
@@ -27,7 +22,7 @@ export default function DashboardTopbar() {
       try {
         const res = await api.get('/employees/current');
         if (res.data?.data) setCurrentUser(res.data.data);
-      } catch (error) {
+      } catch {
         setCurrentUser(user);
       }
     };
@@ -38,26 +33,56 @@ export default function DashboardTopbar() {
   }, [user]);
 
   const displayUser = currentUser || user;
-  const initials = displayUser ? `${displayUser.firstName?.[0] || ''}${displayUser.lastName?.[0] || ''}`.toUpperCase() : 'U';
+  const firstName = displayUser?.firstName || 'User';
+  const initials = displayUser
+    ? `${displayUser.firstName?.[0] || ''}${displayUser.lastName?.[0] || ''}`.toUpperCase()
+    : 'U';
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  };
 
   return (
-    <header className="h-12 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-4 shrink-0">
-      <div className="flex items-center gap-2">
-        <span className="text-md font-semibold text-zinc-900 dark:text-zinc-50">{companyName}</span>
-      </div>
+    <header
+      className="h-12 flex items-center justify-between px-5 shrink-0"
+      style={{
+        background: 'linear-gradient(90deg, #0f172a 0%, #1e1b4b 100%)',
+        borderBottom: '1px solid rgba(99,102,241,0.2)',
+      }}
+    >
+      {/* Left — company name */}
+      <span className="text-sm font-semibold tracking-wide" style={{ color: '#e2e8f0' }}>
+        {companyName}
+      </span>
+
+      {/* Right — greeting + avatar */}
       <div className="flex items-center gap-3">
-        <div className="text-right hidden sm:block">
-          <div className="text-sm font-md text-zinc-900 dark:text-zinc-100 leading-none">{displayUser?.firstName} {displayUser?.lastName}</div>
-          <div className="mt-1 text-[10px] text-zinc-500 leading-none">{displayUser?.email}</div>
-        </div>
+        <span className="hidden sm:block text-sm font-medium" style={{ color: '#c7d2fe' }}>
+          {getGreeting()},{' '}
+          <span className="font-semibold" style={{ color: '#ffffff' }}>
+            {firstName} 👋
+          </span>
+        </span>
+
         {displayUser?.profilePictureUrl ? (
           <img
             src={displayUser.profilePictureUrl}
-            alt={`${displayUser.firstName || 'User'} ${displayUser.lastName || ''}`}
-            className="h-7 w-7 rounded-full object-cover border border-zinc-200 bg-zinc-100"
+            alt={firstName}
+            className="h-7 w-7 rounded-full object-cover"
+            style={{ border: '2px solid rgba(165,180,252,0.5)' }}
           />
         ) : (
-          <div className="h-7 w-7 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-md text-zinc-700 dark:text-zinc-300">
+          <div
+            className="h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold"
+            style={{
+              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+              color: '#ffffff',
+              border: '2px solid rgba(165,180,252,0.4)',
+            }}
+          >
             {initials}
           </div>
         )}

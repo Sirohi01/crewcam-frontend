@@ -2,7 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Server, Package, Shield, LogOut, Sparkles, UserCog2, CreditCard, ShieldAlert, FlaskConical, Plug } from 'lucide-react';
+import { LayoutDashboard, Server, Package, Shield, LogOut, Sparkles, UserCog2, CreditCard, ShieldAlert, FlaskConical, Plug, Image as ImageIcon } from 'lucide-react';
 import api from '@/lib/axios';
 import { useAuthStore } from '@/store/authStore';
 
@@ -42,6 +42,7 @@ export default function SuperAdminSidebar() {
             <NavItem href="/super-admin/tenants" icon={<Server size={16} />} label="Tenant Companies" active={pathname.includes('/super-admin/tenants')} />
             <NavItem href="/super-admin/packages" icon={<Package size={16} />} label="Packages & Limits" active={pathname.includes('/super-admin/packages')} />
             <NavItem href="/super-admin/features" icon={<Shield size={16} />} label="Features & Permissions" active={pathname.includes('/super-admin/features')} />
+            <NavItem href="/super-admin/banners" icon={<ImageIcon size={16} />} label="Dashboard Banners" active={pathname.includes('/super-admin/banners')} />
           </nav>
         </div>
 
