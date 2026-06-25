@@ -107,31 +107,31 @@ export default function DashboardTopbar() {
                       <h3 className="font-bold text-slate-800">Notifications</h3>
                       <button className="text-xs font-semibold text-[#0e4778] hover:underline">Mark all as read</button>
                     </div>
-                    <div className="flex flex-col max-h-[400px] overflow-y-auto">
+                    <div className="flex flex-col max-h-[280px] overflow-y-auto">
                       {[
-                        { icon: <FileText size={16} />, title: 'New policy added', desc: 'Leave Policy 2026 has been added.', time: '2m ago', color: 'text-blue-600 bg-blue-50', unread: true },
-                        { icon: <Calendar size={16} />, title: 'Interview scheduled', desc: 'Sohil Sirohi interview on 26 May.', time: '15m ago', color: 'text-emerald-600 bg-emerald-50', unread: true },
-                        { icon: <Clock size={16} />, title: 'Attendance regularization', desc: '3 requests are pending approval.', time: '1h ago', color: 'text-orange-500 bg-orange-50', unread: true },
-                        { icon: <FileText size={16} />, title: 'Payslip generated', desc: 'April 2026 payslip is ready.', time: '3h ago', color: 'text-indigo-600 bg-indigo-50', unread: false },
-                        { icon: <RefreshCw size={16} />, title: 'System update', desc: 'CrewCam will be updated tonight.', time: '1d ago', color: 'text-slate-600 bg-slate-50', unread: false },
+                        { icon: <FileText size={14} />, title: 'New policy added', desc: 'Leave Policy 2026 has been added.', time: '2m ago', color: 'text-blue-600 bg-blue-50', unread: true },
+                        { icon: <Calendar size={14} />, title: 'Interview scheduled', desc: 'Sohil Sirohi interview on 26 May.', time: '15m ago', color: 'text-emerald-600 bg-emerald-50', unread: true },
+                        { icon: <Clock size={14} />, title: 'Attendance regularization', desc: '3 requests are pending approval.', time: '1h ago', color: 'text-orange-500 bg-orange-50', unread: true },
+                        { icon: <FileText size={14} />, title: 'Payslip generated', desc: 'April 2026 payslip is ready.', time: '3h ago', color: 'text-indigo-600 bg-indigo-50', unread: false },
+                        { icon: <RefreshCw size={14} />, title: 'System update', desc: 'CrewCam will be updated tonight.', time: '1d ago', color: 'text-slate-600 bg-slate-50', unread: false },
                       ].map((n, idx) => (
-                        <div key={idx} className="flex gap-4 px-5 py-4 hover:bg-slate-50 transition-colors border-b border-slate-50 cursor-pointer">
-                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${n.color}`}>
+                        <div key={idx} className="flex gap-2.5 px-3 py-2.5 hover:bg-slate-50 transition-colors border-b border-slate-50 cursor-pointer">
+                          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${n.color}`}>
                             {n.icon}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-bold text-slate-800">{n.title}</h4>
-                            <p className="text-xs text-slate-500 mt-0.5">{n.desc}</p>
+                            <h4 className="text-xs font-bold text-slate-800">{n.title}</h4>
+                            <p className="text-[10px] text-slate-500 leading-tight">{n.desc}</p>
                           </div>
-                          <div className="flex flex-col items-end justify-start gap-1 shrink-0">
-                            <span className="text-[10px] font-semibold text-slate-400">{n.time}</span>
-                            {n.unread && <div className="h-2 w-2 rounded-full bg-blue-500"></div>}
+                          <div className="flex flex-col items-end justify-start gap-1 shrink-0 pt-0.5">
+                            <span className="text-[9px] font-semibold text-slate-400">{n.time}</span>
+                            {n.unread && <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>}
                           </div>
                         </div>
                       ))}
                     </div>
                     <div className="p-3 border-t border-slate-100 text-center">
-                      <button className="text-sm font-bold text-[#0e4778] hover:underline">View all notifications</button>
+                      <Link href="/dashboard/notifications" onClick={() => setIsNotifOpen(false)} className="text-sm font-bold text-[#0e4778] hover:underline">View all notifications</Link>
                     </div>
                   </div>
                 )}
