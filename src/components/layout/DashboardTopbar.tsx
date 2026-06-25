@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/axios';
 import { Bell, HelpCircle, Mail, MessageSquare } from 'lucide-react';
+import Link from 'next/link';
 
 export default function DashboardTopbar() {
   const user = useAuthStore((state) => state.user);
@@ -65,28 +66,56 @@ export default function DashboardTopbar() {
         {/* 4 icon buttons */}
         {[
           // { icon: <Mail size={16} />, badge: 3 },
-          { icon: <MessageSquare size={16} />, badge: 5 },
+          { icon: <MessageSquare size={16} />, badge: 5, href: '/dashboard/communications/chat' },
           { icon: <Bell size={16} />, badge: 1 },
           { icon: <HelpCircle size={16} />, badge: 0 },
-        ].map(({ icon, badge }, i) => (
-          <button
-            key={i}
-            className="relative h-8 w-8 flex items-center justify-center rounded-lg transition-colors"
-            style={{ color: '#a5b4fc' }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(99,102,241,0.15)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-          >
-            {icon}
-            {badge > 0 && (
-              <span
-                className="absolute top-1 right-1 h-3.5 min-w-[14px] rounded-full flex items-center justify-center text-[8px] font-bold leading-none px-0.5"
-                style={{ background: '#ef4444', color: '#fff' }}
+        ].map(({ icon, badge, href }, i) => {
+          const content = (
+            <>
+              {icon}
+              {badge > 0 && (
+                <span
+                  className="absolute top-1 right-1 h-3.5 min-w-[14px] rounded-full flex items-center justify-center text-[8px] font-bold leading-none px-0.5"
+                  style={{ background: '#ef4444', color: '#fff' }}
+                >
+                  {badge}
+                </span>
+              )}
+            </>
+          );
+
+          const className = "relative h-8 w-8 flex items-center justify-center rounded-lg transition-colors";
+          const style = { color: '#a5b4fc' };
+          const onMouseEnter = (e: any) => (e.currentTarget.style.background = 'rgba(99,102,241,0.15)');
+          const onMouseLeave = (e: any) => (e.currentTarget.style.background = 'transparent');
+
+          if (href) {
+            return (
+              <Link
+                key={i}
+                href={href}
+                className={className}
+                style={style}
+                onMouseEnter={onMouseEnter}
+                onMouseLeave={onMouseLeave}
               >
-                {badge}
-              </span>
-            )}
-          </button>
-        ))}
+                {content}
+              </Link>
+            );
+          }
+
+          return (
+            <button
+              key={i}
+              className={className}
+              style={style}
+              onMouseEnter={onMouseEnter}
+              onMouseLeave={onMouseLeave}
+            >
+              {content}
+            </button>
+          );
+        })}
 
         {/* Divider */}
         <div className="mx-2 h-5 w-px" style={{ background: 'rgba(99,102,241,0.3)' }} />
