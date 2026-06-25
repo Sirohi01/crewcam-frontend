@@ -83,17 +83,14 @@ export default function SOSButton() {
           id="sos-floating-button"
           onClick={captureScreen}
           disabled={isCapturing}
-          className="relative flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-700 shadow-md border border-slate-200 transition-all duration-200 hover:scale-105 hover:border-red-200 hover:bg-red-50 hover:text-red-600 hover:shadow-lg active:scale-95 disabled:opacity-70"
+          className="relative flex h-12 w-12 items-center justify-center rounded-full bg-red-500 text-white shadow-md border border-red-600 transition-all duration-200 hover:scale-105 hover:bg-red-600 hover:shadow-lg hover:shadow-red-500/30 active:scale-95 disabled:opacity-70"
           title="Report an Issue"
         >
           {isCapturing ? (
-            <Loader2 className="animate-spin text-red-500" size={20} />
+            <Loader2 className="animate-spin text-white" size={20} />
           ) : (
             <LifeBuoy size={22} strokeWidth={2} />
           )}
-          
-          {/* Subtle Notification Dot */}
-          <div className="absolute right-3 top-3 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></div>
           
           {/* Tooltip */}
           <div className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-800 px-2.5 py-1.5 text-[11px] font-semibold text-white opacity-0 shadow-sm transition-all duration-200 group-hover:-translate-y-0.5 group-hover:opacity-100 pointer-events-none">
