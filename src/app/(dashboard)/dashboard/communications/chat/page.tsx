@@ -86,12 +86,12 @@ export default function ChatPage() {
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar px-4 pb-3 border-b border-slate-100 shrink-0">
+        <div className="flex items-center gap-1 overflow-x-auto hide-scrollbar px-4 pb-3 border-b border-slate-100 shrink-0">
           {['All', 'Unread', 'Groups', 'Direct'].map(tab => (
             <button 
               key={tab} 
               onClick={() => setActiveTab(tab)}
-              className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+              className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${
                 activeTab === tab ? 'border border-[#0e4778] text-[#0e4778]' : 'text-slate-500 hover:bg-slate-50'
               }`}
             >
