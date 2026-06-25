@@ -156,70 +156,70 @@ export default function NotificationsPage() {
       </div>
 
       {/* RIGHT COLUMN - SIDEBAR */}
-      <div className="hidden xl:flex w-[340px] shrink-0 flex-col overflow-y-auto custom-scrollbar p-5 pl-0 gap-4">
+      <div className="hidden xl:flex w-[320px] shrink-0 flex-col overflow-y-auto custom-scrollbar p-4 pl-0 gap-2">
         
         {/* Filter Notifications */}
-        <div className="flex flex-col rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-          <h3 className="text-[14px] font-bold text-slate-900 mb-3">Filter Notifications</h3>
+        <div className="flex flex-col rounded-[16px] border border-slate-100 bg-white p-3 shadow-sm">
+          <h3 className="text-[13px] font-bold text-slate-900 mb-2">Filter Notifications</h3>
           
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[12px] font-bold text-slate-700">Type</label>
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] font-bold text-slate-900">Type</label>
               <div className="relative">
-                <select className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-3 pr-8 text-[13px] font-medium text-slate-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <select className="w-full appearance-none rounded-lg border border-slate-200 bg-white py-1.5 pl-2 pr-6 text-[11px] font-semibold text-slate-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                   <option>All Types</option>
                   <option>Alerts</option>
                   <option>Updates</option>
                 </select>
-                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[12px] font-bold text-slate-700">Priority</label>
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] font-bold text-slate-900">Priority</label>
               <div className="relative">
-                <select className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-3 pr-8 text-[13px] font-medium text-slate-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <select className="w-full appearance-none rounded-lg border border-slate-200 bg-white py-1.5 pl-2 pr-6 text-[11px] font-semibold text-slate-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                   <option>All Priorities</option>
                   <option>High</option>
                   <option>Normal</option>
                 </select>
-                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[12px] font-bold text-slate-700">Date</label>
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] font-bold text-slate-900">Date</label>
               <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
-                  <RefreshCcw size={14} className="text-slate-400" />
+                <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
+                  <RefreshCcw size={10} className="text-slate-400" />
                 </div>
                 <input 
                   type="text" 
                   placeholder="Select date range" 
-                  className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-10 text-[13px] font-medium text-slate-600 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                  className="w-full rounded-lg border border-slate-200 bg-white py-1.5 pl-6 pr-6 text-[11px] font-semibold text-slate-600 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer"
                   readOnly
                 />
-                <CalendarIcon size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <CalendarIcon size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[12px] font-bold text-slate-700">Status</label>
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] font-bold text-slate-900">Status</label>
               <div className="relative">
-                <select className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-3 pr-8 text-[13px] font-medium text-slate-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <select className="w-full appearance-none rounded-lg border border-slate-200 bg-white py-1.5 pl-2 pr-6 text-[11px] font-semibold text-slate-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                   <option>All Status</option>
                   <option>Read</option>
                   <option>Unread</option>
                 </select>
-                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 mt-2">
-              <button className="w-full rounded-xl bg-[#2563eb] py-2.5 text-[13px] font-bold text-white hover:bg-blue-700 transition-colors shadow-sm">
+            <div className="flex flex-col gap-1.5 mt-1">
+              <button className="w-full rounded-lg bg-[#2563eb] py-1.5 text-[11px] font-bold text-white hover:bg-blue-700 transition-colors shadow-sm">
                 Apply Filters
               </button>
-              <button className="w-full rounded-xl bg-transparent py-2.5 text-[13px] font-bold text-blue-600 hover:bg-blue-50 transition-colors">
+              <button className="w-full rounded-lg bg-transparent py-1 text-[11px] font-bold text-[#2563eb] hover:bg-blue-50 transition-colors">
                 Reset Filters
               </button>
             </div>
@@ -227,48 +227,48 @@ export default function NotificationsPage() {
         </div>
 
         {/* Notification Summary */}
-        <div className="flex flex-col rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-          <h3 className="text-[14px] font-bold text-slate-900 mb-3">Notification Summary</h3>
+        <div className="flex flex-col rounded-[16px] border border-slate-100 bg-white p-3 shadow-sm">
+          <h3 className="text-[13px] font-bold text-slate-900 mb-2">Notification Summary</h3>
           
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                  <Bell size={14} />
+              <div className="flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-[8px] bg-[#eff6ff] text-[#3b82f6]">
+                  <Bell size={12} strokeWidth={2} />
                 </div>
-                <span className="text-[13px] font-semibold text-slate-700">Total Notifications</span>
+                <span className="text-[11px] font-semibold text-[#334155]">Total Notifications</span>
               </div>
-              <span className="text-[14px] font-bold text-slate-900">12</span>
+              <span className="text-[12px] font-bold text-slate-900">12</span>
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-                  <Check size={14} />
+              <div className="flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-[8px] bg-[#ecfdf5] text-[#10b981]">
+                  <Check size={12} strokeWidth={2} />
                 </div>
-                <span className="text-[13px] font-semibold text-slate-700">Unread</span>
+                <span className="text-[11px] font-semibold text-[#334155]">Unread</span>
               </div>
-              <span className="text-[14px] font-bold text-slate-900">5</span>
+              <span className="text-[12px] font-bold text-slate-900">5</span>
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-50 text-orange-500">
-                  <BellRing size={14} />
+              <div className="flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-[8px] bg-[#fff7ed] text-[#f97316]">
+                  <BellRing size={12} strokeWidth={2} />
                 </div>
-                <span className="text-[13px] font-semibold text-slate-700">Important</span>
+                <span className="text-[11px] font-semibold text-[#334155]">Important</span>
               </div>
-              <span className="text-[14px] font-bold text-slate-900">3</span>
+              <span className="text-[12px] font-bold text-slate-900">3</span>
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
-                  <CalendarIcon size={14} />
+              <div className="flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-[8px] bg-[#faf5ff] text-[#a855f7]">
+                  <CalendarIcon size={12} strokeWidth={2} />
                 </div>
-                <span className="text-[13px] font-semibold text-slate-700">This Week</span>
+                <span className="text-[11px] font-semibold text-[#334155]">This Week</span>
               </div>
-              <span className="text-[14px] font-bold text-slate-900">18</span>
+              <span className="text-[12px] font-bold text-slate-900">18</span>
             </div>
           </div>
         </div>
