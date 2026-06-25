@@ -20,19 +20,37 @@ const CHAT_LIST = [
   { id: 9, name: 'Vikram Joshi', time: '2d ago', preview: 'Great work!', unread: 0, online: false },
 ];
 
-const MESSAGES = [
-  { id: 1, sender: 'Sohil', text: 'Hi Sohil, just checking in on your interview process. How is everything going?', time: '11:30 AM', isMine: false },
-  { id: 2, sender: 'Me', text: 'Hi Manish, the process is going great. Completed the technical round today.', time: '11:32 AM', isMine: true },
-  { id: 3, sender: 'Sohil', text: 'Awesome! When is the next round scheduled?', time: '11:33 AM', isMine: false },
-  { id: 4, sender: 'Me', text: 'HR round is scheduled for tomorrow at 11 AM.', time: '11:34 AM', isMine: true },
-  { id: 5, sender: 'Sohil', text: 'Perfect, let me know if you need anything from my side.', time: '11:35 AM', isMine: false },
-  { id: 6, sender: 'Me', text: "Thanks! I'll review and get back to you.", time: '11:42 AM', isMine: true },
-];
+const CHAT_MESSAGES_DATA: Record<number, any[]> = {
+  1: [
+    { id: 1, sender: 'Sohil', text: 'Hi Sohil, just checking in on your interview process. How is everything going?', time: '11:30 AM', isMine: false },
+    { id: 2, sender: 'Me', text: 'Hi Manish, the process is going great. Completed the technical round today.', time: '11:32 AM', isMine: true },
+    { id: 3, sender: 'Sohil', text: 'Awesome! When is the next round scheduled?', time: '11:33 AM', isMine: false },
+    { id: 4, sender: 'Me', text: 'HR round is scheduled for tomorrow at 11 AM.', time: '11:34 AM', isMine: true },
+    { id: 5, sender: 'Sohil', text: 'Perfect, let me know if you need anything from my side.', time: '11:35 AM', isMine: false },
+    { id: 6, sender: 'Me', text: "Thanks! I'll review and get back to you.", time: '11:42 AM', isMine: true },
+  ],
+  2: [
+    { id: 1, sender: 'Neha', text: 'Hi team, please review the latest updates.', time: '10:30 AM', isMine: false },
+    { id: 2, sender: 'Me', text: 'I will take a look shortly.', time: '11:00 AM', isMine: true },
+    { id: 3, sender: 'Rahul', text: 'Looks good to me.', time: '11:25 AM', isMine: false },
+    { id: 4, sender: 'Neha', text: 'Please check the evaluation...', time: '11:30 AM', isMine: false },
+  ],
+  3: [
+    { id: 1, sender: 'Riya', text: 'Hey, did you check the new design?', time: '10:00 AM', isMine: false },
+    { id: 2, sender: 'Me', text: 'Yes, it looks amazing!', time: '10:10 AM', isMine: true },
+    { id: 3, sender: 'Riya', text: 'Can you share the update?', time: '10:15 AM', isMine: false },
+  ]
+};
 
 export default function ChatPage() {
   const [activeTab, setActiveTab] = useState('All');
   const [rightTab, setRightTab] = useState('Details');
   const [showRightSidebar, setShowRightSidebar] = useState(false);
+  const [activeChatId, setActiveChatId] = useState(1);
+  const activeChat = CHAT_LIST.find(chat => chat.id === activeChatId) || CHAT_LIST[0];
+  const currentMessages = CHAT_MESSAGES_DATA[activeChatId] || [
+    { id: 1, sender: activeChat.name, text: activeChat.preview, time: activeChat.time, isMine: false }
+  ];
 
   return (
     <div className="flex h-[calc(100vh-3rem)] w-full overflow-hidden bg-white">
@@ -106,7 +124,8 @@ export default function ChatPage() {
           {CHAT_LIST.map(chat => (
             <div 
               key={chat.id} 
-              className={`flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 ${chat.active ? 'bg-slate-50 border-l-2 border-[#0e4778]' : 'border-l-2 border-transparent'}`}
+              onClick={() => setActiveChatId(chat.id)}
+              className={`flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 ${activeChatId === chat.id ? 'bg-slate-50 border-l-2 border-[#0e4778]' : 'border-l-2 border-transparent'}`}
             >
               <div className="relative h-12 w-12 shrink-0 rounded-full bg-slate-200">
                 {chat.isGroup ? (
@@ -120,7 +139,7 @@ export default function ChatPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <h3 className={`truncate text-sm ${chat.active ? 'font-bold text-slate-900' : 'font-semibold text-slate-700'}`}>{chat.name}</h3>
+                  <h3 className={`truncate text-sm ${activeChatId === chat.id ? 'font-bold text-slate-900' : 'font-semibold text-slate-700'}`}>{chat.name}</h3>
                   <span className={`text-[11px] ${chat.unread > 0 ? 'font-bold text-emerald-600' : 'text-slate-400'}`}>{chat.time}</span>
                 </div>
                 <div className="flex items-center justify-between mt-0.5">
@@ -150,14 +169,23 @@ export default function ChatPage() {
               onClick={() => setShowRightSidebar(!showRightSidebar)}
             >
               <div className="relative h-10 w-10 shrink-0">
-                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100" alt="" className="h-full w-full rounded-full object-cover group-hover:ring-2 group-hover:ring-emerald-500 transition-all" />
-                <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500"></div>
+                {activeChat.isGroup ? (
+                  <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-200 text-slate-500 group-hover:ring-2 group-hover:ring-[#0e4778] transition-all">
+                    <Menu size={18} />
+                  </div>
+                ) : (
+                  <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100" alt="" className="h-full w-full rounded-full object-cover group-hover:ring-2 group-hover:ring-emerald-500 transition-all" />
+                )}
+                {activeChat.online && <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500"></div>}
               </div>
               <div>
-                <h2 className="text-base font-bold text-slate-900 leading-tight group-hover:text-[#0e4778] transition-colors">Sohil Sirohi</h2>
+                <h2 className="text-base font-bold text-slate-900 leading-tight group-hover:text-[#0e4778] transition-colors">{activeChat.name}</h2>
                 <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
-                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500"></div>
-                  Online
+                  {activeChat.online ? (
+                    <><div className="h-1.5 w-1.5 rounded-full bg-emerald-500"></div>Online</>
+                  ) : (
+                    <span className="text-slate-400">Offline</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -171,34 +199,43 @@ export default function ChatPage() {
         </div>
 
         {/* Chat History */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-4">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-5 flex flex-col gap-5 bg-slate-50/50">
           <div className="flex justify-center my-2">
-            <span className="rounded-full bg-slate-200/60 px-3 py-1 text-xs font-semibold text-slate-500">Today</span>
+            <span className="rounded-full bg-slate-200/50 px-4 py-1.5 text-[12px] font-semibold text-slate-500">Today</span>
           </div>
 
-          {MESSAGES.map((msg) => (
+          {currentMessages.map((msg) => (
             <div key={msg.id} className={`flex w-full ${msg.isMine ? 'justify-end' : 'justify-start'}`}>
-              <div className="flex max-w-[75%] items-end gap-2">
+              <div className={`flex max-w-[70%] items-end gap-3 ${msg.isMine ? 'flex-row' : 'flex-row'}`}>
                 {!msg.isMine && (
-                  <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100" alt="" className="mb-1 h-8 w-8 shrink-0 rounded-full object-cover" />
+                  activeChat.isGroup ? (
+                    <div className="mb-0.5 h-8 w-8 shrink-0 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs shadow-sm uppercase">
+                      {msg.sender.charAt(0)}
+                    </div>
+                  ) : (
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100" alt="" className="mb-0.5 h-8 w-8 shrink-0 rounded-full object-cover shadow-sm" />
+                  )
                 )}
                 
-                <div className="flex flex-col gap-1">
-                  <div className={`relative px-4 py-3 text-sm shadow-sm ${
+                <div className="flex flex-col gap-1 w-full">
+                  {!msg.isMine && activeChat.isGroup && (
+                    <span className="text-[11px] font-bold text-slate-500 ml-2">{msg.sender}</span>
+                  )}
+                  <div className={`relative px-4 py-3 text-[14px] shadow-sm ${
                     msg.isMine 
-                      ? 'rounded-2xl rounded-tr-sm bg-[#dcfce3] text-slate-900 border border-[#bbf7d0]' 
-                      : 'rounded-2xl rounded-tl-sm bg-white border border-slate-200 text-slate-800'
+                      ? 'rounded-[16px] rounded-tr-sm bg-[#dcfce3] text-slate-800' 
+                      : 'rounded-[16px] rounded-tl-sm bg-white text-slate-800'
                   }`}>
-                    {msg.text}
-                    <div className={`mt-1 flex items-center justify-end gap-1 text-[10px] font-medium ${msg.isMine ? 'text-emerald-700/80' : 'text-slate-400'}`}>
+                    <div className="pr-12">{msg.text}</div>
+                    <div className={`absolute bottom-2 right-3 flex items-center justify-end gap-1 text-[11px] font-semibold ${msg.isMine ? 'text-emerald-700/70' : 'text-slate-400'}`}>
                       {msg.time}
-                      {msg.isMine && <CheckCheck size={12} className="text-[#0ea5e9]" />}
+                      {msg.isMine && <CheckCheck size={14} className="text-[#0ea5e9]" />}
                     </div>
                   </div>
                 </div>
 
                 {msg.isMine && (
-                  <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100" alt="" className="mb-1 h-8 w-8 shrink-0 rounded-full object-cover border border-slate-200" />
+                  <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100" alt="" className="mb-0.5 h-8 w-8 shrink-0 rounded-full object-cover shadow-sm" />
                 )}
               </div>
             </div>
@@ -206,19 +243,25 @@ export default function ChatPage() {
         </div>
 
         {/* Message Input */}
-        <div className="border-t border-slate-200 bg-white p-3 shrink-0">
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-300 focus-within:bg-white transition-colors">
-            <button className="p-1.5 text-slate-400 hover:text-slate-700 transition-colors"><Paperclip size={20} /></button>
+        <div className="border-t border-slate-200 bg-white px-4 py-3 shrink-0 flex items-center gap-3">
+          <button className="p-2 text-slate-400 hover:text-slate-600 transition-colors shrink-0">
+            <Paperclip size={22} strokeWidth={2} />
+          </button>
+          
+          <div className="flex-1 flex items-center gap-2 rounded-full bg-slate-50 border border-slate-100 px-4 py-2.5 transition-colors focus-within:border-slate-300 focus-within:bg-white">
             <input 
               type="text" 
               placeholder="Type a message..." 
-              className="flex-1 bg-transparent px-2 py-1 text-[15px] outline-none placeholder:text-slate-400"
+              className="flex-1 bg-transparent px-1 text-[14px] text-slate-700 outline-none placeholder:text-slate-400"
             />
-            <button className="p-1.5 text-slate-400 hover:text-slate-700 transition-colors"><Smile size={20} /></button>
-            <button className="ml-1 flex h-10 w-10 items-center justify-center rounded-lg bg-[#22c55e] text-white hover:bg-emerald-600 transition-colors shadow-sm">
-              <Send size={18} className="-ml-0.5" />
+            <button className="p-1 text-slate-400 hover:text-slate-600 transition-colors shrink-0">
+              <Smile size={20} strokeWidth={2} />
             </button>
           </div>
+          
+          <button className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#22c55e] text-white hover:bg-emerald-600 transition-colors shadow-sm">
+            <Send size={18} className="-ml-1" strokeWidth={2.5} />
+          </button>
         </div>
       </div>
 
@@ -245,13 +288,22 @@ export default function ChatPage() {
               {/* Profile Info */}
               <div className="flex flex-col items-center justify-center text-center">
                 <div className="relative mb-3 h-24 w-24">
-                  <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200" alt="" className="h-full w-full rounded-full object-cover border-[3px] border-white shadow-sm ring-1 ring-slate-100" />
-                  <div className="absolute bottom-1.5 right-1.5 h-4 w-4 rounded-full border-[3px] border-white bg-emerald-500"></div>
+                  {activeChat.isGroup ? (
+                    <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-200 text-slate-500 border-[3px] border-white shadow-sm ring-1 ring-slate-100">
+                      <Menu size={32} />
+                    </div>
+                  ) : (
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200" alt="" className="h-full w-full rounded-full object-cover border-[3px] border-white shadow-sm ring-1 ring-slate-100" />
+                  )}
+                  {activeChat.online && <div className="absolute bottom-1.5 right-1.5 h-4 w-4 rounded-full border-[3px] border-white bg-emerald-500"></div>}
                 </div>
-                <h2 className="text-xl font-bold text-slate-900">Sohil Sirohi</h2>
+                <h2 className="text-xl font-bold text-slate-900">{activeChat.name}</h2>
                 <div className="flex items-center gap-1.5 text-sm text-slate-500 mt-1">
-                  <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
-                  Online
+                  {activeChat.online ? (
+                    <><div className="h-2 w-2 rounded-full bg-emerald-500"></div>Online</>
+                  ) : (
+                    <span className="text-slate-400">{activeChat.isGroup ? 'Group Chat' : 'Offline'}</span>
+                  )}
                 </div>
               </div>
 
@@ -278,8 +330,10 @@ export default function ChatPage() {
               <div className="flex flex-col gap-2">
                 <h3 className="text-sm font-bold text-slate-900">About</h3>
                 <p className="text-[13px] text-slate-600 leading-relaxed">
-                  HR Manager at Website<br/>
-                  Handling recruitment and HR operations.
+                  {activeChat.isGroup ? "Project discussion group for the team." : "Available for new projects and collaborations."}<br/>
+                  <span className="text-slate-400 mt-1 block">
+                    {activeChat.isGroup ? "Created by Admin" : "+1 234 567 890"}
+                  </span>
                 </p>
               </div>
 
