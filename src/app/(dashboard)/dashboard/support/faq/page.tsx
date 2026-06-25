@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Search, ChevronRight, Info, Users, Calendar, FileText, Shield, 
   HelpCircle, ChevronDown, MessageSquare, Send, Headphones, 
@@ -16,17 +16,23 @@ const CATEGORIES = [
 ];
 
 const POPULAR_QUESTIONS = [
-  "How do I apply for leave?",
-  "What is the interview process?",
-  "How is my performance evaluated?",
-  "How can I reset my password?",
-  "Where can I view my payslip?",
-  "How do I update my personal information?",
-  "Who should I contact for IT support?",
-  "What are the working hours?",
+  { q: "How do I apply for leave?", a: "You can apply for leave through the 'My Attendance' > 'Leaves' section in the sidebar. Select your leave type, dates, and submit for manager approval." },
+  { q: "What is the interview process?", a: "The interview process typically involves an initial HR screening, followed by 1-2 technical or role-specific rounds, and a final culture-fit discussion." },
+  { q: "How is my performance evaluated?", a: "Performance is evaluated bi-annually based on your KPIs, project deliveries, and 360-degree feedback from peers and managers." },
+  { q: "How can I reset my password?", a: "Click on 'Forgot Password' on the login screen, or go to Settings > Security to update your current password." },
+  { q: "Where can I view my payslip?", a: "Payslips are generated at the end of each month and can be downloaded from the Payroll section under your profile." },
+  { q: "How do I update my personal information?", a: "Go to 'Company Profile' or your personal settings page to edit your contact details, emergency contacts, and other personal info." },
+  { q: "Who should I contact for IT support?", a: "You can submit a ticket using the 'Submit a Ticket' button on this page, or email it-support@crewcam.com." },
+  { q: "What are the working hours?", a: "Standard working hours are from 9:00 AM to 6:00 PM, Monday to Friday. Flexible hours may apply depending on your role." },
 ];
 
 export default function FAQPage() {
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+
+  const toggleFaq = (index: number) => {
+    setExpandedFaq(expandedFaq === index ? null : index);
+  };
+
   return (
     <div className="flex h-[calc(100vh-3rem)] w-full overflow-hidden bg-white">
       
@@ -147,15 +153,22 @@ export default function FAQPage() {
             <h3 className="text-[17px] font-bold text-slate-900">Popular Questions</h3>
             
             <div className="flex flex-col">
-              {POPULAR_QUESTIONS.map((q, i) => (
-                <div key={i} className={`flex items-center justify-between py-2.5 cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-100`}>
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-md bg-indigo-50 text-indigo-500 shrink-0">
-                      <HelpCircle size={12} />
+              {POPULAR_QUESTIONS.map((faq, i) => (
+                <div key={i} className="flex flex-col py-2.5 cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-100" onClick={() => toggleFaq(i)}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-5 w-5 items-center justify-center rounded-md bg-indigo-50 text-indigo-500 shrink-0">
+                        <HelpCircle size={12} />
+                      </div>
+                      <span className="font-bold text-slate-800 text-[14px]">{faq.q}</span>
                     </div>
-                    <span className="font-bold text-slate-800 text-[14px]">{q}</span>
+                    <ChevronDown size={16} className={`text-slate-400 transition-transform ${expandedFaq === i ? 'rotate-180' : ''}`} />
                   </div>
-                  <ChevronDown size={16} className="text-slate-400" />
+                  {expandedFaq === i && (
+                    <div className="pl-8 pr-4 pt-2 pb-1 text-[13px] text-slate-600 leading-relaxed">
+                      {faq.a}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
