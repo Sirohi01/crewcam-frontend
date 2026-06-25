@@ -134,12 +134,12 @@ export default function FAQPage() {
             
             <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-1">
               {CATEGORIES.map(cat => (
-                <div key={cat.id} className="flex min-w-[180px] flex-col rounded-xl border border-slate-100 bg-white p-3.5 shadow-sm hover:border-slate-200 hover:shadow-md transition-all cursor-pointer shrink-0">
-                  <div className={`mb-2 flex h-8 w-8 items-center justify-center rounded-full ${cat.color} scale-90`}>
+                <div key={cat.id} className="flex min-w-[180px] flex-col rounded-xl border border-slate-100 bg-white px-3 py-2.5 shadow-sm hover:border-slate-200 hover:shadow-md transition-all cursor-pointer shrink-0">
+                  <div className={`mb-1.5 flex h-7 w-7 items-center justify-center rounded-full ${cat.color} scale-90`}>
                     {cat.icon}
                   </div>
-                  <h4 className="text-[13px] font-bold text-slate-900 mb-1">{cat.title}</h4>
-                  <p className="text-[11px] text-slate-500 mb-2 line-clamp-2 leading-snug">{cat.desc}</p>
+                  <h4 className="text-[12px] font-bold text-slate-900 mb-0.5">{cat.title}</h4>
+                  <p className="text-[11px] text-slate-500 mb-1.5 line-clamp-2 leading-snug">{cat.desc}</p>
                   <div className={`mt-auto flex items-center text-[10px] font-bold ${cat.linkColor}`}>
                     {cat.articles} <ArrowRightIcon className="ml-1" />
                   </div>
