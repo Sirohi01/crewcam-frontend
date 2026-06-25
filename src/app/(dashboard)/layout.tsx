@@ -3,6 +3,7 @@ import CompanySidebar from '@/components/layout/CompanySidebar';
 import OnboardingWizardPrompt from '@/components/layout/OnboardingWizardPrompt';
 import DashboardTopbar from '@/components/layout/DashboardTopbar';
 import AuthGuard from '@/components/auth/AuthGuard';
+import SOSButton from '@/components/common/SOSButton';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -23,6 +24,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </main>
       
+      <SOSButton />
     </div>
     </AuthGuard>
   );
