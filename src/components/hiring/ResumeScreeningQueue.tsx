@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -39,10 +40,10 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 function Avatar({ name, src }: { name: string; src?: string }) {
-  if (src) return <img src={src} alt={name} className="h-9 w-9 rounded-full object-cover border border-zinc-200 dark:border-zinc-700" />;
+  if (src) return <img src={src} alt={name} className="h-8 w-8 rounded-full object-cover border border-zinc-200 dark:border-zinc-700" />;
   const initials = name.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('');
   return (
-    <div className="h-9 w-9 rounded-full bg-indigo-100 text-indigo-700 text-xs font-md flex items-center justify-center border border-indigo-200">
+    <div className="h-8 w-8 rounded-full bg-indigo-100 text-indigo-700 text-[11px] font-md flex items-center justify-center border border-indigo-200">
       {initials}
     </div>
   );
@@ -63,12 +64,14 @@ export default function ResumeScreeningQueue() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [screeningStatus, setScreeningStatus] = useState<'' | 'pending' | 'screened'>('');
-  const [applicationStatus, setApplicationStatus] = useState('');
+  const [applicationStatus, setApplicationStatus] = useState('Applied');
   const [experienceMatch, setExperienceMatch] = useState<'' | 'under' | 'match' | 'over'>('');
   const [minStars, setMinStars] = useState('');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   const [showAbout, setShowAbout] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   // Debounce search so it doesn't fire a backend request on every keystroke.
   useEffect(() => {
@@ -81,15 +84,26 @@ export default function ResumeScreeningQueue() {
 
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpenMenuId(null);
+      const target = e.target as Node;
+      if (menuRef.current?.contains(target)) return;
+      if (menuTriggerRef.current?.contains(target)) return;
+      setOpenMenuId(null);
     };
     document.addEventListener('mousedown', onClickOutside);
     return () => document.removeEventListener('mousedown', onClickOutside);
   }, []);
 
-  const hasActiveFilters = Boolean(search || screeningStatus || applicationStatus || experienceMatch || minStars);
+  const toggleMenu = (id: string, e: React.MouseEvent<HTMLButtonElement>) => {
+    if (openMenuId === id) { setOpenMenuId(null); return; }
+    menuTriggerRef.current = e.currentTarget;
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMenuPos({ top: rect.bottom + 4, left: rect.right - 176 });
+    setOpenMenuId(id);
+  };
+
+  const hasActiveFilters = Boolean(search || screeningStatus || applicationStatus !== 'Applied' || experienceMatch || minStars);
   const clearFilters = () => {
-    setSearch(''); setScreeningStatus(''); setApplicationStatus(''); setExperienceMatch(''); setMinStars(''); setPage(1);
+    setSearch(''); setScreeningStatus(''); setApplicationStatus('Applied'); setExperienceMatch(''); setMinStars(''); setPage(1);
   };
 
   const { data, isLoading, error } = useQuery<{ data: any[]; meta: { page: number; limit: number; total: number; totalPages: number } }>({
@@ -125,47 +139,47 @@ export default function ResumeScreeningQueue() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-start gap-3 border-b border-zinc-100 pb-3 dark:border-zinc-800">
-        <div className="h-11 w-11 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
-          <ScanSearch size={20} />
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2.5 border-b border-zinc-100 pb-2 dark:border-zinc-800">
+        <div className="h-9 w-9 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+          <ScanSearch size={16} />
         </div>
         <div>
-          <h1 className="text-xl font-md">AI Resume Screening Queue</h1>
-          <p className="mt-1 text-sm text-zinc-500">
+          <h1 className="text-lg font-md leading-tight">AI Resume Screening Queue</h1>
+          <p className="text-xs text-zinc-500">
             Every new or replaced resume appears here. AI never changes candidate status; HR reviews the result and decides.
           </p>
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-2.5 sm:grid-cols-3">
         <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0"><FileText size={18} /></div>
+          <CardContent className="p-3 flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-md bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0"><FileText size={15} /></div>
             <div>
-              <p className="text-xs text-zinc-500">This page</p>
-              <p className="text-2xl font-md leading-tight">{meta.total}</p>
-              <p className="text-[11px] text-zinc-400">Total candidates</p>
+              <p className="text-[11px] text-zinc-500">This page</p>
+              <p className="text-lg font-md leading-tight">{meta.total}</p>
+              <p className="text-[10px] text-zinc-400">Total candidates</p>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><Clock size={18} /></div>
+          <CardContent className="p-3 flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-md bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><Clock size={15} /></div>
             <div>
-              <p className="text-xs text-zinc-500">Pending screening</p>
-              <p className="text-2xl font-md leading-tight">{pendingCount}</p>
-              <p className="text-[11px] text-zinc-400">Awaiting AI screening</p>
+              <p className="text-[11px] text-zinc-500">Pending screening</p>
+              <p className="text-lg font-md leading-tight">{pendingCount}</p>
+              <p className="text-[10px] text-zinc-400">Awaiting AI screening</p>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0"><TrendingUp size={18} /></div>
+          <CardContent className="p-3 flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-md bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0"><TrendingUp size={15} /></div>
             <div>
-              <p className="text-xs text-zinc-500">Average fit score (this page)</p>
-              <p className="text-2xl font-md leading-tight">{avgFitScore !== null ? `${avgFitScore}/100` : '—'}</p>
-              <p className="text-[11px] text-zinc-400">Across {completedScores.length} candidates</p>
+              <p className="text-[11px] text-zinc-500">Average fit score (this page)</p>
+              <p className="text-lg font-md leading-tight">{avgFitScore !== null ? `${avgFitScore}/100` : '—'}</p>
+              <p className="text-[10px] text-zinc-400">Across {completedScores.length} candidates</p>
             </div>
           </CardContent>
         </Card>
@@ -249,12 +263,12 @@ export default function ResumeScreeningQueue() {
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-zinc-50 dark:bg-zinc-900/50 text-[11px] uppercase tracking-wide text-zinc-500 font-medium">
               <tr>
-                <th className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">Candidate</th>
-                <th className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">Job Role</th>
-                <th className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">Status</th>
-                <th className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">AI Screening</th>
-                <th className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">Added On</th>
-                <th className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 text-right">Actions</th>
+                <th className="px-5 py-2 border-b border-zinc-100 dark:border-zinc-800 text-center">Candidate</th>
+                <th className="px-5 py-2 border-b border-zinc-100 dark:border-zinc-800 text-center">Job Role</th>
+                <th className="px-5 py-2 border-b border-zinc-100 dark:border-zinc-800 text-center">Status</th>
+                <th className="px-5 py-2 border-b border-zinc-100 dark:border-zinc-800 text-center">AI Screening</th>
+                <th className="px-5 py-2 border-b border-zinc-100 dark:border-zinc-800 text-center">Added On</th>
+                <th className="px-5 py-2 border-b border-zinc-100 dark:border-zinc-800 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -269,26 +283,28 @@ export default function ResumeScreeningQueue() {
                 const statusColors = (STATUS_DOT[item.status] || STATUS_DOT.Applied).split(' ');
                 return (
                   <tr key={item._id} className="hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors">
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-3">
+                    <td className="px-5 py-2">
+                      <div className="flex items-center gap-2.5">
                         <Avatar name={`${item.firstName} ${item.lastName}`} src={item.profileImageUrl} />
                         <div>
-                          <p className="font-medium text-zinc-900 dark:text-zinc-100">{item.firstName} {item.lastName}</p>
-                          <p className="text-xs text-zinc-500">{item.email}</p>
-                          <span className={`mt-0.5 inline-block rounded-full px-1.5 py-0.5 text-[10px] font-md ${badge.cls}`}>{badge.text}</span>
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-medium text-zinc-900 dark:text-zinc-100 leading-tight">{item.firstName} {item.lastName}</p>
+                            <span className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-md ${badge.cls}`}>{badge.text}</span>
+                          </div>
+                          <p className="text-xs text-zinc-500 leading-tight">{item.email}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-3 text-zinc-600 dark:text-zinc-400">
+                    <td className="px-5 py-2 text-zinc-600 dark:text-zinc-400">
                       <span className="inline-flex items-center gap-1.5"><Briefcase size={13} className="text-zinc-400" /> {item.jobRole}</span>
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-5 py-2">
                       <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-md ${statusColors[2]} ${statusColors[1]}`}>
                         <span className={`h-1.5 w-1.5 rounded-full ${statusColors[0]}`} />
                         {item.status}
                       </span>
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-5 py-2">
                       {!latest && (
                         <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-md text-amber-700">Screening required</span>
                       )}
@@ -305,50 +321,59 @@ export default function ResumeScreeningQueue() {
                         <span className="text-xs text-rose-600">Failed — {latest.failureReason || 'retry required'}</span>
                       )}
                     </td>
-                    <td className="px-5 py-3 text-zinc-500">
+                    <td className="px-5 py-2 text-zinc-500">
                       <div className="flex items-center gap-1.5 text-xs"><CalendarDays size={12} /> {added.day}</div>
                       <div className="text-[11px] text-zinc-400 mt-0.5">{added.time}</div>
                     </td>
-                    <td className="px-5 py-3 text-right">
+                    <td className="px-5 py-2 text-right">
                       <div className="flex justify-end items-center gap-2">
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/dashboard/hiring/${item._id}`}><FileText size={14} className="mr-1" /> View Profile</Link>
+                        <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs" asChild>
+                          <Link href={`/dashboard/hiring/${item._id}`}><FileText size={13} className="mr-1" /> View Profile</Link>
                         </Button>
-                        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700" disabled={screen.isPending} onClick={() => screen.mutate(item._id)}>
-                          {screen.isPending ? <Loader2 size={14} className="mr-1 animate-spin" /> : <Sparkles size={14} className="mr-1" />}
+                        <Button size="sm" className="h-7 px-2.5 text-xs bg-indigo-600 hover:bg-indigo-700" disabled={screen.isPending} onClick={() => screen.mutate(item._id)}>
+                          {screen.isPending ? <Loader2 size={13} className="mr-1 animate-spin" /> : <Sparkles size={13} className="mr-1" />}
                           {item.needsScreening ? 'Screen resume' : 'Re-screen'}
                         </Button>
-                        <div className="relative" ref={openMenuId === item._id ? menuRef : undefined}>
-                          <button
-                            onClick={() => setOpenMenuId(openMenuId === item._id ? null : item._id)}
-                            className="h-8 w-8 flex items-center justify-center rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                          >
-                            <MoreVertical size={15} />
-                          </button>
-                          {openMenuId === item._id && (
-                            <div className="absolute right-0 z-10 mt-1 w-44 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-lg py-1 text-left">
-                              <Link
-                                href={`/dashboard/hiring/${item._id}`}
-                                className="block px-3 py-1.5 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800"
-                                onClick={() => setOpenMenuId(null)}
-                              >
-                                View screening history
-                              </Link>
-                              <a
-                                href={`mailto:${item.email}`}
-                                className="block px-3 py-1.5 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800"
-                                onClick={() => setOpenMenuId(null)}
-                              >
-                                Email candidate
-                              </a>
-                            </div>
-                          )}
-                        </div>
+                        <button
+                          onClick={(e) => toggleMenu(item._id, e)}
+                          className="h-7 w-7 flex items-center justify-center rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                        >
+                          <MoreVertical size={15} />
+                        </button>
                       </div>
                     </td>
                   </tr>
                 );
               })}
+              {openMenuId && menuPos && createPortal(
+                (() => {
+                  const activeItem = items.find((i) => i._id === openMenuId);
+                  if (!activeItem) return null;
+                  return (
+                    <div
+                      ref={menuRef}
+                      style={{ position: 'fixed', top: menuPos.top, left: menuPos.left }}
+                      className="z-[100] w-44 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-lg py-1 text-left"
+                    >
+                      <Link
+                        href={`/dashboard/hiring/${activeItem._id}`}
+                        className="block px-3 py-1.5 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                        onClick={() => setOpenMenuId(null)}
+                      >
+                        View screening history
+                      </Link>
+                      <a
+                        href={`mailto:${activeItem.email}`}
+                        className="block px-3 py-1.5 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                        onClick={() => setOpenMenuId(null)}
+                      >
+                        Email candidate
+                      </a>
+                    </div>
+                  );
+                })(),
+                document.body,
+              )}
             </tbody>
           </table>
         </div>
