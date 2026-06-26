@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sparkles, AlertTriangle, Loader2, FileUp, FileCheck2, Star } from 'lucide-react';
+import { Sparkles, AlertTriangle, Loader2, FileUp, FileCheck2, Star, CheckCircle2 } from 'lucide-react';
 import api from '@/lib/axios';
 
 interface ResumeScreening {
@@ -135,51 +135,98 @@ export default function ResumeScreeningPanel({ candidateId, resumeUrl }: { candi
 
         {latest && latest.status === 'completed' && (
           <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <span className={`text-lg font-md px-3 py-1 rounded-md ${scoreColor(latest.fitScore)}`}>{latest.fitScore}/100</span>
-              {latest.starRating != null && <StarRating rating={latest.starRating} />}
-              <span className="text-xs text-zinc-500">Experience: {latest.experienceMatch}</span>
+            <div className="flex flex-col sm:flex-row rounded-xl border border-slate-200 overflow-hidden shadow-sm dark:border-zinc-800">
+              <div className={`flex flex-col items-center justify-center p-3 w-28 shrink-0 ${scoreColor(latest.fitScore)}`}>
+                <span className="text-3xl font-extrabold tracking-tighter leading-none">{latest.fitScore}</span>
+                <span className="text-[10px] uppercase font-bold tracking-wider mt-1 opacity-80">Score</span>
+              </div>
+              
+              <div className="flex flex-col justify-center gap-1.5 flex-1 p-3 bg-slate-50/50 dark:bg-zinc-900/50">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Overall Rating</span>
+                  {latest.starRating != null && <StarRating rating={latest.starRating} />}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Experience Level</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                    latest.experienceMatch === 'match' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 
+                    latest.experienceMatch === 'over' ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' : 'bg-amber-100 text-amber-700 border border-amber-200'
+                  }`}>
+                    {latest.experienceMatch}
+                  </span>
+                </div>
+              </div>
             </div>
-            <p className="text-sm text-zinc-700 dark:text-zinc-300">{latest.summary}</p>
+
+            <div className="rounded-xl bg-indigo-50/50 p-3 border border-indigo-100/50 dark:bg-indigo-900/10 dark:border-indigo-900/20">
+              <p className="text-sm text-slate-700 dark:text-zinc-300 leading-relaxed italic relative">
+                <span className="text-4xl text-indigo-200 absolute -top-4 -left-2 leading-none font-serif">"</span>
+                <span className="relative z-10 pl-4 block">{latest.summary}</span>
+              </p>
+            </div>
+
             {(latest.pros?.length > 0 || latest.cons?.length > 0) && (
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <div className="text-[10px] font-md uppercase tracking-wide text-zinc-400 mb-1">Pros</div>
-                  <ul className="text-xs text-emerald-700 list-disc pl-4 space-y-0.5">
-                    {(latest.pros || []).map((p) => <li key={p}>{p}</li>)}
-                  </ul>
-                </div>
-                <div>
-                  <div className="text-[10px] font-md uppercase tracking-wide text-zinc-400 mb-1">Cons</div>
-                  <ul className="text-xs text-rose-700 list-disc pl-4 space-y-0.5">
-                    {(latest.cons || []).map((c) => <li key={c}>{c}</li>)}
-                  </ul>
-                </div>
+              <div className="flex flex-col gap-3">
+                {latest.pros?.length > 0 && (
+                  <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-3 dark:border-emerald-900/30 dark:bg-emerald-900/10">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <CheckCircle2 size={14} className="text-emerald-600" />
+                      <h4 className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Strengths</h4>
+                    </div>
+                    <ul className="text-[11px] font-medium text-emerald-700 space-y-1 pl-5">
+                      {latest.pros.map((p, i) => (
+                        <li key={i} className="list-disc leading-tight">{p}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {latest.cons?.length > 0 && (
+                  <div className="rounded-xl border border-rose-100 bg-rose-50/50 p-3 dark:border-rose-900/30 dark:bg-rose-900/10">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <AlertTriangle size={14} className="text-rose-600" />
+                      <h4 className="text-[11px] font-bold text-rose-800 uppercase tracking-wider">Weaknesses</h4>
+                    </div>
+                    <ul className="text-[11px] font-medium text-rose-700 space-y-1 pl-5">
+                      {latest.cons.map((c, i) => (
+                        <li key={i} className="list-disc leading-tight">{c}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
-            <div className="grid grid-cols-2 gap-3">
+
+            <div className="flex flex-col gap-2.5">
               <div>
-                <div className="text-[10px] font-md uppercase tracking-wide text-zinc-400 mb-1">Matched Skills</div>
-                <div className="flex flex-wrap gap-1">
-                  {latest.matchedSkills.map((s) => (
-                    <span key={s} className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">{s}</span>
+                <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Matched Skills</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {latest.matchedSkills.map((s, i) => (
+                    <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded text-emerald-700 bg-emerald-50 border border-emerald-200">{s}</span>
                   ))}
+                  {latest.matchedSkills.length === 0 && <span className="text-xs text-slate-400 italic">None found</span>}
                 </div>
               </div>
               <div>
-                <div className="text-[10px] font-md uppercase tracking-wide text-zinc-400 mb-1">Missing Skills</div>
-                <div className="flex flex-wrap gap-1">
-                  {latest.missingSkills.map((s) => (
-                    <span key={s} className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600">{s}</span>
+                <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Missing Skills</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {latest.missingSkills.map((s, i) => (
+                    <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded text-slate-600 bg-slate-50 border border-slate-200">{s}</span>
                   ))}
+                  {latest.missingSkills.length === 0 && <span className="text-xs text-slate-400 italic">None</span>}
                 </div>
               </div>
             </div>
+
             {latest.redFlags.length > 0 && (
-              <div>
-                <div className="text-[10px] font-md uppercase tracking-wide text-zinc-400 mb-1">Red Flags</div>
-                <ul className="text-xs text-rose-600 list-disc pl-4">
-                  {latest.redFlags.map((f) => <li key={f}>{f}</li>)}
+              <div className="rounded-xl border border-red-200 bg-red-50 p-3 shadow-sm dark:border-red-900/30 dark:bg-red-900/10">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <AlertTriangle size={14} className="text-red-600" />
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-red-800">Red Flags</h4>
+                </div>
+                <ul className="text-[11px] font-medium text-red-700 space-y-1 pl-5">
+                  {latest.redFlags.map((f, i) => (
+                    <li key={i} className="list-disc leading-tight">{f}</li>
+                  ))}
                 </ul>
               </div>
             )}
