@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertTriangle, Briefcase, CalendarClock, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight,
-  Clock, Eye, Filter, Loader2, MoreVertical, Plus, Search, Star, Users,
+  Clock, Eye, Filter, Loader2, MessageSquareText, MoreVertical, Plus, RefreshCw, Search, Sparkles, Star, Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -86,6 +86,7 @@ export default function InterviewWorkspace({ view }: { view: View }) {
 
   const [feedbackId, setFeedbackId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState({ status: 'Completed', rating: 3, feedback: '' });
+  const [questionsId, setQuestionsId] = useState<string | null>(null);
 
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
@@ -152,6 +153,10 @@ export default function InterviewWorkspace({ view }: { view: View }) {
     mutationFn: async (id: string) => (await api.put(`/hiring/interviews/${id}/feedback`, feedback)).data,
     onSuccess: () => { refresh(); setFeedbackId(null); setFeedback({ status: 'Completed', rating: 3, feedback: '' }); },
   });
+  const generateQuestions = useMutation({
+    mutationFn: async (id: string) => (await api.post(`/ai/hiring/interviews/${id}/generate-questions`)).data,
+    onSuccess: () => refresh(),
+  });
 
   const openAddModal = () => { setEditingId(null); setForm({ ...EMPTY_FORM, roundType: meta.rounds?.[0] || 'Telephonic' }); setModalOpen(true); };
   const openEditModal = (item: any) => {
@@ -173,6 +178,7 @@ export default function InterviewWorkspace({ view }: { view: View }) {
     setFeedback({ status: 'Completed', rating: item.rating || 3, feedback: item.feedback || '' });
     setOpenMenuId(null);
   };
+  const openQuestionsModal = (item: any) => { setQuestionsId(item._id); setOpenMenuId(null); };
 
   const visible = interviews;
   const candidateName = (c: any) => c?.firstName ? `${c.firstName} ${c.lastName || ''}`.trim() : 'Unknown candidate';
@@ -322,6 +328,9 @@ export default function InterviewWorkspace({ view }: { view: View }) {
                         <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs" asChild>
                           <Link href={`/dashboard/hiring/${candidate._id}`}><Eye size={13} className="mr-1" /> View</Link>
                         </Button>
+                        <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs" onClick={() => openQuestionsModal(item)}>
+                          <MessageSquareText size={13} className="mr-1" /> Questions
+                        </Button>
                         <button
                           onClick={(e) => toggleMenu(item._id, e)}
                           className="h-7 w-7 flex items-center justify-center rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -444,6 +453,61 @@ export default function InterviewWorkspace({ view }: { view: View }) {
               Save outcome
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(questionsId)} onOpenChange={(open) => { if (!open) setQuestionsId(null); }}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+          {(() => {
+            const item = visible.find((i: any) => i._id === questionsId);
+            if (!item) return null;
+            const questions: string[] = item.interviewQuestions || [];
+            return (
+              <>
+                <DialogHeader>
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-9 w-9 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0"><MessageSquareText size={17} /></div>
+                    <div>
+                      <DialogTitle>Interview Questions</DialogTitle>
+                      <p className="mt-0.5 text-xs text-zinc-500">
+                        <span className="font-md text-indigo-600">{item.roundType}</span> round · tailored to {candidateName(item.candidateId)}'s role and skills
+                      </p>
+                    </div>
+                  </div>
+                </DialogHeader>
+
+                <div className="space-y-2.5 py-1">
+                  {questions.length > 0 ? (
+                    questions.map((q, i) => (
+                      <div key={i} className="flex gap-3 rounded-lg border border-zinc-100 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
+                        <span className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-md flex items-center justify-center shrink-0">{i + 1}</span>
+                        <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{q}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-zinc-200 dark:border-zinc-700 p-6 text-center">
+                      <p className="text-sm text-zinc-500">No questions generated yet for this interview.</p>
+                    </div>
+                  )}
+                  {generateQuestions.isError && (
+                    <p className="flex items-center gap-1.5 text-xs text-rose-600"><AlertTriangle size={13} /> {(generateQuestions.error as any)?.response?.data?.message || 'Could not generate questions.'}</p>
+                  )}
+                </div>
+
+                <div className="flex justify-end gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                  <Button variant="outline" onClick={() => setQuestionsId(null)}>Close</Button>
+                  <Button
+                    className="bg-indigo-600 hover:bg-indigo-700"
+                    disabled={generateQuestions.isPending}
+                    onClick={() => questionsId && generateQuestions.mutate(questionsId)}
+                  >
+                    {generateQuestions.isPending ? <Loader2 size={14} className="mr-1.5 animate-spin" /> : questions.length > 0 ? <RefreshCw size={14} className="mr-1.5" /> : <Sparkles size={14} className="mr-1.5" />}
+                    {generateQuestions.isPending ? 'Generating…' : questions.length > 0 ? 'Regenerate' : 'Generate questions'}
+                  </Button>
+                </div>
+              </>
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </div>
