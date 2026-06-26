@@ -34,8 +34,6 @@ function CheckGroup({ values, onChange, options }: { values: string[]; onChange:
 const toId = (value: any) => value?._id || value || '';
 const toDateInput = (value: any) => value ? new Date(value).toISOString().slice(0, 10) : '';
 const branchLocation = (branch: any) => branch?.location || [branch?.address, branch?.city, branch?.state, branch?.country].filter(Boolean).join(', ') || branch?.name || '';
-
-/** Shared row above a JD/KRA textarea: pick a saved library template, generate fresh via AI, or save the current text back to the library. */
 function LibraryAndAiControls({
   libraryItems, onPick, onGenerate, generating, onSaveToLibrary, canSave,
 }: {
