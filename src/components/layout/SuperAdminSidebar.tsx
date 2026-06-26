@@ -42,12 +42,10 @@ export default function SuperAdminSidebar() {
             <NavItem href="/super-admin/tenants" icon={<Server size={16} />} label="Tenant Companies" active={pathname.includes('/super-admin/tenants')} />
             <NavItem href="/super-admin/packages" icon={<Package size={16} />} label="Packages & Limits" active={pathname.includes('/super-admin/packages')} />
             <NavItem href="/super-admin/features" icon={<Shield size={16} />} label="Features & Permissions" active={pathname.includes('/super-admin/features')} />
+            <NavItem href="/super-admin/ai-providers" icon={<Sparkles size={16} />} label="AI Providers" active={pathname.includes('/super-admin/ai-providers')} />
             <NavItem href="/super-admin/banners" icon={<ImageIcon size={16} />} label="Dashboard Banners" active={pathname.includes('/super-admin/banners')} />
           </nav>
         </div>
-
-        {/* docs/modules/3A_SUPER_ADMIN_REVIEW.md gaps — seeded now (static) so the full
-            Super Admin scope is visible; each lands on a real page in Phase N. */}
         <div>
           <h3 className="px-3 text-[10px] font-md uppercase tracking-wider text-slate-400 mb-2">Platform Insight</h3>
           <nav className="space-y-1">

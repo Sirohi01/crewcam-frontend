@@ -2,12 +2,11 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plug } from 'lucide-react';
+import { Plug, Sparkles } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/axios';
 
 const AVAILABLE_INTEGRATIONS = [
-  { provider: 'OpenAI', description: 'Powers AI Resume Screening and AI Employee Summary (Phase C/C2). Server-side only — the frontend never sees this key.' },
   { provider: 'SMTP', description: 'Configure custom email server for sending notifications.' },
   { provider: 'Twilio', description: 'Send SMS notifications and alerts via Twilio API.' },
   { provider: 'WhatsApp Business', description: 'Send automated updates to employees via WhatsApp.' },
@@ -31,6 +30,7 @@ export default function IntegrationsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <AiProviderCard />
         {AVAILABLE_INTEGRATIONS.map(def => {
           const connected = integrations?.find((i: any) => i.provider === def.provider && i.isActive);
           return (
@@ -44,6 +44,64 @@ export default function IntegrationsPage() {
         })}
       </div>
     </div>
+  );
+}
+
+/**
+ * AI keys are super-admin-owned platform-wide (see Super Admin > AI Providers) — a
+ * tenant never enters or sees a raw key here, it only picks which already-active
+ * provider (OpenAI/Gemini/Anthropic) it wants AI Resume Screening / AI Employee
+ * Summary / AI JD & KPA generation to use.
+ */
+function AiProviderCard() {
+  const queryClient = useQueryClient();
+  const { data } = useQuery({
+    queryKey: ['ai-provider-options'],
+    queryFn: async () => (await api.get('/settings/ai-provider')).data,
+  });
+
+  const setProvider = useMutation({
+    mutationFn: async (provider: string) => (await api.put('/settings/ai-provider', { provider })).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ai-provider-options'] }),
+  });
+
+  const available: string[] = data?.available || [];
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <div className="flex flex-col gap-1">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Sparkles size={18} className="text-indigo-600" />
+            AI Provider
+          </CardTitle>
+          <CardDescription>
+            Powers AI Resume Screening, AI Employee Summary, and AI JD/KPA generation. Keys are managed by your
+            platform administrator — pick which provider your company uses.
+          </CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {available.length === 0 ? (
+          <p className="text-xs text-zinc-500">No AI provider is active for this platform yet. Contact your administrator.</p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {available.map((provider) => (
+              <label key={provider} className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="radio"
+                  name="ai-provider"
+                  checked={data?.preferred === provider}
+                  disabled={setProvider.isPending}
+                  onChange={() => setProvider.mutate(provider)}
+                />
+                {provider}
+              </label>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sparkles, AlertTriangle, Loader2, FileUp, FileCheck2 } from 'lucide-react';
+import { Sparkles, AlertTriangle, Loader2, FileUp, FileCheck2, Star } from 'lucide-react';
 import api from '@/lib/axios';
 
 interface ResumeScreening {
@@ -15,9 +15,22 @@ interface ResumeScreening {
   experienceMatch: 'under' | 'match' | 'over';
   redFlags: string[];
   summary: string;
+  pros: string[];
+  cons: string[];
+  starRating: number;
   status: 'completed' | 'failed';
   failureReason?: string;
   createdAt: string;
+}
+
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <Star key={n} size={14} className={n <= rating ? 'fill-amber-400 text-amber-400' : 'text-zinc-300'} />
+      ))}
+    </div>
+  );
 }
 
 const scoreColor = (score: number) =>
@@ -124,9 +137,26 @@ export default function ResumeScreeningPanel({ candidateId, resumeUrl }: { candi
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3">
               <span className={`text-lg font-md px-3 py-1 rounded-md ${scoreColor(latest.fitScore)}`}>{latest.fitScore}/100</span>
+              {latest.starRating != null && <StarRating rating={latest.starRating} />}
               <span className="text-xs text-zinc-500">Experience: {latest.experienceMatch}</span>
             </div>
             <p className="text-sm text-zinc-700 dark:text-zinc-300">{latest.summary}</p>
+            {(latest.pros?.length > 0 || latest.cons?.length > 0) && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="text-[10px] font-md uppercase tracking-wide text-zinc-400 mb-1">Pros</div>
+                  <ul className="text-xs text-emerald-700 list-disc pl-4 space-y-0.5">
+                    {(latest.pros || []).map((p) => <li key={p}>{p}</li>)}
+                  </ul>
+                </div>
+                <div>
+                  <div className="text-[10px] font-md uppercase tracking-wide text-zinc-400 mb-1">Cons</div>
+                  <ul className="text-xs text-rose-700 list-disc pl-4 space-y-0.5">
+                    {(latest.cons || []).map((c) => <li key={c}>{c}</li>)}
+                  </ul>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <div className="text-[10px] font-md uppercase tracking-wide text-zinc-400 mb-1">Matched Skills</div>
