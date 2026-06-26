@@ -17,7 +17,7 @@ interface Interview {
   _id: string;
   roundType: string;
   scheduledDate: string;
-  status: 'Scheduled' | 'Completed' | 'Cancelled' | 'No_Show';
+  status: 'Scheduled' | 'In_Progress' | 'Completed' | 'Cancelled' | 'No_Show';
   rating?: number;
   feedback?: string;
   interviewerId?: { firstName: string; lastName: string };
@@ -73,7 +73,7 @@ export default function InterviewStepPanel({
                 <span className="text-xs text-zinc-500 ml-2">{moment(iv.scheduledDate).format('MMM DD, YYYY HH:mm')}</span>
                 {iv.interviewerId && <span className="text-xs text-zinc-500 ml-2">with {iv.interviewerId.firstName} {iv.interviewerId.lastName}</span>}
               </div>
-              <span className={`text-[10px] font-md px-2 py-0.5 rounded-full ${iv.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : iv.status === 'Scheduled' ? 'bg-indigo-100 text-indigo-700' : 'bg-rose-100 text-rose-700'}`}>
+              <span className={`text-[10px] font-md px-2 py-0.5 rounded-full ${iv.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : iv.status === 'Scheduled' ? 'bg-indigo-100 text-indigo-700' : iv.status === 'In_Progress' ? 'bg-purple-100 text-purple-700' : 'bg-rose-100 text-rose-700'}`}>
                 {iv.status}
               </span>
             </div>

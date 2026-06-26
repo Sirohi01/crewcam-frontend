@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertTriangle, ArrowLeft, Briefcase, CalendarClock, ChevronDown, ChevronUp, Lightbulb,
-  Loader2, MessageSquareText, Plus, RefreshCw, Sparkles, Trash2,
+  Loader2, MessageSquareText, Plus, RefreshCw, Sparkles, Trash2, Video,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -89,10 +89,20 @@ export default function InterviewQuestionsPage({ interviewId }: { interviewId: s
             </div>
           </div>
         </div>
-        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm" disabled={generateQuestions.isPending} onClick={() => generateQuestions.mutate()}>
-          {generateQuestions.isPending ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Sparkles size={14} className="mr-2" />}
-          {questions.length > 0 ? 'Regenerate All' : 'Generate with AI'}
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button size="sm" variant="outline" disabled={generateQuestions.isPending} onClick={() => generateQuestions.mutate()}>
+            {generateQuestions.isPending ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Sparkles size={14} className="mr-2" />}
+            {questions.length > 0 ? 'Regenerate All' : 'Generate with AI'}
+          </Button>
+          {questions.length > 0 && interview.status !== 'Cancelled' && interview.status !== 'No_Show' && (
+            <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm" asChild>
+              <Link href={`/dashboard/hiring/interviews/live/${interviewId}`}>
+                <Video size={14} className="mr-2" />
+                {interview.status === 'In_Progress' ? 'Resume Interview' : interview.status === 'Completed' ? 'View Summary' : 'Start Interview'}
+              </Link>
+            </Button>
+          )}
+        </div>
       </div>
 
       {generateQuestions.isError && (

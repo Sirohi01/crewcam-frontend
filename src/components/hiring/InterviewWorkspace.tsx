@@ -28,6 +28,7 @@ const VIEW_META: Record<View, { title: string; description: string; rounds?: str
 
 const STATUS_DOT: Record<string, string> = {
   Scheduled: 'bg-blue-500 text-blue-700 bg-blue-50',
+  In_Progress: 'bg-purple-500 text-purple-700 bg-purple-50',
   Completed: 'bg-emerald-500 text-emerald-700 bg-emerald-50',
   Cancelled: 'bg-rose-500 text-rose-700 bg-rose-50',
   No_Show: 'bg-amber-500 text-amber-700 bg-amber-50',
