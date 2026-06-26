@@ -131,9 +131,8 @@ export default function BannersPage() {
       width: '90px',
       render: (_: any, row: any) => (
         <span
-          className={`px-2 py-1 rounded text-xs font-medium ${
-            row.isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'
-          }`}
+          className={`px-2 py-1 rounded text-xs font-medium ${row.isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'
+            }`}
         >
           {row.isActive ? 'Active' : 'Inactive'}
         </span>
@@ -256,24 +255,16 @@ export default function BannersPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Secondary Button Link</label>
-                    <input
-                      name="secondaryHref"
-                      defaultValue={editingBanner?.secondaryHref}
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Status</label>
+                    <select
+                      name="isActive"
+                      defaultValue={editingBanner?.isActive === false ? 'false' : 'true'}
                       className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                    />
+                    >
+                      <option value="true">Active</option>
+                      <option value="false">Inactive</option>
+                    </select>
                   </div>
-                      <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Status</label>
-                  <select
-                    name="isActive"
-                    defaultValue={editingBanner?.isActive === false ? 'false' : 'true'}
-                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                  >
-                    <option value="true">Active</option>
-                    <option value="false">Inactive</option>
-                  </select>
-                </div>
                 </div>
               </div>
 
