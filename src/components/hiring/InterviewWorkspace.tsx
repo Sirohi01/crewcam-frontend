@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertTriangle, Briefcase, CalendarClock, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight,
-  Clock, Eye, Filter, Loader2, MessageSquareText, MoreVertical, Plus, RefreshCw, Search, Sparkles, Star, Users,
+  Clock, Eye, Filter, Loader2, MessageSquareText, MoreVertical, Plus, Search, Star, Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -86,7 +86,6 @@ export default function InterviewWorkspace({ view }: { view: View }) {
 
   const [feedbackId, setFeedbackId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState({ status: 'Completed', rating: 3, feedback: '' });
-  const [questionsId, setQuestionsId] = useState<string | null>(null);
 
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
@@ -153,10 +152,6 @@ export default function InterviewWorkspace({ view }: { view: View }) {
     mutationFn: async (id: string) => (await api.put(`/hiring/interviews/${id}/feedback`, feedback)).data,
     onSuccess: () => { refresh(); setFeedbackId(null); setFeedback({ status: 'Completed', rating: 3, feedback: '' }); },
   });
-  const generateQuestions = useMutation({
-    mutationFn: async (id: string) => (await api.post(`/ai/hiring/interviews/${id}/generate-questions`)).data,
-    onSuccess: () => refresh(),
-  });
 
   const openAddModal = () => { setEditingId(null); setForm({ ...EMPTY_FORM, roundType: meta.rounds?.[0] || 'Telephonic' }); setModalOpen(true); };
   const openEditModal = (item: any) => {
@@ -178,8 +173,6 @@ export default function InterviewWorkspace({ view }: { view: View }) {
     setFeedback({ status: 'Completed', rating: item.rating || 3, feedback: item.feedback || '' });
     setOpenMenuId(null);
   };
-  const openQuestionsModal = (item: any) => { setQuestionsId(item._id); setOpenMenuId(null); };
-
   const visible = interviews;
   const candidateName = (c: any) => c?.firstName ? `${c.firstName} ${c.lastName || ''}`.trim() : 'Unknown candidate';
 
@@ -227,18 +220,18 @@ export default function InterviewWorkspace({ view }: { view: View }) {
 
       {view !== 'statistics' && (
         <Card className="border-zinc-200 shadow-sm dark:border-zinc-800">
-          <div className="flex flex-wrap items-center gap-2 p-3">
-            <div className="relative w-full sm:w-56">
+          <div className="flex flex-col sm:flex-row items-center gap-3 p-3">
+            <div className="relative w-full sm:w-64 shrink-0">
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
               <input className={`${inputClass} pl-8`} placeholder="Search by candidate name, role, round..." value={query} onChange={(e) => setQuery(e.target.value)} />
             </div>
             {!meta.rounds && (
-              <select className={`${inputClass} w-auto`} value={round} onChange={(e) => setRound(e.target.value)}>
+              <select className={`rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900 w-full sm:w-48 shrink-0`} value={round} onChange={(e) => setRound(e.target.value)}>
                 <option value="All">All Rounds</option>
                 {ROUND_TYPES.map((type) => <option key={type}>{type}</option>)}
               </select>
             )}
-            <select className={`${inputClass} w-auto`} value={status} onChange={(e) => setStatus(e.target.value)}>
+            <select className={`rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900 w-full sm:w-48 shrink-0`} value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="All">All Status</option>
               <option>Scheduled</option>
               <option>Completed</option>
@@ -246,10 +239,10 @@ export default function InterviewWorkspace({ view }: { view: View }) {
               <option>No_Show</option>
             </select>
             {hasActiveFilters && (
-              <button onClick={clearFilters} className="text-xs text-indigo-600 hover:underline">Clear</button>
+              <button onClick={clearFilters} className="text-xs text-indigo-600 hover:underline whitespace-nowrap shrink-0">Clear filters</button>
             )}
-            <button className="ml-auto h-8 w-8 flex items-center justify-center rounded-md border border-zinc-200 dark:border-zinc-700 text-zinc-500" title="Filters">
-              <Filter size={14} />
+            <button className="sm:ml-auto h-9 w-9 shrink-0 flex items-center justify-center rounded-md border border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800" title="Filters">
+              <Filter size={15} />
             </button>
           </div>
         </Card>
@@ -328,8 +321,8 @@ export default function InterviewWorkspace({ view }: { view: View }) {
                         <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs" asChild>
                           <Link href={`/dashboard/hiring/${candidate._id}`}><Eye size={13} className="mr-1" /> View</Link>
                         </Button>
-                        <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs" onClick={() => openQuestionsModal(item)}>
-                          <MessageSquareText size={13} className="mr-1" /> Questions
+                        <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs" asChild>
+                          <Link href={`/dashboard/hiring/interviews/questions/${item._id}`}><MessageSquareText size={13} className="mr-1" /> Questions</Link>
                         </Button>
                         <button
                           onClick={(e) => toggleMenu(item._id, e)}
@@ -456,60 +449,6 @@ export default function InterviewWorkspace({ view }: { view: View }) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={Boolean(questionsId)} onOpenChange={(open) => { if (!open) setQuestionsId(null); }}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
-          {(() => {
-            const item = visible.find((i: any) => i._id === questionsId);
-            if (!item) return null;
-            const questions: string[] = item.interviewQuestions || [];
-            return (
-              <>
-                <DialogHeader>
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-9 w-9 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0"><MessageSquareText size={17} /></div>
-                    <div>
-                      <DialogTitle>Interview Questions</DialogTitle>
-                      <p className="mt-0.5 text-xs text-zinc-500">
-                        <span className="font-md text-indigo-600">{item.roundType}</span> round · tailored to {candidateName(item.candidateId)}'s role and skills
-                      </p>
-                    </div>
-                  </div>
-                </DialogHeader>
-
-                <div className="space-y-2.5 py-1">
-                  {questions.length > 0 ? (
-                    questions.map((q, i) => (
-                      <div key={i} className="flex gap-3 rounded-lg border border-zinc-100 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
-                        <span className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-md flex items-center justify-center shrink-0">{i + 1}</span>
-                        <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{q}</p>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="rounded-lg border border-dashed border-zinc-200 dark:border-zinc-700 p-6 text-center">
-                      <p className="text-sm text-zinc-500">No questions generated yet for this interview.</p>
-                    </div>
-                  )}
-                  {generateQuestions.isError && (
-                    <p className="flex items-center gap-1.5 text-xs text-rose-600"><AlertTriangle size={13} /> {(generateQuestions.error as any)?.response?.data?.message || 'Could not generate questions.'}</p>
-                  )}
-                </div>
-
-                <div className="flex justify-end gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
-                  <Button variant="outline" onClick={() => setQuestionsId(null)}>Close</Button>
-                  <Button
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                    disabled={generateQuestions.isPending}
-                    onClick={() => questionsId && generateQuestions.mutate(questionsId)}
-                  >
-                    {generateQuestions.isPending ? <Loader2 size={14} className="mr-1.5 animate-spin" /> : questions.length > 0 ? <RefreshCw size={14} className="mr-1.5" /> : <Sparkles size={14} className="mr-1.5" />}
-                    {generateQuestions.isPending ? 'Generating…' : questions.length > 0 ? 'Regenerate' : 'Generate questions'}
-                  </Button>
-                </div>
-              </>
-            );
-          })()}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
