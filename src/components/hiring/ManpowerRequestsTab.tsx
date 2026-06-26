@@ -9,7 +9,7 @@ import api from '@/lib/axios';
 import { openFileUrl } from '@/lib/fileUrls';
 
 const input = 'mt-1 h-9 w-full rounded border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-[#0e4778] focus:ring-2 focus:ring-blue-100';
-const textArea = `${input} h-24 resize-y py-2`;
+const textArea = `${input.replace('h-9', 'h-36')} resize-y py-2`;
 const label = 'text-[11px] font-semibold uppercase tracking-tight text-slate-700';
 const today = new Date().toISOString().slice(0, 10);
 
