@@ -101,7 +101,12 @@ function SuperAdminLeadsPageInner() {
   };
 
   const columns: Column<any>[] = [
-    { key: 'companyName', label: 'COMPANY', sortable: true },
+    {
+      key: 'companyName',
+      label: 'COMPANY',
+      sortable: true,
+      render: (v, row) => <Link href={`/super-admin/leads/${row._id}`} className="font-medium text-indigo-600 hover:text-indigo-700">{v}</Link>,
+    },
     { key: 'contactName', label: 'CONTACT' },
     { key: 'contactEmail', label: 'EMAIL' },
     { key: 'source', label: 'SOURCE', width: '100px' },

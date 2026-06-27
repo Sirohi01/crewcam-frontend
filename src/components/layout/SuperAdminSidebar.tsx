@@ -21,7 +21,7 @@ import {
   Flag,
   Shield,
   LogOut,
-  Bot,
+  Workflow,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { useAuthStore } from '@/store/authStore';
@@ -42,6 +42,7 @@ const NAV_ITEMS = [
   { href: '/super-admin/analytics', icon: PieChart, label: 'Analytics', live: true },
   { href: '/super-admin/settings', icon: SettingsIcon, label: 'Settings', live: true },
   { href: '/super-admin/audit-logs', icon: ShieldAlert, label: 'Audit Logs', live: true },
+  { href: '/super-admin/automation', icon: Workflow, label: 'Automation', live: true },
   { href: '/super-admin/features', icon: Flag, label: 'Feature Flags', live: true },
   { href: '/super-admin/ai-providers', icon: Bot, label: 'AI Providers', live: true },
 ];
