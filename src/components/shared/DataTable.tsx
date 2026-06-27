@@ -300,7 +300,7 @@ export function DataTable<T extends { id?: string | number; _id?: string | numbe
                 </td>
               </tr>
             ) : (
-              displayData.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((row, rowIndex) => {
+              (totalItems !== undefined ? displayData : displayData.slice((currentPage - 1) * pageSize, currentPage * pageSize)).map((row, rowIndex) => {
                 const id = getId(row);
                 const isChecked = selectable && selectedIds.has(id);
                 const isRowSelected = selectedId === (row as any).id || (row as any)._id === selectedId;
