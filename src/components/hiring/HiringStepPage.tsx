@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { useForm, useFieldArray, FieldValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, FileText, Plus, Save, ShieldCheck, Trash2 } from 'lucide-react';
+import { ArrowLeft, FileText, Plus, Save, ShieldCheck, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import api from '@/lib/axios';
 import { ArrayFieldConfig, getHiringStepById, HiringStepConfig, StepField } from '@/lib/hiringSteps';
 import { openFileUrl } from '@/lib/fileUrls';
@@ -157,14 +157,14 @@ function FieldInput({ field, register, error }: { field: StepField; register: an
   if (field.type === 'textarea') {
     return (
       <>
-        <textarea {...register(field.name)} className={inputClass} rows={4} />
+        <textarea {...register(field.name)} className={inputClass} rows={4} placeholder={field.placeholder} />
         {error && <div className="mt-1 text-xs text-rose-600">{error}</div>}
       </>
     );
   }
   return (
     <>
-      <input {...register(field.name)} type={field.type} className={inputClass} />
+      <input {...register(field.name)} type={field.type} className={inputClass} placeholder={field.placeholder} />
       {error && <div className="mt-1 text-xs text-rose-600">{error}</div>}
     </>
   );
@@ -206,7 +206,7 @@ function ArrayFieldEditor({ field, control, register, setValue, employees = [] }
                       {subField.options?.map((option) => <option key={option} value={option}>{option}</option>)}
                     </select>
                   ) : (
-                    <input {...register(`${field.name}.${index}.${subField.name}`)} type={subField.type} className={`${inputClass} mt-1`} />
+                    <input {...register(`${field.name}.${index}.${subField.name}`)} type={subField.type} className={`${inputClass} mt-1`} placeholder={subField.placeholder} />
                   )}
                 </label>
               ))}
@@ -332,6 +332,9 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
       queryClient.invalidateQueries({ queryKey: ['candidate-pipeline', candidateId] });
       queryClient.invalidateQueries({ queryKey: ['candidate-hiring-profile', candidateId] });
       queryClient.invalidateQueries({ queryKey: ['hiring-step-records', step?.id, entityId] });
+      if (step) {
+        router.push(`/dashboard/hiring/steps/${step.id}`);
+      }
     },
     onError: (error: any) => {
       window.alert(error?.response?.data?.message || error?.response?.data?.error || `Unable to save ${step?.title || 'this record'}`);
@@ -473,17 +476,22 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
                           <FileText size={14} /> {step.id === 'loi' && record.status === 'Draft' ? 'Generate & Send LOI' : 'PDF'}
                         </Button>
                       )}
-                      {(step.postCreateActions || []).filter((action) => !(step.id === 'selection-approval' && record.finalStatus && record.finalStatus !== 'Pending')).map((action) => (
-                        <Button
-                          key={action.label}
-                          type="button"
-                          variant="outline"
-                          className="h-8 gap-2 px-2 text-xs"
-                          onClick={() => actionMutation.mutate({ recordId: record._id, action })}
-                        >
-                          <ShieldCheck size={14} /> {action.label}
-                        </Button>
-                      ))}
+                      {(step.postCreateActions || []).filter((action) => !(step.id === 'selection-approval' && record.finalStatus && record.finalStatus !== 'Pending')).map((action) => {
+                        const lower = action.label.toLowerCase();
+                        const isApprove = lower.includes('approve') || lower.includes('accept') || lower.includes('confirm') || lower.includes('verify') || lower.includes('issue');
+                        const isReject = lower.includes('reject') || lower.includes('decline') || lower.includes('terminate');
+                        return (
+                          <Button
+                            key={action.label}
+                            type="button"
+                            variant="outline"
+                            className={`h-8 gap-2 px-2 text-xs ${isApprove ? 'text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700' : isReject ? 'text-red-600 hover:bg-red-50 hover:text-red-700' : ''}`}
+                            onClick={() => actionMutation.mutate({ recordId: record._id, action })}
+                          >
+                            {isApprove ? <CheckCircle size={14} /> : isReject ? <XCircle size={14} /> : <ShieldCheck size={14} />} {action.label}
+                          </Button>
+                        );
+                      })}
                     </div>
                   </div>
                   <div className="grid gap-x-5 gap-y-2 text-xs text-zinc-500 md:grid-cols-2">
