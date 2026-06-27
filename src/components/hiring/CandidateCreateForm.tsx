@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, CheckCircle2, FileUp, ImagePlus, LockKeyhole, Plus, ShieldAlert, ShieldCheck, Trash2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, FileUp, ImagePlus, LockKeyhole, Loader2, Plus, ShieldAlert, ShieldCheck, Sparkles, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
@@ -73,6 +73,9 @@ export default function CandidateCreateForm() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [resumeReview, setResumeReview] = useState<{ verdict: string; reason: string } | null>(null);
   const [photoWarning, setPhotoWarning] = useState<string | null>(null);
+  const [extracting, setExtracting] = useState(false);
+  const [extractError, setExtractError] = useState<string | null>(null);
+  const [extracted, setExtracted] = useState(false);
 
   const { data: requests = [] } = useQuery<any[]>({
     queryKey: ['manpower-request'],
@@ -94,12 +97,54 @@ export default function CandidateCreateForm() {
     },
   });
 
+  const extractFromResume = async (resumeUrl: string) => {
+    setExtracting(true);
+    setExtractError(null);
+    setExtracted(false);
+    try {
+      const { data } = await api.post('/ai/hiring/extract-resume-profile', { resumeUrl });
+      setForm((current) => ({
+        ...current,
+        firstName: data.firstName || current.firstName,
+        lastName: data.lastName || current.lastName,
+        email: data.email || current.email,
+        phone: data.phone || current.phone,
+        jobRole: current.jobRole || data.currentOrMostRecentDesignation || current.jobRole,
+        applicationDetails: {
+          ...current.applicationDetails,
+          gender: data.gender || current.applicationDetails.gender,
+          dateOfBirth: data.dateOfBirth || current.applicationDetails.dateOfBirth,
+          address: data.address || current.applicationDetails.address,
+          country: data.country || current.applicationDetails.country,
+          state: data.state || current.applicationDetails.state,
+          city: data.city || current.applicationDetails.city,
+          postalCode: data.postalCode || current.applicationDetails.postalCode,
+          candidateType: data.candidateType || current.applicationDetails.candidateType,
+          education: data.education?.length
+            ? data.education.map((row: any) => ({ qualification: row.qualification || '', university: row.university || '', institute: row.institute || '', monthYear: row.monthYear || '', result: row.result || '' }))
+            : current.applicationDetails.education,
+          technicalSkills: data.technicalSkills?.length
+            ? data.technicalSkills.map((skill: string) => ({ qualification: skill, university: '', institute: '', monthYear: '', result: '' }))
+            : current.applicationDetails.technicalSkills,
+          employmentHistory: data.employmentHistory?.length
+            ? data.employmentHistory.map((row: any) => ({ employer: row.employer || '', periodFrom: row.periodFrom || '', periodTo: row.periodTo || '', designation: row.designation || '', ctc: row.ctc || '' }))
+            : current.applicationDetails.employmentHistory,
+        },
+      }));
+      setExtracted(true);
+    } catch (error: any) {
+      setExtractError(error.response?.data?.message || 'Could not auto-fill from resume — please fill the form manually.');
+    } finally {
+      setExtracting(false);
+    }
+  };
+
   const upload = async (kind: 'resume' | 'photo', event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     setUploading(kind);
     setUploadError(null);
-    if (kind === 'resume') setResumeReview(null);
+    if (kind === 'resume') { setResumeReview(null); setExtractError(null); setExtracted(false); }
     if (kind === 'photo') setPhotoWarning(null);
     try {
       const data = new FormData();
@@ -110,6 +155,7 @@ export default function CandidateCreateForm() {
         setForm((current) => ({ ...current, resumeUrl: result.data.url }));
         setResumeName(file.name);
         if (result.data.review) setResumeReview(result.data.review);
+        await extractFromResume(result.data.url);
       } else {
         setForm((current) => ({ ...current, profileImageUrl: result.data.url }));
         setPhotoName(file.name);
@@ -141,7 +187,42 @@ export default function CandidateCreateForm() {
       <Card className="mt-4 border-slate-200">
         <CardContent className="p-0">
           <form onSubmit={(event) => { event.preventDefault(); create.mutate(); }}>
-            <Section number="1" title="Approved Manpower Requirement">
+            <Section number="1" title="Resume & Photo">
+              <p className="mb-3 text-xs text-slate-500">Attach the resume first — AI will read it and auto-fill as much of the form below as it can find. Always review the auto-filled details before submitting.</p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Resume (PDF/DOCX)">
+                  <label className="mt-1 flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-slate-300 px-3 py-3 text-sm"><FileUp size={16} /><span>{uploading === 'resume' ? 'Uploading...' : resumeName || (form.resumeUrl ? 'Resume attached' : 'Attach resume')}</span>{form.resumeUrl && <CheckCircle2 size={16} className="text-emerald-600" />}<input className="hidden" type="file" accept=".pdf,.docx" onChange={(e) => upload('resume', e)} /></label>
+                  {resumeReview && (
+                    <p className={`mt-1 flex items-center gap-1 text-xs ${resumeReview.verdict === 'genuine' ? 'text-emerald-700' : resumeReview.verdict === 'suspicious' ? 'text-amber-700' : 'text-slate-500'}`}>
+                      {resumeReview.verdict === 'genuine' ? <ShieldCheck size={13} /> : <ShieldAlert size={13} />}
+                      AI review: {resumeReview.reason}
+                    </p>
+                  )}
+                  {extracting && (
+                    <p className="mt-1 flex items-center gap-1 text-xs text-indigo-700"><Loader2 size={13} className="animate-spin" /> Reading resume & auto-filling the form below...</p>
+                  )}
+                  {extracted && !extracting && (
+                    <p className="mt-1 flex items-center gap-1 text-xs text-emerald-700"><Sparkles size={13} /> Auto-filled from resume — please review every field below before submitting.</p>
+                  )}
+                  {extractError && !extracting && (
+                    <p className="mt-1 flex items-center gap-1 text-xs text-amber-700"><AlertTriangle size={13} /> {extractError}</p>
+                  )}
+                </Field>
+                <Field label="Candidate Photo">
+                  <label className="mt-1 flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-slate-300 px-3 py-3 text-sm"><ImagePlus size={16} /><span>{uploading === 'photo' ? 'Uploading...' : photoName || (form.profileImageUrl ? 'Photo attached' : 'Upload photo')}</span>{form.profileImageUrl && <CheckCircle2 size={16} className="text-emerald-600" />}<input className="hidden" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => upload('photo', e)} /></label>
+                  {photoWarning && (
+                    <p className="mt-1 flex items-center gap-1 text-xs text-amber-700">
+                      <AlertTriangle size={13} /> {photoWarning}
+                    </p>
+                  )}
+                </Field>
+                {uploadError && (
+                  <div className="md:col-span-2"><p className="flex items-center gap-1.5 text-xs text-rose-600"><AlertTriangle size={13} /> {uploadError}</p></div>
+                )}
+              </div>
+            </Section>
+
+            <Section number="2" title="Approved Manpower Requirement">
               <Field label="Approved Manpower Requisition" required>
                 <div className="mt-1">
                   <SearchableDropdown
@@ -164,7 +245,7 @@ export default function CandidateCreateForm() {
               )}
             </Section>
 
-            <Section number="2" title="Personal & Contact Details">
+            <Section number="3" title="Personal & Contact Details">
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <Field label="Title"><select className={input} value={form.applicationDetails.title} onChange={(e) => updateApplication({ title: e.target.value })}><option value="">Select</option><option>Mr.</option><option>Ms.</option><option>Mrs.</option><option>Dr.</option></select></Field>
                 <Field label="First Name" required><input required className={input} value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} /></Field>
@@ -182,49 +263,29 @@ export default function CandidateCreateForm() {
               </div>
             </Section>
 
-            <Section number="3" title="Application & Attachments">
+            <Section number="4" title="Application Details">
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <Field label="Role Applied For" required><input required className={input} value={form.jobRole} onChange={(e) => setForm({ ...form, jobRole: e.target.value })} /></Field>
                 <Field label="Candidate Type"><select className={input} value={form.applicationDetails.candidateType} onChange={(e) => updateApplication({ candidateType: e.target.value })}><option>Experienced</option><option>Fresher</option></select></Field>
                 <Field label="Source"><select className={input} value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })}><option value="">Select source</option><option>LinkedIn</option><option>Referral</option><option>Website</option><option>Agency</option><option>Walk-In</option><option>Other</option></select></Field>
                 <Field label="CV Screened By"><input className={input} value={form.applicationDetails.cvScreenedBy} onChange={(e) => updateApplication({ cvScreenedBy: e.target.value })} /></Field>
                 <Field label="Reason for Leaving" wide><textarea className={`${input} h-20 resize-y`} disabled={form.applicationDetails.candidateType === 'Fresher'} value={form.applicationDetails.reasonForLeaving} onChange={(e) => updateApplication({ reasonForLeaving: e.target.value })} /></Field>
-                <Field label="Resume (PDF/DOCX)" wide>
-                  <label className="mt-1 flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-slate-300 px-3 py-3 text-sm"><FileUp size={16} /><span>{uploading === 'resume' ? 'Uploading...' : resumeName || (form.resumeUrl ? 'Resume attached' : 'Attach resume')}</span>{form.resumeUrl && <CheckCircle2 size={16} className="text-emerald-600" />}<input className="hidden" type="file" accept=".pdf,.docx" onChange={(e) => upload('resume', e)} /></label>
-                  {resumeReview && (
-                    <p className={`mt-1 flex items-center gap-1 text-xs ${resumeReview.verdict === 'genuine' ? 'text-emerald-700' : resumeReview.verdict === 'suspicious' ? 'text-amber-700' : 'text-slate-500'}`}>
-                      {resumeReview.verdict === 'genuine' ? <ShieldCheck size={13} /> : <ShieldAlert size={13} />}
-                      AI review: {resumeReview.reason}
-                    </p>
-                  )}
-                </Field>
-                <Field label="Candidate Photo" wide>
-                  <label className="mt-1 flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-slate-300 px-3 py-3 text-sm"><ImagePlus size={16} /><span>{uploading === 'photo' ? 'Uploading...' : photoName || (form.profileImageUrl ? 'Photo attached' : 'Upload photo')}</span>{form.profileImageUrl && <CheckCircle2 size={16} className="text-emerald-600" />}<input className="hidden" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => upload('photo', e)} /></label>
-                  {photoWarning && (
-                    <p className="mt-1 flex items-center gap-1 text-xs text-amber-700">
-                      <AlertTriangle size={13} /> {photoWarning}
-                    </p>
-                  )}
-                </Field>
-                {uploadError && (
-                  <div className="md:col-span-2"><p className="flex items-center gap-1.5 text-xs text-rose-600"><AlertTriangle size={13} /> {uploadError}</p></div>
-                )}
               </div>
             </Section>
 
-            <Section number="4" title="Education Details">
+            <Section number="5" title="Education Details">
               <RepeatingRows rows={form.applicationDetails.education} onAdd={() => updateApplication({ education: [...form.applicationDetails.education, blankEducation()] })} onRemove={(index) => updateApplication({ education: form.applicationDetails.education.filter((_, rowIndex) => rowIndex !== index) })}>
                 {(row, index) => <div className="grid gap-3 md:grid-cols-5"><input className={input} placeholder="Qualification" value={row.qualification} onChange={(e) => setEducation('education', index, 'qualification', e.target.value)} /><input className={input} placeholder="University" value={row.university} onChange={(e) => setEducation('education', index, 'university', e.target.value)} /><input className={input} placeholder="Institute" value={row.institute} onChange={(e) => setEducation('education', index, 'institute', e.target.value)} /><input className={input} type="month" value={row.monthYear} onChange={(e) => setEducation('education', index, 'monthYear', e.target.value)} /><input className={input} placeholder="Result / %" value={row.result} onChange={(e) => setEducation('education', index, 'result', e.target.value)} /></div>}
               </RepeatingRows>
             </Section>
 
-            <Section number="5" title="Technical / IT Skills">
+            <Section number="6" title="Technical / IT Skills">
               <RepeatingRows rows={form.applicationDetails.technicalSkills} onAdd={() => updateApplication({ technicalSkills: [...form.applicationDetails.technicalSkills, blankEducation()] })} onRemove={(index) => updateApplication({ technicalSkills: form.applicationDetails.technicalSkills.filter((_, rowIndex) => rowIndex !== index) })}>
                 {(row, index) => <div className="grid gap-3 md:grid-cols-5"><input className={input} placeholder="Skill / Qualification" value={row.qualification} onChange={(e) => setEducation('technicalSkills', index, 'qualification', e.target.value)} /><input className={input} placeholder="Tool / Platform" value={row.university} onChange={(e) => setEducation('technicalSkills', index, 'university', e.target.value)} /><input className={input} placeholder="Institute / Source" value={row.institute} onChange={(e) => setEducation('technicalSkills', index, 'institute', e.target.value)} /><input className={input} type="month" value={row.monthYear} onChange={(e) => setEducation('technicalSkills', index, 'monthYear', e.target.value)} /><input className={input} placeholder="Proficiency" value={row.result} onChange={(e) => setEducation('technicalSkills', index, 'result', e.target.value)} /></div>}
               </RepeatingRows>
             </Section>
 
-            <Section number="6" title="Employment History">
+            <Section number="7" title="Employment History">
               <RepeatingRows rows={form.applicationDetails.employmentHistory} onAdd={() => updateApplication({ employmentHistory: [...form.applicationDetails.employmentHistory, blankEmployment()] })} onRemove={(index) => updateApplication({ employmentHistory: form.applicationDetails.employmentHistory.filter((_, rowIndex) => rowIndex !== index) })}>
                 {(row, index) => <div className="grid gap-3 md:grid-cols-5"><input className={input} placeholder="Employer" value={row.employer} onChange={(e) => setEmployment(index, 'employer', e.target.value)} /><input className={input} type="month" value={row.periodFrom} onChange={(e) => setEmployment(index, 'periodFrom', e.target.value)} /><input className={input} type="month" value={row.periodTo} onChange={(e) => setEmployment(index, 'periodTo', e.target.value)} /><input className={input} placeholder="Designation" value={row.designation} onChange={(e) => setEmployment(index, 'designation', e.target.value)} /><input className={input} placeholder="Last CTC" value={row.ctc} onChange={(e) => setEmployment(index, 'ctc', e.target.value)} /></div>}
               </RepeatingRows>
