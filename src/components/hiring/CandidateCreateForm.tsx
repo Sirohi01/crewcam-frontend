@@ -72,6 +72,7 @@ export default function CandidateCreateForm() {
   const [uploading, setUploading] = useState<'resume' | 'photo' | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [resumeReview, setResumeReview] = useState<{ verdict: string; reason: string } | null>(null);
+  const [photoWarning, setPhotoWarning] = useState<string | null>(null);
 
   const { data: requests = [] } = useQuery<any[]>({
     queryKey: ['manpower-request'],
@@ -99,6 +100,7 @@ export default function CandidateCreateForm() {
     setUploading(kind);
     setUploadError(null);
     if (kind === 'resume') setResumeReview(null);
+    if (kind === 'photo') setPhotoWarning(null);
     try {
       const data = new FormData();
       data.append('file', file);
@@ -111,6 +113,7 @@ export default function CandidateCreateForm() {
       } else {
         setForm((current) => ({ ...current, profileImageUrl: result.data.url }));
         setPhotoName(file.name);
+        if (result.data.warning) setPhotoWarning(result.data.warning);
       }
     } catch (error: any) {
       setUploadError(error.response?.data?.message || `Could not upload ${kind === 'resume' ? 'resume' : 'photo'}.`);
@@ -195,7 +198,14 @@ export default function CandidateCreateForm() {
                     </p>
                   )}
                 </Field>
-                <Field label="Candidate Photo" wide><label className="mt-1 flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-slate-300 px-3 py-3 text-sm"><ImagePlus size={16} /><span>{uploading === 'photo' ? 'Uploading...' : photoName || (form.profileImageUrl ? 'Photo attached' : 'Upload photo')}</span>{form.profileImageUrl && <CheckCircle2 size={16} className="text-emerald-600" />}<input className="hidden" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => upload('photo', e)} /></label></Field>
+                <Field label="Candidate Photo" wide>
+                  <label className="mt-1 flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-slate-300 px-3 py-3 text-sm"><ImagePlus size={16} /><span>{uploading === 'photo' ? 'Uploading...' : photoName || (form.profileImageUrl ? 'Photo attached' : 'Upload photo')}</span>{form.profileImageUrl && <CheckCircle2 size={16} className="text-emerald-600" />}<input className="hidden" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => upload('photo', e)} /></label>
+                  {photoWarning && (
+                    <p className="mt-1 flex items-center gap-1 text-xs text-amber-700">
+                      <AlertTriangle size={13} /> {photoWarning}
+                    </p>
+                  )}
+                </Field>
                 {uploadError && (
                   <div className="md:col-span-2"><p className="flex items-center gap-1.5 text-xs text-rose-600"><AlertTriangle size={13} /> {uploadError}</p></div>
                 )}
