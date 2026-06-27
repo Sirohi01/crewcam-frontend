@@ -1,887 +1,1186 @@
-"use client";
-import React, { useState, useEffect } from "react";
-import { 
-  Users, UserCheck, UserX, CalendarOff, Clock, Laptop, Briefcase, 
-  Bell, CheckCircle2, AlertCircle, Calendar,
-  ChevronDown, FileText,
-  TrendingUp, TrendingDown, UsersRound, Settings, Download,
-  Wallet, FileCheck, BrainCircuit, CalendarDays, UserPlus,
-  BriefcaseBusiness, ScanFace, UmbrellaOff, Receipt, AlarmClock, LogOut
-} from "lucide-react";
-import { 
-  PieChart, Pie, Cell, ResponsiveContainer, 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
-  BarChart, Bar
-} from "recharts";
-import { Card } from "@/components/ui/card";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+'use client';
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+import React, { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
+import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
+import {
+  ArrowRight, BriefcaseBusiness, CalendarCheck, CalendarDays, CalendarX2,
+  ChevronDown, FileText, Mail, MapPin, Megaphone,
+  ScanFace, Star, TrendingDown, TrendingUp, UmbrellaOff,
+  UserRoundPlus, UsersRound, Wallet, CalendarClock, Briefcase, UserPlus, Eye,
+  CheckCircle2, Circle, Cake, Wallet2, Shield, PartyPopper, X,
+  AlertTriangle, FileWarning, UserCheck, BarChart3, ChevronRight,
+  // New icons for additions
+  ClipboardCheck, PlusCircle, CalendarPlus, Download, FolderKanban,
+  FileBarChart2, FileChartColumn, ClipboardList, TrendingUp as TrendUp,
+  Users, FileCheck, FileSearch, DollarSign, BadgeCheck, ScanLine,
+} from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import api from '@/lib/axios';
+
+interface DashboardConfig { category: string; effectivePermissions: string[]; widgets: string[]; }
+
+const performanceData = [
+  { name: 'High Performers', value: 174, pct: '(13.92%)', color: '#22c55e' },
+  { name: 'Meets Expectations', value: 802, pct: '(64.26%)', color: '#3b82f6' },
+  { name: 'Needs Improvement', value: 164, pct: '(13.14%)', color: '#f59e0b' },
+  { name: 'Poor Performers', value: 108, pct: '(8.67%)', color: '#ef4444' },
+];
+
+const leaveBalanceData = [
+  { type: 'Casual Leave', balance: 10.5, color: '#38bdf8' },
+  { type: 'Sick Leave', balance: 10, color: '#f59e0b' },
+  { type: 'Privilege Leave', balance: 18, color: '#8b5cf6' },
+  { type: 'Comp Off', balance: 5, color: '#22c55e' },
+];
+
+const ALERT_EMPLOYEES: Record<string, { name: string; dept: string }[]> = {
+  birthday: [
+    { name: 'Priya Sharma', dept: 'Engineering' },
+    { name: 'Rahul Verma', dept: 'Sales' },
+    { name: 'Neha Gupta', dept: 'HR' },
+    { name: 'Amit Patel', dept: 'Finance' },
+    { name: 'Sunita Rao', dept: 'Marketing' },
+    { name: 'Vikram Singh', dept: 'Engineering' },
+    { name: 'Pooja Nair', dept: 'Operations' },
+    { name: 'Arjun Mehta', dept: 'Design' },
+    { name: 'Kavya Reddy', dept: 'Product' },
+    { name: 'Rohit Das', dept: 'Engineering' },
+    { name: 'Divya Iyer', dept: 'HR' },
+    { name: 'Suresh Kumar', dept: 'Finance' },
+  ],
+  anniversary: [
+    { name: 'Priya Sharma', dept: 'Engineering' },
+    { name: 'Rahul Verma', dept: 'Sales' },
+    { name: 'Neha Gupta', dept: 'HR' },
+    { name: 'Amit Patel', dept: 'Finance' },
+    { name: 'Sunita Rao', dept: 'Marketing' },
+    { name: 'Vikram Singh', dept: 'Engineering' },
+    { name: 'Pooja Nair', dept: 'Operations' },
+    { name: 'Arjun Mehta', dept: 'Design' },
+  ],
+  salary: [
+    { name: 'Priya Sharma', dept: 'Engineering' },
+    { name: 'Rahul Verma', dept: 'Sales' },
+    { name: 'Neha Gupta', dept: 'HR' },
+    { name: 'Amit Patel', dept: 'Finance' },
+    { name: 'Sunita Rao', dept: 'Marketing' },
+    { name: 'Vikram Singh', dept: 'Engineering' },
+    { name: 'Pooja Nair', dept: 'Operations' },
+    { name: 'Arjun Mehta', dept: 'Design' },
+    { name: 'Kavya Reddy', dept: 'Product' },
+    { name: 'Rohit Das', dept: 'Engineering' },
+  ],
+  probation: [
+    { name: 'Priya Sharma', dept: 'Engineering' },
+    { name: 'Rahul Verma', dept: 'Sales' },
+    { name: 'Neha Gupta', dept: 'HR' },
+    { name: 'Amit Patel', dept: 'Finance' },
+    { name: 'Sunita Rao', dept: 'Marketing' },
+    { name: 'Vikram Singh', dept: 'Engineering' },
+  ],
+  special: [
+    { name: 'Priya Sharma', dept: 'Engineering' },
+    { name: 'Rahul Verma', dept: 'Sales' },
+    { name: 'Neha Gupta', dept: 'HR' },
+    { name: 'Amit Patel', dept: 'Finance' },
+    { name: 'Sunita Rao', dept: 'Marketing' },
+  ],
+};
+
+const topAlertsData = [
+  { key: 'birthday', icon: <Cake size={14} />, color: '#8b5cf6', bg: '#f5f3ff', title: 'Birthday', subtitle: 'Celebrating birthday', count: 12, detail: 'Celebrating today', extra: 9, date: 'Jun 26, 2025', dateLabel: 'Today' },
+  { key: 'anniversary', icon: <Star size={14} />, color: '#8b5cf6', bg: '#f5f3ff', title: 'Anniversary', subtitle: 'Work anniversaries', count: 8, detail: 'Work anniversary', extra: 5, date: 'Jun 27 – Jul 3', dateLabel: 'This week' },
+  { key: 'salary', icon: <Wallet2 size={14} />, color: '#22c55e', bg: '#f0fdf4', title: 'Salary Increment', subtitle: 'Upcoming increment', count: 10, detail: 'Awaiting review', extra: 7, date: 'Jun 30, 2025', dateLabel: 'in 4 days' },
+  { key: 'probation', icon: <Shield size={14} />, color: '#f59e0b', bg: '#fffbeb', title: 'Probation Ending', subtitle: 'Probation ending', count: 6, detail: 'Need evaluation', extra: 3, date: 'Jul 5, 2025', dateLabel: 'in 9 days' },
+  { key: 'special', icon: <PartyPopper size={14} />, color: '#ef4444', bg: '#fef2f2', title: 'Special Occasion', subtitle: 'Other occasions', count: 5, detail: 'Special occasion', extra: 2, date: 'Jun 28, 2025', dateLabel: 'in 2 days' },
+];
+
+const todaySchedule = [
+  { time: '08:30 AM', title: 'Daily HR Standup', location: 'HR Cabin' },
+  { time: '09:30 AM', title: 'HR Policy Review Meeting', location: 'Conference Room A' },
+  { time: '10:15 AM', title: 'Employee Onboarding Session', location: 'Training Hall' },
+  { time: '11:00 AM', title: 'Interview – Senior Developer', location: 'Panel Room 2' },
+  { time: '12:30 PM', title: 'Lunch with New Joiners', location: 'Cafeteria' },
+  { time: '02:00 PM', title: 'Performance Calibration', location: 'Conference Room B' },
+  { time: '03:00 PM', title: 'Payroll Review Meeting', location: 'Finance Room' },
+  { time: '04:00 PM', title: 'Townhall Meeting', location: 'Auditorium' },
+  { time: '05:00 PM', title: 'Leave Approval Review', location: 'HR Department' },
+  { time: '06:00 PM', title: 'Recruitment Planning', location: 'Meeting Room C' },
+];
+
+const todayTasks = [
+  { id: 1, title: 'Review onboarding docs for 3 new joiners', priority: 'high', done: false },
+  { id: 2, title: 'Approve pending leave requests (12)', priority: 'high', done: false },
+  { id: 3, title: 'Send offer letter to Rohit Mehra', priority: 'medium', done: true },
+  { id: 4, title: 'Update Q2 performance ratings', priority: 'medium', done: false },
+  { id: 5, title: 'Schedule exit interview – Priya Shah', priority: 'low', done: false },
+  { id: 6, title: 'Publish June payroll summary', priority: 'low', done: true },
+];
+
+const recentNewJoiners = [
+  { name: 'Rajesh Kumar', role: 'Software Engineer', avatar: '10', joinedAgo: '2d ago' },
+  { name: 'Ananya Singh', role: 'HR Executive', avatar: '11', joinedAgo: '3d ago' },
+  { name: 'Vikram Patel', role: 'UI/UX Designer', avatar: '12', joinedAgo: '5d ago' },
+  { name: 'Meera Joshi', role: 'Product Manager', avatar: '13', joinedAgo: '1w ago' },
+  { name: 'Karan Mehta', role: 'Data Analyst', avatar: '14', joinedAgo: '1w ago' },
+];
+
+const META: Record<string, {
+  title: string; icon: React.ReactNode; accent: string;
+  fallback: string; delta: string; deltaType: 'up' | 'down' | 'neutral'; subLabel?: string;
+}> = {
+  'org-headcount': { title: 'Total Employees', icon: <UsersRound size={18} />, accent: 'bg-violet-500', fallback: '—', delta: '', deltaType: 'neutral' },
+  'team-attendance-today': { title: 'Present Today', icon: <ScanFace size={18} />, accent: 'bg-emerald-500', fallback: '—', delta: '', deltaType: 'neutral' },
+  'on-leave-today': { title: 'On Leave Today', icon: <UmbrellaOff size={18} />, accent: 'bg-amber-500', fallback: '0', delta: '', deltaType: 'neutral' },
+  'new-joinees': { title: 'New Joinees', icon: <UserRoundPlus size={18} />, accent: 'bg-blue-500', fallback: '0', delta: '', deltaType: 'neutral' },
+  'pending-leave-approvals': { title: 'Leave Pending', icon: <CalendarX2 size={18} />, accent: 'bg-rose-500', fallback: '0', delta: '', deltaType: 'neutral' },
+  'open-positions': { title: 'Open Positions', icon: <BriefcaseBusiness size={18} />, accent: 'bg-teal-500', fallback: '0', delta: '', deltaType: 'neutral' },
+};
+
+function valueFor(key: string, data: any, fallback: string) {
+  if (!data || data.dataAvailable === false) return fallback;
+  if (key === 'on-leave-today') return String(data.count ?? fallback);
+  if (key.includes('attendance')) {
+    const present = Number(data.presentToday ?? 0); const total = Number(data.teamSize ?? 0);
+    return total ? String(present) : fallback;
+  }
+  if (key.includes('headcount')) return String(data.count ?? fallback);
+  return String(data.count ?? fallback);
 }
 
-export default function DashboardPage() {
-  const [currentTime, setCurrentTime] = useState<Date | null>(null);
+const SLIDES = [
+  { imageUrl: '/bannerImg/img1.png' },
+  { imageUrl: '/bannerImg/img2.png' },
+  { imageUrl: '/bannerImg/img3.jpg' },
+];
+
+function HeroSlider() {
+  const [current, setCurrent] = useState(0);
+  const [fading, setFading] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(false);
+  const rafRef = useRef<number | null>(null);
+  const lastRef = useRef<number | null>(null);
+  const currentRef = useRef(0);
+  const progressRef = useRef(0);
+  const DURATION = 7000;
+
+  const { data: dynamicBanners, isLoading: bannersLoading } = useQuery({
+    queryKey: ['dashboard', 'banners'],
+    queryFn: async () => (await api.get('/dashboard/banners')).data,
+    staleTime: 30_000,
+  });
+
+  const activeSlides = bannersLoading ? SLIDES : (dynamicBanners?.length ? dynamicBanners : SLIDES);
+  useEffect(() => { setCurrent(0); currentRef.current = 0; }, [dynamicBanners]);
+  useEffect(() => { pausedRef.current = paused; }, [paused]);
 
   useEffect(() => {
-    setCurrentTime(new Date());
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    const tick = (ts: number) => {
+      if (!lastRef.current) lastRef.current = ts;
+      const dt = ts - lastRef.current; lastRef.current = ts;
+      if (!pausedRef.current) {
+        progressRef.current += (dt / DURATION) * 100;
+        if (progressRef.current >= 100) {
+          progressRef.current = 0;
+          const next = (currentRef.current + 1) % activeSlides.length;
+          setFading(true);
+          setTimeout(() => { currentRef.current = next; setCurrent(next); setFading(false); }, 220);
+        }
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+  }, [activeSlides.length]);
 
-  const formattedDate = currentTime ? currentTime.toLocaleDateString('en-US', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  }) : "Loading...";
-
-  const formattedTime = currentTime ? currentTime.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  }) : "--:--";
+  const slide = activeSlides[current] ?? activeSlides[0];
+  if (!slide) return null;
 
   return (
-    <div className="min-h-screen bg-[#F4F7FA] p-2 font-sans text-slate-800 space-y-2">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 gap-2">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            Good Morning, HR Manager! <span>👋</span>
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Here's what's happening in your organization today.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 text-sm font-medium text-slate-600 bg-white px-4 py-2 rounded-md shadow-sm border border-slate-100">
-          <div className="flex items-center gap-2 border-r border-slate-200 pr-4">
-            <Calendar size={16} />
-            <span suppressHydrationWarning>{formattedDate}</span>
+    <section className="relative overflow-hidden rounded-xl shadow-md" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+      <div style={{ opacity: fading ? 0 : 1, transition: 'opacity 0.22s ease' }}>
+        <img src={slide.imageUrl} alt="" aria-hidden="true" className="w-full object-cover block"
+          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+      </div>
+      <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1.5">
+        {activeSlides.map((_: unknown, i: number) => (
+          <button key={i}
+            onClick={() => { setFading(true); setTimeout(() => { currentRef.current = i; setCurrent(i); setFading(false); }, 220); }}
+            className={`h-1.5 rounded-full transition-all ${i === current ? 'w-6 bg-white' : 'w-1.5 bg-white/50'}`}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function KpiCard({ widgetKey }: { widgetKey: string }) {
+  const meta = META[widgetKey];
+  if (!meta) return null;
+  const { data, isLoading } = useQuery({
+    queryKey: ['dashboard', 'widget', widgetKey],
+    queryFn: async () => (await api.get(`/dashboard/widget-data/${widgetKey}`)).data,
+  });
+  const val = isLoading ? '—' : valueFor(widgetKey, data, meta.fallback);
+  return (
+    <Card className="group overflow-hidden border-zinc-200/80 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
+      <CardContent className="relative p-3.5">
+        <div className={`absolute right-0 top-0 h-16 w-16 translate-x-4 -translate-y-4 rounded-full opacity-[.08] ${meta.accent}`} />
+        <div className="flex items-start gap-2.5">
+          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl text-white shadow-sm ${meta.accent}`}>{meta.icon}</span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] text-zinc-500 truncate">{meta.title}</p>
+            <p className="text-2xl font-bold tracking-tight text-zinc-900 leading-tight">{val}</p>
+            <div className="mt-0.5 flex items-center gap-1">
+              {meta.deltaType === 'up' && <TrendingUp size={10} className="text-emerald-500 shrink-0" />}
+              {meta.deltaType === 'down' && <TrendingDown size={10} className="text-rose-500 shrink-0" />}
+              <span className={`text-[10px] font-medium ${meta.deltaType === 'up' ? 'text-emerald-600' : meta.deltaType === 'down' ? 'text-rose-500' : 'text-amber-600'}`}>{meta.delta}</span>
+              {meta.subLabel && <span className="text-[10px] text-zinc-400">{meta.subLabel}</span>}
+            </div>
           </div>
-          <div className="flex items-center gap-2 pl-2">
-            <Clock size={16} />
-            <span suppressHydrationWarning>{formattedTime}</span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function DateFilter({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="relative">
+      <input
+        type="date"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-white px-2 py-1 text-[11px] font-medium text-zinc-600 shadow-sm hover:border-violet-300 transition-colors focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer w-[120px]"
+      />
+    </div>
+  );
+}
+
+function ChartCard({ title, action, href, className = '', filterValue, onFilterChange, children }: {
+  title: string; action?: string; href?: string; className?: string;
+  filterValue?: string; onFilterChange?: (v: string) => void; children: React.ReactNode;
+}) {
+  return (
+    <Card className={`border-zinc-200/80 shadow-sm flex flex-col ${className}`}>
+      <CardContent className="p-3.5 flex-1 flex flex-col min-h-0">
+        <div className="mb-2.5 flex items-center justify-between gap-2 shrink-0 flex-wrap">
+          <h3 className="text-sm font-semibold text-zinc-900 whitespace-nowrap">{title}</h3>
+          <div className="flex items-center gap-2 shrink-0">
+            {filterValue !== undefined && onFilterChange && <DateFilter value={filterValue} onChange={onFilterChange} />}
+            {action && href && (
+              <Link href={href} className="inline-flex items-center gap-0.5 text-[11px] font-medium text-violet-700 hover:text-violet-800 whitespace-nowrap">
+                {action} <ArrowRight size={11} />
+              </Link>
+            )}
+          </div>
+        </div>
+        <div className="flex-1 min-h-0">{children}</div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ImportantAlertsCards() {
+  const alerts = [
+    {
+      icon: <AlertTriangle size={12} />,
+      iconBg: 'bg-rose-100',
+      iconColor: 'text-rose-500',
+      cardBg: 'bg-rose-50/40',
+      border: 'border-rose-100',
+      count: '5 Leave Requests',
+      sub: 'awaiting approval',
+      priority: 'High Priority',
+      priorityColor: 'text-rose-500',
+      href: '/dashboard/leaves',
+    },
+    {
+      icon: <FileWarning size={12} />,
+      iconBg: 'bg-amber-100',
+      iconColor: 'text-amber-500',
+      cardBg: 'bg-amber-50/40',
+      border: 'border-amber-100',
+      count: '3 Documents',
+      sub: 'expiring soon',
+      priority: 'Medium Priority',
+      priorityColor: 'text-amber-500',
+      href: '/dashboard/documents',
+    },
+    {
+      icon: <UserCheck size={12} />,
+      iconBg: 'bg-blue-100',
+      iconColor: 'text-blue-500',
+      cardBg: 'bg-blue-50/40',
+      border: 'border-blue-100',
+      count: '12 Probation',
+      sub: 'ending this month',
+      priority: 'Medium Priority',
+      priorityColor: 'text-amber-500',
+      href: '/dashboard/employees',
+    },
+    {
+      icon: <BarChart3 size={12} />,
+      iconBg: 'bg-emerald-100',
+      iconColor: 'text-emerald-500',
+      cardBg: 'bg-emerald-50/40',
+      border: 'border-emerald-100',
+      count: 'Q2 Performance Review',
+      sub: 'in progress',
+      priority: 'Low Priority',
+      priorityColor: 'text-emerald-500',
+      href: '/dashboard/performance',
+    },
+  ];
+
+  return (
+    <Card className="border-zinc-200/80 shadow-sm">
+      <CardContent className="px-3 py-2">
+        <div className="flex items-center justify-between mb-1.5">
+          <h3 className="text-sm font-semibold text-zinc-900">Important Alerts</h3>
+          <Link href="/dashboard/alerts" className="inline-flex items-center gap-1 text-[11px] font-semibold text-violet-700 hover:text-violet-800 whitespace-nowrap">
+            View All Alerts <ArrowRight size={13} />
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 gap-1.5 md:grid-cols-4">
+          {alerts.map((alert, i) => (
+            <Link key={i} href={alert.href}
+              className={`flex items-center gap-2 rounded-lg border ${alert.border} ${alert.cardBg} px-2 py-1.5 hover:shadow-sm transition-all group`}>
+              <div className={`shrink-0 h-6 w-6 rounded-full ${alert.iconBg} flex items-center justify-center ${alert.iconColor}`}>
+                {alert.icon}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-bold text-zinc-800 leading-tight">{alert.count}</p>
+                <p className="text-[9px] text-zinc-500 leading-tight">{alert.sub}</p>
+                <p className={`text-[9px] font-semibold ${alert.priorityColor} leading-tight`}>{alert.priority}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function AttendanceOverview({ attendance }: { attendance: any }) {
+  const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const present = Number(attendance?.presentToday || 987);
+  const teamSize = Number(attendance?.teamSize || 1360);
+
+  const rows = [
+    { label: 'Present', count: present, pct: ((present / teamSize) * 100).toFixed(1), color: '#22c55e', href: '/dashboard/attendance?status=present' },
+    { label: 'Half Day', count: 60, pct: '5.2', color: '#f59e0b', href: '/dashboard/attendance?status=half-day' },
+    { label: 'Absent', count: 196, pct: '15.7', color: '#ef4444', href: '/dashboard/attendance?status=absent' },
+    { label: 'On Leave', count: 45, pct: '6.1', color: '#3b82f6', href: '/dashboard/attendance?status=on-leave' },
+    { label: 'WFH', count: 72, pct: '5.8', color: '#8b5cf6', href: '/dashboard/attendance?status=wfh' },
+  ];
+
+  return (
+    <Card className="border-zinc-200/80 shadow-sm xl:h-[270px] flex flex-col">
+      <CardContent className="p-3 flex-1 flex flex-col min-h-0">
+        <div className="flex items-center justify-between mb-2 shrink-0">
+          <h3 className="text-[12px] font-semibold text-zinc-900">Attendance Overview</h3>
+          <DateFilter value={date} onChange={setDate} />
+        </div>
+        <div className="rounded-lg border border-zinc-100 overflow-hidden">
+          <div className="grid grid-cols-4 bg-zinc-50 px-3 py-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-wide border-b border-zinc-100">
+            <span>Status</span>
+            <span className="text-center">Count</span>
+            <span className="text-center">Percentage</span>
+            <span className="text-center">View</span>
+          </div>
+          {rows.map((row, i) => (
+            <div key={row.label}
+              className={`grid grid-cols-4 items-center px-3 py-1.5 hover:bg-zinc-50/80 transition-colors ${i < rows.length - 1 ? 'border-b border-zinc-100' : ''}`}>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: row.color }} />
+                <span className="text-[11px] font-medium text-zinc-700 truncate">{row.label}</span>
+              </div>
+              <div className="text-center text-[11px] font-bold text-zinc-900">{row.count}</div>
+              <div className="text-center text-[10px] font-semibold tabular-nums" style={{ color: row.color }}>{row.pct}%</div>
+              <div className="flex justify-center">
+                <Link href={row.href} className="inline-flex items-center gap-0.5 rounded border border-blue-200 px-1.5 py-0.5 text-[9px] font-medium text-blue-600 hover:bg-blue-50 transition-colors">
+                  <Eye size={9} />
+                </Link>
+              </div>
+            </div>
+          ))}
+          <div className="grid grid-cols-4 items-center px-3 py-1.5 border-t-2 border-zinc-200 bg-zinc-50/60">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <UsersRound size={11} className="text-blue-600 shrink-0" />
+              <span className="text-[11px] font-bold text-blue-700">Total</span>
+            </div>
+            <div className="text-center text-[11px] font-bold text-zinc-900">{teamSize.toLocaleString()}</div>
+            <div className="text-center text-[10px] font-bold text-blue-600">100%</div>
+            <div className="flex justify-center">
+              <Link href="/dashboard/attendance" className="inline-flex items-center rounded border border-blue-200 px-1.5 py-0.5 text-[9px] font-medium text-blue-600 hover:bg-blue-50 transition-colors">
+                <Eye size={9} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function LeaveOverview() {
+  const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
+  return (
+    <ChartCard title="Leave Overview" filterValue={date} onFilterChange={setDate} action="View Report" href="/dashboard/leaves" className="xl:h-[270px]">
+      <div className="flex items-center gap-3 h-full">
+        {/* Left: progress bars */}
+        <div className="flex-1 min-w-0 flex flex-col justify-center gap-2.5">
+          {leaveBalanceData.map((item) => (
+            <div key={item.type} className="flex items-center gap-2">
+              <span className="text-[11px] text-zinc-500 w-[88px] shrink-0 truncate">{item.type}</span>
+              <div className="flex-1 h-2 rounded-full bg-zinc-100 overflow-hidden">
+                <div className="h-full rounded-full transition-all duration-500" style={{ width: `${(item.balance / 20) * 100}%`, backgroundColor: item.color }} />
+              </div>
+              <span className="text-[11px] font-bold text-zinc-800 w-6 text-right shrink-0">{item.balance}</span>
+            </div>
+          ))}
+          <div className="mt-1 pt-2 border-t border-zinc-100 flex gap-4">
+            <div>
+              <p className="text-[10px] text-zinc-400 leading-tight">Approved</p>
+              <p className="text-[13px] font-bold text-zinc-800">47</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-zinc-400 leading-tight">Rejected</p>
+              <p className="text-[13px] font-bold text-zinc-800">8</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right: donut chart */}
+        <div className="shrink-0 relative" style={{ width: 100, height: 100 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={leaveBalanceData.map(l => ({ name: l.type, value: l.balance }))}
+                dataKey="value"
+                innerRadius={30}
+                outerRadius={46}
+                paddingAngle={3}
+                stroke="none"
+              >
+                {leaveBalanceData.map((entry) => <Cell key={entry.type} fill={entry.color} />)}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+            <strong className="text-[13px] font-bold text-zinc-900 leading-none">45.5</strong>
+            <span className="text-[9px] text-zinc-500 mt-0.5 leading-tight">Total Days</span>
           </div>
         </div>
       </div>
+    </ChartCard>
+  );
+}
 
-      {/* Top Metrics Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
-        <MetricCard icon={<UsersRound size={20} />} iconBg="bg-indigo-100 text-indigo-600" title="Total Employees" value="1,248" trend="+ 12 this month" trendUp />
-        <MetricCard icon={<ScanFace size={20} />} iconBg="bg-emerald-100 text-emerald-600" title="Present Today" value="987" sub="79.2% of total" />
-        <MetricCard icon={<UserX size={20} />} iconBg="bg-rose-100 text-rose-600" title="Absent Today" value="126" sub="10.1% of total" />
-        <MetricCard icon={<CalendarOff size={20} />} iconBg="bg-amber-100 text-amber-600" title="On Leave" value="78" sub="6.2% of total" />
-        <MetricCard icon={<Clock size={20} />} iconBg="bg-blue-100 text-blue-600" title="Late Check-ins" value="57" sub="4.5% of total" />
-        <MetricCard icon={<Laptop size={20} />} iconBg="bg-cyan-100 text-cyan-600" title="WFH Today" value="24" sub="1.9% of total" />
-        <MetricCard icon={<BriefcaseBusiness size={20} />} iconBg="bg-teal-100 text-teal-600" title="New Positions" value="24" trend="5 new this week" trendUp />
-      </div>
+function PerformanceOverview() {
+  return (
+    <ChartCard title="Performance Overview" action="View Dashboard" href="/dashboard/performance" className="xl:h-[270px]">
+      <div className="flex items-center gap-4 h-full">
+        {/* Left: large donut */}
+        <div className="relative shrink-0" style={{ width: 130, height: 130 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={performanceData}
+                dataKey="value"
+                innerRadius={40}
+                outerRadius={62}
+                paddingAngle={2}
+                stroke="none"
+              >
+                {performanceData.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+            <strong className="text-[18px] font-bold text-zinc-900 leading-none">1,248</strong>
+            <span className="text-[10px] text-zinc-500 mt-0.5">Employees</span>
+          </div>
+        </div>
 
-      {/* Row 2: Alerts, Tasks, Schedule, Birthdays */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-        <CriticalAlerts />
-        <TodaysTasks />
-        <TodaysSchedule />
-        <BirthdaysAnniversaries />
-      </div>
-
-      {/* Row 3: Overviews */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-        <AttendanceOverview />
-        <LeaveOverview />
-        <RecruitmentOverview />
-        <PerformanceOverview />
-      </div>
-
-      {/* Row 4: Overviews pt2 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-        <PayrollOverview />
-        <ComplianceOverview />
-        <AIInsights />
-        <DepartmentSpread />
-      </div>
-
-      {/* Row 5: Trends */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-        <AttendanceTrend />
-        <LeaveTrend />
-        <HiringTrend />
-        <AttritionTrend />
-      </div>
-
-      {/* Row 6: Events, Approvals, Activities, Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-        <UpcomingEvents />
-        <PendingApprovals />
-        <RecentActivities />
-        <QuickStats />
-      </div>
-
-      {/* Quick Actions */}
-      <div className="mt-4">
-        <h2 className="text-sm font-bold text-slate-800 mb-2">Quick Actions</h2>
-        <div className="flex flex-wrap gap-2">
-          <QuickActionButton icon={<UserPlus size={20} className="text-indigo-600" />} label="Add Employee" bg="bg-indigo-50" />
-          <QuickActionButton icon={<ScanFace size={20} className="text-emerald-600" />} label="Mark Attendance" bg="bg-emerald-50" />
-          <QuickActionButton icon={<CalendarOff size={20} className="text-amber-600" />} label="Apply Leave" bg="bg-amber-50" />
-          <QuickActionButton icon={<CheckCircle2 size={20} className="text-green-600" />} label="Approve Leave" bg="bg-green-50" />
-          <QuickActionButton icon={<Wallet size={20} className="text-blue-600" />} label="Run Payroll" bg="bg-blue-50" />
-          <QuickActionButton icon={<Briefcase size={20} className="text-purple-600" />} label="Create Job" bg="bg-purple-50" />
-          <QuickActionButton icon={<CalendarDays size={20} className="text-fuchsia-600" />} label="Schedule Interviews" bg="bg-fuchsia-50" />
-          <QuickActionButton icon={<FileText size={20} className="text-rose-600" />} label="Upload Document" bg="bg-rose-50" />
-          <QuickActionButton icon={<Bell size={20} className="text-orange-600" />} label="Send Announcement" bg="bg-orange-50" />
-          <QuickActionButton icon={<Download size={20} className="text-slate-600" />} label="Generate Report" bg="bg-slate-50" />
-          <QuickActionButton icon={<BriefcaseBusiness size={20} className="text-teal-600" />} label="New Project" bg="bg-teal-50" />
+        {/* Right: legend with bars */}
+        <div className="flex-1 min-w-0 flex flex-col justify-center gap-2.5">
+          {performanceData.map((item) => (
+            <div key={item.name}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="flex items-center gap-1.5 text-[11px] text-zinc-600 leading-tight">
+                  <span className="h-2 w-2 rounded-full shrink-0 inline-block" style={{ backgroundColor: item.color }} />
+                  {item.name}
+                </span>
+                <span className="text-[11px] font-bold text-zinc-900 shrink-0 ml-1">
+                  {item.value} <span className="font-normal text-zinc-400 text-[10px]">{item.pct}</span>
+                </span>
+              </div>
+              <div className="h-1.5 rounded-full bg-zinc-100 overflow-hidden">
+                <div className="h-full rounded-full transition-all duration-500" style={{ width: `${(item.value / 1248) * 100}%`, backgroundColor: item.color }} />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
+    </ChartCard>
+  );
+}
 
-      {/* Reports Shortcut */}
-      <div className="mt-2 mb-4">
-        <h2 className="text-sm font-bold text-slate-800 mb-2">Reports Shortcut</h2>
-        <div className="flex flex-wrap gap-2">
-          <QuickActionButton icon={<FileText size={20} className="text-indigo-600" />} label="Attendance Report" bg="bg-indigo-50" />
-          <QuickActionButton icon={<FileText size={20} className="text-emerald-600" />} label="Leave Report" bg="bg-emerald-50" />
-          <QuickActionButton icon={<FileText size={20} className="text-amber-600" />} label="Payroll Report" bg="bg-amber-50" />
-          <QuickActionButton icon={<FileText size={20} className="text-blue-600" />} label="Recruitment Report" bg="bg-blue-50" />
-          <QuickActionButton icon={<FileText size={20} className="text-purple-600" />} label="Performance Report" bg="bg-purple-50" />
-          <QuickActionButton icon={<FileText size={20} className="text-rose-600" />} label="Attrition Report" bg="bg-rose-50" />
-          <QuickActionButton icon={<FileText size={20} className="text-orange-600" />} label="Compliance Report" bg="bg-orange-50" />
-          <QuickActionButton icon={<FileText size={20} className="text-teal-600" />} label="Training Report" bg="bg-teal-50" />
-          <QuickActionButton icon={<FileText size={20} className="text-cyan-600" />} label="Expense Report" bg="bg-cyan-50" />
-          <QuickActionButton icon={<FileText size={20} className="text-slate-600" />} label="View All Reports" bg="bg-slate-50" />
-          <QuickActionButton icon={<FileText size={20} className="text-pink-600" />} label="Audit Report" bg="bg-pink-50" />
+function AvatarStack({ extra, color, onClick }: { extra: number; color: string; onClick: () => void }) {
+  const initials: [string, string][] = [['P', '#e2e8f0'], ['R', '#dbeafe'], ['N', '#fce7f3']];
+  return (
+    <div className="flex items-center cursor-pointer hover:opacity-80 transition-opacity" onClick={(e) => { e.stopPropagation(); onClick(); }} title="Click to see all employees">
+      {initials.map(([letter, bg], i) => (
+        <div key={i} className="h-6 w-6 rounded-full border-2 border-white flex items-center justify-center text-[9px] font-bold text-zinc-600 -ml-1.5 first:ml-0 shrink-0" style={{ backgroundColor: bg, zIndex: 3 - i }}>{letter}</div>
+      ))}
+      <div className="h-6 w-6 rounded-full border-2 border-white -ml-1.5 flex items-center justify-center text-[8px] font-bold shrink-0" style={{ backgroundColor: `${color}22`, color }}>+{extra}</div>
+    </div>
+  );
+}
+
+function EmployeeListPanel({ alertKey, color, bg, onClose }: { alertKey: string; color: string; bg: string; onClose: () => void; }) {
+  const employees = ALERT_EMPLOYEES[alertKey] || [];
+  return (
+    <div className="px-3 pb-2 pt-1" onClick={(e) => e.stopPropagation()}>
+      <div className="rounded-lg border overflow-hidden" style={{ borderColor: `${color}33` }}>
+        <div className="flex items-center justify-between px-2.5 py-1.5 text-[10px] font-semibold" style={{ backgroundColor: bg, color }}>
+          <span>{employees.length} Employees</span>
+          <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="rounded p-0.5 hover:bg-black/5 transition-colors"><X size={11} /></button>
+        </div>
+        <div className="grid grid-cols-4 gap-0 bg-white">
+          {employees.map((emp, i) => (
+            <div key={i} className={`flex items-center gap-1.5 px-2.5 py-1.5 hover:bg-zinc-50 transition-colors cursor-pointer ${i >= 4 ? 'border-t border-zinc-100' : ''}`}>
+              <div className="h-5 w-5 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0 text-white" style={{ backgroundColor: color }}>{emp.name.charAt(0)}</div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-medium text-zinc-800 truncate leading-tight">{emp.name}</p>
+                <p className="text-[9px] text-zinc-400 truncate">{emp.dept}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
-// Components
+// ─── Quick Actions (updated with missing actions from img4) ───────────────────
+function QuickActions() {
+  const todayStr = new Date().toISOString().split('T')[0];
 
-function MetricCard({ icon, iconBg, title, value, trend, trendUp, sub }: any) {
+  const { data: interviewData } = useQuery({
+    queryKey: ['dashboard', 'today-interviews', todayStr],
+    queryFn: async () => {
+      const res = await api.get('/hiring/interviews', { params: { page: 1, limit: 100, status: 'Scheduled' } });
+      const rows: any[] = Array.isArray(res.data) ? res.data : res.data?.data || [];
+      return rows.filter((iv: any) => iv.scheduledDate?.startsWith(todayStr));
+    },
+    staleTime: 60_000,
+  });
+  const todayInterviews: any[] = interviewData || [];
+
+  const { data: offeredData } = useQuery({
+    queryKey: ['dashboard', 'offered-candidates'],
+    queryFn: async () => {
+      const res = await api.get('/hiring/candidates', { params: { status: 'Offered', limit: 5 } });
+      return Array.isArray(res.data) ? res.data : res.data?.data || [];
+    },
+    staleTime: 60_000,
+  });
+  const offeredCandidates: any[] = offeredData || [];
+  const firstOfferName = offeredCandidates.length > 0 ? `${offeredCandidates[0].firstName || ''} ${offeredCandidates[0].lastName || ''}`.trim() : null;
+
+  type ActionItem = { href: string; icon: React.ReactNode; label: string; color: string; badge?: number; sub?: string; };
+
+  const actions: ActionItem[] = [
+    { href: '/dashboard/employees/new', icon: <UserPlus size={14} />, label: 'Add Employee', color: 'text-violet-600 bg-violet-50' },
+    { href: '/dashboard/attendance/mark', icon: <ScanFace size={14} />, label: 'Mark Attendance', color: 'text-emerald-600 bg-emerald-50' },
+    { href: '/dashboard/leaves/apply', icon: <CalendarCheck size={14} />, label: 'Apply Leave', color: 'text-sky-600 bg-sky-50' },
+    { href: '/dashboard/leaves/approve', icon: <ClipboardCheck size={14} />, label: 'Approve Leave', color: 'text-teal-600 bg-teal-50' },
+    { href: '/dashboard/payroll/run', icon: <Wallet size={14} />, label: 'Run Payroll', color: 'text-indigo-600 bg-indigo-50' },
+    { href: '/dashboard/hiring/jobs/new', icon: <BriefcaseBusiness size={14} />, label: 'Create Job', color: 'text-blue-600 bg-blue-50' },
+    { href: '/dashboard/hiring/interviews/list', icon: <CalendarClock size={14} />, label: "Today's Interview", color: 'text-amber-600 bg-amber-50', badge: todayInterviews.length, sub: todayInterviews.length === 0 ? 'None today' : `${todayInterviews.length} scheduled` },
+    { href: '/dashboard/hiring/interviews/schedule', icon: <CalendarDays size={14} />, label: 'Schedule Interviews', color: 'text-orange-600 bg-orange-50' },
+    { href: '/dashboard/documents/upload', icon: <FileText size={14} />, label: 'Upload Doc', color: 'text-pink-600 bg-pink-50' },
+    { href: '/dashboard/announcements/new', icon: <Megaphone size={14} />, label: 'Announce', color: 'text-rose-600 bg-rose-50' },
+    { href: '/dashboard/hiring/candidates', icon: <Mail size={14} />, label: 'Offer Pending', color: 'text-purple-600 bg-purple-50', badge: offeredCandidates.length, sub: firstOfferName || 'No pending' },
+    { href: '/dashboard/hiring/manpower', icon: <Briefcase size={14} />, label: 'New Requisition', color: 'text-cyan-600 bg-cyan-50' },
+    { href: '/dashboard/meetings/new', icon: <CalendarDays size={14} />, label: 'Schedule Meeting', color: 'text-fuchsia-600 bg-fuchsia-50' },
+    { href: '/dashboard/reports/generate', icon: <Download size={14} />, label: 'Generate Report', color: 'text-slate-600 bg-slate-50' },
+    { href: '/dashboard/projects/new', icon: <FolderKanban size={14} />, label: 'New Project', color: 'text-lime-600 bg-lime-50' },
+  ];
+
   return (
-    <Card className="shadow-sm border-slate-100 flex flex-col justify-between p-2.5 bg-white rounded-md">
-      <div className="flex items-center gap-2.5 mb-1.5">
-        <div className={cn("p-1.5 rounded-md flex-shrink-0", iconBg)}>
-          {icon}
+    <Card className="border-zinc-200/80 shadow-sm xl:h-[270px] flex flex-col">
+      <CardContent className="p-3 flex-1 flex flex-col min-h-0">
+        <div className="flex items-center gap-2 mb-2 shrink-0">
+          <h3 className="text-sm font-semibold text-zinc-900">Quick Actions</h3>
+          <p className="text-[11px] text-zinc-500">(Get things done faster)</p>
         </div>
-        <div className="text-xs font-semibold text-slate-600 whitespace-nowrap overflow-hidden text-ellipsis">{title}</div>
-      </div>
-      <div>
-        <div className="text-xl font-bold text-slate-800 leading-tight">{value}</div>
-        {trend && (
-          <div className="text-[10px] font-medium flex items-center gap-1 mt-0.5 text-emerald-600">
-            {trendUp ? <TrendingUp size={10} /> : <TrendingDown size={10} className="text-rose-500" />}
-            <span className={trendUp ? "text-emerald-600" : "text-rose-500"}>{trend}</span>
-          </div>
-        )}
-        {sub && <div className="text-[10px] text-slate-400 mt-0.5 font-medium">{sub}</div>}
-      </div>
+        <div className="grid grid-cols-5 gap-1 flex-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-zinc-200 min-h-0">
+          {actions.map((a) => (
+            <Link key={a.label} href={a.href}
+              className="relative flex flex-col items-center gap-0.5 rounded-lg border border-zinc-100 px-1 py-1.5 text-center hover:border-violet-200 hover:bg-violet-50/60 transition-colors overflow-hidden">
+              {a.badge !== undefined && a.badge > 0 && (
+                <span className="absolute top-1 right-1 min-w-[14px] h-3.5 rounded-full bg-rose-500 text-white text-[8px] font-bold flex items-center justify-center px-0.5 leading-none">{a.badge}</span>
+              )}
+              <span className={`grid h-6 w-6 place-items-center rounded-md ${a.color} shrink-0`}>{a.icon}</span>
+              <span className="text-[9.5px] font-semibold text-zinc-700 leading-tight">{a.label}</span>
+              {a.sub && <span className="text-[8px] text-zinc-400 leading-tight truncate w-full px-0.5">{a.sub}</span>}
+            </Link>
+          ))}
+        </div>
+      </CardContent>
     </Card>
   );
 }
 
-function SectionCard({ title, action, children, className, select }: any) {
+// ─── Reports Shortcut (new card from img4) ────────────────────────────────────
+function ReportsShortcut() {
+  const reports = [
+    { label: 'Attendance Report', icon: <ScanFace size={16} />, color: 'text-violet-600 bg-violet-50', href: '/dashboard/reports/attendance' },
+    { label: 'Leave Report', icon: <CalendarX2 size={16} />, color: 'text-emerald-600 bg-emerald-50', href: '/dashboard/reports/leave' },
+    { label: 'Payroll Report', icon: <Wallet size={16} />, color: 'text-amber-600 bg-amber-50', href: '/dashboard/reports/payroll' },
+    { label: 'Recruitment Report', icon: <UserRoundPlus size={16} />, color: 'text-blue-600 bg-blue-50', href: '/dashboard/reports/recruitment' },
+    { label: 'Performance Report', icon: <BarChart3 size={16} />, color: 'text-purple-600 bg-purple-50', href: '/dashboard/reports/performance' },
+    { label: 'Attrition Report', icon: <TrendingDown size={16} />, color: 'text-rose-600 bg-rose-50', href: '/dashboard/reports/attrition' },
+    { label: 'Compliance Report', icon: <BadgeCheck size={16} />, color: 'text-teal-600 bg-teal-50', href: '/dashboard/reports/compliance' },
+    { label: 'Training Report', icon: <Star size={16} />, color: 'text-orange-600 bg-orange-50', href: '/dashboard/reports/training' },
+    { label: 'Expense Report', icon: <Wallet2 size={16} />, color: 'text-indigo-600 bg-indigo-50', href: '/dashboard/reports/expense' },
+    { label: 'View All Reports', icon: <FileText size={16} />, color: 'text-slate-600 bg-slate-50', href: '/dashboard/reports' },
+    { label: 'Audit Report', icon: <ScanLine size={16} />, color: 'text-pink-600 bg-pink-50', href: '/dashboard/reports/audit' },
+  ];
+
   return (
-    <Card className={cn("shadow-sm border-slate-100 bg-white rounded-md flex flex-col overflow-hidden h-full", className)}>
-      <div className="flex justify-between items-center p-4 border-b border-slate-50">
-        <h3 className="text-sm font-bold flex items-center gap-2">{title}</h3>
-        {action && <a href="#" className="text-xs text-indigo-600 font-semibold hover:underline">{action}</a>}
-        {select && (
-          <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-500 cursor-pointer hover:text-slate-800">
-            {select} <ChevronDown size={12} />
-          </div>
-        )}
-      </div>
-      <div className="p-4 flex-1 flex flex-col">{children}</div>
+    <Card className="border-zinc-200/80 shadow-sm">
+      <CardContent className="p-2">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-semibold text-zinc-900">Reports Shortcut</h3>
+          <Link href="/dashboard/reports" className="inline-flex items-center gap-1 text-[11px] font-semibold text-violet-700 hover:text-violet-800 whitespace-nowrap">
+            All Reports <ArrowRight size={13} />
+          </Link>
+        </div>
+        <div className="grid grid-cols-5 gap-1 md:grid-cols-6 xl:grid-cols-11">
+          {reports.map((r) => (
+            <Link key={r.label} href={r.href}
+              className="flex flex-col items-center gap-1 rounded-lg border border-zinc-100 px-1 py-2 text-center hover:border-violet-200 hover:bg-violet-50/60 transition-colors group">
+              <span className={`grid h-8 w-8 place-items-center rounded-lg ${r.color} shrink-0 group-hover:scale-105 transition-transform`}>{r.icon}</span>
+              <span className="text-[9px] font-semibold text-zinc-600 leading-tight">{r.label}</span>
+            </Link>
+          ))}
+        </div>
+      </CardContent>
     </Card>
   );
 }
 
-function CriticalAlerts() {
-  const alerts = [
-    { label: "5 employees absent today", count: 5, color: "text-rose-600 bg-rose-50", iconColor: "text-rose-500" },
-    { label: "2 probations ending this week", count: 2, color: "text-amber-600 bg-amber-50", iconColor: "text-amber-500" },
-    { label: "6 documents expiring soon", count: 6, color: "text-amber-600 bg-amber-50", iconColor: "text-amber-500" },
-    { label: "Salary generation pending", count: 1, color: "text-rose-600 bg-rose-50", iconColor: "text-rose-500" },
-    { label: "Offer letters pending", count: 3, color: "text-rose-600 bg-rose-50", iconColor: "text-rose-500" },
-    { label: "Interviews starting in 30 min", count: 4, color: "text-blue-600 bg-blue-50", iconColor: "text-blue-500" },
-    { label: "PF submission due tomorrow", count: 1, color: "text-amber-600 bg-amber-50", iconColor: "text-amber-500" },
-    { label: "Attendance device offline", count: 1, color: "text-amber-600 bg-amber-50", iconColor: "text-amber-500" },
-  ];
-  return (
-    <SectionCard title={<><AlertCircle size={16} className="text-amber-500" /> Critical Alerts</>} action="View All">
-      <div className="flex flex-col gap-3 py-1 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
-        {alerts.map((a, i) => (
-          <div key={i} className="flex justify-between items-center text-[11px] font-medium">
-            <div className="flex items-center gap-2 text-slate-700">
-              <span className={cn("w-5 h-5 rounded flex items-center justify-center shrink-0", a.color)}>
-                <AlertCircle size={10} className={a.iconColor} />
-              </span>
-              {a.label}
-            </div>
-            <span className={cn("px-1.5 py-0.5 text-[10px] rounded font-bold shrink-0", a.color)}>{a.count}</span>
-          </div>
-        ))}
-      </div>
-    </SectionCard>
-  );
-}
-
-function TodaysTasks() {
-  const tasks = [
-    { label: "High Priority", count: 5, color: "text-rose-500" },
-    { label: "Medium Priority", count: 7, color: "text-amber-500" },
-    { label: "Low Priority", count: 5, color: "text-blue-500" },
-    { label: "Completed", count: 12, color: "text-emerald-500" },
-    { label: "Overdue", count: 2, color: "text-rose-500" },
-  ];
-  return (
-    <SectionCard title={<><FileCheck size={16} className="text-indigo-500" /> Today's Tasks</>} action="View All">
-      <div className="flex flex-col sm:flex-row items-center h-full gap-2 pt-2 pb-2">
-        <div className="relative w-28 h-28 shrink-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie data={[{value:12},{value:8}]} cx="50%" cy="50%" innerRadius={35} outerRadius={45} startAngle={90} endAngle={-270} dataKey="value" stroke="none">
-                <Cell fill="#10b981" />
-                <Cell fill="#f1f5f9" />
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-xl font-bold text-slate-800 leading-none mb-1">12/20</span>
-            <span className="text-[9px] font-medium text-slate-500 text-center leading-tight">Tasks<br/>Completed</span>
-          </div>
-        </div>
-        <div className="flex flex-col gap-2.5 flex-1 justify-center">
-          {tasks.map((t, i) => (
-            <div key={i} className="flex justify-between items-center text-[11px] font-medium">
-              <span className="text-slate-600">{t.label}</span>
-              <span className={cn("font-bold text-xs", t.color)}>{t.count}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </SectionCard>
-  );
-}
-
-function TodaysSchedule() {
-  const sched = [
-    { time: "10:30 AM", title: "Interview - Senior Dev.", sub: "Panel Room 2", dot: "bg-indigo-500" },
-    { time: "11:00 AM", title: "HR Policy Review", sub: "Conf Room A", dot: "bg-indigo-500" },
-    { time: "02:00 PM", title: "Employee Onboarding", sub: "Training Hall", dot: "bg-indigo-500" },
-    { time: "03:30 PM", title: "Payroll Review", sub: "Finance Room", dot: "bg-indigo-500" },
-    { time: "04:30 PM", title: "Leave Approval Review", sub: "HR Department", dot: "bg-indigo-500" },
-  ];
-  return (
-    <SectionCard title={<><CalendarDays size={16} className="text-blue-500" /> Today's Schedule</>} action="View Calendar">
-      <div className="relative pl-12 h-full flex flex-col pt-2 pb-1 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
-        {sched.map((s, i) => (
-          <div key={i} className="relative mb-4 last:mb-0">
-            <div className="absolute left-[-45px] text-[9px] font-medium text-slate-500 top-[1px]">{s.time}</div>
-            <div className={cn("absolute left-[-11px] top-[5px] w-1.5 h-1.5 rounded-full ring-[3px] ring-white z-10", s.dot)}></div>
-            {i !== sched.length - 1 && <div className="absolute left-[-8.5px] top-[10px] w-px h-[calc(100%+10px)] bg-slate-100"></div>}
-            <div className="text-[11px] font-semibold text-slate-800 leading-tight mb-0.5">{s.title}</div>
-            <div className="text-[9px] font-medium text-slate-400 leading-tight">{s.sub}</div>
-          </div>
-        ))}
-        <a href="#" className="text-[11px] font-semibold text-indigo-600 hover:underline mt-2 block">+ 3 more events</a>
-      </div>
-    </SectionCard>
-  );
-}
-
-function BirthdaysAnniversaries() {
-  const list = [
-    { name: "Sameera Abbas", sub: "Marketing Team", img: "https://i.pravatar.cc/150?u=1", tag: "Today", tagBg: "bg-indigo-50 text-indigo-600 border border-indigo-100" },
-    { name: "Rohan Mehra", sub: "Sales Team", img: "https://i.pravatar.cc/150?u=2", tag: "Today", tagBg: "bg-indigo-50 text-indigo-600 border border-indigo-100" },
-    { name: "Priya Sharma", sub: "HR Team", img: "https://i.pravatar.cc/150?u=3", tag: "Tomorrow", tagBg: "bg-purple-50 text-purple-600 border border-purple-100" },
-    { name: "Arjun Verma", sub: "Development Team", img: "https://i.pravatar.cc/150?u=4", tag: "In 2 days", tagBg: "bg-emerald-50 text-emerald-600 border border-emerald-100" },
-  ];
-  return (
-    <SectionCard title={<><Bell size={16} className="text-rose-500" /> Birthdays & Work Anniversaries</>} action="View All">
-      <div className="flex border-b border-slate-100 mb-4 text-[11px]">
-        <div className="pb-2 border-b-2 border-indigo-600 text-indigo-600 font-bold px-2 flex-1 text-center cursor-pointer">Birthdays (8)</div>
-        <div className="pb-2 text-slate-400 font-bold px-2 flex-1 text-center cursor-pointer">Anniversaries (3)</div>
-      </div>
-      <div className="flex flex-col gap-2 max-h-[140px] overflow-y-auto pr-1 custom-scrollbar">
-        {list.map((u, i) => (
-          <div key={i} className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <img src={u.img} className="w-8 h-8 rounded-full shadow-sm" alt="" />
-              <div>
-                <div className="text-[11px] font-bold text-slate-800 leading-tight mb-0.5">{u.name}</div>
-                <div className="text-[9px] font-medium text-slate-500">{u.sub}</div>
-              </div>
-            </div>
-            <span className={cn("text-[9px] px-2 py-0.5 rounded font-bold", u.tagBg)}>{u.tag}</span>
-          </div>
-        ))}
-      </div>
-      <a href="#" className="text-[11px] font-semibold text-indigo-600 hover:underline mt-auto pt-4 block">+ 4 more birthdays</a>
-    </SectionCard>
-  );
-}
-
-function AttendanceOverview() {
-  const data = [
-    { name: "Present", value: 987, color: "#10b981", pct: "79.2%" },
-    { name: "Absent", value: 126, color: "#f43f5e", pct: "10.1%" },
-    { name: "On Leave", value: 78, color: "#f59e0b", pct: "6.2%" },
-    { name: "Late", value: 57, color: "#94a3b8", pct: "4.6%" },
-    { name: "WFH", value: 24, color: "#3b82f6", pct: "1.9%" },
-  ];
-  return (
-    <SectionCard title="Attendance Overview" select="Today" className="col-span-1">
-      <div className="flex flex-col xl:flex-row items-center h-full gap-2 py-2">
-        <div className="relative w-32 h-32 shrink-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie data={data} cx="50%" cy="50%" innerRadius={35} outerRadius={55} paddingAngle={2} dataKey="value" stroke="none">
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-xl font-bold text-slate-800 mb-1 leading-none">987</span>
-            <span className="text-[9px] font-medium text-slate-500 leading-none">Present</span>
-          </div>
-        </div>
-        <div className="flex flex-col gap-1.5 flex-1 justify-center">
-          {data.map((d, i) => (
-            <div key={i} className="flex justify-between items-center text-[10px] font-medium">
-              <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{backgroundColor: d.color}}></div>
-                <span className="text-slate-600 truncate">{d.name}</span>
-                <span className="font-bold text-slate-800 ml-auto mr-2">{d.value}</span>
-              </div>
-              <span className="text-slate-400 shrink-0">({d.pct})</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="grid grid-cols-3 gap-2 mt-2 pt-4 border-t border-slate-50 text-center">
-        <div>
-          <div className="text-[9px] font-medium text-slate-500 mb-1">Attendance %</div>
-          <div className="text-sm font-bold text-slate-800">79.2%</div>
-        </div>
-        <div>
-          <div className="text-[9px] font-medium text-slate-500 mb-1">Late %</div>
-          <div className="text-sm font-bold text-slate-800">4.6%</div>
-        </div>
-        <div>
-          <div className="text-[9px] font-medium text-slate-500 mb-1">Overtime</div>
-          <div className="text-sm font-bold text-slate-800">32</div>
-        </div>
-      </div>
-    </SectionCard>
-  );
-}
-
-function LeaveOverview() {
-  const data = [
-    { name: "Casual", value: 80, color: "#10b981", pct: "40%" },
-    { name: "Sick", value: 60, color: "#3b82f6", pct: "30%" },
-    { name: "Privilege", value: 30, color: "#8b5cf6", pct: "15%" },
-    { name: "Comp Off", value: 20, color: "#f59e0b", pct: "10%" },
-    { name: "Other", value: 10, color: "#94a3b8", pct: "5%" },
-  ];
-  return (
-    <SectionCard title="Leave Overview" select="This Month" className="col-span-1">
-      <div className="flex flex-col xl:flex-row items-center h-full gap-2 py-2">
-        <div className="relative w-32 h-32 shrink-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie data={data} cx="50%" cy="50%" innerRadius={35} outerRadius={55} paddingAngle={2} dataKey="value" stroke="none">
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-xl font-bold text-slate-800 mb-1 leading-none">200</span>
-            <span className="text-[9px] font-medium text-slate-500 leading-none">Total Leaves</span>
-          </div>
-        </div>
-        <div className="flex flex-col gap-1.5 flex-1 justify-center">
-          {data.map((d, i) => (
-            <div key={i} className="flex justify-between items-center text-[10px] font-medium">
-              <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{backgroundColor: d.color}}></div>
-                <span className="text-slate-600 truncate">{d.name}</span>
-                <span className="font-bold text-slate-800 ml-auto mr-2">{d.value}</span>
-              </div>
-              <span className="text-slate-400 shrink-0">({d.pct})</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="grid grid-cols-3 gap-2 mt-2 pt-4 border-t border-slate-50 text-center">
-        <div>
-          <div className="text-[9px] font-medium text-slate-500 mb-1">Pending</div>
-          <div className="text-sm font-bold text-slate-800">24</div>
-        </div>
-        <div>
-          <div className="text-[9px] font-medium text-slate-500 mb-1">Approved</div>
-          <div className="text-sm font-bold text-slate-800">152</div>
-        </div>
-        <div>
-          <div className="text-[9px] font-medium text-slate-500 mb-1">Rejected</div>
-          <div className="text-sm font-bold text-slate-800">8</div>
-        </div>
-      </div>
-    </SectionCard>
-  );
-}
+// ─── Recruitment Overview (img1) ──────────────────────────────────────────────
+const recruitmentFunnelData = [
+  { label: 'Applied', value: 32, color: '#8b5cf6', width: '100%' },
+  { label: 'Screening', value: 15, color: '#3b82f6', width: '75%' },
+  { label: 'Interview', value: 5, color: '#06b6d4', width: '55%' },
+  { label: 'Offered', value: 2, color: '#f59e0b', width: '35%' },
+  { label: 'Joined', value: 1, color: '#22c55e', width: '20%' },
+];
 
 function RecruitmentOverview() {
-  const data = [
-    { name: "Applied", value: 324, color: "#8b5cf6" },
-    { name: "Screening", value: 156, color: "#3b82f6" },
-    { name: "Interview", value: 58, color: "#0ea5e9" },
-    { name: "Offered", value: 25, color: "#f59e0b" },
-    { name: "Joined", value: 18, color: "#10b981" },
-  ];
-  return (
-    <SectionCard title="Recruitment Overview" select="This Month" className="col-span-1">
-      <div className="flex flex-col xl:flex-row items-center h-full gap-2 pt-4 pb-2">
-        <div className="w-24 shrink-0 flex flex-col items-center gap-[2px]">
-          {data.map((d, i) => (
-            <div 
-              key={i} 
-              style={{ backgroundColor: d.color, width: `${100 - (i * 15)}%`, height: "22px" }} 
-              className={cn("rounded-sm", i === 0 ? "rounded-t-md" : "", i === data.length - 1 ? "rounded-b-md" : "")}
-            ></div>
-          ))}
-        </div>
-        <div className="flex flex-col flex-1 justify-between h-[118px]">
-          {data.map((d, i) => (
-            <div key={i} className="flex justify-between items-center text-[10px] font-medium h-[22px]">
-              <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full" style={{backgroundColor: d.color}}></div>
-                <span className="text-slate-600">{d.name}</span>
-              </div>
-              <span className="font-bold text-slate-800">{d.value}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="grid grid-cols-3 gap-2 mt-2 pt-4 border-t border-slate-50 text-center">
-        <div>
-          <div className="text-[9px] font-medium text-slate-500 mb-1">Open Positions</div>
-          <div className="text-sm font-bold text-slate-800">24</div>
-        </div>
-        <div>
-          <div className="text-[9px] font-medium text-slate-500 mb-1">Interviews Today</div>
-          <div className="text-sm font-bold text-slate-800">6</div>
-        </div>
-        <div>
-          <div className="text-[9px] font-medium text-slate-500 mb-1">Joining This Week</div>
-          <div className="text-sm font-bold text-slate-800">7</div>
-        </div>
-      </div>
-    </SectionCard>
-  );
-}
+  const [period, setPeriod] = useState('This Month');
+  const [open, setOpen] = useState(false);
+  const periods = ['This Week', 'This Month', 'This Quarter', 'This Year'];
 
-function PerformanceOverview() {
   return (
-    <SectionCard title="Performance Overview" select="This Cycle" className="col-span-1">
-      <div className="flex flex-col h-full pt-2">
-        <div className="relative w-full h-28 flex items-center justify-center">
-          <ResponsiveContainer width="100%" height={140}>
-            <PieChart>
-              <Pie data={[{value:84},{value:16}]} cx="50%" cy="75%" startAngle={180} endAngle={0} innerRadius={50} outerRadius={65} paddingAngle={0} dataKey="value" stroke="none">
-                <Cell fill="#10b981" />
-                <Cell fill="#f1f5f9" />
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="absolute inset-0 flex flex-col items-center justify-end pb-[18px] pointer-events-none">
-            <div className="text-2xl font-bold text-slate-800 flex items-end gap-0.5 leading-none mb-1.5">
-              4.2 <span className="text-sm font-semibold text-slate-400">/ 5</span>
-            </div>
-            <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">↑ 0.2 vs last cycle</span>
-          </div>
-        </div>
-        
-        <div className="flex flex-col gap-3 mt-auto pt-4">
-          <div className="flex justify-between items-center text-[11px] font-medium">
-            <span className="text-slate-600">Top Performers</span>
-            <span className="font-bold text-slate-800 text-xs">174</span>
-          </div>
-          <div className="flex justify-between items-center text-[11px] font-medium">
-            <span className="text-slate-600">Needs Improvement</span>
-            <span className="font-bold text-slate-800 text-xs">164</span>
-          </div>
-          <div className="flex justify-between items-center text-[11px] font-medium">
-            <span className="text-slate-600">Low Performers</span>
-            <span className="font-bold text-slate-800 text-xs">108</span>
-          </div>
-          <div className="flex justify-between items-center text-[11px] font-medium mt-1 pt-3 border-t border-slate-50">
-            <span className="text-slate-600">Appraisals Due</span>
-            <span className="font-bold text-slate-800 text-xs">36</span>
-          </div>
-        </div>
-      </div>
-    </SectionCard>
-  );
-}
-
-function PayrollOverview() {
-  const stats = [
-    { label: "Processed", value: "890" },
-    { label: "Pending", value: "358" },
-    { label: "Reimbursements", value: "24" },
-    { label: "Advances", value: "16" },
-  ];
-  return (
-    <SectionCard title={<><Wallet size={16} className="text-amber-500" /> Payroll Overview</>} select="June 2026">
-      <div className="flex flex-col h-full gap-2 pt-1">
-        <div className="flex justify-between items-center bg-slate-50 px-3 py-2.5 rounded-md border border-slate-100">
-          <span className="text-[11px] font-semibold text-slate-600">Payroll Status</span>
-          <span className="text-[9px] font-bold text-purple-600 bg-purple-100 px-2 py-0.5 rounded border border-purple-200">In Progress</span>
-        </div>
-        <div className="flex flex-col gap-[14px] flex-1 mt-1">
-          {stats.map((s, i) => (
-            <div key={i} className="flex justify-between items-center text-[11px] font-medium">
-              <span className="text-slate-600">{s.label}</span>
-              <span className="font-bold text-slate-800 text-xs">{s.value}</span>
-            </div>
-          ))}
-        </div>
-        <div className="flex justify-between items-center text-[11px] font-semibold mt-auto pt-4 border-t border-slate-50 text-indigo-600">
-          <span>Salary Day</span>
-          <span className="bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100">30 Jun 2026</span>
-        </div>
-      </div>
-    </SectionCard>
-  );
-}
-
-function ComplianceOverview() {
-  const items = [
-    { icon: <FileText size={12} />, label: "Missing Documents", count: 35, color: "text-rose-600 bg-rose-50" },
-    { icon: <AlertCircle size={12} />, label: "Expiring Soon", count: 22, color: "text-amber-600 bg-amber-50" },
-    { icon: <CheckCircle2 size={12} />, label: "KYC Pending", count: 18, color: "text-blue-600 bg-blue-50" },
-    { icon: <ScanFace size={12} />, label: "Verifications Pending", count: 14, color: "text-indigo-600 bg-indigo-50" },
-  ];
-  return (
-    <SectionCard title={<><FileCheck size={16} className="text-indigo-500" /> Compliance Overview</>} select="This Month">
-      <div className="flex flex-col gap-2 py-1 h-full pt-2">
-        {items.map((it, i) => (
-          <div key={i} className="flex justify-between items-center text-[11px] font-semibold">
-            <div className="flex items-center gap-2.5 text-slate-600">
-              <span className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0", it.color)}>
-                {it.icon}
-              </span>
-              {it.label}
-            </div>
-            <span className="font-bold text-slate-800 text-sm">{it.count}</span>
-          </div>
-        ))}
-        <a href="#" className="text-[11px] font-semibold text-indigo-600 hover:underline mt-auto pt-2 block">View Compliance Center</a>
-      </div>
-    </SectionCard>
-  );
-}
-
-function UserMinus(props: any) {
-  return <UserX {...props} />;
-}
-
-function AIInsights() {
-  const insights = [
-    { text: "5 employees likely to resign.", icon: <BrainCircuit size={12} />, color: "text-indigo-600 bg-indigo-50" },
-    { text: "Attendance dropped by 15% in Sales.", icon: <TrendingDown size={12} />, color: "text-rose-600 bg-rose-50" },
-    { text: "Hiring is slower than last month.", icon: <UserMinus size={12} />, color: "text-amber-600 bg-amber-50" },
-    { text: "3 payroll anomalies detected.", icon: <AlertCircle size={12} />, color: "text-rose-600 bg-rose-50" },
-    { text: "High overtime in Development team.", icon: <Clock size={12} />, color: "text-emerald-600 bg-emerald-50" },
-  ];
-  return (
-    <SectionCard title={<><BrainCircuit size={16} className="text-pink-500" /> AI Insights</>}>
-      <div className="flex flex-col justify-center h-full gap-3 pt-2">
-        {insights.map((it, i) => (
-          <div key={i} className="flex items-center gap-2 text-[10px] text-slate-700 bg-slate-50 px-2 py-1.5 rounded-lg border border-slate-100">
-            <span className={cn("w-5 h-5 rounded flex items-center justify-center shrink-0", it.color)}>
-              {it.icon}
-            </span>
-            <span className="font-semibold leading-tight">{it.text}</span>
-          </div>
-        ))}
-        <a href="#" className="text-[11px] font-semibold text-indigo-600 hover:underline mt-auto pt-2 block">View All Insights</a>
-      </div>
-    </SectionCard>
-  );
-}
-
-function DepartmentSpread() {
-  const data = [
-    { name: "Sales", value: 394, color: "#8b5cf6", pct: "31.9%" },
-    { name: "Development", value: 326, color: "#0ea5e9", pct: "26.1%" },
-    { name: "Marketing", value: 152, color: "#f59e0b", pct: "12.2%" },
-    { name: "HR", value: 98, color: "#10b981", pct: "8.1%" },
-    { name: "Finance", value: 72, color: "#3b82f6", pct: "7.1%" },
-    { name: "Others", value: 206, color: "#f97316", pct: "14.6%" },
-  ];
-  return (
-    <SectionCard title="Department Spread" select="This Month">
-      <div className="flex items-center h-full gap-2 pt-2">
-        <div className="relative w-[130px] h-[130px] shrink-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie data={data} cx="50%" cy="50%" innerRadius={42} outerRadius={62} paddingAngle={2} dataKey="value" stroke="none">
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+    <Card className="border-zinc-200/80 shadow-sm xl:h-[270px] flex flex-col">
+      <CardContent className="p-3 flex-1 flex flex-col min-h-0">
+        <div className="flex items-center justify-between mb-3 shrink-0">
+          <h3 className="text-sm font-bold text-zinc-900">Recruitment Overview</h3>
+          <div className="relative">
+            <button
+              onClick={() => setOpen(!open)}
+              className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-medium text-zinc-600 shadow-sm hover:border-violet-300 transition-colors"
+            >
+              {period} <ChevronDown size={11} />
+            </button>
+            {open && (
+              <div className="absolute right-0 top-full mt-1 z-10 w-32 rounded-lg border border-zinc-200 bg-white shadow-lg overflow-hidden">
+                {periods.map((p) => (
+                  <button key={p} onClick={() => { setPeriod(p); setOpen(false); }}
+                    className={`w-full px-3 py-1.5 text-left text-[11px] hover:bg-violet-50 transition-colors ${p === period ? 'text-violet-700 font-semibold bg-violet-50/60' : 'text-zinc-600'}`}>
+                    {p}
+                  </button>
                 ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-[17px] font-bold text-slate-800 leading-none mb-1">1,248</span>
-            <span className="text-[9px] font-medium text-slate-500 leading-none">Total</span>
+              </div>
+            )}
           </div>
         </div>
-        <div className="flex flex-col gap-[7px] flex-1 justify-center pl-1">
-          {data.map((d, i) => (
-            <div key={i} className="flex justify-between items-center text-[9px] font-medium whitespace-nowrap">
-              <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full" style={{backgroundColor: d.color}}></div>
-                <span className="text-slate-600">{d.name}</span>
+
+        {/* Funnel */}
+        <div className="space-y-1.5 mb-3">
+          {recruitmentFunnelData.map((item) => (
+            <div key={item.label} className="flex items-center gap-2">
+              <div className="flex-1 h-6 bg-zinc-50 rounded-lg overflow-hidden relative">
+                <div
+                  className="h-full rounded-lg transition-all duration-500"
+                  style={{ width: item.width, backgroundColor: item.color }}
+                />
               </div>
-              <span className="font-bold text-slate-800">{d.value} <span className="text-slate-400 font-normal">({d.pct})</span></span>
+              <div className="flex items-center gap-1.5 w-24 shrink-0">
+                <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                <span className="text-[11px] text-zinc-600 flex-1">{item.label}</span>
+                <span className="text-[11px] font-bold text-zinc-900">{item.value}</span>
+              </div>
             </div>
           ))}
         </div>
-      </div>
-      <div className="flex items-center justify-between text-[10px] font-medium text-slate-500 mt-4 border-t border-slate-50 pt-4">
-        <div className="flex items-center gap-1 cursor-pointer hover:text-slate-800">Departments <ChevronDown size={12} /></div>
-        <div className="flex items-center gap-1 cursor-pointer hover:text-slate-800">Branches <ChevronDown size={12} /></div>
-      </div>
-    </SectionCard>
-  );
-}
 
-function AttendanceTrend() {
-  const data = [
-    { name: 'Mon', value: 82 }, { name: 'Tue', value: 78 }, { name: 'Wed', value: 80 },
-    { name: 'Thu', value: 87 }, { name: 'Fri', value: 78 }, { name: 'Sat', value: 74 }, { name: 'Sun', value: 71 },
-  ];
-  return (
-    <SectionCard title="Attendance Trend" select="(This Week)" className="col-span-1">
-      <div className="h-[140px] mt-2">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 15, right: 10, left: -25, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#64748b', fontWeight: 500 }} dy={10} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#64748b', fontWeight: 500 }} tickFormatter={(val) => `${val}%`} domain={['dataMin - 5', 'dataMax + 5']} />
-            <RechartsTooltip contentStyle={{ fontSize: '10px', borderRadius: '8px', fontWeight: 600, border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} cursor={{ stroke: '#e2e8f0' }} />
-            <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3.5, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    </SectionCard>
-  );
-}
-
-function LeaveTrend() {
-  const data = [
-    { name: 'W1', value: 45 }, { name: 'W2', value: 55 }, { name: 'W3', value: 80 },
-    { name: 'W4', value: 40 }, { name: 'W5', value: 48 },
-  ];
-  return (
-    <SectionCard title="Leave Trend" select="(This Month)" className="col-span-1">
-       <div className="h-[140px] mt-2">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 15, right: 10, left: -25, bottom: 0 }} barSize={10}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#64748b', fontWeight: 500 }} dy={10} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#64748b', fontWeight: 500 }} />
-            <RechartsTooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ fontSize: '10px', borderRadius: '8px', fontWeight: 600, border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-            <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 4, 4]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </SectionCard>
-  );
-}
-
-function HiringTrend() {
-  const data = [
-    { name: 'W1', value: 12 }, { name: 'W2', value: 18 }, { name: 'W3', value: 30 },
-    { name: 'W4', value: 15 }, { name: 'W5', value: 25 },
-  ];
-  return (
-    <SectionCard title="Hiring Trend" select="(This Month)" className="col-span-1">
-      <div className="h-[140px] mt-2">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 15, right: 10, left: -25, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#64748b', fontWeight: 500 }} dy={10} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#64748b', fontWeight: 500 }} domain={[0, 'dataMax + 10']} />
-            <RechartsTooltip contentStyle={{ fontSize: '10px', borderRadius: '8px', fontWeight: 600, border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} cursor={{ stroke: '#e2e8f0' }} />
-            <Line type="monotone" dataKey="value" stroke="#0ea5e9" strokeWidth={2} dot={{ r: 3.5, fill: '#0ea5e9', strokeWidth: 2, stroke: '#fff' }} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    </SectionCard>
-  );
-}
-
-function AttritionTrend() {
-  const data = [
-    { name: 'Jan', value: 4.2 }, { name: 'Feb', value: 6.0 }, { name: 'Mar', value: 7.7 },
-    { name: 'Apr', value: 7.5 }, { name: 'May', value: 7.9 }, { name: 'Jun', value: 8.4 },
-  ];
-  return (
-    <SectionCard title="Attrition Trend" select="(This Year)" className="col-span-1">
-      <div className="h-[140px] mt-2">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 15, right: 10, left: -25, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#64748b', fontWeight: 500 }} dy={10} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#64748b', fontWeight: 500 }} tickFormatter={(val) => `${val}%`} domain={[0, 10]} />
-            <RechartsTooltip contentStyle={{ fontSize: '10px', borderRadius: '8px', fontWeight: 600, border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} cursor={{ stroke: '#e2e8f0' }} />
-            <Line type="monotone" dataKey="value" stroke="#ef4444" strokeWidth={2} dot={{ r: 3.5, fill: '#ef4444', strokeWidth: 2, stroke: '#fff' }} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    </SectionCard>
-  );
-}
-
-function UpcomingEvents() {
-  const events = [
-    { date: "28 Jun", title: "Interview - UI/UX Designer", sub: "10:00 AM - Panel Room 1" },
-    { date: "29 Jun", title: "New Joiner Orientation", sub: "11:00 AM - Training Hall" },
-    { date: "30 Jun", title: "Payroll Processing", sub: "All Day - Finance Department" },
-    { date: "01 Jul", title: "Townhall Meeting", sub: "04:00 PM - Auditorium" },
-    { date: "02 Jul", title: "Training - HR Policies", sub: "11:00 AM - Conf Room B" },
-  ];
-  return (
-    <SectionCard title="Upcoming Events">
-      <div className="flex flex-col gap-[15px] h-full pt-2">
-        {events.map((e, i) => (
-          <div key={i} className="flex items-start gap-3">
-            <div className="flex flex-col items-center justify-center shrink-0 w-[34px] h-[34px] rounded-lg bg-indigo-50 text-indigo-700 leading-none border border-indigo-100/50">
-              <span className="font-bold text-sm leading-tight">{e.date.split(' ')[0]}</span>
-              <span className="text-[8px] uppercase font-bold tracking-wider">{e.date.split(' ')[1]}</span>
-            </div>
-            <div>
-              <div className="text-[11px] font-bold text-slate-800 leading-tight mb-0.5">{e.title}</div>
-              <div className="text-[9px] font-medium text-slate-500">{e.sub}</div>
-            </div>
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-2 border-t border-zinc-100 pt-2">
+          <div className="text-center">
+            <p className="text-[10px] text-zinc-400 mb-0.5">Open Positions</p>
+            <p className="text-[16px] font-bold text-zinc-900">24</p>
           </div>
-        ))}
-        <a href="#" className="text-[11px] font-semibold text-indigo-600 hover:underline mt-auto pt-2 block">View Full Calendar</a>
-      </div>
-    </SectionCard>
+          <div className="text-center border-x border-zinc-100">
+            <p className="text-[10px] text-zinc-400 mb-0.5">Interviews Today</p>
+            <p className="text-[16px] font-bold text-zinc-900">6</p>
+          </div>
+          <div className="text-center">
+            <p className="text-[10px] text-zinc-400 mb-0.5">Joining This Week</p>
+            <p className="text-[16px] font-bold text-zinc-900">7</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
-function PendingApprovals() {
+// ─── Payroll Overview (img2 left) ─────────────────────────────────────────────
+function PayrollOverview() {
+  const [period, setPeriod] = useState('June 2026');
+  const [open, setOpen] = useState(false);
+  const periods = ['April 2026', 'May 2026', 'June 2026'];
+
+  return (
+    <Card className="border-zinc-200/80 shadow-sm xl:h-[270px] flex flex-col">
+      <CardContent className="p-3 flex-1 flex flex-col min-h-0">
+        <div className="flex items-center justify-between mb-3 shrink-0">
+          <div className="flex items-center gap-1.5">
+            <Wallet size={14} className="text-amber-500" />
+            <h3 className="text-sm font-bold text-zinc-900">Payroll Overview</h3>
+          </div>
+          <div className="relative">
+            <button
+              onClick={() => setOpen(!open)}
+              className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-medium text-zinc-600 shadow-sm hover:border-violet-300 transition-colors"
+            >
+              {period} <ChevronDown size={11} />
+            </button>
+            {open && (
+              <div className="absolute right-0 top-full mt-1 z-10 w-32 rounded-lg border border-zinc-200 bg-white shadow-lg overflow-hidden">
+                {periods.map((p) => (
+                  <button key={p} onClick={() => { setPeriod(p); setOpen(false); }}
+                    className={`w-full px-3 py-1.5 text-left text-[11px] hover:bg-violet-50 transition-colors ${p === period ? 'text-violet-700 font-semibold bg-violet-50/60' : 'text-zinc-600'}`}>
+                    {p}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Payroll Status */}
+        <div className="flex items-center justify-between mb-2 px-3 py-1 rounded-lg bg-zinc-50 border border-zinc-100">
+          <span className="text-[12px] font-medium text-zinc-600">Payroll Status</span>
+          <span className="text-[11px] font-bold px-1 py-0.5 rounded-full bg-violet-100 text-violet-700">In Progress</span>
+        </div>
+
+        {/* Stats */}
+        <div className="space-y-1 mb-3">
+          {[
+            { label: 'Processed', value: 890, color: 'text-emerald-600' },
+            { label: 'Pending', value: 358, color: 'text-amber-600' },
+            { label: 'Reimbursements', value: 24, color: 'text-blue-600' },
+            { label: 'Advances', value: 16, color: 'text-rose-600' },
+          ].map((item) => (
+            <div key={item.label} className="flex items-center justify-between py-1 border-b border-zinc-100 last:border-0">
+              <span className="text-[11px] text-zinc-600">{item.label}</span>
+              <span className={`text-[13px] font-bold ${item.color}`}>{item.value}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Salary Day */}
+        <div className="flex items-center justify-between pt-2 border-t border-zinc-100">
+          <Link href="/dashboard/payroll" className="text-[12px] font-semibold text-violet-600 hover:text-violet-700">Salary Day</Link>
+          <span className="text-[11px] font-semibold px-3 py-1 rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-700">30 Jun 2026</span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Compliance Overview (img2 right) ─────────────────────────────────────────
+function ComplianceOverview() {
+  const [period, setPeriod] = useState('This Month');
+  const [open, setOpen] = useState(false);
+  const periods = ['This Week', 'This Month', 'This Quarter'];
+
   const items = [
-    { icon: <UmbrellaOff size={14} />, label: "Leave Requests", count: 24, color: "text-rose-500" },
-    { icon: <Receipt size={14} />, label: "Expense Claims", count: 12, color: "text-indigo-500" },
-    { icon: <Clock size={14} />, label: "Timesheets", count: 18, color: "text-amber-500" },
-    { icon: <AlarmClock size={14} />, label: "Overtime Requests", count: 7, color: "text-emerald-500" },
-    { icon: <LogOut size={14} />, label: "Exit Requests", count: 3, color: "text-rose-600" },
+    { icon: <FileWarning size={16} />, iconBg: 'bg-rose-50', iconColor: 'text-rose-500', label: 'Missing Documents', count: 35 },
+    { icon: <AlertTriangle size={16} />, iconBg: 'bg-amber-50', iconColor: 'text-amber-500', label: 'Expiring Soon', count: 22 },
+    { icon: <CheckCircle2 size={16} />, iconBg: 'bg-blue-50', iconColor: 'text-blue-500', label: 'KYC Pending', count: 18 },
+    { icon: <ScanFace size={16} />, iconBg: 'bg-violet-50', iconColor: 'text-violet-500', label: 'Verifications Pending', count: 14 },
   ];
+
   return (
-    <SectionCard title="Pending Approvals">
-      <div className="flex flex-col gap-2 py-1 h-full pt-3">
-        {items.map((it, i) => (
-          <div key={i} className="flex justify-between items-center text-[11px] font-medium">
-            <div className="flex items-center gap-3 text-slate-600">
-              <span className={cn("text-slate-400 shrink-0 opacity-80", it.color)}>
-                {React.cloneElement(it.icon, { className: it.color })}
+    <Card className="border-zinc-200/80 shadow-sm xl:h-[270px] flex flex-col">
+      <CardContent className="p-3 flex-1 flex flex-col min-h-0">
+        <div className="flex items-center justify-between mb-3 shrink-0">
+          <div className="flex items-center gap-1.5">
+            <FileText size={14} className="text-violet-500" />
+            <h3 className="text-sm font-bold text-zinc-900">Compliance Overview</h3>
+          </div>
+          <div className="relative">
+            <button
+              onClick={() => setOpen(!open)}
+              className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-medium text-zinc-600 shadow-sm hover:border-violet-300 transition-colors"
+            >
+              {period} <ChevronDown size={11} />
+            </button>
+            {open && (
+              <div className="absolute right-0 top-full mt-1 z-10 w-36 rounded-lg border border-zinc-200 bg-white shadow-lg overflow-hidden">
+                {periods.map((p) => (
+                  <button key={p} onClick={() => { setPeriod(p); setOpen(false); }}
+                    className={`w-full px-3 py-1.5 text-left text-[11px] hover:bg-violet-50 transition-colors ${p === period ? 'text-violet-700 font-semibold bg-violet-50/60' : 'text-zinc-600'}`}>
+                    {p}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Items */}
+        <div className="space-y-1 mb-3">
+          {items.map((item) => (
+            <div key={item.label} className="flex items-center gap-2.5 py-1 border-b border-zinc-100 last:border-0">
+              <div className={`h-7 w-7 rounded-lg ${item.iconBg} flex items-center justify-center ${item.iconColor} shrink-0`}>
+                {item.icon}
+              </div>
+              <span className="text-[11px] text-zinc-600 flex-1">{item.label}</span>
+              <span className="text-[13px] font-bold text-zinc-900">{item.count}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className="pt-2 border-t border-zinc-100">
+          <Link href="/dashboard/compliance" className="text-[12px] font-semibold text-violet-600 hover:text-violet-700 transition-colors">
+            View Compliance Center
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+const birthdayPeople = [
+  { name: 'Sameera Abbas', team: 'Marketing Team', avatar: '1', when: 'Today', whenColor: 'bg-violet-100 text-violet-700', whenBorder: 'border-violet-200' },
+  { name: 'Rohan Mehra', team: 'Sales Team', avatar: '2', when: 'Today', whenColor: 'bg-violet-100 text-violet-700', whenBorder: 'border-violet-200' },
+  { name: 'Priya Sharma', team: 'HR Team', avatar: '7', when: 'Tomorrow', whenColor: 'bg-violet-100 text-violet-700', whenBorder: 'border-violet-200' },
+  { name: 'Arjun Verma', team: 'Engineering', avatar: '8', when: 'In 2 days', whenColor: 'bg-emerald-100 text-emerald-700', whenBorder: 'border-emerald-200' },
+];
+
+const anniversaryPeople = [
+  { name: 'Neha Gupta', team: 'Finance Team', avatar: '15', when: 'Today', whenColor: 'bg-violet-100 text-violet-700', whenBorder: 'border-violet-200' },
+  { name: 'Vikram Singh', team: 'Operations', avatar: '16', when: 'Tomorrow', whenColor: 'bg-violet-100 text-violet-700', whenBorder: 'border-violet-200' },
+  { name: 'Pooja Nair', team: 'Design', avatar: '17', when: 'In 3 days', whenColor: 'bg-emerald-100 text-emerald-700', whenBorder: 'border-emerald-200' },
+];
+
+function BirthdaysOverview() {
+  const [activeTab, setActiveTab] = useState<'birthdays' | 'anniversaries'>('birthdays');
+  const people = activeTab === 'birthdays' ? birthdayPeople : anniversaryPeople;
+  const moreCount = activeTab === 'birthdays' ? 4 : 2;
+
+  return (
+    <Card className="border-zinc-200/80 shadow-sm xl:h-[270px] flex flex-col">
+      <CardContent className="p-3 flex-1 flex flex-col min-h-0">
+        <div className="flex items-start justify-between mb-2.5 shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-rose-50 flex items-center justify-center shrink-0">
+              <Cake size={13} className="text-rose-500" />
+            </div>
+            <h3 className="text-[12px] font-bold text-zinc-900 leading-tight">Birthdays &amp; Anniversaries</h3>
+          </div>
+          <Link href="/dashboard/celebrations" className="inline-flex items-center gap-1 text-[11px] font-semibold text-violet-600 hover:text-violet-700 whitespace-nowrap shrink-0 mt-0.5">
+            View All <ArrowRight size={13} />
+          </Link>
+        </div>
+        <div className="flex border-b border-zinc-100 mb-2 shrink-0">
+          <button
+            onClick={() => setActiveTab('birthdays')}
+            className={`flex-1 pb-1.5 text-[11px] font-semibold transition-colors relative text-left ${activeTab === 'birthdays' ? 'text-violet-600' : 'text-zinc-400 hover:text-zinc-600'}`}
+          >
+            Birthdays ({birthdayPeople.length})
+            {activeTab === 'birthdays' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-violet-600 rounded-full" />}
+          </button>
+          <button
+            onClick={() => setActiveTab('anniversaries')}
+            className={`flex-1 pb-1.5 text-[11px] font-semibold transition-colors relative text-right ${activeTab === 'anniversaries' ? 'text-violet-600' : 'text-zinc-400 hover:text-zinc-600'}`}
+          >
+            Anniversaries ({anniversaryPeople.length})
+            {activeTab === 'anniversaries' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-violet-600 rounded-full" />}
+          </button>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-0.5 pr-0.5 scrollbar-thin scrollbar-thumb-zinc-200">
+          {people.map((p, i) => (
+            <div key={i} className="flex items-center gap-2.5 py-1.5 px-1 hover:bg-zinc-50 rounded-lg transition-colors cursor-pointer">
+              <img
+                src={`https://i.pravatar.cc/150?u=${p.avatar}`}
+                className="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm shrink-0"
+                alt={p.name}
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-bold text-zinc-800 truncate leading-tight">{p.name}</p>
+                <p className="text-[10px] text-zinc-400 truncate">{p.team}</p>
+              </div>
+              <span className={`shrink-0 text-[10px] font-semibold px-2.5 py-1 rounded-full border ${p.whenColor} ${p.whenBorder}`}>
+                {p.when}
               </span>
-              {it.label}
             </div>
-            <span className={cn("font-bold text-[10px] bg-slate-50 px-2 py-0.5 rounded border border-slate-100", it.color)}>{it.count}</span>
-          </div>
-        ))}
-        <a href="#" className="text-[11px] font-semibold text-indigo-600 hover:underline mt-auto pt-2 block">Go to Approvals</a>
-      </div>
-    </SectionCard>
+          ))}
+        </div>
+        <div className="pt-2 mt-1 border-t border-zinc-100 shrink-0">
+          <button className="text-[11px] font-semibold text-violet-600 hover:text-violet-700 transition-colors">
+            + {moreCount} more {activeTab === 'birthdays' ? 'birthdays' : 'anniversaries'}
+          </button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
-function RecentActivities() {
-  const acts = [
-    { icon: <UserPlus size={10} />, title: "John Doe added a new employee", time: "2 min ago", iconBg: "bg-slate-100 text-slate-600 border border-slate-200" },
-    { icon: <CheckCircle2 size={10} />, title: "Leave request approved for Priya Sharma", time: "15 min ago", iconBg: "bg-emerald-50 text-emerald-600 border border-emerald-100" },
-    { icon: <Clock size={10} />, title: "Attendance corrected for 12 employees", time: "30 min ago", iconBg: "bg-slate-100 text-slate-600 border border-slate-200" },
-    { icon: <Briefcase size={10} />, title: "Interview completed for React Developer", time: "45 min ago", iconBg: "bg-indigo-50 text-indigo-600 border border-indigo-100" },
-    { icon: <Wallet size={10} />, title: "Payroll for June is being processed", time: "1 hour ago", iconBg: "bg-slate-100 text-slate-600 border border-slate-200" },
-  ];
+function TodayTasks() {
+  const [tasks, setTasks] = useState(todayTasks);
+  const toggle = (id: number) => setTasks(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t));
+  const priorityConfig = {
+    high: { color: '#ef4444', bg: '#fef2f2', label: 'High' },
+    medium: { color: '#f59e0b', bg: '#fffbeb', label: 'Med' },
+    low: { color: '#22c55e', bg: '#f0fdf4', label: 'Low' },
+  };
+  const done = tasks.filter(t => t.done).length;
+
   return (
-    <SectionCard title="Recent Activities">
-      <div className="relative pl-6 h-full flex flex-col justify-between pt-2 pb-1">
-        {acts.map((a, i) => (
-          <div key={i} className="relative mb-[18px] last:mb-0">
-            <div className={cn("absolute left-[-24px] top-[1px] w-5 h-5 rounded-full flex items-center justify-center z-10", a.iconBg)}>
-              {a.icon}
+    <Card className="border-zinc-200/80 shadow-sm xl:h-[270px] flex flex-col">
+      <CardContent className="p-3 flex-1 flex flex-col min-h-0">
+        <div className="flex items-center justify-between mb-2 shrink-0">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-zinc-900">Today's Tasks</h3>
+            <span className="text-[10px] text-zinc-400">{done}/{tasks.length} done</span>
+          </div>
+          <Link href="/dashboard/tasks" className="inline-flex items-center gap-1 text-[11px] font-medium text-violet-700 hover:text-violet-800">View All <ArrowRight size={13} /></Link>
+        </div>
+        <div className="mb-2 h-1 rounded-full bg-zinc-100 overflow-hidden shrink-0">
+          <div className="h-full rounded-full bg-violet-500 transition-all duration-500" style={{ width: `${(done / tasks.length) * 100}%` }} />
+        </div>
+        <div className="space-y-1 flex-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-zinc-200 min-h-0">
+          {tasks.map((task) => {
+            const p = priorityConfig[task.priority as keyof typeof priorityConfig];
+            return (
+              <div key={task.id} onClick={() => toggle(task.id)}
+                className={`flex items-start gap-2 rounded-lg px-2 py-1.5 cursor-pointer transition-colors group ${task.done ? 'opacity-50' : 'hover:bg-zinc-50'}`}>
+                <div className="mt-0.5 shrink-0">
+                  {task.done ? <CheckCircle2 size={13} className="text-emerald-500" /> : <Circle size={13} className="text-zinc-300 group-hover:text-zinc-400 transition-colors" />}
+                </div>
+                <p className={`flex-1 text-[11px] leading-tight ${task.done ? 'line-through text-zinc-400' : 'text-zinc-700'}`}>{task.title}</p>
+                <span className="shrink-0 rounded text-[9px] font-bold px-1.5 py-0.5" style={{ color: p.color, backgroundColor: p.bg }}>{p.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function RecentNewJoiners() {
+  return (
+    <Card className="border-zinc-200/80 shadow-sm xl:h-[270px] flex flex-col">
+      <CardContent className="p-3 flex-1 flex flex-col min-h-0">
+        <div className="flex items-center justify-between mb-3 shrink-0">
+          <h3 className="text-sm font-semibold text-zinc-900">Recent New Joiners</h3>
+          <Link href="/dashboard/employees?filter=new" className="inline-flex items-center gap-1 text-[11px] font-semibold text-violet-700 hover:text-violet-800 whitespace-nowrap">
+            View All <ArrowRight size={13} />
+          </Link>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-zinc-200">
+          {recentNewJoiners.map((joiner, i) => (
+            <div key={i} className="flex items-center gap-2.5 group hover:bg-zinc-50/80 rounded-xl px-2 py-1.5 -mx-1.5 transition-all cursor-pointer border border-transparent hover:border-zinc-100 hover:shadow-sm mb-1">
+              <div className="relative shrink-0">
+                <img
+                  src={`https://i.pravatar.cc/150?u=${joiner.avatar}`}
+                  className="w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm"
+                  alt={joiner.name}
+                />
+                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-semibold text-zinc-800 truncate leading-tight">{joiner.name}</p>
+                <p className="text-[10px] text-violet-500 font-medium truncate">{joiner.role}</p>
+              </div>
+              <span className="text-[10px] text-zinc-400 shrink-0 tabular-nums bg-zinc-50 border border-zinc-100 rounded-full px-2 py-0.5">{joiner.joinedAgo}</span>
             </div>
-            {i !== acts.length - 1 && <div className="absolute left-[-15px] top-[21px] w-px h-[calc(100%+2px)] bg-slate-200"></div>}
-            <div className="text-[11px] font-semibold text-slate-700 leading-tight mb-1">{a.title}</div>
-            <div className="text-[9px] font-medium text-slate-400 leading-none">{a.time}</div>
+          ))}
+        </div>
+        <div className="mt-2 pt-2 border-t border-zinc-100 flex items-center justify-between shrink-0">
+          <span className="text-[11px] font-semibold text-zinc-700">18 new joiners this month</span>
+          <div className="flex items-center gap-1.5">
+            <div className="flex -space-x-2">
+              {['20', '21', '22', '23'].map((u) => (
+                <img key={u} src={`https://i.pravatar.cc/150?u=${u}`}
+                  className="w-6 h-6 rounded-full border-2 border-white object-cover shadow-sm"
+                  alt="joiner" />
+              ))}
+            </div>
+            <span className="h-6 w-6 rounded-full bg-violet-100 text-violet-700 text-[9px] font-bold flex items-center justify-center border-2 border-white shadow-sm">+15</span>
           </div>
-        ))}
-        <a href="#" className="text-[11px] font-semibold text-indigo-600 hover:underline mt-2 block">View All Activities</a>
-      </div>
-    </SectionCard>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
-function QuickStats() {
+function TodaySchedule() {
   return (
-    <SectionCard title="Quick Stats">
-      <div className="grid grid-cols-2 gap-2 h-full pb-4 pt-2">
-        <div className="bg-slate-50 p-2 rounded-md border border-slate-100 flex flex-col justify-center">
-          <div className="text-[9px] font-medium text-slate-500 mb-1">Avg. Check In</div>
-          <div className="text-[13px] font-bold text-slate-800">09:18 AM</div>
+    <Card className="border-zinc-200/80 shadow-sm h-full flex flex-col">
+      <CardContent className="p-4 flex-1 flex flex-col min-h-0">
+        <div className="mb-3 flex items-center justify-between shrink-0">
+          <h3 className="text-[13px] font-semibold text-zinc-900">Today's Schedule</h3>
+          <Link href="/dashboard/meetings" className="inline-flex items-center gap-1 text-[11px] font-semibold text-violet-600 hover:text-violet-700">
+            View Calendar <ArrowRight size={13} />
+          </Link>
         </div>
-        <div className="bg-slate-50 p-2 rounded-md border border-slate-100 flex flex-col justify-center">
-          <div className="text-[9px] font-medium text-slate-500 mb-1">Avg. Check Out</div>
-          <div className="text-[13px] font-bold text-slate-800">06:27 PM</div>
+        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }} className="pr-0.5 scrollbar-thin scrollbar-thumb-zinc-200">
+          {todaySchedule.map((item, i) => (
+            <div key={i} className="flex items-start gap-3 group">
+              <div className="shrink-0 w-[58px] pt-1">
+                <span className="text-[10px] font-medium text-zinc-400 tabular-nums leading-tight">{item.time}</span>
+              </div>
+              <div className="shrink-0 flex flex-col items-center">
+                <div className="w-2.5 h-2.5 rounded-full bg-violet-400 group-hover:bg-violet-600 transition-colors mt-1 shrink-0 ring-2 ring-violet-100" />
+                {i < todaySchedule.length - 1 && (
+                  <div className="w-px flex-1 bg-zinc-300 mt-0.5" style={{ minHeight: '28px' }} />
+                )}
+              </div>
+              <div className="flex-1 min-w-0 pb-3">
+                <p className="text-[12px] font-semibold text-zinc-800 leading-tight group-hover:text-violet-700 transition-colors">{item.title}</p>
+                {item.location && (
+                  <p className="text-[10px] text-zinc-400 mt-0.5 flex items-center gap-1">
+                    <MapPin size={9} className="shrink-0" />
+                    <span>{item.location}</span>
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
-        <div className="bg-slate-50 p-2 rounded-md border border-slate-100 flex flex-col justify-center">
-          <div className="text-[9px] font-medium text-slate-500 mb-1">Late Arrivals</div>
-          <div className="text-[13px] font-bold text-slate-800">57</div>
+        <div className="mt-2 pt-2 border-t border-zinc-100 shrink-0">
+          <Link href="/dashboard/meetings"
+            className="flex items-center justify-center gap-1 text-[11px] font-semibold text-violet-600 hover:text-violet-700 transition-colors">
+            View Full Calendar <ArrowRight size={11} />
+          </Link>
         </div>
-        <div className="bg-slate-50 p-2 rounded-md border border-slate-100 flex flex-col justify-center">
-          <div className="text-[9px] font-medium text-slate-500 mb-1">Early Leave</div>
-          <div className="text-[13px] font-bold text-slate-800">23</div>
-        </div>
-        <div className="bg-slate-50 p-2 rounded-md border border-slate-100 flex flex-col justify-center">
-          <div className="text-[9px] font-medium text-slate-500 mb-1">Overtime Hours</div>
-          <div className="text-[13px] font-bold text-slate-800">128.5 hrs</div>
-        </div>
-        <div className="bg-slate-50 p-2 rounded-md border border-slate-100 flex flex-col justify-center">
-          <div className="text-[9px] font-medium text-slate-500 mb-1">Leave Balance</div>
-          <div className="text-[13px] font-bold text-slate-800">512 Days</div>
-        </div>
-      </div>
-      <a href="#" className="text-[11px] font-semibold text-indigo-600 hover:underline mt-auto block">View Detailed Analytics</a>
-    </SectionCard>
+      </CardContent>
+    </Card>
   );
 }
 
-function QuickActionButton({ icon, label, bg }: any) {
+// ─── Page ─────────────────────────────────────────────────────────────────────
+export default function DashboardPage() {
+  const { isLoading } = useQuery<DashboardConfig>({
+    queryKey: ['dashboard', 'config'],
+    queryFn: async () => (await api.get('/dashboard/config')).data,
+  });
+
+  const { data: attendance } = useQuery({
+    queryKey: ['dashboard', 'widget', 'team-attendance-today'],
+    queryFn: async () => (await api.get('/dashboard/widget-data/team-attendance-today')).data,
+  });
+
+  const topKpiKeys = ['org-headcount', 'team-attendance-today', 'on-leave-today', 'new-joinees', 'pending-leave-approvals', 'open-positions'];
+
   return (
-    <button className="flex flex-col items-center justify-center gap-2.5 w-[100px] h-[100px] bg-white rounded-md shadow-sm border border-slate-100 hover:-translate-y-1 transition-transform cursor-pointer group">
-      <div className={cn("w-[42px] h-[42px] rounded-md flex items-center justify-center transition-colors shadow-sm", bg)}>
-        {icon}
+    <main className="mx-auto max-w-[1600px] space-y-2 pb-4">
+
+      {/* Banner */}
+      <HeroSlider />
+
+      {/* KPI Strip */}
+      <section className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        {isLoading
+          ? Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-[82px] animate-pulse rounded-xl bg-zinc-100" />)
+          : topKpiKeys.map((key) => <KpiCard key={key} widgetKey={key} />)
+        }
+      </section>
+
+      {/* Important Alerts */}
+      <ImportantAlertsCards />
+
+      {/* Main Content */}
+      <div className="grid gap-2 grid-cols-1 xl:grid-cols-12 items-start xl:items-stretch">
+
+        {/* LEFT SIDE: Rows 1 & 2 */}
+        <div className="xl:col-span-8 flex flex-col gap-2">
+          {/* Row 1: Today's Tasks | Birthdays */}
+          <div className="grid gap-2 grid-cols-1 md:grid-cols-2">
+            <TodayTasks />
+            <BirthdaysOverview />
+          </div>
+
+          {/* Row 2: Attendance Overview | Leave Overview */}
+          <div className="grid gap-2 grid-cols-1 md:grid-cols-2">
+            <AttendanceOverview attendance={attendance} />
+            <LeaveOverview />
+          </div>
+        </div>
+
+        {/* RIGHT SIDE: Today's Schedule */}
+        <div className="xl:col-span-4 relative min-h-[400px] xl:min-h-0">
+          <div className="xl:absolute xl:inset-0 h-full w-full">
+            <TodaySchedule />
+          </div>
+        </div>
+
+        {/* FULL WIDTH: Row 3 — Performance | Quick Actions | Recent New Joiners */}
+        <div className="xl:col-span-12 flex flex-col gap-2">
+          <div className="grid gap-2 grid-cols-1 md:grid-cols-3">
+            <PerformanceOverview />
+            <QuickActions />
+            <RecentNewJoiners />
+          </div>
+        </div>
+
+        {/* FULL WIDTH: Row 4 — Quick Actions (full) + Reports Shortcut */}
+        <div className="xl:col-span-12 flex flex-col gap-2">
+          <ReportsShortcut />
+        </div>
+
+        {/* FULL WIDTH: Row 5 — Recruitment | Payroll | Compliance */}
+        <div className="xl:col-span-12">
+          <div className="grid gap-2 grid-cols-1 md:grid-cols-3">
+
+            <PayrollOverview />
+            <ComplianceOverview />
+            <RecruitmentOverview />
+          </div>
+        </div>
+
       </div>
-      <span className="text-[10px] font-bold text-slate-600 text-center leading-tight group-hover:text-indigo-600 px-1">{label}</span>
-    </button>
+    </main>
   );
 }
+
+
