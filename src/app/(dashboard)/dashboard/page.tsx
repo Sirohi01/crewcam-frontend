@@ -70,7 +70,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Top Metrics Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
         <MetricCard icon={<UsersRound size={20} />} iconBg="bg-indigo-100 text-indigo-600" title="Total Employees" value="1,248" trend="+ 12 this month" trendUp />
         <MetricCard icon={<ScanFace size={20} />} iconBg="bg-emerald-100 text-emerald-600" title="Present Today" value="987" sub="79.2% of total" />
         <MetricCard icon={<UserX size={20} />} iconBg="bg-rose-100 text-rose-600" title="Absent Today" value="126" sub="10.1% of total" />
@@ -81,7 +81,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Row 2: Alerts, Tasks, Schedule, Birthdays */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
         <CriticalAlerts />
         <TodaysTasks />
         <TodaysSchedule />
@@ -89,16 +89,15 @@ export default function DashboardPage() {
       </div>
 
       {/* Row 3: Overviews */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
         <AttendanceOverview />
         <LeaveOverview />
         <RecruitmentOverview />
-        <EmployeeLifecycle />
         <PerformanceOverview />
       </div>
 
       {/* Row 4: Overviews pt2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
         <PayrollOverview />
         <ComplianceOverview />
         <AIInsights />
@@ -106,7 +105,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Row 5: Trends */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
         <AttendanceTrend />
         <LeaveTrend />
         <HiringTrend />
@@ -114,7 +113,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Row 6: Events, Approvals, Activities, Quick Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
         <UpcomingEvents />
         <PendingApprovals />
         <RecentActivities />
@@ -242,7 +241,7 @@ function TodaysTasks() {
   ];
   return (
     <SectionCard title={<><FileCheck size={16} className="text-indigo-500" /> Today's Tasks</>} action="View All">
-      <div className="flex items-center h-full gap-2 pt-2 pb-2">
+      <div className="flex flex-col sm:flex-row items-center h-full gap-2 pt-2 pb-2">
         <div className="relative w-28 h-28 shrink-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -338,7 +337,7 @@ function AttendanceOverview() {
   ];
   return (
     <SectionCard title="Attendance Overview" select="Today" className="col-span-1">
-      <div className="flex items-center h-full gap-2 py-2">
+      <div className="flex flex-col xl:flex-row items-center h-full gap-2 py-2">
         <div className="relative w-32 h-32 shrink-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -357,12 +356,12 @@ function AttendanceOverview() {
         <div className="flex flex-col gap-1.5 flex-1 justify-center">
           {data.map((d, i) => (
             <div key={i} className="flex justify-between items-center text-[10px] font-medium">
-              <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full" style={{backgroundColor: d.color}}></div>
-                <span className="text-slate-600 w-[45px]">{d.name}</span>
-                <span className="font-bold text-slate-800 w-[24px]">{d.value}</span>
+              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{backgroundColor: d.color}}></div>
+                <span className="text-slate-600 truncate">{d.name}</span>
+                <span className="font-bold text-slate-800 ml-auto mr-2">{d.value}</span>
               </div>
-              <span className="text-slate-400">({d.pct})</span>
+              <span className="text-slate-400 shrink-0">({d.pct})</span>
             </div>
           ))}
         </div>
@@ -395,7 +394,7 @@ function LeaveOverview() {
   ];
   return (
     <SectionCard title="Leave Overview" select="This Month" className="col-span-1">
-      <div className="flex items-center h-full gap-2 py-2">
+      <div className="flex flex-col xl:flex-row items-center h-full gap-2 py-2">
         <div className="relative w-32 h-32 shrink-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -414,12 +413,12 @@ function LeaveOverview() {
         <div className="flex flex-col gap-1.5 flex-1 justify-center">
           {data.map((d, i) => (
             <div key={i} className="flex justify-between items-center text-[10px] font-medium">
-              <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full" style={{backgroundColor: d.color}}></div>
-                <span className="text-slate-600 w-[45px]">{d.name}</span>
-                <span className="font-bold text-slate-800 w-[24px]">{d.value}</span>
+              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{backgroundColor: d.color}}></div>
+                <span className="text-slate-600 truncate">{d.name}</span>
+                <span className="font-bold text-slate-800 ml-auto mr-2">{d.value}</span>
               </div>
-              <span className="text-slate-400">({d.pct})</span>
+              <span className="text-slate-400 shrink-0">({d.pct})</span>
             </div>
           ))}
         </div>
@@ -452,7 +451,7 @@ function RecruitmentOverview() {
   ];
   return (
     <SectionCard title="Recruitment Overview" select="This Month" className="col-span-1">
-      <div className="flex items-center h-full gap-2 pt-4 pb-2">
+      <div className="flex flex-col xl:flex-row items-center h-full gap-2 pt-4 pb-2">
         <div className="w-24 shrink-0 flex flex-col items-center gap-[2px]">
           {data.map((d, i) => (
             <div 
@@ -487,34 +486,6 @@ function RecruitmentOverview() {
           <div className="text-[9px] font-medium text-slate-500 mb-1">Joining This Week</div>
           <div className="text-sm font-bold text-slate-800">7</div>
         </div>
-      </div>
-    </SectionCard>
-  );
-}
-
-function EmployeeLifecycle() {
-  const items = [
-    { icon: <UserPlus size={10} />, label: "New Joiners", count: 12, color: "text-emerald-600 bg-emerald-50" },
-    { icon: <CheckCircle2 size={10} />, label: "Probation", count: 34, color: "text-emerald-600 bg-emerald-50" },
-    { icon: <Clock size={10} />, label: "Confirmation Due", count: 8, color: "text-amber-600 bg-amber-50" },
-    { icon: <LogOut size={10} />, label: "Notice Period", count: 15, color: "text-rose-600 bg-rose-50" },
-    { icon: <Users size={10} />, label: "Ex-Employees", count: 7, color: "text-slate-600 bg-slate-100" },
-  ];
-  return (
-    <SectionCard title="Employee Lifecycle" className="col-span-1">
-      <div className="flex flex-col gap-[14px] py-1 h-full">
-        {items.map((it, i) => (
-          <div key={i} className="flex justify-between items-center text-[11px] font-semibold">
-            <div className="flex items-center gap-2 text-slate-600">
-              <span className={cn("w-5 h-5 rounded flex items-center justify-center shrink-0", it.color)}>
-                {it.icon}
-              </span>
-              {it.label}
-            </div>
-            <span className="font-bold text-slate-800 text-xs">{it.count}</span>
-          </div>
-        ))}
-        <a href="#" className="text-[11px] font-semibold text-indigo-600 hover:underline mt-auto pt-2 block">View Full Lifecycle</a>
       </div>
     </SectionCard>
   );
@@ -635,8 +606,8 @@ function AIInsights() {
     { text: "High overtime in Development team.", icon: <Clock size={12} />, color: "text-emerald-600 bg-emerald-50" },
   ];
   return (
-    <SectionCard title={<><BrainCircuit size={16} className="text-purple-500" /> AI Insights</>} select="This Month">
-      <div className="flex flex-col gap-2.5 h-full pt-1">
+    <SectionCard title={<><BrainCircuit size={16} className="text-pink-500" /> AI Insights</>}>
+      <div className="flex flex-col justify-center h-full gap-3 pt-2">
         {insights.map((it, i) => (
           <div key={i} className="flex items-center gap-2 text-[10px] text-slate-700 bg-slate-50 px-2 py-1.5 rounded-lg border border-slate-100">
             <span className={cn("w-5 h-5 rounded flex items-center justify-center shrink-0", it.color)}>
