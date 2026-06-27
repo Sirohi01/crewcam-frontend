@@ -85,9 +85,9 @@ export default function SuperAdminTenantsPage() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setFormData(prev => ({ ...prev, [fieldName]: res.data.url }));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading file', error);
-      alert('Failed to upload image. Max size 5MB.');
+      alert(error.response?.data?.message || 'Failed to upload image. Max size 5MB.');
     }
   };
 

@@ -82,6 +82,7 @@ export default function LiveInterviewSession({ interviewId }: { interviewId: str
   const [currentIndex, setCurrentIndex] = useState(0);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [recordingStateByIndex, setRecordingStateByIndex] = useState<Record<number, RecordingState>>({});
+  const [recordingErrorByIndex, setRecordingErrorByIndex] = useState<Record<number, string>>({});
   const [noteDraft, setNoteDraft] = useState<Record<number, string>>({});
 
   const streamRef = useRef<MediaStream | null>(null);
@@ -145,7 +146,10 @@ export default function LiveInterviewSession({ interviewId }: { interviewId: str
       setRecordingStateByIndex((prev) => ({ ...prev, [index]: 'analyzed' }));
       refresh();
     },
-    onError: (_err, { index }) => setRecordingStateByIndex((prev) => ({ ...prev, [index]: 'error' })),
+    onError: (err: any, { index }) => {
+      setRecordingStateByIndex((prev) => ({ ...prev, [index]: 'error' }));
+      setRecordingErrorByIndex((prev) => ({ ...prev, [index]: err.response?.data?.message || 'Could not analyze this answer.' }));
+    },
   });
 
   const saveNote = useMutation({
@@ -353,7 +357,7 @@ export default function LiveInterviewSession({ interviewId }: { interviewId: str
                   <p className="text-xs text-indigo-500 flex items-center gap-1.5"><Loader2 size={12} className="animate-spin" /> Analyzing the recorded answer...</p>
                 )}
                 {activeRecordingState === 'error' && (
-                  <p className="text-xs text-rose-600 flex items-center gap-1"><AlertTriangle size={12} /> Could not analyze this answer — retry from the camera panel.</p>
+                  <p className="text-xs text-rose-600 flex items-center gap-1"><AlertTriangle size={12} /> {recordingErrorByIndex[currentIndex] || 'Could not analyze this answer.'} Retry from the camera panel.</p>
                 )}
 
                 {activeQuestion.answerAnalysis && (
@@ -434,7 +438,10 @@ export default function LiveInterviewSession({ interviewId }: { interviewId: str
                       </Button>
                     )}
                     {activeRecordingState === 'error' && (
-                      <Button size="sm" variant="outline" className="w-full" onClick={() => startRecording(currentIndex)}>Retry recording</Button>
+                      <div className="space-y-1.5">
+                        <p className="text-[11px] text-rose-600 text-center">{recordingErrorByIndex[currentIndex] || 'Could not analyze this answer.'}</p>
+                        <Button size="sm" variant="outline" className="w-full" onClick={() => startRecording(currentIndex)}>Retry recording</Button>
+                      </div>
                     )}
                     {activeQuestion?.answerAnalysis && activeRecordingState !== 'recording' && (
                       <p className="text-[11px] text-center text-emerald-600 flex items-center justify-center gap-1"><CheckCircle2 size={12} /> Answer analyzed</p>

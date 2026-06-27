@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { CheckCircle2, FileUp, ImagePlus, LockKeyhole, Plus, Trash2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, FileUp, ImagePlus, LockKeyhole, Plus, ShieldAlert, ShieldCheck, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
@@ -70,6 +70,8 @@ export default function CandidateCreateForm() {
   const [resumeName, setResumeName] = useState('');
   const [photoName, setPhotoName] = useState('');
   const [uploading, setUploading] = useState<'resume' | 'photo' | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [resumeReview, setResumeReview] = useState<{ verdict: string; reason: string } | null>(null);
 
   const { data: requests = [] } = useQuery<any[]>({
     queryKey: ['manpower-request'],
@@ -95,17 +97,23 @@ export default function CandidateCreateForm() {
     const file = event.target.files?.[0];
     if (!file) return;
     setUploading(kind);
+    setUploadError(null);
+    if (kind === 'resume') setResumeReview(null);
     try {
       const data = new FormData();
       data.append('file', file);
+      if (kind === 'resume') data.append('documentLabel', 'Resume');
       const result = await api.post('/upload', data, { headers: { 'Content-Type': 'multipart/form-data' } });
       if (kind === 'resume') {
         setForm((current) => ({ ...current, resumeUrl: result.data.url }));
         setResumeName(file.name);
+        if (result.data.review) setResumeReview(result.data.review);
       } else {
         setForm((current) => ({ ...current, profileImageUrl: result.data.url }));
         setPhotoName(file.name);
       }
+    } catch (error: any) {
+      setUploadError(error.response?.data?.message || `Could not upload ${kind === 'resume' ? 'resume' : 'photo'}.`);
     } finally {
       setUploading(null);
     }
@@ -178,8 +186,19 @@ export default function CandidateCreateForm() {
                 <Field label="Source"><select className={input} value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })}><option value="">Select source</option><option>LinkedIn</option><option>Referral</option><option>Website</option><option>Agency</option><option>Walk-In</option><option>Other</option></select></Field>
                 <Field label="CV Screened By"><input className={input} value={form.applicationDetails.cvScreenedBy} onChange={(e) => updateApplication({ cvScreenedBy: e.target.value })} /></Field>
                 <Field label="Reason for Leaving" wide><textarea className={`${input} h-20 resize-y`} disabled={form.applicationDetails.candidateType === 'Fresher'} value={form.applicationDetails.reasonForLeaving} onChange={(e) => updateApplication({ reasonForLeaving: e.target.value })} /></Field>
-                <Field label="Resume (PDF/DOCX)" wide><label className="mt-1 flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-slate-300 px-3 py-3 text-sm"><FileUp size={16} /><span>{uploading === 'resume' ? 'Uploading...' : resumeName || (form.resumeUrl ? 'Resume attached' : 'Attach resume')}</span>{form.resumeUrl && <CheckCircle2 size={16} className="text-emerald-600" />}<input className="hidden" type="file" accept=".pdf,.docx" onChange={(e) => upload('resume', e)} /></label></Field>
+                <Field label="Resume (PDF/DOCX)" wide>
+                  <label className="mt-1 flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-slate-300 px-3 py-3 text-sm"><FileUp size={16} /><span>{uploading === 'resume' ? 'Uploading...' : resumeName || (form.resumeUrl ? 'Resume attached' : 'Attach resume')}</span>{form.resumeUrl && <CheckCircle2 size={16} className="text-emerald-600" />}<input className="hidden" type="file" accept=".pdf,.docx" onChange={(e) => upload('resume', e)} /></label>
+                  {resumeReview && (
+                    <p className={`mt-1 flex items-center gap-1 text-xs ${resumeReview.verdict === 'genuine' ? 'text-emerald-700' : resumeReview.verdict === 'suspicious' ? 'text-amber-700' : 'text-slate-500'}`}>
+                      {resumeReview.verdict === 'genuine' ? <ShieldCheck size={13} /> : <ShieldAlert size={13} />}
+                      AI review: {resumeReview.reason}
+                    </p>
+                  )}
+                </Field>
                 <Field label="Candidate Photo" wide><label className="mt-1 flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-slate-300 px-3 py-3 text-sm"><ImagePlus size={16} /><span>{uploading === 'photo' ? 'Uploading...' : photoName || (form.profileImageUrl ? 'Photo attached' : 'Upload photo')}</span>{form.profileImageUrl && <CheckCircle2 size={16} className="text-emerald-600" />}<input className="hidden" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => upload('photo', e)} /></label></Field>
+                {uploadError && (
+                  <div className="md:col-span-2"><p className="flex items-center gap-1.5 text-xs text-rose-600"><AlertTriangle size={13} /> {uploadError}</p></div>
+                )}
               </div>
             </Section>
 

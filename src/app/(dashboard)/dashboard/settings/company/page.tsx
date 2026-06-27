@@ -105,9 +105,9 @@ export default function CompanyProfilePage() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setFormData((prev: any) => ({ ...prev, logoUrl: res.data.url }));
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error uploading logo', err);
-      alert('Failed to upload logo');
+      alert(err.response?.data?.message || 'Failed to upload logo');
     } finally {
       setUploadingLogo(false);
     }
@@ -122,9 +122,9 @@ export default function CompanyProfilePage() {
     try {
       const res = await api.post('/upload', form, { headers: { 'Content-Type': 'multipart/form-data' } });
       setFormData((prev: any) => ({ ...prev, documentHeaderImageUrl: res.data.url }));
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error uploading document header', err);
-      alert('Failed to upload document header image');
+      alert(err.response?.data?.message || 'Failed to upload document header image');
     } finally {
       setUploadingDocumentHeader(false);
     }
