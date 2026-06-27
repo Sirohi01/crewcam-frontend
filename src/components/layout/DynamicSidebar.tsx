@@ -8,14 +8,15 @@ import api from '@/lib/axios';
 import {
   LayoutDashboard, Users, Building2, Settings, LogOut, Briefcase, UserCog, Plug, Palette,
   Shield, ShieldCheck, Clock, Calendar, MessageSquare, Scale, TrendingUp, UserPlus, IndianRupee,
-  Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList, LucideIcon, ChevronRight, ChevronDown
+  Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList, LucideIcon, ChevronRight, ChevronDown,
+  LayoutGrid,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 
 const ICONS: Record<string, LucideIcon> = {
   LayoutDashboard, Users, Building2, Settings, LogOut, Briefcase, UserCog, Plug, Palette,
   Shield, ShieldCheck, Clock, Calendar, MessageSquare, Scale, TrendingUp, UserPlus, IndianRupee,
-  Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList,
+  Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList, LayoutGrid,
 };
 
 interface SidebarItem {
@@ -29,6 +30,18 @@ interface SidebarItem {
 }
 
 type GroupedItem = SidebarItem | { isGroup: true; label: string; children: SidebarItem[] };
+
+// Static item injected under PEOPLE section
+const STATIC_PEOPLE_ITEMS: SidebarItem[] = [
+  {
+    _id: '__employee-dashboard__',
+    section: 'WORKSPACE',
+    label: 'Employee Dashboard',
+    href: '/dashboard/employee',
+    icon: 'LayoutGrid',
+    order: 1,
+  },
+];
 
 export default function DynamicSidebar() {
   const pathname = usePathname();
@@ -50,7 +63,9 @@ export default function DynamicSidebar() {
   });
 
   const sections: { section: string; items: GroupedItem[] }[] = [];
-  (items || []).forEach((item) => {
+  // Merge dynamic items with static injected items, then sort by order
+  const allItems = [...(items || []), ...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
+  allItems.forEach((item) => {
     let group = sections.find((s) => s.section === item.section);
     if (!group) {
       group = { section: item.section, items: [] };

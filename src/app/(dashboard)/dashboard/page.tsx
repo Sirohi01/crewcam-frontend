@@ -10,11 +10,9 @@ import {
   ScanFace, Star, TrendingDown, TrendingUp, UmbrellaOff,
   UserRoundPlus, UsersRound, Wallet, CalendarClock, Briefcase, UserPlus, Eye,
   CheckCircle2, Circle, Cake, Wallet2, Shield, PartyPopper, X,
-  AlertTriangle, FileWarning, UserCheck, BarChart3, ChevronRight,
+  AlertTriangle, FileWarning, UserCheck, BarChart3, 
   // New icons for additions
-  ClipboardCheck, PlusCircle, CalendarPlus, Download, FolderKanban,
-  FileBarChart2, FileChartColumn, ClipboardList, TrendingUp as TrendUp,
-  Users, FileCheck, FileSearch, DollarSign, BadgeCheck, ScanLine,
+  ClipboardCheck, Download, FolderKanban, TrendingUp as BadgeCheck, ScanLine,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -161,6 +159,7 @@ function HeroSlider() {
   const [current, setCurrent] = useState(0);
   const [fading, setFading] = useState(false);
   const [paused, setPaused] = useState(false);
+  const [showEmployeeDashboard, setShowEmployeeDashboard] = useState(false);
   const pausedRef = useRef(false);
   const rafRef = useRef<number | null>(null);
   const lastRef = useRef<number | null>(null);
@@ -243,6 +242,7 @@ function KpiCard({ widgetKey }: { widgetKey: string }) {
             </div>
           </div>
         </div>
+        
       </CardContent>
     </Card>
   );
@@ -1182,5 +1182,3 @@ export default function DashboardPage() {
     </main>
   );
 }
-
-
