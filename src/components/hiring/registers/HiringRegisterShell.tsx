@@ -103,7 +103,7 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
 
   if (!step) return <div className="p-8 text-center text-sm text-zinc-500">Unknown register step.</div>;
 
-  const dynamicColumns = step.fields.slice(0, 3).map((f) => ({ key: f.name, label: f.label }));
+  const dynamicColumns = step.listColumns || step.fields.slice(0, 3).map((f) => ({ key: f.name, label: f.label }));
   const subjectName = (row: any) => {
     const linked = step.entityField === 'employeeId' ? row.employeeId : row.candidateId;
     const direct = nameOf(linked);
@@ -192,46 +192,35 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
           <table className="w-full text-left text-[11px] whitespace-nowrap">
             <thead className="bg-[#111] text-white">
               <tr>
+                <th className="px-3 py-2.5 border-r border-[#333] w-10 text-center"><input type="checkbox" className="rounded" /></th>
                 <th className="px-3 py-2.5 font-bold uppercase tracking-wider border-r border-[#333] w-12 text-center">S.No</th>
-                <th className="px-3 py-2.5 font-bold uppercase tracking-wider border-r border-[#333] min-w-[120px]">
-                  <div className="flex items-center justify-between">Candidate ID <ArrowUpDown size={12} className="opacity-50" /></div>
-                </th>
                 {dynamicColumns.map((col) => (
                   <th key={col.key} className="px-3 py-2.5 font-bold uppercase tracking-wider border-r border-[#333] min-w-[120px]">
                     <div className="flex items-center justify-between">{col.label} <ArrowUpDown size={12} className="opacity-50" /></div>
                   </th>
                 ))}
-                <th className="px-3 py-2.5 font-bold uppercase tracking-wider border-r border-[#333] min-w-[100px]">
-                  <div className="flex items-center justify-between">Status <ArrowUpDown size={12} className="opacity-50" /></div>
-                </th>
                 <th className="px-3 py-2.5 font-bold uppercase tracking-wider min-w-[180px] text-center">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
-                <tr><td colSpan={dynamicColumns.length + 4} className="p-4 text-center text-slate-500">Loading records...</td></tr>
+                <tr><td colSpan={dynamicColumns.length + 3} className="p-4 text-center text-slate-500">Loading records...</td></tr>
               ) : paginatedData.length === 0 ? (
-                <tr><td colSpan={dynamicColumns.length + 4} className="p-4 text-center text-slate-500">No records found.</td></tr>
+                <tr><td colSpan={dynamicColumns.length + 3} className="p-4 text-center text-slate-500">No records found.</td></tr>
               ) : (
                 paginatedData.map((row, index) => (
                   <tr key={row._id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-3 py-2 border-r border-slate-100 text-center">
+                      <input type="checkbox" className="rounded" />
+                    </td>
                     <td className="px-3 py-2 border-r border-slate-100 text-center font-medium text-slate-500">
                       {(page - 1) * pageSize + index + 1}
-                    </td>
-                    <td className="px-3 py-2 border-r border-slate-100 font-bold text-[#0d3c68]">
-                      <div className="font-semibold">{subjectName(row)}</div>
-                      <div className="mt-0.5 text-[10px] font-normal text-slate-400">{step.entityField === 'employeeId' ? 'Employee' : 'Candidate'}</div>
                     </td>
                     {dynamicColumns.map((col) => (
                       <td key={col.key} className="px-3 py-2 border-r border-slate-100 text-slate-700">
                         {displayValue(nestedValue(row, col.key))}
                       </td>
                     ))}
-                    <td className="px-3 py-2 border-r border-slate-100">
-                      {step.id === 'loi' ? <select value={row.status || 'Draft'} onChange={(event) => loiStatusMutation.mutate({ id: row._id, status: event.target.value })} className="rounded border border-slate-300 bg-white px-2 py-1 text-[10px] font-bold uppercase text-slate-700"><option>Draft</option><option>Sent</option><option>Accepted</option><option>Declined</option><option>Expired</option></select> : <span className="font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-[2px] border border-emerald-200">
-                        {row.status || row.finalStatus || 'Active'}
-                      </span>}
-                    </td>
                     <td className="px-3 py-2 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <button onClick={() => setSelectedRecord(row)} className="p-1.5 text-slate-700 hover:bg-slate-100 rounded transition-colors" title="View complete details">
@@ -262,12 +251,7 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
             <tfoot className="bg-slate-50">
               <tr>
                 <td className="px-3 py-2 border-r border-slate-200"></td>
-                <td className="px-3 py-2 border-r border-slate-200">
-                  <div className="relative">
-                    <Search size={10} className="absolute left-2 top-2 text-slate-400" />
-                    <input type="text" placeholder="Search..." className="w-full pl-6 pr-2 py-1 text-[10px] border border-slate-300 rounded outline-none focus:border-[#0d3c68]" value={columnFilters.candidateId || ''} onChange={(e) => setColumnFilters({ ...columnFilters, candidateId: e.target.value })} />
-                  </div>
-                </td>
+                <td className="px-3 py-2 border-r border-slate-200"></td>
                 {dynamicColumns.map((col) => (
                   <td key={col.key} className="px-3 py-2 border-r border-slate-200">
                     <div className="relative">
@@ -276,7 +260,6 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                     </div>
                   </td>
                 ))}
-                <td className="px-3 py-2 border-r border-slate-200"></td>
                 <td className="px-3 py-2"></td>
               </tr>
             </tfoot>
