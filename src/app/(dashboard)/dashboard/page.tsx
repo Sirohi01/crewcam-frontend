@@ -150,9 +150,9 @@ function valueFor(key: string, data: any, fallback: string) {
 }
 
 const SLIDES = [
-  { imageUrl: '/bannerImg/img1.png' },
-  { imageUrl: '/bannerImg/img2.png' },
-  { imageUrl: '/bannerImg/img3.jpg' },
+  { imageUrl: '/bannerImges/img1.png' },
+  { imageUrl: '/bannerImges/img2.png' },
+  { imageUrl: '/bannerImges/img3.jpg' },
 ];
 
 function HeroSlider() {
@@ -200,10 +200,23 @@ function HeroSlider() {
   if (!slide) return null;
 
   return (
-    <section className="relative overflow-hidden rounded-xl shadow-md" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+    <section className="relative overflow-hidden rounded-xl shadow-md min-h-[120px] bg-zinc-100" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       <div style={{ opacity: fading ? 0 : 1, transition: 'opacity 0.22s ease' }}>
-        <img src={slide.imageUrl} alt="" aria-hidden="true" className="w-full object-cover block"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+        <img
+          src={slide.imageUrl}
+          alt=""
+          aria-hidden="true"
+          className="w-full object-cover block"
+          onError={(e) => {
+            const img = e.target as HTMLImageElement;
+            // Try constructing an absolute URL if the stored URL is relative
+            if (img.src && !img.src.startsWith('http')) {
+              img.src = `http://localhost:8000${img.src}`;
+            } else {
+              img.style.display = 'none';
+            }
+          }}
+        />
       </div>
       <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1.5">
         {activeSlides.map((_: unknown, i: number) => (
