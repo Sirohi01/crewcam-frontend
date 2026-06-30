@@ -356,9 +356,18 @@ function ImportantAlertsCards() {
           <h3 className="text-sm font-semibold text-zinc-900">Important Alerts</h3>
           <div className="flex items-center gap-2 shrink-0">
             <Link
+              href="/dashboard/hr-dashboard"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700 hover:bg-amber-100 hover:border-amber-300 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              HR Recruitment
+            </Link>
+            <Link
               href="/dashboard/employee"
               className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700 hover:bg-violet-100 hover:border-violet-300 transition-colors"
-            >Employee Dashboard
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+              Employee Dashboard
             </Link>
             <Link href="/dashboard/alerts" className="inline-flex items-center gap-1 text-[11px] font-semibold text-violet-700 hover:text-violet-800 whitespace-nowrap">
               View All Alerts <ArrowRight size={13} />
@@ -982,48 +991,119 @@ function BirthdaysOverview() {
   );
 }
 
-function TodayTasks() {
-  const [tasks, setTasks] = useState(todayTasks);
-  const toggle = (id: number) => setTasks(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t));
-  const priorityConfig = {
-    high: { color: '#ef4444', bg: '#fef2f2', label: 'High' },
-    medium: { color: '#f59e0b', bg: '#fffbeb', label: 'Med' },
-    low: { color: '#22c55e', bg: '#f0fdf4', label: 'Low' },
-  };
-  const done = tasks.filter(t => t.done).length;
+// ─── Activity Log data ────────────────────────────────────────────────────────
+const activityLogs = [
+  {
+    user: { name: 'Rohit Mehra', avatar: '32', initials: 'RM' },
+    action: 'submitted a leave request',
+    date: 'Today',
+    time: '10:21 AM',
+    ip: '192.168.1.102',
+    accent: 'bg-blue-50 text-blue-600',
+  },
+  {
+    user: { name: 'Priya Sharma', avatar: '68', initials: 'PS' },
+    action: 'uploaded document "Offer Letter"',
+    date: 'Today',
+    time: '09:45 AM',
+    ip: '192.168.1.88',
+    accent: 'bg-emerald-50 text-emerald-600',
+  },
+  {
+    user: { name: 'Anjali Verma', avatar: '45', initials: 'AV' },
+    action: 'new employee joined',
+    date: 'Today',
+    time: '09:30 AM',
+    ip: '192.168.2.14',
+    accent: 'bg-violet-50 text-violet-600',
+  },
+  {
+    user: { name: 'Karan Mehta', avatar: '52', initials: 'KM' },
+    action: 'interview scheduled for Senior Developer',
+    date: 'Yesterday',
+    time: '04:15 PM',
+    ip: '10.0.0.45',
+    accent: 'bg-amber-50 text-amber-600',
+  },
+  {
+    user: { name: 'System', avatar: null, initials: 'SY' },
+    action: 'salary for May 2026 has been processed',
+    date: 'Yesterday',
+    time: '02:30 PM',
+    ip: '10.0.0.1',
+    accent: 'bg-teal-50 text-teal-600',
+  },
+  {
+    user: { name: 'Neha Gupta', avatar: '21', initials: 'NG' },
+    action: 'updated employee profile',
+    date: 'Yesterday',
+    time: '11:00 AM',
+    ip: '192.168.1.77',
+    accent: 'bg-pink-50 text-pink-600',
+  },
+  {
+    user: { name: 'Vikram Singh', avatar: '62', initials: 'VS' },
+    action: 'approved leave for Pooja Nair',
+    date: '2 days ago',
+    time: '03:10 PM',
+    ip: '192.168.3.21',
+    accent: 'bg-indigo-50 text-indigo-600',
+  },
+];
 
+function ActivityLog() {
   return (
     <Card className="border-zinc-200/80 shadow-sm xl:h-[270px] flex flex-col">
       <CardContent className="p-3 flex-1 flex flex-col min-h-0">
-        <div className="flex items-center justify-between mb-2 shrink-0">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-zinc-900">Today's Tasks</h3>
-            <span className="text-[10px] text-zinc-400">{done}/{tasks.length} done</span>
-          </div>
-          <Link href="/dashboard/tasks" className="inline-flex items-center gap-1 text-[11px] font-medium text-violet-700 hover:text-violet-800">View All <ArrowRight size={13} /></Link>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-2.5 shrink-0">
+          <h3 className="text-sm font-semibold text-zinc-900">Activity Log</h3>
+          <Link href="/dashboard/audit-logs" className="inline-flex items-center gap-1 text-[11px] font-semibold text-violet-700 hover:text-violet-800 whitespace-nowrap">
+            View All <ArrowRight size={13} />
+          </Link>
         </div>
-        <div className="mb-2 h-1 rounded-full bg-zinc-100 overflow-hidden shrink-0">
-          <div className="h-full rounded-full bg-violet-500 transition-all duration-500" style={{ width: `${(done / tasks.length) * 100}%` }} />
-        </div>
-        <div className="space-y-1 flex-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-zinc-200 min-h-0">
-          {tasks.map((task) => {
-            const p = priorityConfig[task.priority as keyof typeof priorityConfig];
-            return (
-              <div key={task.id} onClick={() => toggle(task.id)}
-                className={`flex items-start gap-2 rounded-lg px-2 py-1.5 cursor-pointer transition-colors group ${task.done ? 'opacity-50' : 'hover:bg-zinc-50'}`}>
-                <div className="mt-0.5 shrink-0">
-                  {task.done ? <CheckCircle2 size={13} className="text-emerald-500" /> : <Circle size={13} className="text-zinc-300 group-hover:text-zinc-400 transition-colors" />}
-                </div>
-                <p className={`flex-1 text-[11px] leading-tight ${task.done ? 'line-through text-zinc-400' : 'text-zinc-700'}`}>{task.title}</p>
-                <span className="shrink-0 rounded text-[9px] font-bold px-1.5 py-0.5" style={{ color: p.color, backgroundColor: p.bg }}>{p.label}</span>
+
+        {/* Scrollable list */}
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-zinc-200 space-y-0.5">
+          {activityLogs.map((log, i) => (
+            <div key={i} className="flex items-start gap-2.5 rounded-lg px-1.5 py-1.5 hover:bg-zinc-50 transition-colors group">
+              {/* User avatar */}
+              <div className="shrink-0 relative">
+                {log.user.avatar ? (
+                  <img
+                    src={`https://randomuser.me/api/portraits/${i % 2 === 0 ? 'men' : 'women'}/${log.user.avatar}.jpg`}
+                    alt={log.user.name}
+                    className="w-7 h-7 rounded-full object-cover border border-zinc-100 shadow-sm"
+                  />
+                ) : (
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold ${log.accent}`}>
+                    {log.user.initials}
+                  </div>
+                )}
               </div>
-            );
-          })}
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] text-zinc-700 leading-tight">
+                  <span className="font-semibold text-zinc-900">{log.user.name}</span>{' '}
+                  {log.action}
+                </p>
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  <span className="text-[9.5px] text-zinc-400 tabular-nums">
+                    {log.date} · {log.time}
+                  </span>
+                  <span className="text-[9px] text-zinc-300">•</span>
+                  <span className="text-[9.5px] text-zinc-400 font-mono">{log.ip}</span>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>
   );
 }
+
 
 function RecentNewJoiners() {
   return (
@@ -1153,9 +1233,9 @@ export default function DashboardPage() {
 
         {/* LEFT SIDE: Rows 1 & 2 */}
         <div className="xl:col-span-8 flex flex-col gap-2">
-          {/* Row 1: Today's Tasks | Birthdays */}
+          {/* Row 1: Activity Log | Birthdays */}
           <div className="grid gap-2 grid-cols-1 md:grid-cols-2">
-            <TodayTasks />
+            <ActivityLog />
             <BirthdaysOverview />
           </div>
 
