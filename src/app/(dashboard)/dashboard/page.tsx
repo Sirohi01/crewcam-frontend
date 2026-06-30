@@ -150,9 +150,9 @@ function valueFor(key: string, data: any, fallback: string) {
 }
 
 const SLIDES = [
-  { imageUrl: '/bannerImg/img1.png' },
-  { imageUrl: '/bannerImg/img2.png' },
-  { imageUrl: '/bannerImg/img3.jpg' },
+  { imageUrl: '/bannerImges/img1.png' },
+  { imageUrl: '/bannerImges/img2.png' },
+  { imageUrl: '/bannerImges/img3.jpg' },
 ];
 
 function HeroSlider() {
@@ -200,10 +200,23 @@ function HeroSlider() {
   if (!slide) return null;
 
   return (
-    <section className="relative overflow-hidden rounded-xl shadow-md" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+    <section className="relative overflow-hidden rounded-xl shadow-md min-h-[120px] bg-zinc-100" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       <div style={{ opacity: fading ? 0 : 1, transition: 'opacity 0.22s ease' }}>
-        <img src={slide.imageUrl} alt="" aria-hidden="true" className="w-full object-cover block"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+        <img
+          src={slide.imageUrl}
+          alt=""
+          aria-hidden="true"
+          className="w-full object-cover block"
+          onError={(e) => {
+            const img = e.target as HTMLImageElement;
+            // Try constructing an absolute URL if the stored URL is relative
+            if (img.src && !img.src.startsWith('http')) {
+              img.src = `http://localhost:8000${img.src}`;
+            } else {
+              img.style.display = 'none';
+            }
+          }}
+        />
       </div>
       <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1.5">
         {activeSlides.map((_: unknown, i: number) => (
@@ -227,22 +240,21 @@ function KpiCard({ widgetKey }: { widgetKey: string }) {
   const val = isLoading ? '—' : valueFor(widgetKey, data, meta.fallback);
   return (
     <Card className="group overflow-hidden border-zinc-200/80 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
-      <CardContent className="relative p-3.5">
-        <div className={`absolute right-0 top-0 h-16 w-16 translate-x-4 -translate-y-4 rounded-full opacity-[.08] ${meta.accent}`} />
-        <div className="flex items-start gap-2.5">
-          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl text-white shadow-sm ${meta.accent}`}>{meta.icon}</span>
+      <CardContent className="relative p-3">
+        <div className={`absolute right-0 top-0 h-14 w-14 translate-x-4 -translate-y-4 rounded-full opacity-[.08] ${meta.accent}`} />
+        <div className="flex items-center gap-2">
+          <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl text-white shadow-sm ${meta.accent}`}>{meta.icon}</span>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] text-zinc-500 truncate">{meta.title}</p>
-            <p className="text-2xl font-bold tracking-tight text-zinc-900 leading-tight">{val}</p>
-            <div className="mt-0.5 flex items-center gap-1">
-              {meta.deltaType === 'up' && <TrendingUp size={10} className="text-emerald-500 shrink-0" />}
-              {meta.deltaType === 'down' && <TrendingDown size={10} className="text-rose-500 shrink-0" />}
-              <span className={`text-[10px] font-medium ${meta.deltaType === 'up' ? 'text-emerald-600' : meta.deltaType === 'down' ? 'text-rose-500' : 'text-amber-600'}`}>{meta.delta}</span>
-              {meta.subLabel && <span className="text-[10px] text-zinc-400">{meta.subLabel}</span>}
+            <p className="text-[10px] text-zinc-500 truncate leading-tight">{meta.title}</p>
+            <p className="text-xl font-bold tracking-tight text-zinc-900 leading-tight">{val}</p>
+            <div className="flex items-center gap-1">
+              {meta.deltaType === 'up' && <TrendingUp size={9} className="text-emerald-500 shrink-0" />}
+              {meta.deltaType === 'down' && <TrendingDown size={9} className="text-rose-500 shrink-0" />}
+              <span className={`text-[9px] font-medium ${meta.deltaType === 'up' ? 'text-emerald-600' : meta.deltaType === 'down' ? 'text-rose-500' : 'text-amber-600'}`}>{meta.delta}</span>
+              {meta.subLabel && <span className="text-[9px] text-zinc-400">{meta.subLabel}</span>}
             </div>
           </div>
         </div>
-        
       </CardContent>
     </Card>
   );
@@ -342,11 +354,18 @@ function ImportantAlertsCards() {
       <CardContent className="px-3 py-2">
         <div className="flex items-center justify-between mb-1.5">
           <h3 className="text-sm font-semibold text-zinc-900">Important Alerts</h3>
-          <Link href="/dashboard/alerts" className="inline-flex items-center gap-1 text-[11px] font-semibold text-violet-700 hover:text-violet-800 whitespace-nowrap">
-            View All Alerts <ArrowRight size={13} />
-          </Link>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href="/dashboard/employee"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700 hover:bg-violet-100 hover:border-violet-300 transition-colors"
+            >Employee Dashboard
+            </Link>
+            <Link href="/dashboard/alerts" className="inline-flex items-center gap-1 text-[11px] font-semibold text-violet-700 hover:text-violet-800 whitespace-nowrap">
+              View All Alerts <ArrowRight size={13} />
+            </Link>
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-1.5 md:grid-cols-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 md:grid-cols-4">
           {alerts.map((alert, i) => (
             <Link key={i} href={alert.href}
               className={`flex items-center gap-2 rounded-lg border ${alert.border} ${alert.cardBg} px-2 py-1.5 hover:shadow-sm transition-all group`}>
@@ -1113,15 +1132,15 @@ export default function DashboardPage() {
   const topKpiKeys = ['org-headcount', 'team-attendance-today', 'on-leave-today', 'new-joinees', 'pending-leave-approvals', 'open-positions'];
 
   return (
-    <main className="mx-auto max-w-[1600px] space-y-2 pb-4">
+    <main className="mx-auto max-w-[1600px] space-y-2 pb-4 px-2 sm:px-3">
 
       {/* Banner */}
       <HeroSlider />
 
       {/* KPI Strip */}
-      <section className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <section className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
         {isLoading
-          ? Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-[82px] animate-pulse rounded-xl bg-zinc-100" />)
+          ? Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-[72px] animate-pulse rounded-xl bg-zinc-100" />)
           : topKpiKeys.map((key) => <KpiCard key={key} widgetKey={key} />)
         }
       </section>
@@ -1148,7 +1167,7 @@ export default function DashboardPage() {
         </div>
 
         {/* RIGHT SIDE: Today's Schedule */}
-        <div className="xl:col-span-4 relative min-h-[400px] xl:min-h-0">
+        <div className="xl:col-span-4 relative min-h-[320px] xl:min-h-0">
           <div className="xl:absolute xl:inset-0 h-full w-full">
             <TodaySchedule />
           </div>
@@ -1156,22 +1175,21 @@ export default function DashboardPage() {
 
         {/* FULL WIDTH: Row 3 — Performance | Quick Actions | Recent New Joiners */}
         <div className="xl:col-span-12 flex flex-col gap-2">
-          <div className="grid gap-2 grid-cols-1 md:grid-cols-3">
+          <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             <PerformanceOverview />
             <QuickActions />
             <RecentNewJoiners />
           </div>
         </div>
 
-        {/* FULL WIDTH: Row 4 — Quick Actions (full) + Reports Shortcut */}
+        {/* FULL WIDTH: Row 4 — Reports Shortcut */}
         <div className="xl:col-span-12 flex flex-col gap-2">
           <ReportsShortcut />
         </div>
 
-        {/* FULL WIDTH: Row 5 — Recruitment | Payroll | Compliance */}
+        {/* FULL WIDTH: Row 5 — Payroll | Compliance | Recruitment */}
         <div className="xl:col-span-12">
-          <div className="grid gap-2 grid-cols-1 md:grid-cols-3">
-
+          <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             <PayrollOverview />
             <ComplianceOverview />
             <RecruitmentOverview />
