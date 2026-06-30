@@ -17,6 +17,11 @@ export interface ArrayFieldConfig {
   employeePicker?: boolean;
 }
 
+export interface ListColumn {
+  key: string;
+  label: string;
+}
+
 export interface HiringStepConfig {
   id: string;
   stepKey: string;
@@ -27,6 +32,7 @@ export interface HiringStepConfig {
   entityField: 'candidateId' | 'employeeId';
   fields: StepField[];
   arrayFields?: ArrayFieldConfig[];
+  listColumns?: ListColumn[];
   hasPdf?: boolean;
   postCreateActions?: {
     label: string;
@@ -40,6 +46,15 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'evaluation', stepKey: 'interviewEvaluation', step: 2, phase: 'Offer & Legal', title: 'Interview Evaluation Sheet',
     apiPath: '/hiring/evaluation', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'candidateId.name', label: 'Candidate Name' },
+      { key: 'candidateId.jobRole', label: 'Position' },
+      { key: 'candidateId.mobileNumber', label: 'Phone Number' },
+      { key: 'candidateId.email', label: 'Email' },
+      { key: 'candidateId.department', label: 'Department' },
+      { key: 'createdAt', label: 'Interview Date' },
+      { key: 'updatedAt', label: 'Last Update' }
+    ],
     fields: [
       { name: 'roundType', label: 'Round Type', type: 'select', options: ['Telephonic', 'Technical', 'HR', 'Managerial', 'Final'], required: true },
       { name: 'recommendation', label: 'Recommendation', type: 'select', options: ['Strongly Recommend', 'Recommend', 'Neutral', 'Not Recommend', 'Strongly Reject'], required: true },
@@ -52,19 +67,29 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'selection-approval', stepKey: 'selectionApproval', step: 3, phase: 'Offer & Legal', title: 'Selection Approval Note',
     apiPath: '/hiring/selection-approval', entityField: 'candidateId', hasPdf: true,
-    fields: [
-      { name: 'jobRole', label: 'Proposed Position', type: 'text', required: true, placeholder: 'e.g., Senior Software Engineer' },
-      { name: 'recruitmentSource', label: 'Recruitment Source', type: 'text', placeholder: 'e.g., LinkedIn, Referral' },
-      { name: 'proposedCTC', label: 'Proposed Annual CTC', type: 'number', required: true, placeholder: 'e.g., 1500000' },
-      { name: 'budgetedCTC', label: 'Budgeted CTC', type: 'number', placeholder: 'e.g., 1400000' },
-      { name: 'recruitmentSummary', label: 'Recruitment Summary', type: 'textarea', placeholder: 'Brief summary of the interview process and candidate fit...' },
-      { name: 'justificationForVariance', label: 'Justification for Variance', type: 'textarea', placeholder: 'Explain why proposed CTC exceeds budget, if applicable...' },
-      { name: 'approvalNotes', label: 'Approval Notes', type: 'textarea', placeholder: 'Any additional notes for the approver...' },
+    listColumns: [
+      { key: 'candidateId.name', label: 'Candidate Name' },
+      { key: 'candidateId.jobRole', label: 'Position' },
+      { key: 'candidateId.department', label: 'Department' },
+      { key: 'candidateId.expectedJoiningDate', label: 'Date of Joining' },
+      { key: 'status', label: 'Status' },
+      { key: 'updatedAt', label: 'Last Update' }
     ],
-    arrayFields: [{ name: 'approvalChain', label: 'Approval Chain', employeePicker: true, subFields: [
-      { name: 'role', label: 'Approver Role', type: 'text', required: true, placeholder: 'e.g., HR Manager' },
-      { name: 'approverId', label: 'Approver', type: 'select', required: true },
-    ] }],
+    fields: [
+      { name: 'jobRole', label: 'Proposed Position', type: 'text', required: true },
+      { name: 'recruitmentSource', label: 'Recruitment Source', type: 'text' },
+      { name: 'proposedCTC', label: 'Proposed Annual CTC', type: 'number', required: true },
+      { name: 'budgetedCTC', label: 'Budgeted CTC', type: 'number' },
+      { name: 'recruitmentSummary', label: 'Recruitment Summary', type: 'textarea' },
+      { name: 'justificationForVariance', label: 'Justification for Variance', type: 'textarea' },
+      { name: 'approvalNotes', label: 'Approval Notes', type: 'textarea' },
+    ],
+    arrayFields: [{
+      name: 'approvalChain', label: 'Approval Chain', employeePicker: true, subFields: [
+        { name: 'role', label: 'Approver Role', type: 'text', required: true },
+        { name: 'approverId', label: 'Approver', type: 'select', required: true },
+      ]
+    }],
     postCreateActions: [
       { label: 'Approve', method: 'PUT', pathSuffix: '/decision', payload: { finalStatus: 'Approved' } },
       { label: 'Reject', method: 'PUT', pathSuffix: '/decision', payload: { finalStatus: 'Rejected' } },
@@ -73,6 +98,14 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'ctc-breakup', stepKey: 'ctcBreakup', step: 4, phase: 'Offer & Legal', title: 'CTC Breakup',
     apiPath: '/hiring/ctc-breakup', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'candidateId.name', label: 'Candidate Name' },
+      { key: 'candidateId.jobRole', label: 'Position' },
+      { key: 'department', label: 'Department' },
+      { key: 'monthlyGross', label: 'Monthly Gross' },
+      { key: 'status', label: 'Status' },
+      { key: 'updatedAt', label: 'Last Update' }
+    ],
     fields: [
       { name: 'annualCTC', label: 'Annual CTC', type: 'number', required: true, placeholder: 'e.g., 1500000' },
       { name: 'currency', label: 'Currency', type: 'select', options: ['INR', 'USD', 'EUR'] },
@@ -91,6 +124,14 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'loi', stepKey: 'loi', step: 5, phase: 'Offer & Legal', title: 'Letter of Intent',
     apiPath: '/hiring/loi', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'candidateId.name', label: 'Candidate Name' },
+      { key: 'department', label: 'Department' },
+      { key: 'position', label: 'Position' },
+      { key: 'joiningDate', label: 'Joining Date' },
+      { key: 'status', label: 'Status' },
+      { key: 'updatedAt', label: 'Last Update' }
+    ],
     fields: [
       { name: 'designation', label: 'Designation', type: 'text', required: true, placeholder: 'e.g., Senior Software Engineer' },
       { name: 'proposedCTC', label: 'Proposed Annual CTC', type: 'number', placeholder: 'e.g., 1500000' },
@@ -102,6 +143,14 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'joining-confirmation', stepKey: 'joiningConfirmation', step: 6, phase: 'Pre-Joining', title: 'Joining Confirmation',
     apiPath: '/hiring/joining-confirmation', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'candidateId.name', label: 'Candidate Name' },
+      { key: 'position', label: 'Position' },
+      { key: 'department', label: 'Department' },
+      { key: 'joiningDate', label: 'Joining Date' },
+      { key: 'status', label: 'Status' },
+      { key: 'updatedAt', label: 'Last Update' }
+    ],
     fields: [
       { name: 'confirmedJoiningDate', label: 'Confirmed Joining Date', type: 'date', required: true },
       { name: 'reportingManagerName', label: 'Reporting Manager', type: 'text', placeholder: 'e.g., Jane Doe' },
@@ -113,18 +162,38 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'doc-checklist', stepKey: 'documentChecklist', step: 7, phase: 'Pre-Joining', title: 'Document Checklist',
     apiPath: '/hiring/doc-checklist', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'employeename', label: 'Employee Name' },
+      { key: 'position', label: 'Position' },
+      { key: 'employeeCode', label: 'Employee Code' },
+      { key: 'department', label: 'Department' },
+      { key: 'joiningDate', label: 'Date of Joining ' },
+      { key: 'status', label: 'Status' },
+      { key: 'updatedAt', label: 'Last Update' }
+    ],
     fields: [],
-    arrayFields: [{ name: 'items', label: 'Documents', subFields: [
-      { name: 'documentName', label: 'Document Name', type: 'text', required: true, placeholder: 'e.g., PAN Card' },
-      { name: 'isMandatory', label: 'Mandatory', type: 'select', options: ['true', 'false'] },
-      { name: 'status', label: 'Status', type: 'select', options: ['Pending', 'Submitted', 'Verified', 'Rejected'] },
-      { name: 'fileUrl', label: 'Document URL', type: 'text', placeholder: 'https://...' },
-      { name: 'remarks', label: 'Remarks', type: 'text', placeholder: 'Any remarks...' },
-    ] }]
+    arrayFields: [{
+      name: 'items', label: 'Documents', subFields: [
+        { name: 'documentName', label: 'Document Name', type: 'text', required: true, placeholder: 'e.g., PAN Card' },
+        { name: 'isMandatory', label: 'Mandatory', type: 'select', options: ['true', 'false'] },
+        { name: 'status', label: 'Status', type: 'select', options: ['Pending', 'Submitted', 'Verified', 'Rejected'] },
+        { name: 'fileUrl', label: 'Document URL', type: 'text', placeholder: 'https://...' },
+        { name: 'remarks', label: 'Remarks', type: 'text', placeholder: 'Any remarks...' },
+      ]
+    }]
   },
   {
     id: 'bgv', stepKey: 'bgvRequest', step: 8, phase: 'Pre-Joining', title: 'Background Verification',
     apiPath: '/hiring/bgv', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'candidateName', label: 'Candidate Name' },
+      { key: 'position', label: 'Position' },
+      { key: 'phoneNumber', label: 'Phone Number' },
+      { key: 'email', label: 'Email' },
+      { key: 'department', label: 'Department' },
+      { key: 'status', label: 'Status' },
+      { key: 'updatedAt', label: 'Last Update' }
+    ],
     fields: [
       { name: 'vendor', label: 'BGV Vendor', type: 'text', placeholder: 'e.g., FirstAdvantage' },
       { name: 'overallResult', label: 'Current Result', type: 'select', options: ['Pending', 'Clear', 'Discrepancy'] },
@@ -134,6 +203,17 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'joining-form', stepKey: 'joiningForm', step: 9, phase: 'Onboarding', title: 'Employee Joining Form',
     apiPath: '/hiring/joining-form', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'employeename', label: 'Employee Name' },
+      { key: 'position', label: 'Position' },
+      { key: 'phoneNumber', label: 'Phone Number' },
+      { key: 'email', label: 'Email' },
+      { key: 'department', label: 'Department' },
+      { key: 'joiningDate', label: 'Date of Joining ' },
+      { key: 'verification', label: 'Verification' },
+      { key: 'status', label: 'Status' },
+      { key: 'updatedAt', label: 'Last Update' }
+    ],
     fields: [
       // Personal Details
       { name: 'personalDetails.fullName', label: 'Full Name', type: 'text', required: true, placeholder: 'e.g., John Doe' },
@@ -204,6 +284,20 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'nomination', stepKey: 'nomination', step: 10, phase: 'Onboarding', title: 'Nomination Form',
     apiPath: '/hiring/nomination', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'employeename', label: 'Employee Name' },
+      { key: 'position', label: 'Position' },
+      { key: 'department', label: 'Department' },
+      { key: 'phoneNumber', label: 'Phone Number' },
+      { key: 'email', label: 'Email' },
+      { key: 'empCode', label: 'EMP Code' },
+      { key: 'nominee1', label: 'Nominee1' },
+      { key: 'nominee2', label: 'Nominee2' },
+      { key: 'verification', label: 'Verification' },
+      { key: 'Status', label: 'Status' },
+      { key: 'Last Update', label: 'Last Update' },
+
+    ],
     fields: [
       { name: 'nominationType', label: 'Nomination Type', type: 'select', options: ['PF', 'Gratuity', 'Insurance'], required: true },
       { name: 'declarationDate', label: 'Declaration Date', type: 'date' },
@@ -232,6 +326,16 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'bank-payroll', stepKey: 'bankPayrollInfo', step: 11, phase: 'Onboarding', title: 'Bank & Payroll Information',
     apiPath: '/hiring/bank-payroll', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'employeename', label: 'Employee Name' },
+      { key: 'employeeCode', label: 'Employee Code' },
+      { key: 'position', label: 'Position' },
+      { key: 'bankName', label: 'Bank Name' },
+      { key: 'accountNumber', label: 'Account Number' },
+      { key: 'verification', label: 'Verification' },
+      { key: 'status', label: 'Status' },
+      { key: 'lastUpdate', label: 'Last Update' },
+    ],
     fields: [
       { name: 'bankName', label: 'Bank Name', type: 'text', required: true, placeholder: 'e.g., HDFC Bank' },
       { name: 'accountHolderName', label: 'Account Holder Name', type: 'text', required: true, placeholder: 'e.g., John Doe' },
@@ -259,6 +363,16 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'emergency-contact', stepKey: 'emergencyContact', step: 12, phase: 'Onboarding', title: 'Emergency Contact Details',
     apiPath: '/hiring/emergency-contact', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'employeename', label: 'Employee Name' },
+      { key: 'position', label: 'Position' },
+      { key: 'emergencyContact', label: 'Emergency Contact' },
+      { key: 'contactNo', label: 'Contact No' },
+      { key: 'empCode', label: 'EMP Code' },
+      { key: 'bloodGroup', label: 'Blood Group' },
+      { key: 'status', label: 'Status' },
+      { key: 'lastUpdate', label: 'Last Update' },
+    ],
     fields: [
       // Medical Info
       { name: 'medicalInfo.bloodGroup', label: 'Blood Group', type: 'select', options: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] },
@@ -290,6 +404,14 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'offer-letter', stepKey: 'offerLetter', step: 13, phase: 'Offer & Legal', title: 'Offer Letter',
     apiPath: '/hiring/offer-letter', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'condidateename', label: 'Condidate Name' },
+      { key: 'designation', label: 'Designation' },
+      { key: 'monthlyctc', label: 'Monthly CTC' },
+      { key: 'joiningDate', label: 'Joining Date' },
+      { key: 'status', label: 'Status' },
+      { key: 'lastUpdate', label: 'Last Update' },
+    ],
     fields: [
       { name: 'designation', label: 'Designation', type: 'text', required: true, placeholder: 'e.g., Senior Developer' },
       { name: 'joiningDate', label: 'Joining Date', type: 'date' },
@@ -304,6 +426,12 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'nda', stepKey: 'nda', step: 14, phase: 'Offer & Legal', title: 'NDA',
     apiPath: '/hiring/nda', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'condidateename', label: 'Condidate Name' },
+      { key: 'designation', label: 'Designation' },
+      { key: 'status', label: 'Status' },
+      { key: 'lastUpdate', label: 'Last Update' },
+    ],
     fields: [
       { name: 'documentContent', label: 'NDA Content', type: 'textarea', placeholder: 'Non-Disclosure Agreement terms...' }
     ],
@@ -312,6 +440,14 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'it-policy-accept', stepKey: 'itPolicyAcceptance', step: 15, phase: 'Onboarding', title: 'IT Policy & Acceptance',
     apiPath: '/hiring/it-policy-accept', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'employeename', label: 'Employee Name' },
+      { key: 'employeecode', label: 'Employee Code' },
+      { key: 'department', label: 'Department' },
+      { key: 'joiningdate', label: 'Joining Date' },
+      { key: 'status', label: 'Status' },
+      { key: 'lastUpdate', label: 'Last Update' },
+    ],
     fields: [
       { name: 'policyVersion', label: 'Policy Version', type: 'text', placeholder: 'e.g., v1.2' },
       { name: 'policyTitle', label: 'Policy Title', type: 'text', placeholder: 'e.g., General IT Policy' },
@@ -323,6 +459,14 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'code-of-conduct-accept', stepKey: 'conductAcceptance', step: 16, phase: 'Onboarding', title: 'Code of Conduct Acceptance',
     apiPath: '/hiring/code-of-conduct-accept', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'employeename', label: 'Employee Name' },
+      { key: 'employeecode', label: 'Employee Code' },
+      { key: 'department', label: 'Department' },
+      { key: 'joiningdate', label: 'Joining Date' },
+      { key: 'status', label: 'Status' },
+      { key: 'lastUpdate', label: 'Last Update' },
+    ],
     fields: [
       { name: 'version', label: 'Conduct Policy Version', type: 'text', placeholder: 'e.g., v2.0' },
       { name: 'conductTitle', label: 'Conduct Title', type: 'text', placeholder: 'e.g., Employee Code of Conduct' },
@@ -334,6 +478,13 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'appointment-letter', stepKey: 'appointmentLetter', step: 17, phase: 'Offer & Legal', title: 'Appointment Letter',
     apiPath: '/hiring/appointment-letter', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'condidateename', label: 'Condidate Name' },
+      { key: 'position', label: 'Position' },
+      { key: 'monthlyctc', label: 'Monthly CTC' },
+      { key: 'status', label: 'Status' },
+      { key: 'lastUpdate', label: 'Last Update' },
+    ],
     fields: [
       { name: 'designation', label: 'Designation', type: 'text', required: true, placeholder: 'e.g., Senior Analyst' },
       { name: 'departmentName', label: 'Department', type: 'text', placeholder: 'e.g., Finance' },
@@ -354,6 +505,14 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'asset-access', stepKey: 'assetAccessForm', step: 18, phase: 'Onboarding', title: 'IT Assets, Access & Stationery',
     apiPath: '/hiring/asset-access', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'employeename', label: 'Employee Name' },
+      { key: 'uniqueId', label: 'Unique ID' },
+      { key: 'officialEmail', label: 'Official Email' },
+      { key: 'mobilenumber', label: 'Mobile Number' },
+      { key: 'status', label: 'Status' },
+      { key: 'lastUpdate', label: 'Last Update' },
+    ],
     fields: [],
     arrayFields: [
       {
@@ -380,6 +539,17 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'engagement-confirm', stepKey: 'engagementConfirmation', step: 19, phase: 'Onboarding', title: 'Engagement Confirmation',
     apiPath: '/hiring/engagement-confirm', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'employeename', label: 'Employee Name' },
+      { key: 'uniqueId', label: 'Unique ID' },
+      { key: 'department', label: 'Department' },
+      { key: 'designation', label: 'Designaton' },
+      { key: 'reportingto', label: 'Reporting To' },
+      { key: 'officialmobilenumber', label: 'Official Mobile Number' },
+      { key: 'createdon', label: 'Created On' },
+      { key: 'status', label: 'Status' },
+      { key: 'lastUpdate', label: 'Last Update' },
+    ],
     fields: [
       { name: 'engagementType', label: 'Engagement Type', type: 'select', options: ['Full-time', 'Contract', 'Consultant'] }
     ]
@@ -387,6 +557,14 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'induction', stepKey: 'induction', step: 20, phase: 'Onboarding', title: 'Induction Form',
     apiPath: '/hiring/induction', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'employeename', label: 'Employee Name' },
+      { key: 'employeeid', label: 'Employee Id' },
+      { key: 'designation', label: 'Designaton' },
+      { key: 'department', label: 'Department' },
+      { key: 'joiningdate', label: 'Joining Date' },
+      { key: 'createdon', label: 'Created On' },
+    ],
     fields: [
       { name: 'inductionDate', label: 'Induction Date', type: 'date' }
     ],
@@ -402,6 +580,15 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'team-intro', stepKey: 'teamIntro', step: 21, phase: 'Onboarding', title: 'Team Introduction Note',
     apiPath: '/hiring/team-intro', entityField: 'candidateId', hasPdf: true,
+    listColumns: [
+      { key: 'candidateName', label: 'Candidate Name' },
+      { key: 'position', label: 'Position' },
+      { key: 'department', label: 'Department' },
+      { key: 'joiningdate', label: 'Joining Date' },
+      { key: 'reportingto', label: 'Reporting To' },
+      { key: 'status', label: 'Status' },
+
+    ],
     fields: [
       { name: 'introductionNote', label: 'Introduction Note', type: 'textarea', placeholder: 'Welcome our new team member...' }
     ],
@@ -417,6 +604,16 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'probation-review', stepKey: 'probationReview', step: 22, phase: 'Post-Joining', title: 'Probation Review Form',
     apiPath: '/hiring/probation-review', entityField: 'employeeId', hasPdf: true,
+    listColumns: [
+      { key: 'employeename', label: 'Employee Name' },
+      { key: 'uniqueId', label: 'Unique ID' },
+      { key: 'designation', label: 'Designaton' },
+      { key: 'department', label: 'Department' },
+      { key: 'reviewdate', label: 'Review Date' },
+      { key: 'recommendation', label: 'Recommendation' },
+      { key: 'status', label: 'Status' },
+      { key: 'lastUpdate', label: 'Last Update' },
+    ],
     fields: [
       { name: 'reviewPeriodStart', label: 'Review Period Start', type: 'date' },
       { name: 'reviewPeriodEnd', label: 'Review Period End', type: 'date' }
@@ -438,6 +635,15 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'perf-eval', stepKey: 'performanceEval', step: 23, phase: 'Post-Joining', title: 'Employee Performance Evaluation',
     apiPath: '/hiring/perf-eval', entityField: 'employeeId', hasPdf: true,
+    listColumns: [
+      { key: 'employeename', label: 'Employee Name' },
+      { key: 'department', label: 'Department' },
+      { key: 'designation', label: 'Designaton' },
+      { key: 'reviewperiod', label: 'Review Period' },
+      { key: 'rating', label: 'Rating' },
+      { key: 'status', label: 'Status' },
+      { key: 'lastUpdate', label: 'Last Update' },
+    ],
     fields: [
       { name: 'evaluationPeriod', label: 'Evaluation Period', type: 'text', placeholder: 'e.g., Q1 2026' },
       { name: 'strengths', label: 'Strengths', type: 'textarea', placeholder: 'e.g., Good leadership...' },
@@ -456,6 +662,13 @@ export const HIRING_STEPS: HiringStepConfig[] = [
   {
     id: 'id-card', stepKey: 'idCard', step: 24, phase: 'Post-Joining', title: 'Visiting Card / ID Card',
     apiPath: '/hiring/id-card', entityField: 'employeeId', hasPdf: true,
+    listColumns: [
+      { key: 'employeeid', label: 'Employee Id' },
+      { key: 'name', label: 'Name' },
+      { key: 'mobilenumber', label: 'Mobile Number' },
+      { key: 'department', label: 'Department' },
+      { key: 'designation', label: 'Designation' }
+    ],
     fields: [
       { name: 'cardType', label: 'Card Type', type: 'select', options: ['ID Card', 'Visiting Card'] },
       { name: 'employeeCode', label: 'Employee Code', type: 'text', placeholder: 'e.g., EMP123' },
