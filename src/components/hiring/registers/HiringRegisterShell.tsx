@@ -57,7 +57,7 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
   const [pageSize, setPageSize] = useState(5);
   const [page, setPage] = useState(1);
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
-  
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [candidateSearch, setCandidateSearch] = useState('');
   const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
@@ -157,25 +157,30 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
   const paginatedData = filteredData.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <div className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden mb-10 w-full max-w-[1400px] mx-auto">
-      <div className="bg-slate-50 px-3 py-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[#0d3c68] border-b-2 border-[#0d3c68] pb-0.5">
-            {step.title.toUpperCase()} RECORDS
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" className="h-7 gap-2 px-3 text-[11px] font-bold uppercase" onClick={() => refetch()}>
-            <RefreshCw size={12} /> Refresh
-          </Button>
-          <Button onClick={() => setShowAddModal(true)} className="h-7 gap-2 bg-[#0d3c68] px-3 text-[11px] font-bold uppercase hover:bg-[#0a2e50] text-white rounded-[2px]">
-            <ExternalLink size={12} /> Add New
-          </Button>
+    <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-10">
+
+      {/* Header Section */}
+      <div className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-slate-50 px-3 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#0d3c68] border-b-2 border-[#0d3c68] pb-0.5">
+              {step.title.toUpperCase()} RECORDS
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" className="h-7 gap-2 px-3 text-[11px] font-bold uppercase" onClick={() => refetch()}>
+              <RefreshCw size={12} /> Refresh
+            </Button>
+            <Button onClick={() => setShowAddModal(true)} className="h-7 gap-2 bg-[#0d3c68] px-3 text-[11px] font-bold uppercase hover:bg-[#0a2e50] text-white rounded-[2px]">
+              <ExternalLink size={12} /> Add New
+            </Button>
+          </div>
         </div>
       </div>
 
-      <div className="p-4 bg-white">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+      {/* Table Section */}
+      <div className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden p-4 mx-2">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
           <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
             Show
             <select
@@ -209,14 +214,14 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
           <table className="w-full text-left text-[11px] whitespace-nowrap">
             <thead className="bg-[#111] text-white">
               <tr>
-                <th className="px-3 py-2.5 border-r border-[#333] w-10 text-center"><input type="checkbox" className="rounded" /></th>
-                <th className="px-3 py-2.5 font-bold uppercase tracking-wider border-r border-[#333] w-12 text-center">S.No</th>
+                <th className="px-3 py-1.5 border-r border-[#333] w-10 text-center"><input type="checkbox" className="rounded" /></th>
+                <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333] w-12 text-center">S.No</th>
                 {dynamicColumns.map((col) => (
-                  <th key={col.key} className="px-3 py-2.5 font-bold uppercase tracking-wider border-r border-[#333] min-w-[120px]">
+                  <th key={col.key} className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333] min-w-[120px]">
                     <div className="flex items-center justify-between">{col.label} <ArrowUpDown size={12} className="opacity-50" /></div>
                   </th>
                 ))}
-                <th className="px-3 py-2.5 font-bold uppercase tracking-wider min-w-[180px] text-center">Action</th>
+                <th className="px-3 py-1.5 font-bold uppercase tracking-wider min-w-[180px] text-center">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -246,7 +251,7 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                         <button onClick={() => openRecordForm(row)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
                           <Edit2 size={13} />
                         </button>
-                        <button onClick={() => { if(confirm('Are you sure you want to delete this record?')) deleteMutation.mutate(row._id); }} className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete">
+                        <button onClick={() => { if (confirm('Are you sure you want to delete this record?')) deleteMutation.mutate(row._id); }} className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete">
                           <Trash2 size={13} />
                         </button>
                         {step.hasPdf && (
@@ -259,10 +264,10 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                           const isApprove = lower.includes('approve') || lower.includes('accept') || lower.includes('confirm') || lower.includes('verify') || lower.includes('issue');
                           const isReject = lower.includes('reject') || lower.includes('decline') || lower.includes('terminate');
                           return (
-                            <button 
-                              key={action.label} 
-                              onClick={() => actionMutation.mutate({ recordId: row._id, action })} 
-                              className={`p-1.5 rounded transition-colors flex items-center gap-1 ${isApprove ? 'text-emerald-600 hover:bg-emerald-50' : isReject ? 'text-red-600 hover:bg-red-50' : 'text-indigo-600 hover:bg-indigo-50'}`} 
+                            <button
+                              key={action.label}
+                              onClick={() => actionMutation.mutate({ recordId: row._id, action })}
+                              className={`p-1.5 rounded transition-colors flex items-center gap-1 ${isApprove ? 'text-emerald-600 hover:bg-emerald-50' : isReject ? 'text-red-600 hover:bg-red-50' : 'text-indigo-600 hover:bg-indigo-50'}`}
                               title={action.label}
                             >
                               {isApprove ? <CheckCircle size={13} /> : isReject ? <XCircle size={13} /> : <ShieldCheck size={13} />}
@@ -325,7 +330,7 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                 <X size={18} />
               </button>
             </div>
-            
+
             <div className="p-5 border-b border-slate-100">
               <div className="relative">
                 <Search size={15} className="absolute left-3 top-2.5 text-slate-400" />
