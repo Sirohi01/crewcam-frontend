@@ -34,15 +34,14 @@ function CheckGroup({ values, onChange, options }: { values: string[]; onChange:
 const toId = (value: any) => value?._id || value || '';
 const toDateInput = (value: any) => value ? new Date(value).toISOString().slice(0, 10) : '';
 const branchLocation = (branch: any) => branch?.location || [branch?.address, branch?.city, branch?.state, branch?.country].filter(Boolean).join(', ') || branch?.name || '';
-function LibraryAndAiControls({
-  libraryItems, onPick, onGenerate, generating, onSaveToLibrary, canSave,
+function LibraryControls({
+  libraryItems, onPick, onSaveToLibrary, canSave, label: pickLabel,
 }: {
   libraryItems: any[];
   onPick: (item: any) => void;
-  onGenerate: () => void;
-  generating: boolean;
   onSaveToLibrary: () => void;
   canSave: boolean;
+  label: string;
 }) {
   return (
     <div className="mb-1.5 flex flex-wrap items-center gap-2">
@@ -54,15 +53,48 @@ function LibraryAndAiControls({
           if (item) onPick(item);
         }}
       >
-        <option value="">Pick from library…</option>
+        <option value="">{pickLabel}</option>
         {libraryItems.map((item) => <option key={item._id} value={item._id}>{item.title}{item.designation ? ` (${item.designation})` : ''}</option>)}
       </select>
-      <button type="button" onClick={onGenerate} disabled={generating} className="inline-flex h-7 items-center gap-1 rounded border border-indigo-200 bg-indigo-50 px-2 text-[11px] font-medium text-indigo-700 hover:bg-indigo-100 disabled:opacity-50">
-        {generating ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />} Generate with AI
-      </button>
       <button type="button" onClick={onSaveToLibrary} disabled={!canSave} className="inline-flex h-7 items-center gap-1 rounded border border-slate-200 px-2 text-[11px] font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
         <BookmarkPlus size={12} /> Save to library
       </button>
+    </div>
+  );
+}
+
+function AiGenerateBar({
+  customPrompt, onCustomPromptChange, onGenerate, generating, error,
+}: {
+  customPrompt: string;
+  onCustomPromptChange: (value: string) => void;
+  onGenerate: () => void;
+  generating: boolean;
+  error?: string | null;
+}) {
+  return (
+    <div className="mb-4 rounded-md border border-indigo-100 bg-indigo-50/50 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-tight text-indigo-800">AI Draft — Job Description &amp; KRA</span>
+      </div>
+      <p className="mt-1 text-[11px] text-slate-500">
+        Generates the job description and KRA/KPIs together from the position selected above. Optionally add instructions to steer the draft, then click Generate — or leave it blank for a standard draft.
+      </p>
+      <textarea
+        className="mt-2 h-16 w-full resize-y rounded border border-slate-300 bg-white px-3 py-2 text-xs outline-none transition focus:border-[#0e4778] focus:ring-2 focus:ring-blue-100"
+        placeholder="Optional: e.g. 'emphasize client-facing communication' or 'this is a senior/lead-level role'"
+        value={customPrompt}
+        onChange={(e) => onCustomPromptChange(e.target.value)}
+      />
+      <button
+        type="button"
+        onClick={onGenerate}
+        disabled={generating}
+        className="mt-2 inline-flex h-8 items-center gap-1.5 rounded border border-indigo-200 bg-white px-3 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"
+      >
+        {generating ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />} Generate with AI
+      </button>
+      {error && <p className="mt-2 text-[11px] font-medium text-rose-600">{error}</p>}
     </div>
   );
 }
@@ -71,6 +103,7 @@ export default function ManpowerRequestsTab({ formOnly = false, requestId }: { f
   const router = useRouter();
   const qc = useQueryClient();
   const [form, setForm] = useState(empty);
+  const [customPrompt, setCustomPrompt] = useState('');
   const set = (patch: Partial<ReturnType<typeof empty>>) => setForm((current) => ({ ...current, ...patch }));
   const { data: existing } = useQuery<any>({ queryKey: ['manpower-request', requestId], queryFn: async () => (await api.get(`/hiring/manpower-request/${requestId}`)).data, enabled: Boolean(requestId) });
   const { data: requests = [] } = useQuery<any[]>({ queryKey: ['manpower-requests'], queryFn: async () => (await api.get('/hiring/manpower-request')).data });
@@ -86,10 +119,11 @@ export default function ManpowerRequestsTab({ formOnly = false, requestId }: { f
     jobTitle: form.jobTitle,
     designation: form.designation,
     departmentName: departments.find((d) => d._id === form.departmentId)?.name,
+    customPrompt: customPrompt.trim() || undefined,
   });
 
-  const generateJd = useMutation({
-    mutationFn: async () => (await api.post('/ai/hiring/generate-jd', aiRoleContext())).data,
+  const generateJdKra = useMutation({
+    mutationFn: async () => (await api.post('/ai/hiring/generate-jd-kra', aiRoleContext())).data,
     onSuccess: (data) => set({
       jobDescriptionSummary: data.jobDescriptionSummary,
       keyResponsibilitiesText: (data.keyResponsibilities || []).join('\n'),
@@ -97,11 +131,8 @@ export default function ManpowerRequestsTab({ formOnly = false, requestId }: { f
       experienceReq: data.experienceReq,
       technicalSkills: data.technicalSkills,
       softSkills: data.softSkills,
+      kraReport: data.kraReport,
     }),
-  });
-  const generateKra = useMutation({
-    mutationFn: async () => (await api.post('/ai/hiring/generate-kra', aiRoleContext())).data,
-    onSuccess: (data) => set({ kraReport: data.kraReport }),
   });
   const saveJdToLibrary = useMutation({
     mutationFn: async () => (await api.post('/jd-library', {
@@ -191,7 +222,16 @@ export default function ManpowerRequestsTab({ formOnly = false, requestId }: { f
     <form className="mt-4 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm" onSubmit={(event) => { event.preventDefault(); create.mutate(); }}>
       <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-4"><div className="flex items-center gap-3 text-base font-bold text-[#073a69]"><ClipboardList size={19} /> For Internal Use — HR & Recruitment Department</div><Button type="button" variant="outline" onClick={() => setForm(empty())}><RotateCcw size={15} className="mr-2" /> Reset</Button></div>
       <Section number="1" title="Department & Position Details"><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><Field title="Department" required><select required className={input} value={form.departmentId} onChange={(e) => set({ departmentId: e.target.value })}><option value="">Select department</option>{departments.map((item) => <option key={item._id} value={item._id}>{item.name}</option>)}</select></Field><Field title="Date of Request" required><input required type="date" className={input} value={form.requestDate} onChange={(e) => set({ requestDate: e.target.value })} /></Field><Field title="Branch" required><select required className={input} value={form.locationBranchId} onChange={(e) => { const branch = branches.find((item) => item._id === e.target.value); set({ locationBranchId: e.target.value, workLocation: branchLocation(branch) }); }}><option value="">Select branch</option>{branches.map((item) => <option key={item._id} value={item._id}>{item.name}</option>)}</select></Field><Field title="Work Location" required><input required readOnly className={`${input} bg-slate-100 text-slate-600`} value={form.workLocation} placeholder="Auto-filled from selected branch" /></Field><Field title="Number of Positions" required><input required min="1" type="number" className={input} value={form.numberOfPositions} onChange={(e) => set({ numberOfPositions: e.target.value })} /></Field><Field title="Position / Job Title" required><select required className={input} value={form.jobTitle} onChange={(e) => set({ jobTitle: e.target.value, designation: e.target.options[e.target.selectedIndex].text })}><option value="">Select position</option>{filteredDesignations.map((item) => <option key={item._id} value={item.name}>{item.name}</option>)}</select></Field><Field title="Reporting To" required><select required className={input} value={form.reportingTo} onChange={(e) => set({ reportingTo: e.target.value })}><option value="">Select employee</option>{employeeOptions}</select></Field><Field title="Requested By"><select className={input} value={form.budgetApprovedBy} onChange={(e) => set({ budgetApprovedBy: e.target.value })}><option value="">Select employee</option>{employeeOptions}</select></Field><Field title="Employment Type" wide><CheckGroup values={form.employmentTypes} onChange={(employmentTypes) => set({ employmentTypes })} options={['Full-time', 'Contract', 'Temporary', 'Internship']} /></Field></div></Section>
-      <Section number="2" title="Hiring Need & Job Description"><div><span className={label}>Reason for Hiring</span><CheckGroup values={form.hiringReasons} onChange={(hiringReasons) => set({ hiringReasons })} options={['New Position', 'Replacement', 'Expansion', 'Urgent Operational Need', 'Project Requirement']} /></div><div className="mt-4 grid gap-4 md:grid-cols-2"><Field title="Replacement Employee Name"><input className={input} value={form.replacementName} onChange={(e) => set({ replacementName: e.target.value })} /></Field><Field title="Detailed Justification" required><input required className={input} value={form.detailedJustification} onChange={(e) => set({ detailedJustification: e.target.value })} /></Field><Field title="Job Description Summary" wide><LibraryAndAiControls libraryItems={jdLibrary} generating={generateJd.isPending} canSave={Boolean(form.jobDescriptionSummary)} onGenerate={() => generateJd.mutate()} onSaveToLibrary={() => saveJdToLibrary.mutate()} onPick={(item) => set({ jobDescriptionSummary: item.jobDescriptionSummary || '', keyResponsibilitiesText: (item.keyResponsibilities || []).join('\n'), qualificationReq: item.qualificationReq || form.qualificationReq, experienceReq: item.experienceReq || form.experienceReq, technicalSkills: item.technicalSkills || form.technicalSkills, softSkills: item.softSkills || form.softSkills })} /><textarea className={textArea} value={form.jobDescriptionSummary} onChange={(e) => set({ jobDescriptionSummary: e.target.value })} /></Field><Field title="KRA / Key Result Areas" wide><LibraryAndAiControls libraryItems={kpaLibrary} generating={generateKra.isPending} canSave={Boolean(form.kraReport)} onGenerate={() => generateKra.mutate()} onSaveToLibrary={() => saveKraToLibrary.mutate()} onPick={(item) => set({ kraReport: item.kraReport || '' })} /><textarea className={textArea} value={form.kraReport} onChange={(e) => set({ kraReport: e.target.value })} /></Field><Field title="Key Responsibilities — one per line" wide><textarea className={textArea} value={form.keyResponsibilitiesText} onChange={(e) => set({ keyResponsibilitiesText: e.target.value })} /></Field></div></Section>
+      <Section number="2" title="Hiring Need & Job Description"><div><span className={label}>Reason for Hiring</span><CheckGroup values={form.hiringReasons} onChange={(hiringReasons) => set({ hiringReasons })} options={['New Position', 'Replacement', 'Expansion', 'Urgent Operational Need', 'Project Requirement']} /></div><div className="mt-4 grid gap-4 md:grid-cols-2"><Field title="Replacement Employee Name"><input className={input} value={form.replacementName} onChange={(e) => set({ replacementName: e.target.value })} /></Field><Field title="Detailed Justification" required><input required className={input} value={form.detailedJustification} onChange={(e) => set({ detailedJustification: e.target.value })} /></Field></div>
+        <div className="mt-4">
+          <AiGenerateBar customPrompt={customPrompt} onCustomPromptChange={setCustomPrompt} generating={generateJdKra.isPending} onGenerate={() => generateJdKra.mutate()} error={(generateJdKra.error as any)?.response?.data?.message} />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field title="Job Description Summary" wide><LibraryControls libraryItems={jdLibrary} label="Pick from library…" canSave={Boolean(form.jobDescriptionSummary)} onSaveToLibrary={() => saveJdToLibrary.mutate()} onPick={(item) => set({ jobDescriptionSummary: item.jobDescriptionSummary || '', keyResponsibilitiesText: (item.keyResponsibilities || []).join('\n'), qualificationReq: item.qualificationReq || form.qualificationReq, experienceReq: item.experienceReq || form.experienceReq, technicalSkills: item.technicalSkills || form.technicalSkills, softSkills: item.softSkills || form.softSkills })} /><textarea className={textArea} value={form.jobDescriptionSummary} onChange={(e) => set({ jobDescriptionSummary: e.target.value })} /></Field>
+          <Field title="KRA / Key Result Areas" wide><LibraryControls libraryItems={kpaLibrary} label="Pick from library…" canSave={Boolean(form.kraReport)} onSaveToLibrary={() => saveKraToLibrary.mutate()} onPick={(item) => set({ kraReport: item.kraReport || '' })} /><textarea className={textArea} value={form.kraReport} onChange={(e) => set({ kraReport: e.target.value })} /></Field>
+          <Field title="Key Responsibilities — one per line" wide><textarea className={textArea} value={form.keyResponsibilitiesText} onChange={(e) => set({ keyResponsibilitiesText: e.target.value })} /></Field>
+        </div>
+      </Section>
       <Section number="3" title="Candidate Requirement"><div className="grid gap-4 md:grid-cols-2"><Field title="Qualification Requirement"><textarea className={textArea} value={form.qualificationReq} onChange={(e) => set({ qualificationReq: e.target.value })} /></Field><Field title="Experience Requirement"><textarea className={textArea} value={form.experienceReq} onChange={(e) => set({ experienceReq: e.target.value })} /></Field><Field title="Technical Skills"><textarea className={textArea} value={form.technicalSkills} onChange={(e) => set({ technicalSkills: e.target.value })} /></Field><Field title="Soft Skills"><textarea className={textArea} value={form.softSkills} onChange={(e) => set({ softSkills: e.target.value })} /></Field></div></Section>
       <Section number="4" title="Budget, Benefits & Timeline"><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><Field title="CTC From"><input type="number" className={input} value={form.salaryCtcMin} onChange={(e) => set({ salaryCtcMin: e.target.value })} /></Field><Field title="CTC To"><input type="number" className={input} value={form.salaryCtcMax} onChange={(e) => set({ salaryCtcMax: e.target.value })} /></Field><Field title="Budget Approved By"><select className={input} value={form.budgetApprovedBy} onChange={(e) => set({ budgetApprovedBy: e.target.value })}><option value="">Select employee</option>{employeeOptions}</select></Field><Field title="Required Joining Date"><input type="date" className={input} value={form.requiredJoiningDate} onChange={(e) => set({ requiredJoiningDate: e.target.value })} /></Field><Field title="Benefits" wide><CheckGroup values={form.benefits} onChange={(benefits) => set({ benefits })} options={['PF', 'ESIC', 'Incentives', 'Travel Allowance', 'Accommodation', 'Other']} /></Field><Field title="Other Benefits" wide><input className={input} value={form.otherBenefits} onChange={(e) => set({ otherBenefits: e.target.value })} /></Field></div><label className="mt-4 flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={form.isUrgent} onChange={(e) => set({ isUrgent: e.target.checked })} /> This is an urgent requirement.</label></Section>
       <Section number="5" title="HR Use & Declaration"><div className="grid gap-4 md:grid-cols-3"><Field title="Request Received On"><input type="date" className={input} value={form.requestReceivedOn} onChange={(e) => set({ requestReceivedOn: e.target.value })} /></Field><Field title="Recruitment Start Date"><input type="date" className={input} value={form.recruitmentStartDate} onChange={(e) => set({ recruitmentStartDate: e.target.value })} /></Field><Field title="Recruitment Status"><select className={input} value={form.recruitmentStatus} onChange={(e) => set({ recruitmentStatus: e.target.value })}><option>Pending</option><option>In Progress</option><option>On Hold</option><option>Completed</option></select></Field></div><label className="mt-5 flex items-start gap-2 text-sm text-slate-700"><input required type="checkbox" checked={form.declarationAccepted} onChange={(e) => set({ declarationAccepted: e.target.checked })} className="mt-1" />I confirm that this manpower requirement is essential for operational/project needs and budget has been considered.</label></Section>

@@ -60,6 +60,7 @@ export default function ResumeScreeningPanel({ candidateId, resumeUrl }: { candi
     try {
       const data = new FormData();
       data.append('file', file);
+      data.append('documentLabel', 'Resume');
       const uploadRes = await api.post('/upload', data, { headers: { 'Content-Type': 'multipart/form-data' } });
       await api.put(`/hiring/candidates/${candidateId}/status`, { resumeUrl: uploadRes.data.url });
       queryClient.invalidateQueries({ queryKey: ['candidate', candidateId] });

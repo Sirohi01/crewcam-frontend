@@ -16,6 +16,7 @@ export default function SuperAdminAiProvidersPage() {
   const [tenantId, setTenantId] = useState('');
   const [providers, setProviders] = useState<any[]>([]);
   const [drafts, setDrafts] = useState<Record<string, { apiKey: string; model: string }>>({});
+  const [customModelProviders, setCustomModelProviders] = useState<Record<string, boolean>>({});
   const [savingProvider, setSavingProvider] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -32,6 +33,14 @@ export default function SuperAdminAiProvidersPage() {
       setDrafts((prev) => {
         const next = { ...prev };
         (res.data || []).forEach((p: any) => { next[p.provider] = { apiKey: '', model: p.model }; });
+        return next;
+      });
+      setCustomModelProviders((prev) => {
+        const next = { ...prev };
+        (res.data || []).forEach((p: any) => {
+          const knownValues = (p.availableModels || []).map((m: any) => m.value);
+          next[p.provider] = !knownValues.includes(p.model);
+        });
         return next;
       });
     } finally {
@@ -116,12 +125,34 @@ export default function SuperAdminAiProvidersPage() {
                   </p>
 
                   <div className="space-y-1.5">
-                    <label className="block text-[11px] font-md text-zinc-700">Model</label>
-                    <input
-                      value={draft.model}
-                      onChange={(e) => setDrafts((prev) => ({ ...prev, [p.provider]: { ...prev[p.provider], model: e.target.value } }))}
-                      className="w-full border border-zinc-200 rounded-md text-xs px-3 py-1.5"
-                    />
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[11px] font-md text-zinc-700">Model</label>
+                      <button
+                        type="button"
+                        className="text-[10px] text-indigo-600 hover:underline"
+                        onClick={() => setCustomModelProviders((prev) => ({ ...prev, [p.provider]: !prev[p.provider] }))}
+                      >
+                        {customModelProviders[p.provider] ? 'Choose from list' : 'Use custom model name'}
+                      </button>
+                    </div>
+                    {customModelProviders[p.provider] ? (
+                      <input
+                        value={draft.model}
+                        placeholder="e.g. gpt-4.1-nano"
+                        onChange={(e) => setDrafts((prev) => ({ ...prev, [p.provider]: { ...prev[p.provider], model: e.target.value } }))}
+                        className="w-full border border-zinc-200 rounded-md text-xs px-3 py-1.5"
+                      />
+                    ) : (
+                      <select
+                        value={draft.model}
+                        onChange={(e) => setDrafts((prev) => ({ ...prev, [p.provider]: { ...prev[p.provider], model: e.target.value } }))}
+                        className="w-full border border-zinc-200 rounded-md text-xs px-3 py-1.5"
+                      >
+                        {(p.availableModels || []).map((m: any) => (
+                          <option key={m.value} value={m.value}>{m.label}</option>
+                        ))}
+                      </select>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">

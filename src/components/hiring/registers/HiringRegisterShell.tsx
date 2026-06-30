@@ -3,9 +3,9 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, ExternalLink, RefreshCw, ChevronLeft, ChevronRight, Eye, Edit2, Trash2, ArrowUpDown, X, UserRound, ArrowRight, ShieldCheck, FileText } from 'lucide-react';
+import { Search, ExternalLink, RefreshCw, ChevronLeft, ChevronRight, Eye, Edit2, Trash2, ArrowUpDown, X, UserRound, ArrowRight, ShieldCheck, FileText, CheckCircle, XCircle } from 'lucide-react';
 import api from '@/lib/axios';
-import { getHiringStepById } from '@/lib/hiringSteps';
+import { getHiringStepById, HIRING_STEPS } from '@/lib/hiringSteps';
 import { openFileUrl } from '@/lib/fileUrls';
 import { Button } from '@/components/ui/button';
 
@@ -36,6 +36,23 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const step = getHiringStepById(stepId);
+  const currentIndex = HIRING_STEPS.findIndex((s) => s.id === stepId);
+  const nextStep = currentIndex !== -1 && currentIndex < HIRING_STEPS.length - 1 ? HIRING_STEPS[currentIndex + 1] : null;
+
+  const proceedToNextStep = async (row: any) => {
+    if (!nextStep) return;
+    if (nextStep.entityField === 'employeeId') {
+      const employeeId = idOf(row.employeeId) || (step?.entityField === 'employeeId' ? idOf(row[step?.entityField]) : null);
+      if (employeeId) {
+        const response = await api.get(`/hiring/employees/${employeeId}/candidate`);
+        router.push(`/dashboard/hiring/${response.data.candidateId}/steps/${nextStep.id}`);
+        return;
+      }
+    }
+    const candidateId = idOf(row.candidateId) || (step?.entityField === 'candidateId' ? idOf(row[step?.entityField]) : null);
+    if (!candidateId) return;
+    router.push(`/dashboard/hiring/${candidateId}/steps/${nextStep.id}`);
+  };
   const [search, setSearch] = useState('');
   const [pageSize, setPageSize] = useState(5);
   const [page, setPage] = useState(1);
@@ -237,11 +254,26 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                             <FileText size={13} />
                           </button>
                         )}
-                        {(step.postCreateActions || []).map((action) => (
-                          <button key={action.label} onClick={() => actionMutation.mutate({ recordId: row._id, action })} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded transition-colors flex items-center gap-1" title={action.label}>
-                            <ShieldCheck size={13} />
+                        {(step.postCreateActions || []).map((action) => {
+                          const lower = action.label.toLowerCase();
+                          const isApprove = lower.includes('approve') || lower.includes('accept') || lower.includes('confirm') || lower.includes('verify') || lower.includes('issue');
+                          const isReject = lower.includes('reject') || lower.includes('decline') || lower.includes('terminate');
+                          return (
+                            <button 
+                              key={action.label} 
+                              onClick={() => actionMutation.mutate({ recordId: row._id, action })} 
+                              className={`p-1.5 rounded transition-colors flex items-center gap-1 ${isApprove ? 'text-emerald-600 hover:bg-emerald-50' : isReject ? 'text-red-600 hover:bg-red-50' : 'text-indigo-600 hover:bg-indigo-50'}`} 
+                              title={action.label}
+                            >
+                              {isApprove ? <CheckCircle size={13} /> : isReject ? <XCircle size={13} /> : <ShieldCheck size={13} />}
+                            </button>
+                          );
+                        })}
+                        {nextStep && (
+                          <button onClick={() => proceedToNextStep(row)} className="p-1.5 text-zinc-600 hover:bg-zinc-100 rounded transition-colors flex items-center gap-1" title="Proceed to Next Step">
+                            <ArrowRight size={13} />
                           </button>
-                        ))}
+                        )}
                       </div>
                     </td>
                   </tr>
