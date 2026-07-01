@@ -373,7 +373,7 @@ export default function EmployeesPage() {
         </div>
       </div>
 
-      {error && <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">{error}</div>}
+      {!modalItem && !deleteItem && error && <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">{error}</div>}
 
       <div className="grid grid-cols-1 gap-4">
         <Card className="border-zinc-200 shadow-sm dark:border-zinc-800">
@@ -453,7 +453,8 @@ export default function EmployeesPage() {
       </div>
 
       {modalItem && (
-        <Modal title={`${modalItem._id ? 'Edit' : 'Add Legacy/Direct'} Employee`} busy={saving} onClose={() => setModalItem(null)} onSubmit={submit}>
+        <Modal title={`${modalItem._id ? 'Edit' : 'Add Legacy/Direct'} Employee`} busy={saving} onClose={() => { setModalItem(null); setError(''); }} onSubmit={submit}>
+          {error && <div className="mb-3 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">{error}</div>}
           <div className="mb-2 bg-amber-50 border border-amber-200 text-amber-800 px-3 py-1.5 rounded-md flex items-start gap-2">
             <AlertTriangle size={13} className="mt-0.5 shrink-0" />
             <div className="text-[10px] leading-relaxed">
@@ -716,7 +717,8 @@ export default function EmployeesPage() {
       )}
 
       {deleteItem && (
-        <ConfirmModal busy={saving} title={`Deactivate ${deleteItem.firstName}?`} onCancel={() => setDeleteItem(null)} onConfirm={executeDelete}>
+        <ConfirmModal busy={saving} title={`Deactivate ${deleteItem.firstName}?`} onCancel={() => { setDeleteItem(null); setError(''); }} onConfirm={executeDelete}>
+          {error && <div className="mb-4 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">{error}</div>}
           This will move the employee to the ex-employee list and deactivate their system access immediately.
         </ConfirmModal>
       )}

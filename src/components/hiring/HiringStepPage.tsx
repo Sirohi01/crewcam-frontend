@@ -333,7 +333,7 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
       queryClient.invalidateQueries({ queryKey: ['candidate-hiring-profile', candidateId] });
       queryClient.invalidateQueries({ queryKey: ['hiring-step-records', step?.id, entityId] });
       if (step) {
-        router.push(`/dashboard/hiring/steps/${step.id}`);
+        router.push(`/dashboard/hiring/candidates`);
       }
     },
     onError: (error: any) => {
