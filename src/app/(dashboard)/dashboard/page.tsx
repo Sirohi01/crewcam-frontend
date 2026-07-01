@@ -357,6 +357,13 @@ function ImportantAlertsCards() {
           <h3 className="text-sm font-semibold text-zinc-900">Important Alerts</h3>
           <div className="flex items-center gap-2 shrink-0">
             <Link
+              href="/dashboard/hod-dashboard"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 hover:border-emerald-300 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="14" x="4" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+              HOD Dashboard
+            </Link>
+            <Link
               href="/dashboard/hr-dashboard"
               className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700 hover:bg-amber-100 hover:border-amber-300 transition-colors"
             >
