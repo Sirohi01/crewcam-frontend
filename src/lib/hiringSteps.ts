@@ -47,12 +47,12 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     id: 'evaluation', stepKey: 'interviewEvaluation', step: 2, phase: 'Offer & Legal', title: 'Interview Evaluation Sheet',
     apiPath: '/hiring/evaluation', entityField: 'candidateId', hasPdf: true,
     listColumns: [
-      { key: 'candidateId.name', label: 'Candidate Name' },
-      { key: 'candidateId.jobRole', label: 'Position' },
-      { key: 'candidateId.mobileNumber', label: 'Phone Number' },
-      { key: 'candidateId.email', label: 'Email' },
-      { key: 'candidateId.department', label: 'Department' },
-      { key: 'createdAt', label: 'Interview Date' },
+      { key: 'candidateSnapshot.name', label: 'Candidate Name' },
+      { key: 'candidateSnapshot.position', label: 'Position' },
+      { key: 'candidateSnapshot.phone', label: 'Phone Number' },
+      { key: 'candidateSnapshot.email', label: 'Email' },
+      { key: 'department', label: 'Department' },
+      { key: 'candidateSnapshot.interviewDate', label: 'Interview Date' },
       { key: 'updatedAt', label: 'Last Update' }
     ],
     fields: [

@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StepGate from './StepGate';
 import StepChecklist from './StepChecklist';
+import toast from 'react-hot-toast';
 
 const inputClass = 'w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950';
 
@@ -332,12 +333,13 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
       queryClient.invalidateQueries({ queryKey: ['candidate-pipeline', candidateId] });
       queryClient.invalidateQueries({ queryKey: ['candidate-hiring-profile', candidateId] });
       queryClient.invalidateQueries({ queryKey: ['hiring-step-records', step?.id, entityId] });
+      toast.success(`${step?.title || 'Step'} saved successfully!`);
       if (step) {
-        router.push(`/dashboard/hiring/candidates`);
+        router.push(`/dashboard/hiring/${candidateId}`);
       }
     },
     onError: (error: any) => {
-      window.alert(error?.response?.data?.message || error?.response?.data?.error || `Unable to save ${step?.title || 'this record'}`);
+      toast.error(error?.response?.data?.message || error?.response?.data?.error || `Unable to save ${step?.title || 'this record'}`);
     },
   });
 
@@ -352,9 +354,10 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
       queryClient.invalidateQueries({ queryKey: ['candidate-pipeline', candidateId] });
       queryClient.invalidateQueries({ queryKey: ['candidate-hiring-profile', candidateId] });
       queryClient.invalidateQueries({ queryKey: ['hiring-step-records', step?.id, entityId] });
+      toast.success('Action completed successfully!');
     },
     onError: (error: any) => {
-      window.alert(error?.response?.data?.message || error?.response?.data?.error || `Unable to complete this action for ${step?.title || 'this record'}`);
+      toast.error(error?.response?.data?.message || error?.response?.data?.error || `Unable to complete this action for ${step?.title || 'this record'}`);
     },
   });
 
@@ -364,8 +367,9 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
       queryClient.invalidateQueries({ queryKey: ['candidate-pipeline', candidateId] });
       queryClient.invalidateQueries({ queryKey: ['hiring-step-records', step?.id, entityId] });
       queryClient.invalidateQueries({ queryKey: ['candidate-hiring-profile', candidateId] });
+      toast.success('LOI status updated successfully!');
     },
-    onError: (error: any) => window.alert(error?.response?.data?.message || 'Unable to update LOI status'),
+    onError: (error: any) => toast.error(error?.response?.data?.message || 'Unable to update LOI status'),
   });
 
   const pdfMutation = useMutation({
@@ -386,7 +390,7 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
   const locked = step.entityField === 'employeeId' ? !entityId : stepState?.gate.unlocked === false;
 
   return (
-    <div className="mx-auto flex max-w-[1300px] flex-col gap-4 pb-8">
+    <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-10 px-2 lg:px-4">
       <div className="flex items-center justify-between border-b border-zinc-200 pb-3 dark:border-zinc-800">
         <Button variant="ghost" className="h-8 gap-2 px-2 text-xs" onClick={() => router.push(`/dashboard/hiring/${candidateId}`)}>
           <ArrowLeft size={14} /> Candidate Workflow

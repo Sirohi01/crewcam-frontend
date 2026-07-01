@@ -552,7 +552,7 @@ export default function EmployeesPage() {
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <Select label="System Access Role" value={formData.roleId} options={roles} onChange={(value) => setFormData({ ...formData, roleId: value })} />
-                  <Field label={modalItem._id ? 'Reset Password' : 'Temporary Password'} type="password" value={formData.password} onChange={(value) => setFormData({ ...formData, password: value })} required={!modalItem._id} placeholder={modalItem._id ? "Leave blank to keep unchanged" : "Must contain 8 chars, 1 Uppercase, 1 Number"} />
+                  <Field label={modalItem._id ? 'Reset Password' : 'Temporary Password'} type="password" autoComplete="new-password" value={formData.password} onChange={(value) => setFormData({ ...formData, password: value })} required={!modalItem._id} placeholder={modalItem._id ? "Leave blank to keep unchanged" : "Must contain 8 chars, 1 Uppercase, 1 Number"} />
                 </div>
                 <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 space-y-2">
                   <h3 className="text-xs font-semibold text-zinc-900">Work & HR Compliance Policies</h3>

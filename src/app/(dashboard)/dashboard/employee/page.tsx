@@ -2,6 +2,8 @@
 
 import React, { useRef, useState } from 'react';
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/axios';
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import {
   Calendar, Plane, Target,Upload, Download, Camera, IdCard, Briefcase, UserRound, AtSign, Phone, MapPin, CalendarDays, ArrowRight, Plus,
@@ -428,30 +430,30 @@ function MyTasks() {
 // Profile card + Quick Actions
 // ─────────────────────────────────────────────────────────────────────────────
 
-function ProfileCard() {
+function ProfileCard({ emp = employee }: { emp?: any }) {
   const details = [
-    { icon: IdCard, label: 'Employee ID', value: employee.employeeId },
-    { icon: Briefcase, label: 'Department', value: employee.department },
-    { icon: UserRound, label: 'Reporting Manager', value: employee.reportingManager },
-    { icon: AtSign, label: 'Email', value: employee.email },
-    { icon: Phone, label: 'Phone', value: employee.phone },
-    { icon: MapPin, label: 'Location', value: employee.location },
-    { icon: CalendarDays, label: 'Date of Joining', value: employee.dateOfJoining },
+    { icon: IdCard, label: 'Employee ID', value: emp.employeeId },
+    { icon: Briefcase, label: 'Department', value: emp.department },
+    { icon: UserRound, label: 'Reporting Manager', value: emp.reportingManager },
+    { icon: AtSign, label: 'Email', value: emp.email },
+    { icon: Phone, label: 'Phone', value: emp.phone },
+    { icon: MapPin, label: 'Location', value: emp.location },
+    { icon: CalendarDays, label: 'Date of Joining', value: emp.dateOfJoining },
   ];
 
   return (
     <div className="rounded-xl border border-violet-200/60 bg-gradient-to-br from-violet-600 to-indigo-600 p-4 text-white shadow-sm h-full flex flex-col">
       <div className="flex flex-col items-center text-center pt-3">
         <div className="relative">
-          <img src={employee.avatar} alt={employee.name} className="h-20 w-20 rounded-full border-4 border-white/40 object-cover shadow-lg" />
+          <img src={emp.avatar} alt={emp.name} className="h-20 w-20 rounded-full border-4 border-white/40 object-cover shadow-lg" />
           <button className="absolute bottom-0.5 right-0.5 grid h-6 w-6 place-items-center rounded-full bg-white text-violet-600 shadow-sm hover:bg-violet-50">
             <Camera size={12} />
           </button>
         </div>
-        <p className="mt-3 text-[15px] font-bold leading-tight">{employee.name}</p>
+        <p className="mt-3 text-[15px] font-bold leading-tight">{emp.name}</p>
         <div className="mt-1 flex items-center gap-1.5">
-          <span className="text-[11px] text-white/80">{employee.role}</span>
-          <span className="rounded-full bg-emerald-400/25 px-2 py-0.5 text-[9px] font-semibold text-emerald-200">{employee.status}</span>
+          <span className="text-[11px] text-white/80">{emp.role}</span>
+          <span className="rounded-full bg-emerald-400/25 px-2 py-0.5 text-[9px] font-semibold text-emerald-200">{emp.status}</span>
         </div>
       </div>
 
@@ -660,6 +662,38 @@ function BirthdaysAnniversaries() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function EmployeeDashboard() {
+  const { data: currentEmployeeData, isLoading } = useQuery({
+    queryKey: ['current-employee'],
+    queryFn: async () => {
+      const res = await api.get('/employees/current');
+      return res.data.data;
+    }
+  });
+
+  if (isLoading) {
+    return <div className="p-4 text-sm text-zinc-500">Loading dashboard...</div>;
+  }
+
+  const currentEmployee = currentEmployeeData || {};
+
+  const mappedEmployee = {
+    name: currentEmployee.firstName ? `${currentEmployee.firstName} ${currentEmployee.lastName}` : employee.name,
+    role: currentEmployee.designationId?.name || employee.role,
+    status: currentEmployee.employmentStatus === 'active' ? 'Active' : employee.status,
+    employeeId: currentEmployee.employeeCode || employee.employeeId,
+    department: currentEmployee.departmentId?.name || employee.department,
+    reportingManager: currentEmployee.reportingToId 
+      ? `${currentEmployee.reportingToId.firstName} ${currentEmployee.reportingToId.lastName}`
+      : employee.reportingManager,
+    email: currentEmployee.email || employee.email,
+    phone: currentEmployee.mobileNumber || employee.phone,
+    location: currentEmployee.branchId?.name || employee.location,
+    dateOfJoining: currentEmployee.dateOfJoining 
+      ? new Date(currentEmployee.dateOfJoining).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+      : employee.dateOfJoining,
+    avatar: currentEmployee.profilePictureUrl || employee.avatar,
+  };
+
   return (
     <div className="mx-auto max-w-[1500px] space-y-2 p-3">
       <StatsStrip />
@@ -667,7 +701,7 @@ export default function EmployeeDashboard() {
       {/* Merged rows: ProfileCard spans 2 rows, others fill 3 cols × 2 rows */}
       <div className="grid grid-cols-1 gap-2 xl:grid-cols-4 xl:grid-rows-2">
         <div className="xl:row-span-2">
-          <ProfileCard />
+          <ProfileCard emp={mappedEmployee} />
         </div>
         <MyAttendance />
         <UpcomingEvents />

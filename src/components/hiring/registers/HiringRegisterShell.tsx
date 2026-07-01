@@ -346,6 +346,16 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
 
             <div className="max-h-[60vh] overflow-y-auto divide-y divide-slate-50">
               {people
+                .filter((candidate) => {
+                  const existingIds = new Set(
+                    records.map((row) =>
+                      step?.entityField === 'employeeId'
+                        ? idOf(row.employeeId) || idOf(row.empCode)
+                        : idOf(row.candidateId)
+                    ).filter(Boolean)
+                  );
+                  return !existingIds.has(String(candidate._id));
+                })
                 .filter((candidate) => `${candidate.firstName} ${candidate.lastName} ${candidate.jobRole || candidate.employeeCode || ''} ${candidate.email}`.toLowerCase().includes(candidateSearch.toLowerCase()))
                 .map((candidate) => (
                   <button
