@@ -48,7 +48,7 @@ type Application = typeof base.applicationDetails;
 function Section({ number, title, children }: { number: string; title: string; children: React.ReactNode }) {
   return (
     <section className="border-b border-slate-200 px-5 py-4 last:border-0 hover:bg-slate-50/30 transition-colors">
-      <h2 className="mb-4 text-[11px] font-bold uppercase tracking-wider text-[#0d3c68]">{number}. {title}</h2>
+      <h2 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[#0d3c68]">{number}. {title}</h2>
       {children}
     </section>
   );
@@ -181,7 +181,7 @@ export default function CandidateCreateForm() {
 
       {/* Header Section */}
       <div className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden ">
-        <div className="bg-slate-50 px-4 py-4 flex flex-col gap-1.5">
+        <div className="bg-slate-50 px-4 py-4 flex flex-col gap-1">
           <div className="flex items-center gap-3">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#0d3c68] border-b-2 border-[#0d3c68] pb-0.5">
               CANDIDATE APPLICATION & INTERVIEW INTAKE
@@ -196,7 +196,7 @@ export default function CandidateCreateForm() {
         <form onSubmit={(event) => { event.preventDefault(); create.mutate(); }}>
           <Section number="1" title="Resume & Photo">
             <p className="mb-3 text-[11px] text-slate-500">Attach the resume first — AI will read it and auto-fill as much of the form below as it can find. Always review the auto-filled details before submitting.</p>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-2 md:grid-cols-2">
               <Field label="Resume (PDF/DOCX)">
                 <label className="mt-1 flex cursor-pointer items-center gap-2 rounded-[2px] border border-dashed border-slate-300 px-3 py-2 text-xs"><FileUp size={14} /><span>{uploading === 'resume' ? 'Uploading...' : resumeName || (form.resumeUrl ? 'Resume attached' : 'Attach resume')}</span>{form.resumeUrl && <CheckCircle2 size={14} className="text-emerald-600" />}<input className="hidden" type="file" accept=".pdf,.docx" onChange={(e) => upload('resume', e)} /></label>
                 {resumeReview && (
@@ -253,7 +253,7 @@ export default function CandidateCreateForm() {
           </Section>
 
           <Section number="3" title="Personal & Contact Details">
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
               <Field label="Title"><select className={input} value={form.applicationDetails.title} onChange={(e) => updateApplication({ title: e.target.value })}><option value="">Select</option><option>Mr.</option><option>Ms.</option><option>Mrs.</option><option>Dr.</option></select></Field>
               <Field label="First Name" required><input required className={input} value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} /></Field>
               <Field label="Last Name" required><input required className={input} value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} /></Field>
@@ -271,7 +271,7 @@ export default function CandidateCreateForm() {
           </Section>
 
           <Section number="4" title="Application Details">
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
               <Field label="Role Applied For" required><input required className={input} value={form.jobRole} onChange={(e) => setForm({ ...form, jobRole: e.target.value })} /></Field>
               <Field label="Candidate Type"><select className={input} value={form.applicationDetails.candidateType} onChange={(e) => updateApplication({ candidateType: e.target.value })}><option>Experienced</option><option>Fresher</option></select></Field>
               <Field label="Source"><select className={input} value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })}><option value="">Select source</option><option>LinkedIn</option><option>Referral</option><option>Website</option><option>Agency</option><option>Walk-In</option><option>Other</option></select></Field>
