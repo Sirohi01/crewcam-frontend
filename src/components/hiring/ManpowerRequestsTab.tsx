@@ -219,77 +219,77 @@ export default function ManpowerRequestsTab({ formOnly = false, requestId }: { f
   return <>
     {formOnly && <style>{`.manpower-form-only > section { display: none; }`}</style>}
     <div className={`w-full max-w-[1400px] mx-auto space-y-2 mb-10${formOnly ? ' manpower-form-only' : ''}`}>
-    {/* Header Section */}
-    <div className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden">
-      <div className="bg-slate-50 px-4 py-4 flex flex-col gap-1.5">
-        <div className="flex items-center gap-3">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[#0d3c68] border-b-2 border-[#0d3c68] pb-0.5">MANPOWER REQUISITION FORM</span>
+      {/* Header Section */}
+      <div className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-slate-50 px-4 py-4 flex flex-col gap-1.5">
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#0d3c68] border-b-2 border-[#0d3c68] pb-0.5">MANPOWER REQUISITION FORM</span>
+          </div>
+          <p className="text-[11px] text-slate-500 mt-1">Create a complete approved requirement before candidates can be added.</p>
         </div>
-        <p className="text-[11px] text-slate-500 mt-1">Create a complete approved requirement before candidates can be added.</p>
       </div>
-    </div>
-    <form className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden mx-2" onSubmit={(event) => { event.preventDefault(); create.mutate(); }}>
-      <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3"><div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-[#0d3c68]"><ClipboardList size={14} /> For Internal Use — HR &amp; Recruitment Department</div><Button type="button" variant="outline" className="h-7 px-3 rounded-[2px] border-slate-300 text-[11px] font-bold uppercase tracking-wider text-slate-700" onClick={() => setForm(empty())}><RotateCcw size={12} className="mr-2" /> Reset</Button></div>
-      <Section number="1" title="Department & Position Details"><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><Field title="Department" required><select required className={input} value={form.departmentId} onChange={(e) => set({ departmentId: e.target.value })}><option value="">Select department</option>{departments.map((item) => <option key={item._id} value={item._id}>{item.name}</option>)}</select></Field><Field title="Date of Request" required><input required type="date" className={input} value={form.requestDate} onChange={(e) => set({ requestDate: e.target.value })} /></Field><Field title="Branch" required><select required className={input} value={form.locationBranchId} onChange={(e) => { const branch = branches.find((item) => item._id === e.target.value); set({ locationBranchId: e.target.value, workLocation: branchLocation(branch) }); }}><option value="">Select branch</option>{branches.map((item) => <option key={item._id} value={item._id}>{item.name}</option>)}</select></Field><Field title="Work Location" required><input required readOnly className={`${input} bg-slate-100 text-slate-600`} value={form.workLocation} placeholder="Auto-filled from selected branch" /></Field><Field title="Number of Positions" required><input required min="1" type="number" className={input} value={form.numberOfPositions} onChange={(e) => set({ numberOfPositions: e.target.value })} /></Field><Field title="Position / Job Title" required><select required className={input} value={form.jobTitle} onChange={(e) => set({ jobTitle: e.target.value, designation: e.target.options[e.target.selectedIndex].text })}><option value="">Select position</option>{filteredDesignations.map((item) => <option key={item._id} value={item.name}>{item.name}</option>)}</select></Field><Field title="Reporting To" required><select required className={input} value={form.reportingTo} onChange={(e) => set({ reportingTo: e.target.value })}><option value="">Select employee</option>{employeeOptions}</select></Field><Field title="Requested By"><select className={input} value={form.budgetApprovedBy} onChange={(e) => set({ budgetApprovedBy: e.target.value })}><option value="">Select employee</option>{employeeOptions}</select></Field><Field title="Employment Type" wide><CheckGroup values={form.employmentTypes} onChange={(employmentTypes) => set({ employmentTypes })} options={['Full-time', 'Contract', 'Temporary', 'Internship']} /></Field></div></Section>
-      <Section number="2" title="Hiring Need & Job Description"><div><span className={label}>Reason for Hiring</span><CheckGroup values={form.hiringReasons} onChange={(hiringReasons) => set({ hiringReasons })} options={['New Position', 'Replacement', 'Expansion', 'Urgent Operational Need', 'Project Requirement']} /></div><div className="mt-4 grid gap-4 md:grid-cols-2"><Field title="Replacement Employee Name"><input className={input} value={form.replacementName} onChange={(e) => set({ replacementName: e.target.value })} /></Field><Field title="Detailed Justification" required><input required className={input} value={form.detailedJustification} onChange={(e) => set({ detailedJustification: e.target.value })} /></Field></div>
-        <div className="mt-4">
-          <AiGenerateBar customPrompt={customPrompt} onCustomPromptChange={setCustomPrompt} generating={generateJdKra.isPending} onGenerate={() => generateJdKra.mutate()} error={(generateJdKra.error as any)?.response?.data?.message} />
+      <form className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden mx-2" onSubmit={(event) => { event.preventDefault(); create.mutate(); }}>
+        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3"><div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-[#0d3c68]"><ClipboardList size={14} /> For Internal Use — HR &amp; Recruitment Department</div><Button type="button" variant="outline" className="h-7 px-3 rounded-[2px] border-slate-300 text-[11px] font-bold uppercase tracking-wider text-slate-700" onClick={() => setForm(empty())}><RotateCcw size={12} className="mr-2" /> Reset</Button></div>
+        <Section number="1" title="Department & Position Details"><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><Field title="Department" required><select required className={input} value={form.departmentId} onChange={(e) => set({ departmentId: e.target.value })}><option value="">Select department</option>{departments.map((item) => <option key={item._id} value={item._id}>{item.name}</option>)}</select></Field><Field title="Date of Request" required><input required type="date" className={input} value={form.requestDate} onChange={(e) => set({ requestDate: e.target.value })} /></Field><Field title="Branch" required><select required className={input} value={form.locationBranchId} onChange={(e) => { const branch = branches.find((item) => item._id === e.target.value); set({ locationBranchId: e.target.value, workLocation: branchLocation(branch) }); }}><option value="">Select branch</option>{branches.map((item) => <option key={item._id} value={item._id}>{item.name}</option>)}</select></Field><Field title="Work Location" required><input required readOnly className={`${input} bg-slate-100 text-slate-600`} value={form.workLocation} placeholder="Auto-filled from selected branch" /></Field><Field title="Number of Positions" required><input required min="1" type="number" className={input} value={form.numberOfPositions} onChange={(e) => set({ numberOfPositions: e.target.value })} /></Field><Field title="Position / Job Title" required><select required className={input} value={form.jobTitle} onChange={(e) => set({ jobTitle: e.target.value, designation: e.target.options[e.target.selectedIndex].text })}><option value="">Select position</option>{filteredDesignations.map((item) => <option key={item._id} value={item.name}>{item.name}</option>)}</select></Field><Field title="Reporting To" required><select required className={input} value={form.reportingTo} onChange={(e) => set({ reportingTo: e.target.value })}><option value="">Select employee</option>{employeeOptions}</select></Field><Field title="Requested By"><select className={input} value={form.budgetApprovedBy} onChange={(e) => set({ budgetApprovedBy: e.target.value })}><option value="">Select employee</option>{employeeOptions}</select></Field><Field title="Employment Type" wide><CheckGroup values={form.employmentTypes} onChange={(employmentTypes) => set({ employmentTypes })} options={['Full-time', 'Contract', 'Temporary', 'Internship']} /></Field></div></Section>
+        <Section number="2" title="Hiring Need & Job Description"><div><span className={label}>Reason for Hiring</span><CheckGroup values={form.hiringReasons} onChange={(hiringReasons) => set({ hiringReasons })} options={['New Position', 'Replacement', 'Expansion', 'Urgent Operational Need', 'Project Requirement']} /></div><div className="mt-4 grid gap-4 md:grid-cols-2"><Field title="Replacement Employee Name"><input className={input} value={form.replacementName} onChange={(e) => set({ replacementName: e.target.value })} /></Field><Field title="Detailed Justification" required><input required className={input} value={form.detailedJustification} onChange={(e) => set({ detailedJustification: e.target.value })} /></Field></div>
+          <div className="mt-4">
+            <AiGenerateBar customPrompt={customPrompt} onCustomPromptChange={setCustomPrompt} generating={generateJdKra.isPending} onGenerate={() => generateJdKra.mutate()} error={(generateJdKra.error as any)?.response?.data?.message} />
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field title="Job Description Summary" wide><LibraryControls libraryItems={jdLibrary} label="Pick from library…" canSave={Boolean(form.jobDescriptionSummary)} onSaveToLibrary={() => saveJdToLibrary.mutate()} onPick={(item) => set({ jobDescriptionSummary: item.jobDescriptionSummary || '', keyResponsibilitiesText: (item.keyResponsibilities || []).join('\n'), qualificationReq: item.qualificationReq || form.qualificationReq, experienceReq: item.experienceReq || form.experienceReq, technicalSkills: item.technicalSkills || form.technicalSkills, softSkills: item.softSkills || form.softSkills })} /><textarea className={textArea} value={form.jobDescriptionSummary} onChange={(e) => set({ jobDescriptionSummary: e.target.value })} /></Field>
+            <Field title="KRA / Key Result Areas" wide><LibraryControls libraryItems={kpaLibrary} label="Pick from library…" canSave={Boolean(form.kraReport)} onSaveToLibrary={() => saveKraToLibrary.mutate()} onPick={(item) => set({ kraReport: item.kraReport || '' })} /><textarea className={textArea} value={form.kraReport} onChange={(e) => set({ kraReport: e.target.value })} /></Field>
+            <Field title="Key Responsibilities — one per line" wide><textarea className={textArea} value={form.keyResponsibilitiesText} onChange={(e) => set({ keyResponsibilitiesText: e.target.value })} /></Field>
+          </div>
+        </Section>
+        <Section number="3" title="Candidate Requirement"><div className="grid gap-4 md:grid-cols-2"><Field title="Qualification Requirement"><textarea className={textArea} value={form.qualificationReq} onChange={(e) => set({ qualificationReq: e.target.value })} /></Field><Field title="Experience Requirement"><textarea className={textArea} value={form.experienceReq} onChange={(e) => set({ experienceReq: e.target.value })} /></Field><Field title="Technical Skills"><textarea className={textArea} value={form.technicalSkills} onChange={(e) => set({ technicalSkills: e.target.value })} /></Field><Field title="Soft Skills"><textarea className={textArea} value={form.softSkills} onChange={(e) => set({ softSkills: e.target.value })} /></Field></div></Section>
+        <Section number="4" title="Budget, Benefits & Timeline"><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><Field title="CTC From"><input type="number" className={input} value={form.salaryCtcMin} onChange={(e) => set({ salaryCtcMin: e.target.value })} /></Field><Field title="CTC To"><input type="number" className={input} value={form.salaryCtcMax} onChange={(e) => set({ salaryCtcMax: e.target.value })} /></Field><Field title="Budget Approved By"><select className={input} value={form.budgetApprovedBy} onChange={(e) => set({ budgetApprovedBy: e.target.value })}><option value="">Select employee</option>{employeeOptions}</select></Field><Field title="Required Joining Date"><input type="date" className={input} value={form.requiredJoiningDate} onChange={(e) => set({ requiredJoiningDate: e.target.value })} /></Field><Field title="Benefits" wide><CheckGroup values={form.benefits} onChange={(benefits) => set({ benefits })} options={['PF', 'ESIC', 'Incentives', 'Travel Allowance', 'Accommodation', 'Other']} /></Field><Field title="Other Benefits" wide><input className={input} value={form.otherBenefits} onChange={(e) => set({ otherBenefits: e.target.value })} /></Field></div><label className="mt-4 flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={form.isUrgent} onChange={(e) => set({ isUrgent: e.target.checked })} /> This is an urgent requirement.</label></Section>
+        <Section number="5" title="HR Use & Declaration"><div className="grid gap-4 md:grid-cols-3"><Field title="Request Received On"><input type="date" className={input} value={form.requestReceivedOn} onChange={(e) => set({ requestReceivedOn: e.target.value })} /></Field><Field title="Recruitment Start Date"><input type="date" className={input} value={form.recruitmentStartDate} onChange={(e) => set({ recruitmentStartDate: e.target.value })} /></Field><Field title="Recruitment Status"><select className={input} value={form.recruitmentStatus} onChange={(e) => set({ recruitmentStatus: e.target.value })}><option>Pending</option><option>In Progress</option><option>On Hold</option><option>Completed</option></select></Field></div><label className="mt-5 flex items-start gap-2 text-sm text-slate-700"><input required type="checkbox" checked={form.declarationAccepted} onChange={(e) => set({ declarationAccepted: e.target.checked })} className="mt-1" />I confirm that this manpower requirement is essential for operational/project needs and budget has been considered.</label></Section>
+        <div className="flex justify-end border-t border-slate-200 bg-slate-50 px-5 py-3"><Button type="submit" className="bg-[#0d3c68] hover:bg-[#0a2e50] text-white rounded-[2px] h-8 text-[11px] font-bold uppercase tracking-wider px-6" disabled={create.isPending}><Save size={14} className="mr-2" />{create.isPending ? 'Saving…' : 'Save Requisition'}</Button></div>
+      </form>
+      <section className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden mx-2">
+        <div className="bg-slate-50 px-3 py-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[#0d3c68] border-b-2 border-[#0d3c68] pb-0.5">MANPOWER REQUISITION REGISTER</span>
+          <p className="text-xs text-slate-500">Approve a request before adding candidates.</p>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <Field title="Job Description Summary" wide><LibraryControls libraryItems={jdLibrary} label="Pick from library…" canSave={Boolean(form.jobDescriptionSummary)} onSaveToLibrary={() => saveJdToLibrary.mutate()} onPick={(item) => set({ jobDescriptionSummary: item.jobDescriptionSummary || '', keyResponsibilitiesText: (item.keyResponsibilities || []).join('\n'), qualificationReq: item.qualificationReq || form.qualificationReq, experienceReq: item.experienceReq || form.experienceReq, technicalSkills: item.technicalSkills || form.technicalSkills, softSkills: item.softSkills || form.softSkills })} /><textarea className={textArea} value={form.jobDescriptionSummary} onChange={(e) => set({ jobDescriptionSummary: e.target.value })} /></Field>
-          <Field title="KRA / Key Result Areas" wide><LibraryControls libraryItems={kpaLibrary} label="Pick from library…" canSave={Boolean(form.kraReport)} onSaveToLibrary={() => saveKraToLibrary.mutate()} onPick={(item) => set({ kraReport: item.kraReport || '' })} /><textarea className={textArea} value={form.kraReport} onChange={(e) => set({ kraReport: e.target.value })} /></Field>
-          <Field title="Key Responsibilities — one per line" wide><textarea className={textArea} value={form.keyResponsibilitiesText} onChange={(e) => set({ keyResponsibilitiesText: e.target.value })} /></Field>
-        </div>
-      </Section>
-      <Section number="3" title="Candidate Requirement"><div className="grid gap-4 md:grid-cols-2"><Field title="Qualification Requirement"><textarea className={textArea} value={form.qualificationReq} onChange={(e) => set({ qualificationReq: e.target.value })} /></Field><Field title="Experience Requirement"><textarea className={textArea} value={form.experienceReq} onChange={(e) => set({ experienceReq: e.target.value })} /></Field><Field title="Technical Skills"><textarea className={textArea} value={form.technicalSkills} onChange={(e) => set({ technicalSkills: e.target.value })} /></Field><Field title="Soft Skills"><textarea className={textArea} value={form.softSkills} onChange={(e) => set({ softSkills: e.target.value })} /></Field></div></Section>
-      <Section number="4" title="Budget, Benefits & Timeline"><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><Field title="CTC From"><input type="number" className={input} value={form.salaryCtcMin} onChange={(e) => set({ salaryCtcMin: e.target.value })} /></Field><Field title="CTC To"><input type="number" className={input} value={form.salaryCtcMax} onChange={(e) => set({ salaryCtcMax: e.target.value })} /></Field><Field title="Budget Approved By"><select className={input} value={form.budgetApprovedBy} onChange={(e) => set({ budgetApprovedBy: e.target.value })}><option value="">Select employee</option>{employeeOptions}</select></Field><Field title="Required Joining Date"><input type="date" className={input} value={form.requiredJoiningDate} onChange={(e) => set({ requiredJoiningDate: e.target.value })} /></Field><Field title="Benefits" wide><CheckGroup values={form.benefits} onChange={(benefits) => set({ benefits })} options={['PF', 'ESIC', 'Incentives', 'Travel Allowance', 'Accommodation', 'Other']} /></Field><Field title="Other Benefits" wide><input className={input} value={form.otherBenefits} onChange={(e) => set({ otherBenefits: e.target.value })} /></Field></div><label className="mt-4 flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={form.isUrgent} onChange={(e) => set({ isUrgent: e.target.checked })} /> This is an urgent requirement.</label></Section>
-      <Section number="5" title="HR Use & Declaration"><div className="grid gap-4 md:grid-cols-3"><Field title="Request Received On"><input type="date" className={input} value={form.requestReceivedOn} onChange={(e) => set({ requestReceivedOn: e.target.value })} /></Field><Field title="Recruitment Start Date"><input type="date" className={input} value={form.recruitmentStartDate} onChange={(e) => set({ recruitmentStartDate: e.target.value })} /></Field><Field title="Recruitment Status"><select className={input} value={form.recruitmentStatus} onChange={(e) => set({ recruitmentStatus: e.target.value })}><option>Pending</option><option>In Progress</option><option>On Hold</option><option>Completed</option></select></Field></div><label className="mt-5 flex items-start gap-2 text-sm text-slate-700"><input required type="checkbox" checked={form.declarationAccepted} onChange={(e) => set({ declarationAccepted: e.target.checked })} className="mt-1" />I confirm that this manpower requirement is essential for operational/project needs and budget has been considered.</label></Section>
-      <div className="flex justify-end border-t border-slate-200 bg-slate-50 px-5 py-3"><Button type="submit" className="bg-[#0d3c68] hover:bg-[#0a2e50] text-white rounded-[2px] h-8 text-[11px] font-bold uppercase tracking-wider px-6" disabled={create.isPending}><Save size={14} className="mr-2" />{create.isPending ? 'Saving…' : 'Save Requisition'}</Button></div>
-    </form>
-    <section className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden mx-2">
-      <div className="bg-slate-50 px-3 py-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-[#0d3c68] border-b-2 border-[#0d3c68] pb-0.5">MANPOWER REQUISITION REGISTER</span>
-        <p className="text-xs text-slate-500">Approve a request before adding candidates.</p>
-      </div>
-      <div className="overflow-x-auto p-4">
-        <div className="border border-slate-200 rounded-[2px]">
-          <table className="w-full min-w-[1050px] text-left text-[11px] whitespace-nowrap">
-            <thead className="bg-[#111] text-white">
-              <tr>
-                <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Request Date</th>
-                <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Position</th>
-                <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Department</th>
-                <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Positions</th>
-                <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Joining Date</th>
-                <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Priority</th>
-                <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Status</th>
-                <th className="px-3 py-1.5 font-bold uppercase tracking-wider text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {requests.map((request) => (
-                <tr key={request._id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-3 py-2 border-r border-slate-100">{request.requestDate ? new Date(request.requestDate).toLocaleDateString() : '—'}</td>
-                  <td className="px-3 py-2 border-r border-slate-100 font-semibold">{request.jobTitle}<span className="block font-normal text-slate-500">{request.designation || ''}</span></td>
-                  <td className="px-3 py-2 border-r border-slate-100">{request.departmentId?.name || '—'}</td>
-                  <td className="px-3 py-2 border-r border-slate-100">{request.numberOfPositions}</td>
-                  <td className="px-3 py-2 border-r border-slate-100">{request.requiredJoiningDate ? new Date(request.requiredJoiningDate).toLocaleDateString() : '—'}</td>
-                  <td className="px-3 py-2 border-r border-slate-100">{request.priority}</td>
-                  <td className="px-3 py-2 border-r border-slate-100"><span className="rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-700">{request.status}</span></td>
-                  <td className="px-3 py-2 text-right">
-                    <div className="flex justify-end gap-2">
-                      {request.status === 'Pending' && <><Button size="sm" className="h-7 rounded-[2px] bg-[#0d3c68] text-white hover:bg-[#0a2e50] px-3 text-[10px] font-bold uppercase" onClick={() => changeStatus.mutate({ id: request._id, status: 'Approved' })}>Approve</Button><Button size="sm" variant="outline" className="h-7 rounded-[2px] border-slate-300 px-3 text-[10px] font-bold uppercase text-slate-700" onClick={() => changeStatus.mutate({ id: request._id, status: 'Rejected' })}>Reject</Button></>}
-                      <Button size="sm" variant="outline" className="h-7 rounded-[2px] border-slate-300 px-3 text-[10px] font-bold uppercase text-slate-700" onClick={() => generatePdf.mutate(request._id)} disabled={generatePdf.isPending}><FileText size={12} className="mr-1" />PDF</Button>
-                    </div>
-                  </td>
+        <div className="overflow-x-auto p-4">
+          <div className="border border-slate-200 rounded-[2px]">
+            <table className="w-full min-w-[1050px] text-left text-[11px] whitespace-nowrap">
+              <thead className="bg-[#111] text-white">
+                <tr>
+                  <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Request Date</th>
+                  <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Position</th>
+                  <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Department</th>
+                  <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Positions</th>
+                  <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Joining Date</th>
+                  <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Priority</th>
+                  <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Status</th>
+                  <th className="px-3 py-1.5 font-bold uppercase tracking-wider text-right">Actions</th>
                 </tr>
-              ))}
-              {!requests.length && <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-500 text-sm">No manpower requisitions created yet.</td></tr>}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {requests.map((request) => (
+                  <tr key={request._id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-3 py-2 border-r border-slate-100">{request.requestDate ? new Date(request.requestDate).toLocaleDateString() : '—'}</td>
+                    <td className="px-3 py-2 border-r border-slate-100 font-semibold">{request.jobTitle}<span className="block font-normal text-slate-500">{request.designation || ''}</span></td>
+                    <td className="px-3 py-2 border-r border-slate-100">{request.departmentId?.name || '—'}</td>
+                    <td className="px-3 py-2 border-r border-slate-100">{request.numberOfPositions}</td>
+                    <td className="px-3 py-2 border-r border-slate-100">{request.requiredJoiningDate ? new Date(request.requiredJoiningDate).toLocaleDateString() : '—'}</td>
+                    <td className="px-3 py-2 border-r border-slate-100">{request.priority}</td>
+                    <td className="px-3 py-2 border-r border-slate-100"><span className="rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-700">{request.status}</span></td>
+                    <td className="px-3 py-2 text-right">
+                      <div className="flex justify-end gap-2">
+                        {request.status === 'Pending' && <><Button size="sm" className="h-7 rounded-[2px] bg-[#0d3c68] text-white hover:bg-[#0a2e50] px-3 text-[10px] font-bold uppercase" onClick={() => changeStatus.mutate({ id: request._id, status: 'Approved' })}>Approve</Button><Button size="sm" variant="outline" className="h-7 rounded-[2px] border-slate-300 px-3 text-[10px] font-bold uppercase text-slate-700" onClick={() => changeStatus.mutate({ id: request._id, status: 'Rejected' })}>Reject</Button></>}
+                        <Button size="sm" variant="outline" className="h-7 rounded-[2px] border-slate-300 px-3 text-[10px] font-bold uppercase text-slate-700" onClick={() => generatePdf.mutate(request._id)} disabled={generatePdf.isPending}><FileText size={12} className="mr-1" />PDF</Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {!requests.length && <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-500 text-sm">No manpower requisitions created yet.</td></tr>}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
-    </section>
-  </div>
+      </section>
+    </div>
   </>;
 }
