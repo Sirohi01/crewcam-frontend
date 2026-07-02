@@ -76,7 +76,7 @@ interface DashboardData {
   delayedPercent: number;
   performanceAvg: number;
   employees: EmployeeRow[];
-  performanceTrend: { date: string; [key: string]: string | number }[];
+  performanceTrend: { date: string;[key: string]: string | number }[];
   taskStatusSummary: { label: string; value: number; percent: number; color: string }[];
   totalTasksSummary: number;
   tasksDueThisWeek: { label: string; value: number; icon: string; color: string }[];
@@ -158,7 +158,7 @@ async function fetchDashboardData(rangeLabel: string): Promise<DashboardData> {
       { id: 't2', title: 'Submit monthly attendance report', assignee: 'Aman Kumar', priority: 'Medium', dueTime: '01:00 PM', done: false },
       { id: 't3', title: 'Client call — ERP Integration status', assignee: 'Rahul Verma', priority: 'High', dueTime: '03:30 PM', done: false },
       { id: 't4', title: 'Update onboarding checklist', assignee: 'Sneha Patel', priority: 'Low', dueTime: '05:00 PM', done: true },
-      { id: 't5', title: 'Approve pending leave requests', assignee: 'Vikram Joshi', priority: 'Medium', dueTime: '06:00 PM', done: false },
+      //   { id: 't5', title: 'Approve pending leave requests', assignee: 'Vikram Joshi', priority: 'Medium', dueTime: '06:00 PM', done: false },
     ],
     teamAvailability: [
       { id: 'm1', name: 'Priya Singh', status: 'Available' },
@@ -267,15 +267,14 @@ function Avatar({ name, size = 28 }: { name: string; size?: number }) {
 }
 
 export default function ManagerDashboardPage() {
-  const [range, setRange] = useState<'today' | 'week' | 'month' | 'custom'>('month');
-
+  const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const { data, isLoading } = useQuery<DashboardData>({
-    queryKey: ['manager', 'dashboard-stats', range],
-    queryFn: () => fetchDashboardData(RANGE_LABELS[range]),
+    queryKey: ['manager', 'dashboard-stats', date],
+    queryFn: () => fetchDashboardData(date),
   });
 
   return (
-    <div className="flex flex-col gap-4 animate-in fade-in duration-300 pb-6 max-w-[1400px] mx-auto">
+    <div className="flex flex-col gap-4 animate-in fade-in duration-300 p-3 pb-6 max-w-[1400px] mx-auto">
 
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-2">
@@ -285,11 +284,13 @@ export default function ManagerDashboardPage() {
           </h1>
           <p className="text-[12px] text-zinc-500">Here's the all overview of your department.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="h-9 flex items-center gap-2 px-3 border border-zinc-200 rounded-md text-xs font-medium text-zinc-700 bg-white hover:bg-zinc-50">
-            <Calendar size={13} />
-            {RANGE_LABELS[range]}
-          </button>
+        <div className="flex items-center gap-2 relative">
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="h-9 flex items-center gap-2 px-3 border border-zinc-200 rounded-md text-xs font-medium text-zinc-700 bg-white hover:bg-zinc-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+          />
         </div>
       </div>
 
@@ -317,9 +318,9 @@ export default function ManagerDashboardPage() {
         <Card className="border-zinc-200/80 shadow-sm dark:border-zinc-800 rounded-lg h-[300px] flex flex-col">
           <CardHeader className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800/50 bg-zinc-50/50 dark:bg-zinc-900/30 flex flex-row items-center justify-between shrink-0">
             <CardTitle className="text-[12px] font-semibold">Task Completion Overview</CardTitle>
-            <span className="text-[10px] text-zinc-400">{RANGE_LABELS[range]}</span>
+            <span className="text-[10px] text-zinc-400">{date}</span>
           </CardHeader>
-          <CardContent className="p-3 flex-1 flex items-center gap-3 overflow-hidden">
+          <CardContent className="p-3 flex-1 flex items-center justify-center gap-6 overflow-hidden">
             <div className="relative h-[130px] w-[130px] shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -344,10 +345,10 @@ export default function ManagerDashboardPage() {
                 <span className="text-[9px] text-zinc-400">Total Tasks</span>
               </div>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2.5">
               {(data?.taskOverview ?? []).map((t, i) => (
-                <div key={i} className="flex items-center gap-1.5 text-[11px]">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.color }} />
+                <div key={i} className="flex items-center gap-2 text-[11px] w-[110px]">
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: t.color }} />
                   <span className="text-zinc-600">{t.name}</span>
                   <span className="font-medium text-zinc-900 ml-auto">{t.value}</span>
                 </div>
@@ -410,7 +411,6 @@ export default function ManagerDashboardPage() {
 
       {/* Employee tables */}
       <div className="grid grid-cols-3 gap-3">
-
         <Card className="border-zinc-200/80 shadow-sm dark:border-zinc-800 rounded-lg h-[300px] flex flex-col">
           <CardHeader className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800/50 bg-zinc-50/50 dark:bg-zinc-900/30 flex flex-row items-center justify-between shrink-0">
             <CardTitle className="text-[12px] font-semibold">Employees Who Complete Tasks On Time</CardTitle>
@@ -499,7 +499,6 @@ export default function ManagerDashboardPage() {
 
       {/* NEW: Team Members Availability / Upcoming Meetings / HOD-Manager Feedback */}
       <div className="grid grid-cols-3 gap-3">
-
         <Card className="border-zinc-200/80 shadow-sm dark:border-zinc-800 rounded-lg h-[300px] flex flex-col">
           <CardHeader className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800/50 bg-zinc-50/50 dark:bg-zinc-900/30 flex flex-row items-center justify-between shrink-0">
             <CardTitle className="text-[12px] font-semibold">Team Members Availability</CardTitle>
@@ -592,11 +591,11 @@ export default function ManagerDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-zinc-200/80 shadow-sm dark:border-zinc-800 rounded-lg h-[260px] flex flex-col col-span-2">
+        <Card className="border-zinc-200/80 shadow-sm dark:border-zinc-800 rounded-lg h-[260px] flex flex-col">
           <CardHeader className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800/50 bg-zinc-50/50 dark:bg-zinc-900/30 shrink-0">
             <CardTitle className="text-[12px] font-semibold">Quick Actions</CardTitle>
           </CardHeader>
-          <CardContent className="p-3 flex-1 grid grid-cols-5 gap-2 content-center">
+          <CardContent className="p-3 flex-1 grid grid-cols-3 gap-2 content-center">
             <QuickAction icon={<FolderPlus size={16} />} label="Add Project" color="text-indigo-500 bg-indigo-50" />
             <QuickAction icon={<ClipboardCheck size={16} />} label="Assign Task" color="text-blue-500 bg-blue-50" />
             <QuickAction icon={<PlaneTakeoff size={16} />} label="Approve Leave" color="text-emerald-500 bg-emerald-50" />
