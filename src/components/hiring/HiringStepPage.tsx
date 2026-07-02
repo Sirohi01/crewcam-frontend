@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { z } from 'zod';
 import { useForm, useFieldArray, FieldValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -224,6 +224,8 @@ function ArrayFieldEditor({ field, control, register, setValue, employees = [] }
 
 export default function HiringStepPage({ candidateId, stepId }: { candidateId: string; stepId: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
   const queryClient = useQueryClient();
   const step = getHiringStepById(stepId);
 
@@ -325,6 +327,65 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
     });
     form.reset(values);
   }, [form, hiringProfile, step]);
+
+  // When editing an existing record from the register table (?edit=recordId),
+  // override the form with the saved record's exact field values.
+  React.useEffect(() => {
+    if (!editId || !step || records.length === 0) return;
+    const record = records.find((r: any) => r._id === editId);
+    if (!record) return;
+
+    const flattenRecord = (obj: any, prefix = ''): Record<string, any> => {
+      const result: Record<string, any> = {};
+      for (const [key, value] of Object.entries(obj)) {
+        if (['_id', '__v', 'tenantId', 'createdAt', 'updatedAt'].includes(key)) continue;
+        const fullKey = prefix ? `${prefix}.${key}` : key;
+        if (value !== null && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
+          Object.assign(result, flattenRecord(value as any, fullKey));
+        } else {
+          result[fullKey] = value;
+        }
+      }
+      return result;
+    };
+
+    const flat = flattenRecord(record);
+    const values: Record<string, any> = defaultValuesFor(step);
+
+    // Populate scalar fields from the saved record
+    for (const field of step.fields) {
+      const val = flat[field.name];
+      if (val === undefined || val === null) continue;
+      const parts = field.name.split('.');
+      let cursor = values;
+      parts.slice(0, -1).forEach((part) => { cursor[part] = cursor[part] || {}; cursor = cursor[part]; });
+      const isDate = /date$/i.test(parts[parts.length - 1]);
+      cursor[parts[parts.length - 1]] = isDate && typeof val === 'string' && /^\d{4}-\d{2}-\d{2}/.test(val) ? val.slice(0, 10) : val;
+    }
+
+    // Populate array fields from the saved record
+    for (const arrayField of step.arrayFields || []) {
+      const arr = record[arrayField.name];
+      if (!Array.isArray(arr)) continue;
+      if (arrayField.scalarArray) {
+        values[arrayField.name] = arr.map((item: any) => ({ value: String(item) }));
+      } else {
+        values[arrayField.name] = arr.map((item: any) => {
+          const row: Record<string, any> = {};
+          for (const subField of arrayField.subFields) {
+            const rawVal = item[subField.name];
+            row[subField.name] = rawVal !== undefined && rawVal !== null
+              ? (typeof rawVal === 'object' && rawVal._id ? rawVal._id : rawVal)
+              : '';
+          }
+          return row;
+        });
+      }
+    }
+
+    form.reset(values);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId, records, step]);
   const annualCtc = Number(form.watch('annualCTC') || 0);
   const monthlyGross = annualCtc > 0 ? annualCtc / 12 : 0;
 
@@ -332,13 +393,17 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
     mutationFn: async (values: FieldValues) => {
       if (!step || !entityId) throw new Error('Step is not ready');
       const payload = normalizePayload(values, step, entityId);
+      if (editId) {
+        return (await api.put(`${step.apiPath}/${editId}`, payload)).data;
+      }
       return (await api.post(step.apiPath, payload)).data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['candidate-pipeline', candidateId] });
       queryClient.invalidateQueries({ queryKey: ['candidate-hiring-profile', candidateId] });
       queryClient.invalidateQueries({ queryKey: ['hiring-step-records', step?.id, entityId] });
-      toast.success(`${step?.title || 'Step'} saved successfully!`);
+      queryClient.invalidateQueries({ queryKey: ['hiring-register', step?.apiPath] });
+      toast.success(`${step?.title || 'Step'} ${editId ? 'updated' : 'saved'} successfully!`);
       if (step) {
         router.push(`/dashboard/hiring/steps/${step.id}`);
       }
@@ -407,8 +472,9 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
         <div className="space-y-4">
           <Card className="rounded-md border-zinc-200/80 shadow-sm dark:border-zinc-800">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Step {step.step}. {step.title}</CardTitle>
+              <CardTitle className="text-base">Step {step.step}. {step.title}{editId ? ' — Editing Record' : ''}</CardTitle>
               {candidate && <div className="text-xs text-zinc-500">{candidate.firstName} {candidate.lastName} · {candidate.jobRole} · {candidate.email}</div>}
+              {editId && <div className="mt-1 rounded-md bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs text-amber-700">You are editing an existing record. Changes will update the saved entry.</div>}
             </CardHeader>
             <CardContent>
               {locked ? (
@@ -461,7 +527,7 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
                   ))}
 
                   <Button type="submit" disabled={createMutation.isPending} className="gap-2 bg-zinc-900 text-white hover:bg-zinc-800">
-                    <Save size={16} /> {createMutation.isPending ? 'Saving...' : 'Save Step Record'}
+                    <Save size={16} /> {createMutation.isPending ? (editId ? 'Updating...' : 'Saving...') : (editId ? 'Update Record' : 'Save Step Record')}
                   </Button>
                 </form>
               )}
