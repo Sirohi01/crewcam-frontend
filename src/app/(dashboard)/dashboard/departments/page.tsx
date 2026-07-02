@@ -172,7 +172,7 @@ export default function DepartmentsPage() {
                         <td className="px-5 py-3">
                           <AuditInfo item={item} />
                         </td>
-                        <td className="px-5 py-3 text-right">
+                        <td className="px-5 py-3 text-center">
                           <div className="flex justify-end gap-2 transition-opacity">
                             <button onClick={() => openEdit(item)} className="text-zinc-500 hover:text-indigo-600 p-1 rounded"><Edit2 size={14} /></button>
                             <button onClick={() => setDeleteConfirm({ id: item._id, name: item.name })} className="text-rose-500 hover:text-rose-700 p-1 rounded"><Trash2 size={14} /></button>

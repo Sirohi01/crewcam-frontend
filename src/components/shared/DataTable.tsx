@@ -275,7 +275,7 @@ export function DataTable<T extends { id?: string | number; _id?: string | numbe
                   </div>
                 </th>
               ))}
-              {showActions && <th className={cn(TH_BASE, 'text-center')} style={{ width: '120px' }}>Action</th>}
+              {showActions && <th className={cn(TH_BASE, 'text-center')} style={{ width: '120px' }}><div className="flex items-center justify-center">Action</div></th>}
             </tr>
 
           </thead>

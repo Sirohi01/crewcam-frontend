@@ -283,6 +283,11 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
     const position = joining.positionDetails || {};
 
     const shared = {
+      candidateName: `${profileCandidate.firstName || ''} ${profileCandidate.lastName || ''}`.trim(),
+      employeeName: `${profileCandidate.firstName || ''} ${profileCandidate.lastName || ''}`.trim(),
+      department: manpower.departmentName || position.department || '',
+      position: manpower.designation || position.designation || profileCandidate.jobRole || '',
+      workLocation: manpower.workLocation || position.workLocation || '',
       designation: manpower.designation || loi.designation || position.designation || profileCandidate.jobRole || '',
       jobRole: manpower.designation || position.designation || profileCandidate.jobRole || '',
       proposedCTC: selection.proposedCTC || ctc.annualCTC || evaluation.proposedSalaryMax || '',
@@ -335,7 +340,7 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
       queryClient.invalidateQueries({ queryKey: ['hiring-step-records', step?.id, entityId] });
       toast.success(`${step?.title || 'Step'} saved successfully!`);
       if (step) {
-        router.push(`/dashboard/hiring/${candidateId}`);
+        router.push(`/dashboard/hiring/steps/${step.id}`);
       }
     },
     onError: (error: any) => {

@@ -19,7 +19,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <DashboardTopbar />
 
           {/* Page Content */}
-          <div className="flex-1 overflow-auto bg-slate-50/20 p-0">
+          <div className="flex-1 overflow-auto bg-slate-50/20 p-2">
             {children}
           </div>
         </main>

@@ -236,7 +236,7 @@ export default function BannersPage() {
                 <th className="px-3 py-2 text-right font-semibold w-24">
                   Status <SortBtn col="isActive" />
                 </th>
-                <th className="px-3 py-2 text-right font-semibold w-20">Action</th>
+                <th className="px-3 py-2 text-center font-semibold w-20">Action</th>
               </tr>
             </thead>
 

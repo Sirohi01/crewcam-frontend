@@ -267,7 +267,7 @@ export default function ManpowerRequestsTab({ formOnly = false, requestId }: { f
                   <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Joining Date</th>
                   <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Priority</th>
                   <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Status</th>
-                  <th className="px-3 py-1.5 font-bold uppercase tracking-wider text-right">Actions</th>
+                  <th className="px-3 py-1.5 font-bold uppercase tracking-wider text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -280,7 +280,7 @@ export default function ManpowerRequestsTab({ formOnly = false, requestId }: { f
                     <td className="px-3 py-2 border-r border-slate-100">{request.requiredJoiningDate ? new Date(request.requiredJoiningDate).toLocaleDateString() : '—'}</td>
                     <td className="px-3 py-2 border-r border-slate-100">{request.priority}</td>
                     <td className="px-3 py-2 border-r border-slate-100"><span className="rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-700">{request.status}</span></td>
-                    <td className="px-3 py-2 text-right">
+                    <td className="px-3 py-2 text-center">
                       <div className="flex justify-end gap-2">
                         {request.status === 'Pending' && <><Button size="sm" className="h-7 rounded-[2px] bg-[#0d3c68] text-white hover:bg-[#0a2e50] px-3 text-[10px] font-bold uppercase" onClick={() => changeStatus.mutate({ id: request._id, status: 'Approved' })}>Approve</Button><Button size="sm" variant="outline" className="h-7 rounded-[2px] border-slate-300 px-3 text-[10px] font-bold uppercase text-slate-700" onClick={() => changeStatus.mutate({ id: request._id, status: 'Rejected' })}>Reject</Button></>}
                         <Button size="sm" variant="outline" className="h-7 rounded-[2px] border-slate-300 px-3 text-[10px] font-bold uppercase text-slate-700" onClick={() => generatePdf.mutate(request._id)} disabled={generatePdf.isPending}><FileText size={12} className="mr-1" />PDF</Button>
