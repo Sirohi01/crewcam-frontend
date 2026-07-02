@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, ExternalLink, RefreshCw, ChevronLeft, ChevronRight, Eye, Edit2, Trash2, ArrowUpDown, X, UserRound, ArrowRight, ShieldCheck, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { Search, ExternalLink, RefreshCw, ChevronLeft, ChevronRight, Eye, Edit2, Trash2, ArrowUpDown, ArrowUp, ArrowDown, X, UserRound, ArrowRight, ShieldCheck, FileText, CheckCircle, XCircle } from 'lucide-react';
 import api from '@/lib/axios';
 import { getHiringStepById, HIRING_STEPS } from '@/lib/hiringSteps';
 import { openFileUrl } from '@/lib/fileUrls';
@@ -57,10 +57,13 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
   const [pageSize, setPageSize] = useState(5);
   const [page, setPage] = useState(1);
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [candidateSearch, setCandidateSearch] = useState('');
   const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
+  const [selectedRowIds, setSelectedRowIds] = useState<Set<string>>(new Set());
 
   const { data: people = [] } = useQuery<any[]>({
     queryKey: ['hiring-register-people', step?.entityField],
@@ -153,8 +156,48 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
     return searchMatch && columnMatch;
   });
 
-  const totalPages = Math.ceil(filteredData.length / pageSize) || 1;
-  const paginatedData = filteredData.slice((page - 1) * pageSize, page * pageSize);
+  const sortedData = sortKey
+    ? [...filteredData].sort((a, b) => {
+        const aVal = String(nestedValue(a, sortKey) ?? '').toLowerCase();
+        const bVal = String(nestedValue(b, sortKey) ?? '').toLowerCase();
+        if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
+        return 0;
+      })
+    : filteredData;
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      if (sortDir === 'asc') setSortDir('desc');
+      else { setSortKey(null); setSortDir('asc'); }
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+    setPage(1);
+    setSelectedRowIds(new Set());
+  };
+
+  const totalPages = Math.ceil(sortedData.length / pageSize) || 1;
+  const paginatedData = sortedData.slice((page - 1) * pageSize, page * pageSize);
+
+  const toggleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedRowIds(new Set(paginatedData.map((row: any) => row._id)));
+    } else {
+      setSelectedRowIds(new Set());
+    }
+  };
+
+  const toggleSelectRow = (id: string, checked: boolean) => {
+    const newSet = new Set(selectedRowIds);
+    if (checked) {
+      newSet.add(id);
+    } else {
+      newSet.delete(id);
+    }
+    setSelectedRowIds(newSet);
+  };
 
   return (
     <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-10">
@@ -188,6 +231,7 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
               onChange={(e) => {
                 setPageSize(Number(e.target.value));
                 setPage(1);
+                setSelectedRowIds(new Set());
               }}
               className="border border-slate-300 rounded px-1.5 py-1 outline-none focus:border-[#0d3c68]"
             >
@@ -214,11 +258,16 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
           <table className="w-full text-left text-[11px] whitespace-nowrap">
             <thead className="bg-[#111] text-white">
               <tr>
-                <th className="px-3 py-1.5 border-r border-[#333] w-10 text-center"><input type="checkbox" className="rounded" /></th>
+                <th className="px-3 py-1.5 border-r border-[#333] w-10 text-center"><input type="checkbox" className="rounded" checked={paginatedData.length > 0 && selectedRowIds.size === paginatedData.length} onChange={(e) => toggleSelectAll(e.target.checked)} /></th>
                 <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333] w-12 text-center">S.No</th>
                 {dynamicColumns.map((col) => (
-                  <th key={col.key} className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333] min-w-[120px]">
-                    <div className="flex items-center justify-between">{col.label} <ArrowUpDown size={12} className="opacity-50" /></div>
+                  <th key={col.key} className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333] min-w-[120px] cursor-pointer select-none" onClick={() => handleSort(col.key)}>
+                    <div className="flex items-center justify-between gap-1">
+                      <span className={sortKey === col.key ? 'text-blue-300' : ''}>{col.label}</span>
+                      {sortKey === col.key
+                        ? (sortDir === 'asc' ? <ArrowUp size={12} className="text-blue-300" /> : <ArrowDown size={12} className="text-blue-300" />)
+                        : <ArrowUpDown size={12} className="opacity-40" />}
+                    </div>
                   </th>
                 ))}
                 <th className="px-3 py-1.5 font-bold uppercase tracking-wider min-w-[180px] text-center">Action</th>
@@ -233,7 +282,7 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                 paginatedData.map((row, index) => (
                   <tr key={row._id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-3 py-2 border-r border-slate-100 text-center">
-                      <input type="checkbox" className="rounded" />
+                      <input type="checkbox" className="rounded" checked={selectedRowIds.has(row._id)} onChange={(e) => toggleSelectRow(row._id, e.target.checked)} />
                     </td>
                     <td className="px-3 py-2 border-r border-slate-100 text-center font-medium text-slate-500">
                       {(page - 1) * pageSize + index + 1}
@@ -305,13 +354,13 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
 
         <div className="flex items-center justify-between mt-4">
           <div className="text-xs text-slate-600 font-medium">
-            Showing {filteredData.length === 0 ? 0 : (page - 1) * pageSize + 1} to {Math.min(page * pageSize, filteredData.length)} of {filteredData.length} entries
+            Showing {sortedData.length === 0 ? 0 : (page - 1) * pageSize + 1} to {Math.min(page * pageSize, sortedData.length)} of {sortedData.length} entries
           </div>
           <div className="flex gap-1">
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-2 py-1 text-xs border border-slate-300 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-slate-600">
+            <button onClick={() => { setPage(p => Math.max(1, p - 1)); setSelectedRowIds(new Set()); }} disabled={page === 1} className="px-2 py-1 text-xs border border-slate-300 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-slate-600">
               Previous
             </button>
-            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-2 py-1 text-xs border border-slate-300 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-slate-600">
+            <button onClick={() => { setPage(p => Math.min(totalPages, p + 1)); setSelectedRowIds(new Set()); }} disabled={page === totalPages} className="px-2 py-1 text-xs border border-slate-300 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-slate-600">
               Next
             </button>
           </div>
