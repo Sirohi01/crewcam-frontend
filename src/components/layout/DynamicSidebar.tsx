@@ -9,14 +9,14 @@ import {
   LayoutDashboard, Users, Building2, Settings, LogOut, Briefcase, UserCog, Plug, Palette,
   Shield, ShieldCheck, Clock, Calendar, MessageSquare, Scale, TrendingUp, UserPlus, IndianRupee,
   Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList, LucideIcon, ChevronRight, ChevronDown,
-  LayoutGrid,
+  LayoutGrid, User,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 
 const ICONS: Record<string, LucideIcon> = {
   LayoutDashboard, Users, Building2, Settings, LogOut, Briefcase, UserCog, Plug, Palette,
   Shield, ShieldCheck, Clock, Calendar, MessageSquare, Scale, TrendingUp, UserPlus, IndianRupee,
-  Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList, LayoutGrid,
+  Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList, LayoutGrid, User,
 };
 
 interface SidebarItem {
@@ -33,6 +33,14 @@ type GroupedItem = SidebarItem | { isGroup: true; label: string; children: Sideb
 
 // Static item injected under PEOPLE section
 const STATIC_PEOPLE_ITEMS: SidebarItem[] = [
+  {
+    _id: '__my-profile__',
+    section: 'WORKSPACE',
+    label: 'My Profile Extension',
+    href: '/dashboard/my-profile-extension',
+    icon: 'User',
+    order: 0,
+  },
   {
     _id: '__employee-dashboard__',
     section: 'WORKSPACE',
