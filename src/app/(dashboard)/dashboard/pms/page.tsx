@@ -234,7 +234,7 @@ export default function PMSPage() {
                         <th className="p-3 font-md text-xs uppercase">Cycle</th>
                         <th className="p-3 font-md text-xs uppercase">Self Rating</th>
                         <th className="p-3 font-md text-xs uppercase">Status</th>
-                        <th className="p-3 font-md text-xs uppercase text-right">Actions</th>
+                        <th className="p-3 font-md text-xs uppercase text-center">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -252,7 +252,7 @@ export default function PMSPage() {
                               {app.status.replace('_', ' ')}
                             </span>
                           </td>
-                          <td className="p-3 text-right">
+                          <td className="p-3 text-center">
                             {app.status === 'Self_Submitted' && (
                               <Button size="sm" variant="outline" className="text-xs h-7 mr-2" onClick={() => handleReview(app._id, 'hod')}>
                                 HOD Review

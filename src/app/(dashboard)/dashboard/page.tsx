@@ -22,6 +22,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import api from '@/lib/axios';
+import EmployeeDashboard from './employee/page';
 
 interface DashboardConfig { category: string; effectivePermissions: string[]; widgets: string[]; }
 
@@ -1542,7 +1543,7 @@ function TodaySchedule() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
-  const { isLoading } = useQuery<DashboardConfig>({
+  const { data: config, isLoading } = useQuery<DashboardConfig>({
     queryKey: ['dashboard', 'config'],
     queryFn: async () => (await api.get('/dashboard/config')).data,
   });
@@ -1553,6 +1554,10 @@ export default function DashboardPage() {
   });
 
   const topKpiKeys = ['org-headcount', 'team-attendance-today', 'absent-today', 'work-from-home', 'late-coming', 'on-leave-today', 'new-joinees'];
+
+  if (config && config.category === 'employee') {
+    return <EmployeeDashboard />;
+  }
 
   return (
     <main className="mx-auto max-w-[1600px] space-y-2 pb-4 px-2 sm:px-3">

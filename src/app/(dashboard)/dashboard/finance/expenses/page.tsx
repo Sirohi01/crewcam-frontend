@@ -212,7 +212,7 @@ export default function ExpensesPage() {
                         <th className="p-3 font-md text-xs uppercase">Description</th>
                         <th className="p-3 font-md text-xs uppercase text-right">Amount</th>
                         <th className="p-3 font-md text-xs uppercase text-center">Status</th>
-                        <th className="p-3 font-md text-xs uppercase text-right">Actions</th>
+                        <th className="p-3 font-md text-xs uppercase text-center">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -234,7 +234,7 @@ export default function ExpensesPage() {
                           <td className="p-3 text-center">
                             {renderStatusBadge(exp.status)}
                           </td>
-                          <td className="p-3 text-right">
+                          <td className="p-3 text-center">
                             {exp.status === 'Pending' && (
                               <div className="flex justify-end gap-2">
                                 <Button size="sm" variant="outline" className="h-7 text-xs text-emerald-600 hover:text-emerald-700" onClick={() => handleAction(exp._id, 'Approved')}>Approve</Button>

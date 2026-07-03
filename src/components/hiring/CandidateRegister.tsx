@@ -37,7 +37,7 @@ export default function CandidateRegister() {
   const meta = data?.meta || { page: 1, totalPages: 1, total: 0 };
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-10">
+    <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-10 px-2 lg:px-4">
 
       {/* Header Section */}
       <div className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden ">

@@ -160,7 +160,7 @@ export default function RolesPage() {
                     <td className="px-5 py-3">
                       <AuditInfo item={item} />
                     </td>
-                    <td className="px-5 py-3 align-middle text-right">
+                    <td className="px-5 py-3 align-middle text-center">
                       <div className="flex justify-end gap-1">
                         <button onClick={() => openEdit(item)} className="text-zinc-400 hover:bg-zinc-200 hover:text-indigo-600 p-1.5 rounded-md transition-colors border border-transparent hover:border-zinc-300">
                           <Edit2 size={14} />

@@ -7,6 +7,7 @@ import { ClipboardList, FileText, RotateCcw, Save, Sparkles, BookmarkPlus, Loade
 import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
 import { openFileUrl } from '@/lib/fileUrls';
+import { useAuthStore } from '@/store/authStore';
 
 const input = 'mt-1 h-8 w-full rounded-[2px] border border-slate-300 bg-white px-2.5 text-xs outline-none transition focus:border-[#0d3c68] focus:ring-1 focus:ring-[#0d3c68]';
 const textArea = `${input.replace('h-8', 'h-24')} resize-y py-2`;
@@ -17,7 +18,7 @@ const empty = () => ({
   departmentId: '', requestDate: today, locationBranchId: '', workLocation: '', jobTitle: '', designation: '', reportingTo: '', numberOfPositions: '1',
   employmentTypes: [] as string[], hiringReasons: [] as string[], replacementName: '', detailedJustification: '', jobDescriptionSummary: '', kraReport: '',
   keyResponsibilitiesText: '', qualificationReq: '', experienceReq: '', technicalSkills: '', softSkills: '', salaryCtcMin: '', salaryCtcMax: '',
-  budgetApprovedBy: '', benefits: [] as string[], otherBenefits: '', requiredJoiningDate: '', isUrgent: false, requestReceivedOn: '', recruitmentStartDate: '', recruitmentStatus: 'Pending', declarationAccepted: false,
+  budgetApprovedBy: '', benefits: [] as string[], otherBenefits: '', otherBenefitsDetails: '', requiredJoiningDate: '', isUrgent: false, requestReceivedOn: '', recruitmentStartDate: '', recruitmentStatus: 'Pending', declarationAccepted: false,
 });
 const toggle = (items: string[], item: string) => items.includes(item) ? items.filter((entry) => entry !== item) : [...items, item];
 
@@ -102,6 +103,7 @@ function AiGenerateBar({
 export default function ManpowerRequestsTab({ formOnly = false, requestId }: { formOnly?: boolean; requestId?: string }) {
   const router = useRouter();
   const qc = useQueryClient();
+  const currentUser = useAuthStore((state) => state.user);
   const [form, setForm] = useState(empty);
   const [customPrompt, setCustomPrompt] = useState('');
   const set = (patch: Partial<ReturnType<typeof empty>>) => setForm((current) => ({ ...current, ...patch }));
@@ -186,6 +188,7 @@ export default function ManpowerRequestsTab({ formOnly = false, requestId }: { f
       budgetApprovedBy: toId(existing.budgetApprovedBy),
       benefits: existing.benefits || [],
       otherBenefits: existing.otherBenefits || '',
+      otherBenefitsDetails: existing.otherBenefitsDetails || '',
       requiredJoiningDate: toDateInput(existing.requiredJoiningDate),
       isUrgent: Boolean(existing.isUrgent || existing.priority === 'Urgent'),
       requestReceivedOn: toDateInput(existing.requestReceivedOn),
@@ -198,7 +201,8 @@ export default function ManpowerRequestsTab({ formOnly = false, requestId }: { f
   const create = useMutation({
     mutationFn: async () => {
       const { keyResponsibilitiesText, ...rest } = form;
-      const payload = { ...rest, keyResponsibilities: keyResponsibilitiesText.split('\n').map((item) => item.trim()).filter(Boolean), numberOfPositions: Number(form.numberOfPositions), employmentType: form.employmentTypes[0] || 'Full-time', reasonForHiring: form.hiringReasons[0] || 'New Position', priority: form.isUrgent ? 'Urgent' : 'Medium', salaryCtcMin: form.salaryCtcMin ? Number(form.salaryCtcMin) : undefined, salaryCtcMax: form.salaryCtcMax ? Number(form.salaryCtcMax) : undefined, budgetCTC: form.salaryCtcMax ? Number(form.salaryCtcMax) : undefined };
+      const payload = { ...rest, keyResponsibilities: keyResponsibilitiesText.split('\n').map((item) => item.trim()).filter(Boolean), numberOfPositions: Number(form.numberOfPositions), employmentType: form.employmentTypes[0] || 'Full-time', reasonForHiring: form.hiringReasons[0] || 'New Position', priority: form.isUrgent ? 'Urgent' : 'Medium', salaryCtcMin: form.salaryCtcMin ? Number(form.salaryCtcMin) : undefined, salaryCtcMax: form.salaryCtcMax ? Number(form.salaryCtcMax) : undefined, budgetCTC: form.salaryCtcMax ? Number(form.salaryCtcMax) : undefined, otherBenefitsDetails: form.otherBenefitsDetails };
+      Object.keys(payload).forEach((key) => { if ((payload as any)[key] === '') delete (payload as any)[key]; });
       return requestId ? (await api.put(`/hiring/manpower-request/${requestId}`, payload)).data : (await api.post('/hiring/manpower-request', payload)).data;
     }, onSuccess: () => {
       refresh();
@@ -242,7 +246,7 @@ export default function ManpowerRequestsTab({ formOnly = false, requestId }: { f
           </div>
         </Section>
         <Section number="3" title="Candidate Requirement"><div className="grid gap-4 md:grid-cols-2"><Field title="Qualification Requirement"><textarea className={textArea} value={form.qualificationReq} onChange={(e) => set({ qualificationReq: e.target.value })} /></Field><Field title="Experience Requirement"><textarea className={textArea} value={form.experienceReq} onChange={(e) => set({ experienceReq: e.target.value })} /></Field><Field title="Technical Skills"><textarea className={textArea} value={form.technicalSkills} onChange={(e) => set({ technicalSkills: e.target.value })} /></Field><Field title="Soft Skills"><textarea className={textArea} value={form.softSkills} onChange={(e) => set({ softSkills: e.target.value })} /></Field></div></Section>
-        <Section number="4" title="Budget, Benefits & Timeline"><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><Field title="CTC From"><input type="number" className={input} value={form.salaryCtcMin} onChange={(e) => set({ salaryCtcMin: e.target.value })} /></Field><Field title="CTC To"><input type="number" className={input} value={form.salaryCtcMax} onChange={(e) => set({ salaryCtcMax: e.target.value })} /></Field><Field title="Budget Approved By"><select className={input} value={form.budgetApprovedBy} onChange={(e) => set({ budgetApprovedBy: e.target.value })}><option value="">Select employee</option>{employeeOptions}</select></Field><Field title="Required Joining Date"><input type="date" className={input} value={form.requiredJoiningDate} onChange={(e) => set({ requiredJoiningDate: e.target.value })} /></Field><Field title="Benefits" wide><CheckGroup values={form.benefits} onChange={(benefits) => set({ benefits })} options={['PF', 'ESIC', 'Incentives', 'Travel Allowance', 'Accommodation', 'Other']} /></Field><Field title="Other Benefits" wide><input className={input} value={form.otherBenefits} onChange={(e) => set({ otherBenefits: e.target.value })} /></Field></div><label className="mt-4 flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={form.isUrgent} onChange={(e) => set({ isUrgent: e.target.checked })} /> This is an urgent requirement.</label></Section>
+        <Section number="4" title="Budget, Benefits & Timeline"><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><Field title="CTC From"><input type="number" className={input} value={form.salaryCtcMin} onChange={(e) => set({ salaryCtcMin: e.target.value })} /></Field><Field title="CTC To"><input type="number" className={input} value={form.salaryCtcMax} onChange={(e) => set({ salaryCtcMax: e.target.value })} /></Field><Field title="Budget Approved By"><select className={input} value={form.budgetApprovedBy} onChange={(e) => set({ budgetApprovedBy: e.target.value })}><option value="">Select employee</option>{employeeOptions}</select></Field><Field title="Required Joining Date"><input type="date" className={input} value={form.requiredJoiningDate} onChange={(e) => set({ requiredJoiningDate: e.target.value })} /></Field><Field title="Benefits" wide><CheckGroup values={form.benefits} onChange={(benefits) => set({ benefits })} options={['PF', 'ESIC', 'Incentives', 'Travel Allowance', 'Accommodation', 'Other']} /></Field><Field title="Other Benefits Details" wide><input className={input} value={form.otherBenefitsDetails} onChange={(e) => set({ otherBenefitsDetails: e.target.value })} /></Field></div><label className="mt-4 flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={form.isUrgent} onChange={(e) => set({ isUrgent: e.target.checked })} /> This is an urgent requirement.</label></Section>
         <Section number="5" title="HR Use & Declaration"><div className="grid gap-4 md:grid-cols-3"><Field title="Request Received On"><input type="date" className={input} value={form.requestReceivedOn} onChange={(e) => set({ requestReceivedOn: e.target.value })} /></Field><Field title="Recruitment Start Date"><input type="date" className={input} value={form.recruitmentStartDate} onChange={(e) => set({ recruitmentStartDate: e.target.value })} /></Field><Field title="Recruitment Status"><select className={input} value={form.recruitmentStatus} onChange={(e) => set({ recruitmentStatus: e.target.value })}><option>Pending</option><option>In Progress</option><option>On Hold</option><option>Completed</option></select></Field></div><label className="mt-5 flex items-start gap-2 text-sm text-slate-700"><input required type="checkbox" checked={form.declarationAccepted} onChange={(e) => set({ declarationAccepted: e.target.checked })} className="mt-1" />I confirm that this manpower requirement is essential for operational/project needs and budget has been considered.</label></Section>
         <div className="flex justify-end border-t border-slate-200 bg-slate-50 px-5 py-3"><Button type="submit" className="bg-[#0d3c68] hover:bg-[#0a2e50] text-white rounded-[2px] h-8 text-[11px] font-bold uppercase tracking-wider px-6" disabled={create.isPending}><Save size={14} className="mr-2" />{create.isPending ? 'Saving…' : 'Save Requisition'}</Button></div>
       </form>
@@ -263,7 +267,7 @@ export default function ManpowerRequestsTab({ formOnly = false, requestId }: { f
                   <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Joining Date</th>
                   <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Priority</th>
                   <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Status</th>
-                  <th className="px-3 py-1.5 font-bold uppercase tracking-wider text-right">Actions</th>
+                  <th className="px-3 py-1.5 font-bold uppercase tracking-wider text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -276,7 +280,7 @@ export default function ManpowerRequestsTab({ formOnly = false, requestId }: { f
                     <td className="px-3 py-2 border-r border-slate-100">{request.requiredJoiningDate ? new Date(request.requiredJoiningDate).toLocaleDateString() : '—'}</td>
                     <td className="px-3 py-2 border-r border-slate-100">{request.priority}</td>
                     <td className="px-3 py-2 border-r border-slate-100"><span className="rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-700">{request.status}</span></td>
-                    <td className="px-3 py-2 text-right">
+                    <td className="px-3 py-2 text-center">
                       <div className="flex justify-end gap-2">
                         {request.status === 'Pending' && <><Button size="sm" className="h-7 rounded-[2px] bg-[#0d3c68] text-white hover:bg-[#0a2e50] px-3 text-[10px] font-bold uppercase" onClick={() => changeStatus.mutate({ id: request._id, status: 'Approved' })}>Approve</Button><Button size="sm" variant="outline" className="h-7 rounded-[2px] border-slate-300 px-3 text-[10px] font-bold uppercase text-slate-700" onClick={() => changeStatus.mutate({ id: request._id, status: 'Rejected' })}>Reject</Button></>}
                         <Button size="sm" variant="outline" className="h-7 rounded-[2px] border-slate-300 px-3 text-[10px] font-bold uppercase text-slate-700" onClick={() => generatePdf.mutate(request._id)} disabled={generatePdf.isPending}><FileText size={12} className="mr-1" />PDF</Button>

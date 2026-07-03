@@ -213,7 +213,7 @@ export default function MasterDataCategoryPage() {
                     <th className="px-5 py-3 font-medium">Details</th>
                     <th className="px-5 py-3 font-medium">Audit Info</th>
                     <th className="px-5 py-3 font-medium w-24">Status</th>
-                    <th className="px-5 py-3 font-medium text-right w-24">Actions</th>
+                    <th className="px-5 py-3 font-medium text-center w-24">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -236,7 +236,7 @@ export default function MasterDataCategoryPage() {
                       <td className="px-5 py-3 align-middle">
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-md uppercase bg-emerald-100 text-emerald-700 border border-emerald-200">Active</span>
                       </td>
-                      <td className="px-5 py-3 align-middle text-right">
+                      <td className="px-5 py-3 align-middle text-center">
                         <div className="flex justify-end gap-1">
                           <button onClick={() => openEdit(item)} className="text-zinc-400 hover:bg-zinc-200 hover:text-indigo-600 p-1.5 rounded-md transition-colors border border-transparent hover:border-zinc-300"><Edit2 size={14} /></button>
                           <button onClick={() => setDeleteItem(item)} className="text-zinc-400 hover:bg-rose-100 hover:text-rose-600 p-1.5 rounded-md transition-colors border border-transparent hover:border-rose-300"><Trash2 size={14} /></button>

@@ -32,16 +32,8 @@ interface SidebarItem {
 type GroupedItem = SidebarItem | { isGroup: true; label: string; children: SidebarItem[] };
 
 // Static item injected under PEOPLE section
-const STATIC_PEOPLE_ITEMS: SidebarItem[] = [
-  {
-    _id: '__employee-dashboard__',
-    section: 'WORKSPACE',
-    label: 'Employee Dashboard',
-    href: '/dashboard/employee',
-    icon: 'LayoutGrid',
-    order: 1,
-  },
-];
+const STATIC_PEOPLE_ITEMS: SidebarItem[] = [];
+
 
 export default function DynamicSidebar() {
   const pathname = usePathname();
@@ -124,7 +116,6 @@ export default function DynamicSidebar() {
             height={156}
             priority
             className="h-auto w-full max-w-[190px] object-contain"
-            style={{ filter: 'brightness(0) invert(1)' }}
           />
         </div>
 

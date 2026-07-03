@@ -168,7 +168,7 @@ export default function ShiftTimingsPage() {
                     <th className="px-5 py-3 font-medium">Timings</th>
                     <th className="px-5 py-3 font-medium">Grace (LC/EG)</th>
                     <th className="px-5 py-3 font-medium">Half-Day/Absent</th>
-                    <th className="px-5 py-3 font-medium text-right w-24">Actions</th>
+                    <th className="px-5 py-3 font-medium text-center w-24">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -189,7 +189,7 @@ export default function ShiftTimingsPage() {
                         <div className="text-sm text-zinc-700">{item.halfDayThresholdMHD} hrs / {item.absentThreshold}</div>
                         {item.isSandwichRuleApplicable && <div className="text-[11px] text-orange-600">Sandwich Rule On</div>}
                       </td>
-                      <td className="px-5 py-3 align-middle text-right">
+                      <td className="px-5 py-3 align-middle text-center">
                         <div className="flex justify-end gap-1">
                           <button onClick={() => openEdit(item)} className="text-zinc-400 hover:bg-zinc-200 hover:text-indigo-600 p-1.5 rounded-md transition-colors"><Edit2 size={14} /></button>
                           <button onClick={() => setDeleteItem(item)} className="text-zinc-400 hover:bg-rose-100 hover:text-rose-600 p-1.5 rounded-md transition-colors"><Trash2 size={14} /></button>
