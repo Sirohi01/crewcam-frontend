@@ -266,7 +266,7 @@ export default function InterviewWorkspace({ view }: { view: View }) {
                   <th className="px-4 py-1.5 font-bold uppercase tracking-wider border-r border-white/10">Mode / Location</th>
                   <th className="px-4 py-1.5 font-bold uppercase tracking-wider border-r border-white/10">Status</th>
                   <th className="px-4 py-1.5 font-bold uppercase tracking-wider border-r border-white/10">Rating / Feedback</th>
-                  <th className="px-4 py-1.5 font-bold uppercase tracking-wider text-right">Action</th>
+                  <th className="px-4 py-1.5 font-bold uppercase tracking-wider text-center">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -316,7 +316,7 @@ export default function InterviewWorkspace({ view }: { view: View }) {
                           </div>
                         ) : <span className="text-slate-400">—</span>}
                       </td>
-                      <td className="px-4 py-2 text-right">
+                      <td className="px-4 py-2 text-center">
                         <div className="flex justify-end items-center gap-1.5">
                           <Button variant="outline" size="sm" className="h-7 px-2.5 rounded-[2px] border-slate-300 text-[10px] font-bold uppercase text-slate-700" asChild>
                             <Link href={`/dashboard/hiring/${candidate._id}`}><Eye size={12} className="mr-1" /> View</Link>

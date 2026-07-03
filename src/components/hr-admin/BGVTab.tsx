@@ -89,7 +89,7 @@ export default function BGVTab({ employees, selectedEmployeeId }: { employees: a
                     <th className="px-4 py-2 font-medium">Vendor</th>
                     <th className="px-4 py-2 font-medium text-center">Status</th>
                     <th className="px-4 py-2 font-medium">Result</th>
-                    <th className="px-4 py-2 font-medium text-right">Actions</th>
+                    <th className="px-4 py-2 font-medium text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -109,7 +109,7 @@ export default function BGVTab({ employees, selectedEmployeeId }: { employees: a
                         {req.overallResult === 'Discrepancy' && <span className="text-rose-600 font-medium text-xs">Discrepancy</span>}
                         {req.overallResult === 'Pending' && <span className="text-zinc-400 text-xs">-</span>}
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-center">
                         <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setModal({ ...req })}>
                           Update
                         </Button>

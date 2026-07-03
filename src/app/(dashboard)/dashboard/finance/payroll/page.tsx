@@ -224,7 +224,7 @@ export default function PayrollPage() {
                         <th className="py-2 pr-3">Employees</th>
                         <th className="py-2 pr-3">Requested By</th>
                         <th className="py-2 pr-3">Status</th>
-                        <th className="py-2 text-right">Actions</th>
+                        <th className="py-2 text-center">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -240,7 +240,7 @@ export default function PayrollPage() {
                               {request.status}
                             </span>
                           </td>
-                          <td className="py-3 text-right">
+                          <td className="py-3 text-center">
                             {request.status === 'Pending' ? (
                               <div className="flex justify-end gap-2">
                                 <Button size="sm" variant="outline" disabled={reviewRequestMutation.isPending} onClick={() => reviewRequestMutation.mutate({ id: request._id, decision: 'Rejected' })}>

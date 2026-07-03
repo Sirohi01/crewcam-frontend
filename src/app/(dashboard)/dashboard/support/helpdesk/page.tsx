@@ -111,7 +111,7 @@ export default function HelpdeskPage() {
                   <th className="px-6 py-3 font-medium">Department</th>
                   <th className="px-6 py-3 font-medium">Priority</th>
                   <th className="px-6 py-3 font-medium">Status</th>
-                  <th className="px-6 py-3 font-medium text-right">Actions</th>
+                  <th className="px-6 py-3 font-medium text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -141,7 +141,7 @@ export default function HelpdeskPage() {
                         {ticket.status.replace('_', ' ')}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 text-center">
                       {(ticket.status === 'Open' || ticket.status === 'In_Progress') && (
                         <button
                           onClick={() => handleResolveTicket(ticket._id)}

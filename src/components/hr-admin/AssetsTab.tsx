@@ -95,7 +95,7 @@ export default function AssetsTab({ employees, selectedEmployeeId }: { employees
                     <th className="px-4 py-2 font-medium">Employee</th>
                     <th className="px-4 py-2 font-medium">Issue Date</th>
                     <th className="px-4 py-2 font-medium">Status</th>
-                    <th className="px-4 py-2 font-medium text-right">Actions</th>
+                    <th className="px-4 py-2 font-medium text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -117,7 +117,7 @@ export default function AssetsTab({ employees, selectedEmployeeId }: { employees
                           <div className="text-[10px] text-zinc-500 mt-1">Returned: {moment(alloc.returnDate).format('MMM DD')}</div>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-center">
                         {alloc.status === 'Active' && (
                           <Button 
                             variant="outline" 

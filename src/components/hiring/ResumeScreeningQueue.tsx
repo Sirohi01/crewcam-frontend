@@ -220,7 +220,7 @@ export default function ResumeScreeningQueue() {
                 <th className="px-4 py-1.5 font-bold uppercase tracking-wider border-r border-white/10">Status</th>
                 <th className="px-4 py-1.5 font-bold uppercase tracking-wider border-r border-white/10">AI Screening</th>
                 <th className="px-4 py-1.5 font-bold uppercase tracking-wider border-r border-white/10">Added On</th>
-                <th className="px-4 py-1.5 font-bold uppercase tracking-wider text-right">Actions</th>
+                <th className="px-4 py-1.5 font-bold uppercase tracking-wider text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -270,7 +270,7 @@ export default function ResumeScreeningQueue() {
                       <div className="flex items-center gap-1.5"><CalendarDays size={11} /> {added.day}</div>
                       <div className="text-[10px] text-slate-400 mt-0.5">{added.time}</div>
                     </td>
-                    <td className="px-4 py-2 text-right">
+                    <td className="px-4 py-2 text-center">
                       <div className="flex justify-end items-center gap-1.5">
                         <Button variant="outline" size="sm" className="h-7 px-2.5 rounded-[2px] border-slate-300 text-[10px] font-bold uppercase text-slate-700" asChild>
                           <Link href={`/dashboard/hiring/${item._id}`}><FileText size={12} className="mr-1" />View</Link>

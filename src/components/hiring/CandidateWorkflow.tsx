@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, Circle, ClipboardList, Download, ExternalLink, FileText, Mail, Phone, Sparkles, UserRound } from 'lucide-react';
@@ -55,6 +56,8 @@ const isValidObjectId = (value: string) => /^[0-9a-fA-F]{24}$/.test(value);
 export default function CandidateWorkflow({ candidateId }: { candidateId: string }) {
   const [activeTab, setActiveTab] = useState<string>('Overview');
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const validId = isValidObjectId(candidateId);
 
   const { data: candidate, isError: candidateError } = useQuery<Candidate>({
@@ -106,6 +109,21 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
 
   const pipelineStepByKey = new Map((pipeline?.steps || []).map((step) => [step.key, step]));
   const resolvedEmployeeId = pipeline?.employeeId || '';
+
+  useEffect(() => {
+    if (searchParams?.get('autoNext') === 'true' && pipeline && pipeline.steps) {
+      // Find the first step that is not completed and is unlocked
+      const pendingStep = pipeline.steps.find((s: any) => 
+        s.status !== 'completed' && s.status !== 'approved' && s.gate?.unlocked !== false
+      );
+      if (pendingStep) {
+        const stepConfig = HIRING_STEPS.find(s => s.stepKey === pendingStep.key);
+        if (stepConfig) {
+          router.replace(`/dashboard/hiring/${candidateId}/steps/${stepConfig.id}`);
+        }
+      }
+    }
+  }, [searchParams, pipeline, candidateId, router]);
 
   if (!validId || candidateError) {
     return (

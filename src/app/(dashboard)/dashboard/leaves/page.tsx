@@ -265,7 +265,7 @@ export default function LeavesPage() {
                       <th className="h-12 px-6 text-left align-middle font-medium text-zinc-500">Dates</th>
                       <th className="h-12 px-6 text-left align-middle font-medium text-zinc-500">Reason</th>
                       <th className="h-12 px-6 text-left align-middle font-medium text-zinc-500">Status</th>
-                      <th className="h-12 px-6 text-right align-middle font-medium text-zinc-500">Actions</th>
+                      <th className="h-12 px-6 text-center align-middle font-medium text-zinc-500">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="[&_tr:last-child]:border-0">
@@ -285,7 +285,7 @@ export default function LeavesPage() {
                           <p className="line-clamp-2 max-w-[250px]" title={leave.reason}>{leave.reason}</p>
                         </td>
                         <td className="p-6 align-middle">{getStatusBadge(leave.status)}</td>
-                        <td className="p-6 align-middle text-right">
+                        <td className="p-6 align-middle text-center">
                           {leave.status === 'Pending' && (
                             <div className="flex items-center justify-end gap-2">
                               <button

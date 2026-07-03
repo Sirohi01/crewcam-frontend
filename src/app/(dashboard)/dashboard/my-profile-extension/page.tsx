@@ -14,6 +14,8 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import moment from 'moment';
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { EducationTab } from './components/EducationTab';
+import { ExperienceTab } from './components/ExperienceTab';
 
 type TabKey = 'personal' | 'family' | 'bank' | 'education' | 'experience' | 'documents' | 'skills' | 'assets' | 'emergency' | 'more';
 
@@ -53,6 +55,7 @@ const DUMMY = {
   totalExperience: '5 Yrs 3 Mths',
   ctc: '8,50,000',
   nextIncrement: '01 Jan 2027',
+  managerPhoto: '',
   family: [
     { name: 'Neha', relation: 'Sister', dob: '18 Feb 1993', occupation: 'Software Engineer' },
     { name: 'Rajesh', relation: 'Father', dob: '10 Jan 1965', occupation: 'Business' },
@@ -389,30 +392,61 @@ export default function MyProfilePage() {
   }
 
   return (
-    <div className="flex flex-col gap-4 animate-in fade-in duration-300 px-4 sm:px-6 pt-4 pb-6 w-full">
+    <div className="flex flex-col gap-4 animate-in fade-in duration-300 px-2 sm:px-4 pt-4 pb-6 w-full">
+      <div className="flex items-center text-[13px] text-zinc-500 mb-1">
+        <span className="hover:text-indigo-600 cursor-pointer transition-colors">Dashboard</span>
+        <ChevronRight size={14} className="mx-1" />
+        <span className="hover:text-indigo-600 cursor-pointer transition-colors">My Profile</span>
+        {tab === 'experience' && (
+          <>
+            <ChevronRight size={14} className="mx-1" />
+            <span className="font-medium text-zinc-900 dark:text-zinc-50">Experience</span>
+          </>
+        )}
+      </div>
+
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-200/70 dark:border-zinc-800">
-        <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-sm shrink-0">
-            <UserRound size={20} className="text-white" />
-          </div>
+        {tab === 'experience' ? (
           <div>
-            <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">My Profile</h1>
-            <p className="text-[13px] text-zinc-500 mt-0.5">View and manage your personal and professional information.</p>
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 leading-tight">Experience</h1>
+            <p className="text-[13px] text-zinc-500 mt-1">Add and manage your work experience details.</p>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-sm shrink-0">
+              <UserRound size={20} className="text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">My Profile</h1>
+              <p className="text-[13px] text-zinc-500 mt-0.5">View and manage your personal and professional information.</p>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center gap-2">
-          <button
-            onClick={comingSoon('Public profile view')}
-            className="text-xs font-medium bg-white hover:bg-zinc-50 text-zinc-700 px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-800 transition-colors"
-          >
-            <Eye size={13} /> View Public Profile
-          </button>
-          <button
-            onClick={comingSoon('Profile editing')}
-            className="text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 shadow-sm shadow-indigo-600/20 transition-colors"
-          >
-            <Pencil size={13} /> Edit Profile
-          </button>
+          {tab === 'experience' ? (
+            <button
+              onClick={comingSoon('Add Experience')}
+              className="text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 shadow-sm shadow-indigo-600/20 transition-colors"
+            >
+              <Plus size={16} /> Add Experience
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={comingSoon('Public profile view')}
+                className="text-xs font-medium bg-white hover:bg-zinc-50 text-zinc-700 px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-800 transition-colors"
+              >
+                <Eye size={13} /> View Public Profile
+              </button>
+              <button
+                onClick={comingSoon('Profile editing')}
+                className="text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 shadow-sm shadow-indigo-600/20 transition-colors"
+              >
+                <Pencil size={13} /> Edit Profile
+              </button>
+            </>
+          )}
         </div>
       </header>
 
@@ -624,35 +658,68 @@ export default function MyProfilePage() {
       )}
 
       {tab === 'education' && (
-        <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
-          <CardHeader className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2 text-zinc-800 dark:text-zinc-100"><GraduationCap size={15} className="text-indigo-600" /> Education Details</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3">
-            <SimpleTable
-              columns={['Qualification', 'Institute / University', 'Year', 'Percentage']}
-              rows={DUMMY.education.map(e => [e.qualification, e.institute, e.year, e.pct])}
-              addLabel="Add Education"
-              onAdd={comingSoon('Adding education records')}
-            />
-          </CardContent>
-        </Card>
+        <EducationTab
+          comingSoon={comingSoon}
+          profileCard={
+            <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 h-full flex flex-col">
+              <CardContent className="p-4 flex flex-col items-center text-center flex-1">
+                <div className="relative">
+                  <img src={employee?.profilePictureUrl || DUMMY.photo} alt="" className="h-24 w-24 rounded-full object-cover border-4 border-zinc-100 dark:border-zinc-800" />
+                  <button onClick={comingSoon('Photo upload')} className="absolute bottom-0 right-0 h-7 w-7 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                    <Camera size={12} className="text-zinc-600 dark:text-zinc-300" />
+                  </button>
+                </div>
+                <div className="flex items-center gap-1.5 mt-3">
+                  <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">{employee?.firstName || DUMMY.firstName} {employee?.lastName || DUMMY.lastName}</p>
+                  <CheckCircle2 size={14} className="text-emerald-500" />
+                </div>
+                <p className="text-xs text-zinc-500 mt-0.5">{employee?.employeeCode || DUMMY.employeeCode}</p>
+                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">{employee?.designationId?.name || DUMMY.designation}</p>
+                <span className={`mt-2 inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded ${employee?.isActive ?? true ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'}`}>
+                  {(employee?.isActive ?? true) ? 'Active' : 'Inactive'}
+                </span>
+
+                <div className="w-full flex flex-col gap-3 mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800 text-left">
+                  <div className="flex items-center gap-3 text-[13px] text-zinc-700 dark:text-zinc-300 font-medium">
+                    <Mail size={15} className="text-zinc-400 shrink-0" /> <span className="truncate">{employee?.email || DUMMY.email}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-[13px] text-zinc-700 dark:text-zinc-300 font-medium">
+                    <Phone size={15} className="text-zinc-400 shrink-0" /> {employee?.mobileNumber || DUMMY.phone}
+                  </div>
+
+                  <div className="flex items-start gap-3 text-[13px]">
+                    <CalendarDays size={15} className="text-zinc-400 shrink-0 mt-0.5" />
+                    <div className="flex flex-col">
+                      <span className="text-[11px] text-zinc-500 mb-0.5">Date of Joining</span>
+                      <span className="font-semibold text-zinc-800 dark:text-zinc-200">{employee?.dateOfJoining ? moment(employee.dateOfJoining).format('DD MMM YYYY') : DUMMY.dateOfJoining}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 text-[13px]">
+                    <MapPin size={15} className="text-zinc-400 shrink-0 mt-0.5" />
+                    <div className="flex flex-col">
+                      <span className="text-[11px] text-zinc-500 mb-0.5">Work Location</span>
+                      <span className="font-semibold text-zinc-800 dark:text-zinc-200">{employee?.branchId?.name || DUMMY.branch}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 text-[13px] mt-1">
+                    <img src={DUMMY.managerPhoto || "https://i.pravatar.cc/150?u=44"} alt="Manager" className="h-8 w-8 rounded-full object-cover border border-zinc-200 mt-1" />
+                    <div className="flex flex-col">
+                      <span className="text-[11px] text-zinc-500 mb-0.5">Reporting To</span>
+                      <span className="font-bold text-zinc-900 dark:text-zinc-100">Amit Kumar</span>
+                      <span className="text-[11px] text-zinc-500 font-medium">Sales Manager</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          }
+        />
       )}
 
       {tab === 'experience' && (
-        <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
-          <CardHeader className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2 text-zinc-800 dark:text-zinc-100"><Briefcase size={15} className="text-indigo-600" /> Previous Experience</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3">
-            <SimpleTable
-              columns={['Company Name', 'Designation', 'Duration', 'CTC (Annual)', 'Last Drawn']}
-              rows={DUMMY.experience.map(e => [e.company, e.designation, e.duration, `₹ ${e.ctc}`, `₹ ${e.lastDrawn}`])}
-              addLabel="Add Experience"
-              onAdd={comingSoon('Adding experience records')}
-            />
-          </CardContent>
-        </Card>
+        <ExperienceTab comingSoon={comingSoon} />
       )}
 
       {tab === 'documents' && (

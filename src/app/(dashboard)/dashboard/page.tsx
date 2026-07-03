@@ -22,6 +22,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import api from '@/lib/axios';
+import EmployeeDashboard from './employee/page';
 
 interface DashboardConfig { category: string; effectivePermissions: string[]; widgets: string[]; }
 
@@ -313,7 +314,7 @@ function HeroSlider() {
    ───────────────────────────────────────────────────────────────────────── */
 
 // ─── Welcome Header (replaces the banner) ─────────────────────────────────
-function WelcomeHeader() {
+function WelcomeHeader({ category }: { category?: string }) {
   const router = useRouter();
   const [now, setNow] = useState(new Date());
   const [showCustomize, setShowCustomize] = useState(false);
@@ -337,11 +338,20 @@ function WelcomeHeader() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const dashboardOptions = [
+  let dashboardOptions = [
     { label: 'Admin Dashboard', href: '/dashboard/admin-dashboard' },
     { label: 'HR Dashboard', href: '/dashboard/hr-dashboard' },
     { label: 'Employee Dashboard', href: '/dashboard/employee' },
   ];
+
+  if (category === 'employee' || category === 'reporting_manager' || category === 'finance') {
+    dashboardOptions = [];
+  } else if (category === 'hod') {
+    dashboardOptions = [
+      { label: 'HOD Dashboard', href: '/dashboard/hod-dashboard' },
+      { label: 'Employee Dashboard', href: '/dashboard/employee' },
+    ];
+  }
 
   const displayDate = selectedDate || now;
   const dateStr = displayDate.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -388,28 +398,30 @@ function WelcomeHeader() {
           <span className="text-[12px] font-semibold text-zinc-700 tabular-nums whitespace-nowrap">{timeStr}</span>
         </div>
 
-        <div className="relative" ref={customizeRef}>
-          <button
-            onClick={() => setShowCustomize((v) => !v)}
-            className="inline-flex items-center gap-1.5 rounded bg-blue-600 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-blue-700 transition-colors"
-          >
-            <Settings size={14} />
-            Customize Dashboard
-          </button>
-          {showCustomize && (
-            <div className="absolute right-0 top-full mt-1.5 z-20 w-48 border border-zinc-200 bg-white shadow-sm overflow-hidden">
-              {dashboardOptions.map((opt) => (
-                <button
-                  key={opt.href}
-                  onClick={() => handleSelectDashboard(opt.href)}
-                  className="block w-full px-3 py-2 text-left text-[12px] font-medium text-zinc-600 hover:bg-blue-50 hover:text-blue-700 transition-colors"
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        {dashboardOptions.length > 0 && (
+          <div className="relative" ref={customizeRef}>
+            <button
+              onClick={() => setShowCustomize((v) => !v)}
+              className="inline-flex items-center gap-1.5 rounded bg-blue-600 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-blue-700 transition-colors"
+            >
+              <Settings size={14} />
+              Customize Dashboard
+            </button>
+            {showCustomize && (
+              <div className="absolute right-0 top-full mt-1.5 z-20 w-48 border border-zinc-200 bg-white shadow-sm overflow-hidden">
+                {dashboardOptions.map((opt) => (
+                  <button
+                    key={opt.href}
+                    onClick={() => handleSelectDashboard(opt.href)}
+                    className="block w-full px-3 py-2 text-left text-[12px] font-medium text-zinc-600 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -1542,7 +1554,7 @@ function TodaySchedule() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
-  const { isLoading } = useQuery<DashboardConfig>({
+  const { data: config, isLoading } = useQuery<DashboardConfig>({
     queryKey: ['dashboard', 'config'],
     queryFn: async () => (await api.get('/dashboard/config')).data,
   });
@@ -1554,12 +1566,16 @@ export default function DashboardPage() {
 
   const topKpiKeys = ['org-headcount', 'team-attendance-today', 'absent-today', 'work-from-home', 'late-coming', 'on-leave-today', 'new-joinees'];
 
+  if (config && config.category === 'employee') {
+    return <EmployeeDashboard />;
+  }
+
   return (
     <main className="mx-auto max-w-[1600px] space-y-2 pb-4 px-2 sm:px-3">
 
       {/* Banner — commented out, replaced by WelcomeHeader (see comment block above) */}
       {/* <HeroSlider /> */}
-      <WelcomeHeader />
+      <WelcomeHeader category={config?.category} />
 
       {/* KPI Strip */}
       <section className="grid gap-2 grid-cols-2 sm:grid-cols-4 lg:grid-cols-7">

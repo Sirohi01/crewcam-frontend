@@ -78,7 +78,7 @@ export default function CandidatePipeline() {
   const totalCount = filteredCandidates.length;
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto space-y-2 mb-10">
+    <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-10 px-2 lg:px-4">
       {/* Header Section */}
       <div className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden">
         <div className="bg-slate-50 px-3 py-3 flex flex-wrap items-center justify-between gap-3">

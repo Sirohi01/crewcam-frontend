@@ -133,25 +133,31 @@ export default function CompanyProfilePage() {
   if (loading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-indigo-600" /></div>;
 
   return (
-    <div className="w-full space-y-2">
-      <div className="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800">
-        <div>
-          <h1 className="text-xl font-md tracking-tight text-zinc-900 dark:text-zinc-50">Company Profile</h1>
-          <p className="text-xs text-zinc-500">Home / Company Profile</p>
+    <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-10">
+      <div className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden mb-3">
+        <div className="bg-slate-50 px-4 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-3">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#0d3c68] border-b-2 border-[#0d3c68] pb-0.5">COMPANY PROFILE</span>
+            </div>
+            <p className="text-[11px] text-slate-500 mt-1">Manage your organization's legal, location, and compliance settings.</p>
+          </div>
+          <Button variant="outline" className="h-7 px-3 rounded-[2px] border-slate-300 text-[11px] font-bold uppercase tracking-wider text-slate-700 bg-white hover:bg-slate-50" onClick={() => setIsEditModalOpen(true)}>
+            <Edit2 size={12} className="mr-2" /> Edit Profile
+          </Button>
         </div>
-        <Button variant="outline" className="border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-900/50 dark:hover:bg-indigo-900/20 rounded-md" onClick={() => setIsEditModalOpen(true)}>
-          <Edit2 size={14} className="mr-2" /> Edit Profile
-        </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 pl-2 pr-2">
         {/* Left Column - Overview */}
         <div className="lg:col-span-2">
           <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm h-full">
             <CardContent className="p-4 flex flex-col">
               <div>
-                <h2 className="text-sm font-md mb-2 text-zinc-900 dark:text-zinc-100">Company Overview</h2>
-                <div className="flex items-start gap-5">
+                <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-[#0d3c68] border-b border-slate-200 pb-2 mb-3">
+                  <Building2 size={14} /> Company Overview
+                </div>
+                <div className="flex flex-col sm:flex-row items-start gap-5">
                   <div className="w-20 h-20 rounded-xl bg-white dark:bg-zinc-900 flex items-center justify-center shrink-0 border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm p-1">
                     {profile.logoUrl ? (
                       <Image src={profile.logoUrl} alt="Company Logo" width={80} height={80} className="w-full h-full object-contain aspect-square" />
@@ -168,17 +174,17 @@ export default function CompanyProfilePage() {
                     </div>
                     <p className="text-sm text-zinc-600 dark:text-zinc-400">{profile.industry || 'Industry not set'}</p>
 
-                    <div className="grid grid-cols-2 gap-y-1.5 mt-2 text-xs text-zinc-600 dark:text-zinc-400">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 mt-2 text-xs text-zinc-600 dark:text-zinc-400">
                       <div className="flex items-center gap-2 min-w-0"><Mail size={14} className="text-indigo-400 shrink-0" /> <span className="truncate">{profile.email || '-'}</span></div>
                       <div className="flex items-center gap-2 min-w-0"><Phone size={14} className="text-indigo-400 shrink-0" /> <span className="truncate">{profile.phone || '-'}</span></div>
-                      <div className="flex items-center gap-2 col-span-2 min-w-0"><Globe size={14} className="text-indigo-400 shrink-0" /> <a href={profile.website} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline truncate block">{profile.website || '-'}</a></div>
-                      <div className="flex items-center gap-2 col-span-2 min-w-0"><MapPin size={14} className="text-indigo-400 shrink-0" /> <span className="truncate">{[profile.addressLine1, profile.city, profile.state].filter(Boolean).join(', ') || 'Address not set'}</span></div>
+                      <div className="flex items-center gap-2 sm:col-span-2 min-w-0"><Globe size={14} className="text-indigo-400 shrink-0" /> <a href={profile.website} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline truncate block">{profile.website || '-'}</a></div>
+                      <div className="flex items-center gap-2 sm:col-span-2 min-w-0"><MapPin size={14} className="text-indigo-400 shrink-0" /> <span className="truncate">{[profile.addressLine1, profile.city, profile.state].filter(Boolean).join(', ') || 'Address not set'}</span></div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-4 gap-3 mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
                 <div>
                   <div className="text-[10px] font-medium text-zinc-500 mb-1">Trade Name / DBA</div>
                   <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{profile.tradeName || '-'}</div>
@@ -206,7 +212,9 @@ export default function CompanyProfilePage() {
         <div className="">
           <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm h-full flex flex-col">
             <CardContent className="p-4 flex flex-col flex-1">
-              <h2 className="text-sm font-md mb-4 text-zinc-900 dark:text-zinc-100">Key Information</h2>
+              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-[#0d3c68] border-b border-slate-200 pb-2 mb-3">
+                <ShieldCheck size={14} /> Key Information
+              </div>
               <div className="flex flex-col justify-between flex-1">
                 <div className="flex items-center justify-between pb-1.5 border-b border-zinc-100 dark:border-zinc-800/50">
                   <div className="flex items-center gap-2.5">
@@ -252,7 +260,7 @@ export default function CompanyProfilePage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pl-2 pr-2">
         <SummaryCard icon={<Building2 size={18} />} color="indigo" title="Branches" count={counts.branches} label="Total Branches" />
         <SummaryCard icon={<ShieldCheck size={18} />} color="emerald" title="Departments" count={counts.departments} label="Total Departments" />
         <SummaryCard icon={<User size={18} />} color="orange" title="Designations" count={counts.designations} label="Total Designations" />
@@ -261,13 +269,13 @@ export default function CompanyProfilePage() {
         <SummaryCard icon={<MapPin size={18} />} color="emerald" title="Locations" count={counts.branches} label="Active Locations" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 pl-2 pr-2">
         {/* Branches Table */}
         <div className="lg:col-span-2">
           <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm h-[380px] flex flex-col">
             <CardContent className="p-0 flex-1 flex flex-col">
               <div className="flex items-center justify-between p-4 border-b border-zinc-100 dark:border-zinc-800">
-                <h2 className="text-sm font-md text-zinc-900 dark:text-zinc-100">Branches</h2>
+                <h2 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-[#0d3c68]">Branches</h2>
                 <Link href="/dashboard/branches" className="text-xs font-md text-indigo-600 hover:text-indigo-700 flex items-center gap-1">View All Branches &gt;</Link>
               </div>
               <div className="overflow-x-auto overflow-y-auto flex-1">
@@ -316,7 +324,7 @@ export default function CompanyProfilePage() {
           <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm h-[184px] flex flex-col">
             <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
               <div className="flex items-center justify-between p-4 border-b border-zinc-100 dark:border-zinc-800">
-                <h2 className="text-sm font-md text-zinc-900 dark:text-zinc-100">Departments</h2>
+                <h2 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-[#0d3c68]">Departments</h2>
                 <Link href="/dashboard/departments" className="text-xs font-md text-indigo-600 hover:text-indigo-700">View All</Link>
               </div>
               <div className="p-2 space-y-1 overflow-y-auto flex-1">
@@ -341,7 +349,7 @@ export default function CompanyProfilePage() {
           <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm h-[184px] flex flex-col">
             <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
               <div className="flex items-center justify-between p-4 border-b border-zinc-100 dark:border-zinc-800">
-                <h2 className="text-sm font-md text-zinc-900 dark:text-zinc-100">Designations</h2>
+                <h2 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-[#0d3c68]">Designations</h2>
                 <Link href="/dashboard/designations" className="text-xs font-md text-indigo-600 hover:text-indigo-700">View All</Link>
               </div>
               <div className="p-2 space-y-1 overflow-y-auto flex-1">
@@ -374,14 +382,14 @@ export default function CompanyProfilePage() {
               <h2 className="text-lg font-md text-zinc-900 dark:text-zinc-100">Edit Company Profile</h2>
               <button onClick={() => setIsEditModalOpen(false)} className="text-zinc-400 hover:text-zinc-700 p-1"><X size={20} /></button>
             </div>
-            <div className="flex border-b border-zinc-200 dark:border-zinc-800 px-6 pt-2 bg-white dark:bg-zinc-950">
-              <button type="button" onClick={() => setActiveTab('basic')} className={`px-4 py-2.5 text-sm font-medium border-b-2 flex items-center gap-2 transition-colors ${activeTab === 'basic' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>
+            <div className="flex overflow-x-auto hide-scrollbar border-b border-zinc-200 dark:border-zinc-800 px-6 pt-2 bg-white dark:bg-zinc-950">
+              <button type="button" onClick={() => setActiveTab('basic')} className={`shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 flex items-center gap-2 transition-colors ${activeTab === 'basic' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>
                 <Building2 size={16} /> Basic Info
               </button>
-              <button type="button" onClick={() => setActiveTab('location')} className={`px-4 py-2.5 text-sm font-medium border-b-2 flex items-center gap-2 transition-colors ${activeTab === 'location' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>
+              <button type="button" onClick={() => setActiveTab('location')} className={`shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 flex items-center gap-2 transition-colors ${activeTab === 'location' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>
                 <MapPin size={16} /> Geography & Finance
               </button>
-              <button type="button" onClick={() => setActiveTab('compliance')} className={`px-4 py-2.5 text-sm font-medium border-b-2 flex items-center gap-2 transition-colors ${activeTab === 'compliance' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>
+              <button type="button" onClick={() => setActiveTab('compliance')} className={`shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 flex items-center gap-2 transition-colors ${activeTab === 'compliance' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>
                 <ShieldCheck size={16} /> Statutory & Legal
               </button>
             </div>
@@ -395,8 +403,8 @@ export default function CompanyProfilePage() {
             <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-6 bg-zinc-50/30 dark:bg-zinc-950">
               {/* BASIC INFO TAB */}
               {activeTab === 'basic' && (
-                <div className="grid grid-cols-2 gap-5 animate-in fade-in duration-300">
-                  <div className="col-span-2 space-y-2 mb-2 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 animate-in fade-in duration-300">
+                  <div className="col-span-1 sm:col-span-2 space-y-2 mb-2 pb-4 border-b border-zinc-100 dark:border-zinc-800">
                     <Label className="text-xs font-md">Company Logo</Label>
                     <div className="flex items-center gap-4">
                       {formData.logoUrl ? (
@@ -416,12 +424,12 @@ export default function CompanyProfilePage() {
                       </div>
                     </div>
                   </div>
-                  <div className="col-span-2 space-y-1.5">
+                  <div className="col-span-1 sm:col-span-2 space-y-1.5">
                     <Label className="text-xs font-md">Hiring PDF Footer Text</Label>
                     <Input name="documentFooterText" value={formData.documentFooterText || ''} onChange={handleChange} className="h-9 text-sm bg-white" placeholder="e.g. This is a system-generated document." />
                     <p className="text-[10px] text-zinc-500">This footer is printed on all hiring PDFs. Leave empty to use the system default.</p>
                   </div>
-                  <div className="col-span-2 space-y-2 mb-2 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+                  <div className="col-span-1 sm:col-span-2 space-y-2 mb-2 pb-4 border-b border-zinc-100 dark:border-zinc-800">
                     <Label className="text-xs font-md">Hiring PDF Header Image</Label>
                     <p className="text-[10px] text-zinc-500">This wide banner appears on every generated hiring document. Your logo is used if no banner is uploaded.</p>
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -476,7 +484,7 @@ export default function CompanyProfilePage() {
                     <Label className="text-xs font-md">Official Phone</Label>
                     <Input name="phone" value={formData.phone || ''} onChange={handleChange} className="h-9 text-sm bg-white" />
                   </div>
-                  <div className="col-span-2 space-y-1.5">
+                  <div className="col-span-1 sm:col-span-2 space-y-1.5">
                     <Label className="text-xs font-md">Website</Label>
                     <Input name="website" value={formData.website || ''} onChange={handleChange} className="h-9 text-sm bg-white" placeholder="https://..." />
                   </div>
@@ -488,8 +496,8 @@ export default function CompanyProfilePage() {
                 <div className="space-y-6 animate-in fade-in duration-300">
                   <div className="space-y-4">
                     <h3 className="text-sm font-md text-zinc-900 border-b pb-2">Headquarters Address</h3>
-                    <div className="grid grid-cols-2 gap-5">
-                      <div className="col-span-2 space-y-1.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div className="col-span-1 sm:col-span-2 space-y-1.5">
                         <Label className="text-xs font-md">Address Line 1</Label>
                         <Input name="addressLine1" value={formData.addressLine1 || ''} onChange={handleChange} className="h-9 text-sm bg-white" />
                       </div>
@@ -518,7 +526,7 @@ export default function CompanyProfilePage() {
 
                   <div className="space-y-4 pt-4">
                     <h3 className="text-sm font-md text-zinc-900 border-b pb-2">Regional Settings</h3>
-                    <div className="grid grid-cols-3 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                       <div className="space-y-1.5">
                         <Label className="text-xs font-md">Base Currency</Label>
                         <select name="baseCurrency" value={formData.baseCurrency || 'INR'} onChange={handleChange} className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-zinc-950">
