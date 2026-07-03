@@ -49,6 +49,14 @@ const STATIC_PEOPLE_ITEMS: SidebarItem[] = [
     icon: 'LayoutGrid',
     order: 1,
   },
+  {
+    _id: '__employee-profile__',
+    section: 'WORKSPACE',
+    label: 'My Profile',
+    href: '/dashboard/my-profile',
+    icon: 'User',
+    order: 2,
+  },
 ];
 
 export default function DynamicSidebar() {
@@ -132,6 +140,7 @@ export default function DynamicSidebar() {
             height={156}
             priority
             className="h-auto w-full max-w-[190px] object-contain"
+          // style={{ filter: 'brightness(0) invert(1)' }}
           />
         </div>
 
