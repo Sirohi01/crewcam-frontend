@@ -143,13 +143,24 @@ const recordLabel = (key: string) => key
   .replace(/\b\w/g, (letter) => letter.toUpperCase())
   .trim();
 
-function FieldInput({ field, register, error }: { field: StepField; register: any; error?: string }) {
+function FieldInput({ field, register, error, departments = [] }: { field: StepField; register: any; error?: string; departments?: any[] }) {
   if (field.type === 'select') {
     return (
       <>
         <select {...register(field.name)} className={inputClass}>
           <option value="">Select...</option>
           {field.options?.map((option) => <option key={option} value={option}>{option}</option>)}
+        </select>
+        {error && <div className="mt-1 text-xs text-rose-600">{error}</div>}
+      </>
+    );
+  }
+  if (field.type === 'department') {
+    return (
+      <>
+        <select {...register(field.name)} className={inputClass}>
+          <option value="">Select Department...</option>
+          {departments.map((dept: any) => <option key={dept._id} value={dept.name}>{dept.name}</option>)}
         </select>
         {error && <div className="mt-1 text-xs text-rose-600">{error}</div>}
       </>
@@ -171,7 +182,7 @@ function FieldInput({ field, register, error }: { field: StepField; register: an
   );
 }
 
-function ArrayFieldEditor({ field, control, register, setValue, employees = [] }: { field: ArrayFieldConfig; control: any; register: any; setValue: any; employees?: any[] }) {
+function ArrayFieldEditor({ field, control, register, setValue, employees = [], departments = [] }: { field: ArrayFieldConfig; control: any; register: any; setValue: any; employees?: any[]; departments?: any[] }) {
   const { fields, append, remove } = useFieldArray({ control, name: field.name });
 
   return (
@@ -205,6 +216,11 @@ function ArrayFieldEditor({ field, control, register, setValue, employees = [] }
                     <select {...register(`${field.name}.${index}.${subField.name}`)} className={`${inputClass} mt-1`}>
                       <option value="">Select...</option>
                       {subField.options?.map((option) => <option key={option} value={option}>{option}</option>)}
+                    </select>
+                  ) : subField.type === 'department' ? (
+                    <select {...register(`${field.name}.${index}.${subField.name}`)} className={`${inputClass} mt-1`}>
+                      <option value="">Select Department...</option>
+                      {departments.map((dept: any) => <option key={dept._id} value={dept.name}>{dept.name}</option>)}
                     </select>
                   ) : (
                     <input {...register(`${field.name}.${index}.${subField.name}`)} type={subField.type} className={`${inputClass} mt-1`} placeholder={subField.placeholder} />
@@ -254,6 +270,12 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
     queryKey: ['selection-approval-employees'],
     queryFn: async () => (await api.get('/employees')).data.data || [],
     enabled: step?.id === 'selection-approval',
+  });
+
+  const { data: departments = [] } = useQuery<any[]>({
+    queryKey: ['departments'],
+    queryFn: async () => (await api.get('/companies/departments')).data.data || [],
+    enabled: step?.fields.some(f => f.type === 'department') || step?.arrayFields?.some(af => af.subFields.some(sf => sf.type === 'department')),
   });
 
   const { data: records = [] } = useQuery<any[]>({
@@ -516,14 +538,14 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
                       <label key={field.name} className={field.type === 'textarea' ? 'text-xs font-md text-zinc-600 dark:text-zinc-300 md:col-span-2' : 'text-xs font-md text-zinc-600 dark:text-zinc-300'}>
                         {field.label}
                         <div className="mt-1">
-                          <FieldInput field={field} register={form.register} error={(form.formState.errors as any)[field.name]?.message} />
+                          <FieldInput field={field} register={form.register} error={(form.formState.errors as any)[field.name]?.message} departments={departments} />
                         </div>
                       </label>
                     ))}
                   </div>
 
                   {(step.arrayFields || []).map((field) => (
-                    <ArrayFieldEditor key={field.name} field={field} control={form.control} register={form.register} setValue={form.setValue} employees={approvalEmployees} />
+                    <ArrayFieldEditor key={field.name} field={field} control={form.control} register={form.register} setValue={form.setValue} employees={approvalEmployees} departments={departments} />
                   ))}
 
                   <Button type="submit" disabled={createMutation.isPending} className="gap-2 bg-zinc-900 text-white hover:bg-zinc-800">

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -39,6 +39,12 @@ export default function StepDialog({ step, entityId, triggerLabel, triggerVarian
   const [open, setOpen] = useState(false);
   const [flatValues, setFlatValues] = useState<Record<string, string>>({});
   const [arrayValues, setArrayValues] = useState<Record<string, Record<string, string>[]>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { data: departments = [] } = useQuery<any[]>({
+    queryKey: ['departments'],
+    queryFn: async () => (await api.get('/companies/departments')).data.data || [],
+    enabled: step?.fields.some(f => f.type === 'department') || step?.arrayFields?.some(af => af.subFields.some(sf => sf.type === 'department')),
+  });
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -76,8 +82,35 @@ export default function StepDialog({ step, entityId, triggerLabel, triggerVarian
       setOpen(false);
       setFlatValues({});
       setArrayValues({});
+      setErrors({});
     }
   });
+
+  const handleSubmit = () => {
+    const newErrors: Record<string, string> = {};
+    for (const field of step.fields) {
+      if (field.required && !flatValues[field.name]) {
+        newErrors[field.name] = `${field.label} is required`;
+      }
+    }
+    for (const arrField of step.arrayFields || []) {
+      const rows = arrayValues[arrField.name] || [];
+      rows.forEach((row, idx) => {
+        for (const sf of arrField.subFields) {
+          if (sf.required && !row[sf.name]) {
+            newErrors[`${arrField.name}.${idx}.${sf.name}`] = `${sf.label} is required`;
+          }
+        }
+      });
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    setErrors({});
+    mutation.mutate();
+  };
 
   const addRow = (arrName: string) => {
     setArrayValues(prev => ({ ...prev, [arrName]: [...(prev[arrName] || []), {}] }));
@@ -107,6 +140,14 @@ export default function StepDialog({ step, entityId, triggerLabel, triggerVarian
         </select>
       );
     }
+    if (field.type === 'department') {
+      return (
+        <select value={value} onChange={e => onChange(e.target.value)} className={inputClass}>
+          <option value="">Select Department...</option>
+          {departments.map((dept: any) => <option key={dept._id} value={dept.name}>{dept.name}</option>)}
+        </select>
+      );
+    }
     if (field.type === 'textarea') {
       return <textarea value={value} onChange={e => onChange(e.target.value)} className={inputClass} rows={3} />;
     }
@@ -126,8 +167,11 @@ export default function StepDialog({ step, entityId, triggerLabel, triggerVarian
         <div className="flex flex-col gap-3">
           {step.fields.map(field => (
             <div key={field.name}>
-              <label className="text-xs font-md text-zinc-700 dark:text-zinc-300 mb-1 block">{field.label}</label>
+              <label className="text-xs font-md text-zinc-700 dark:text-zinc-300 mb-1 block">
+                {field.label} {field.required && <span className="text-rose-500">*</span>}
+              </label>
               {renderField(field)}
+              {errors[field.name] && <div className="mt-1 text-xs text-rose-500">{errors[field.name]}</div>}
             </div>
           ))}
 
@@ -148,18 +192,19 @@ export default function StepDialog({ step, entityId, triggerLabel, triggerVarian
                             onChange={e => updateRow(arrField.name, idx, sf.name, e.target.value)}
                             className={inputClass}
                           >
-                            <option value="">{sf.label}</option>
+                            <option value="">{sf.label} {sf.required ? '*' : ''}</option>
                             {sf.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                           </select>
                         ) : (
                           <input
                             type={sf.type}
-                            placeholder={sf.label}
+                            placeholder={`${sf.label}${sf.required ? ' *' : ''}`}
                             value={row[sf.name] || ''}
                             onChange={e => updateRow(arrField.name, idx, sf.name, e.target.value)}
                             className={inputClass}
                           />
                         )}
+                        {errors[`${arrField.name}.${idx}.${sf.name}`] && <div className="mt-1 text-xs text-rose-500">{errors[`${arrField.name}.${idx}.${sf.name}`]}</div>}
                       </div>
                     ))}
                     <button type="button" onClick={() => removeRow(arrField.name, idx)} className="text-rose-600 text-xs px-2 py-2">✕</button>
@@ -172,7 +217,7 @@ export default function StepDialog({ step, entityId, triggerLabel, triggerVarian
 
         <DialogFooter>
           <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
-          <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+          <Button onClick={handleSubmit} disabled={mutation.isPending}>
             {mutation.isPending ? 'Saving...' : 'Save'}
           </Button>
         </DialogFooter>

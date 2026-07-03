@@ -23,6 +23,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import api from '@/lib/axios';
 import EmployeeDashboard from './employee/page';
+import HodDashboard from './hod-dashboard/page';
 
 interface DashboardConfig { category: string; effectivePermissions: string[]; widgets: string[]; }
 
@@ -1555,8 +1556,12 @@ export default function DashboardPage() {
 
   const topKpiKeys = ['org-headcount', 'team-attendance-today', 'absent-today', 'work-from-home', 'late-coming', 'on-leave-today', 'new-joinees'];
 
-  if (config && config.category === 'employee') {
+  if (config && (config.category === 'employee' || config.category === 'reporting_manager' || config.category === 'finance')) {
     return <EmployeeDashboard />;
+  }
+  
+  if (config && config.category === 'hod') {
+    return <HodDashboard />;
   }
 
   return (

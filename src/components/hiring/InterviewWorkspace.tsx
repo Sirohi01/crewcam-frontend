@@ -118,9 +118,9 @@ export default function InterviewWorkspace({ view }: { view: View }) {
   const params = {
     page,
     limit,
-    ...(status !== 'All' && view !== 'statistics' ? { status } : {}),
-    ...(round !== 'All' && view !== 'statistics' ? { roundType: round } : (roundFilter ? { roundType: roundFilter } : {})),
-    ...(query.trim() && view !== 'statistics' ? { search: query.trim() } : {}),
+    ...(status !== 'All' ? { status } : {}),
+    ...(round !== 'All' ? { roundType: round } : (roundFilter ? { roundType: roundFilter } : {})),
+    ...(query.trim() ? { search: query.trim() } : {}),
   };
 
   const { data, isLoading } = useQuery({
@@ -222,8 +222,7 @@ export default function InterviewWorkspace({ view }: { view: View }) {
         ))}
       </div>
 
-      {view !== 'statistics' && (
-        <section className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden mx-2">
+      <section className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden mx-2 mt-3">
           
           {/* Filter Bar */}
           <div className="bg-slate-50 px-3 py-3 border-b border-slate-200 flex flex-wrap items-center gap-2">
@@ -386,7 +385,6 @@ export default function InterviewWorkspace({ view }: { view: View }) {
             </div>
           </div>
         </section>
-      )}
 
       {/* Modals */}
       <Dialog open={modalOpen} onOpenChange={(open) => { if (!open) closeModal(); }}>
