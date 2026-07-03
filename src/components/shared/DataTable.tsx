@@ -61,7 +61,7 @@ interface DataTableProps<T> {
   searchPlaceholder?: string;
 }
 
-const TH_BASE = 'px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white whitespace-nowrap select-none bg-black';
+const TH_BASE = 'px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-600 whitespace-nowrap select-none bg-slate-50 border-b border-slate-200';
 
 export function DataTable<T extends { id?: string | number; _id?: string | number }>({
   columns,
@@ -181,7 +181,7 @@ export function DataTable<T extends { id?: string | number; _id?: string | numbe
                 <select
                   value={pageSize}
                   onChange={(e) => onPageSizeChange?.(Number(e.target.value))}
-                  className="border border-gray-300 rounded px-2 py-1 text-[12px] bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="border border-gray-300 rounded px-2 py-1 text-[12px] bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 >
                   {[5, 10, 20, 30, 50, 100].map(size => (
                     <option key={size} value={size}>{size}</option>
@@ -241,7 +241,7 @@ export function DataTable<T extends { id?: string | number; _id?: string | numbe
                         onSelectionChange?.(newIds);
                       }
                     }}
-                    className="w-3.5 h-3.5 rounded-[2px] accent-white cursor-pointer"
+                    className="w-3.5 h-3.5 rounded-[2px] accent-indigo-600 cursor-pointer"
                   />
                 </th>
               )}
@@ -251,7 +251,7 @@ export function DataTable<T extends { id?: string | number; _id?: string | numbe
                   style={{ width: column.width }}
                   className={cn(
                     TH_BASE,
-                    column.sortable !== false && enableSorting && 'cursor-pointer hover:bg-[#0a2e50] transition-colors',
+                    column.sortable !== false && enableSorting && 'cursor-pointer hover:bg-slate-100 transition-colors',
                     column.align === 'right' ? 'text-right' : column.align === 'left' ? 'text-left' : 'text-center'
                   )}
                   onClick={() => column.sortable !== false && handleSort(String(column.key))}
@@ -264,11 +264,11 @@ export function DataTable<T extends { id?: string | number; _id?: string | numbe
                     {column.sortable !== false && enableSorting && (
                       <div className="flex flex-col">
                         {sortConfig.key === column.key ? (
-                          sortConfig.direction === 'asc' ? <ArrowUp className="h-3 w-3 text-white" /> :
-                            sortConfig.direction === 'desc' ? <ArrowDown className="h-3 w-3 text-white" /> :
-                              <ArrowUpDown className="h-2.5 w-2.5 text-white/30" />
+                          sortConfig.direction === 'asc' ? <ArrowUp className="h-3 w-3 text-slate-500" /> :
+                            sortConfig.direction === 'desc' ? <ArrowDown className="h-3 w-3 text-slate-500" /> :
+                              <ArrowUpDown className="h-2.5 w-2.5 text-slate-300" />
                         ) : (
-                          <ArrowUpDown className="h-2.5 w-2.5 text-white/30" />
+                          <ArrowUpDown className="h-2.5 w-2.5 text-slate-300" />
                         )}
                       </div>
                     )}
@@ -285,7 +285,7 @@ export function DataTable<T extends { id?: string | number; _id?: string | numbe
               <tr>
                 <td colSpan={columns.length + (showActions ? 1 : 0) + (selectable ? 1 : 0)} className="py-20 text-center">
                   <div className="flex flex-col items-center gap-3">
-                    <div className="w-8 h-8 border-2 border-[#0d3c68] border-t-transparent rounded-full animate-spin" />
+                    <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
                     <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Loading Records...</p>
                   </div>
                 </td>
@@ -312,7 +312,7 @@ export function DataTable<T extends { id?: string | number; _id?: string | numbe
                     className={cn(
                       "group transition-all duration-200 border-b border-slate-50 last:border-0",
                       onRowClick && 'cursor-pointer',
-                      isRowSelected ? 'bg-blue-50/60' : 'hover:bg-slate-50/80'
+                      isRowSelected ? 'bg-indigo-50/60' : 'hover:bg-slate-50/80'
                     )}
                   >
                     {selectable && (
@@ -330,7 +330,7 @@ export function DataTable<T extends { id?: string | number; _id?: string | numbe
                               return n;
                             });
                           }}
-                          className="w-3.5 h-3.5 rounded-[2px] accent-[#0d3c68] cursor-pointer"
+                          className="w-3.5 h-3.5 rounded-[2px] accent-indigo-600 cursor-pointer"
                         />
                       </td>
                     )}
@@ -357,7 +357,7 @@ export function DataTable<T extends { id?: string | number; _id?: string | numbe
                       <td className="px-3 py-2">
                         <div className="flex items-center gap-1.5 justify-center transition-opacity duration-200">
                           {onView && (
-                            <button onClick={(e) => { e.stopPropagation(); onView(row); }} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-[2px] transition-colors shadow-sm bg-white border border-blue-100" title="View">
+                            <button onClick={(e) => { e.stopPropagation(); onView(row); }} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-[2px] transition-colors shadow-sm bg-white border border-indigo-100" title="View">
                               <Eye className="h-3 w-3" />
                             </button>
                           )}
@@ -422,7 +422,7 @@ export function DataTable<T extends { id?: string | number; _id?: string | numbe
                           placeholder={column.label}
                           value={columnFilters[String(column.key)] || ''}
                           onChange={(e) => handleFilterChange(String(column.key), e.target.value)}
-                          className="w-full bg-white border border-slate-200 text-[10px] rounded-[3px] pl-2 pr-6 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#0d3c68] placeholder:text-slate-400 font-medium"
+                          className="w-full bg-white border border-slate-200 text-[10px] rounded-[3px] pl-2 pr-6 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder:text-slate-400 font-medium"
                         />
                         <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-300 pointer-events-none" />
                       </div>
@@ -446,7 +446,7 @@ export function DataTable<T extends { id?: string | number; _id?: string | numbe
             <button
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-3 py-2 text-slate-400 hover:text-[#0d3c68] disabled:opacity-30 disabled:cursor-not-allowed border-r border-slate-200 transition-colors"
+              className="px-3 py-2 text-slate-400 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed border-r border-slate-200 transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -464,7 +464,7 @@ export function DataTable<T extends { id?: string | number; _id?: string | numbe
                   onClick={() => onPageChange(pageNum)}
                   className={cn(
                     'w-9 h-9 text-[11px] font-bold border-r border-slate-200 last:border-r-0 transition-all',
-                    currentPage === pageNum ? 'bg-[#0d3c68] text-white' : 'text-slate-600 hover:bg-slate-50'
+                    currentPage === pageNum ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-50'
                   )}
                 >
                   {pageNum}
@@ -475,7 +475,7 @@ export function DataTable<T extends { id?: string | number; _id?: string | numbe
             <button
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages || totalPages === 0}
-              className="px-3 py-2 text-slate-400 hover:text-[#0d3c68] disabled:opacity-30 disabled:cursor-not-allowed border-l border-slate-200 transition-colors"
+              className="px-3 py-2 text-slate-400 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed border-l border-slate-200 transition-colors"
             >
               <ChevronRight className="h-4 w-4" />
             </button>

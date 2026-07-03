@@ -86,7 +86,7 @@ export default function SuperAdminSetupFeesPage() {
           size="sm"
           disabled={actingOnId === row._id}
           onClick={() => handleMarkPaid(row._id)}
-          className="h-7 text-[11px] bg-zinc-900 hover:bg-zinc-800 text-white"
+          className="h-7 text-[11px] bg-indigo-600 hover:bg-indigo-700 text-white"
         >
           {actingOnId === row._id ? <Loader2 size={12} className="animate-spin" /> : 'Mark Paid'}
         </Button>

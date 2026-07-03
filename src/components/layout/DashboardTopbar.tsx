@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/axios';
-import { Bell, HelpCircle, Mail, MessageSquare, FileText, Calendar, Clock, RefreshCw } from 'lucide-react';
+import { Bell, HelpCircle, Mail, MessageSquare, FileText, Calendar, Clock, RefreshCw, Search } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DashboardTopbar() {
@@ -11,6 +11,7 @@ export default function DashboardTopbar() {
   const [companyName, setCompanyName] = useState('Loading...');
   const [currentUser, setCurrentUser] = useState<any>(user);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -35,6 +36,18 @@ export default function DashboardTopbar() {
     }
   }, [user]);
 
+  // Ctrl+K / Cmd+K focuses the search input
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        document.getElementById('topbar-search-input')?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const displayUser = currentUser || user;
   const firstName = displayUser?.firstName || 'User';
   const initials = displayUser
@@ -50,19 +63,54 @@ export default function DashboardTopbar() {
 
   return (
     <header
-      className="h-12 flex items-center justify-between px-5 shrink-0"
+      className="h-12 flex items-center justify-between px-5 shrink-0 gap-4"
       style={{
         background: 'linear-gradient(90deg, #0f172a 0%, #1e1b4b 100%)',
         borderBottom: '1px solid rgba(99,102,241,0.2)',
       }}
     >
       {/* Left — company name as text */}
-      <span className="text-sm font-semibold tracking-wide" style={{ color: '#e2e8f0' }}>
+      <span
+        className="text-sm font-semibold tracking-wide shrink-0"
+        style={{ color: '#e2e8f0' }}
+      >
         {companyName}
       </span>
 
+      {/* Center — search bar */}
+      <div className="flex-1 flex justify-center">
+        <div
+          className="relative flex items-center w-full max-w-[420px] h-8 rounded-lg px-3"
+          style={{
+            background: 'rgba(255,255,255,0.08)',
+            border: '1px solid rgba(99,102,241,0.25)',
+          }}
+        >
+          <Search size={14} style={{ color: '#94a3b8' }} className="shrink-0" />
+          <input
+            id="topbar-search-input"
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search employee, module, report..."
+            className="flex-1 bg-transparent outline-none border-none text-xs px-2"
+            style={{ color: '#e2e8f0' }}
+          />
+          <span
+            className="hidden sm:flex items-center justify-center text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0"
+            style={{
+              background: 'rgba(255,255,255,0.08)',
+              color: '#94a3b8',
+              border: '1px solid rgba(148,163,184,0.25)',
+            }}
+          >
+            Ctrl+K
+          </span>
+        </div>
+      </div>
+
       {/* Right — icons + greeting + avatar */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 shrink-0">
 
         {/* 4 icon buttons */}
         {[

@@ -206,10 +206,10 @@ export default function SuperAdminInvoicesPage() {
       </div>
 
       <div className="inline-flex rounded-md border border-zinc-200 bg-white p-0.5">
-        <button onClick={() => setTab('invoices')} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded ${tab === 'invoices' ? 'bg-zinc-900 text-white' : 'text-zinc-600'}`}>
+        <button onClick={() => setTab('invoices')} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded ${tab === 'invoices' ? 'bg-indigo-600 text-white' : 'text-zinc-600'}`}>
           <Receipt size={13} /> Invoices
         </button>
-        <button onClick={() => setTab('history')} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded ${tab === 'history' ? 'bg-zinc-900 text-white' : 'text-zinc-600'}`}>
+        <button onClick={() => setTab('history')} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded ${tab === 'history' ? 'bg-indigo-600 text-white' : 'text-zinc-600'}`}>
           <History size={13} /> Payment History
         </button>
       </div>

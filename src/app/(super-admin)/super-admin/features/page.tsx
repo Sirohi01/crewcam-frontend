@@ -68,7 +68,7 @@ export default function SuperAdminFeaturesPage() {
           <h1 className="text-lg font-md tracking-tight text-zinc-900 dark:text-zinc-50">Features & RBAC</h1>
           <p className="text-xs text-zinc-500">Manage package feature flags and global permission codes.</p>
         </div>
-        <Button onClick={() => { setFormData(emptyForm); setIsModalOpen(true); }} className="h-8 text-xs bg-zinc-900 text-white hover:bg-zinc-800">
+        <Button onClick={() => { setFormData(emptyForm); setIsModalOpen(true); }} className="h-8 text-xs bg-indigo-600 text-white hover:bg-indigo-700">
           <Plus size={14} className="mr-1" /> Add {mode === 'features' ? 'Feature' : 'Permission'}
         </Button>
       </div>
@@ -76,8 +76,8 @@ export default function SuperAdminFeaturesPage() {
       {error && <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">{error}</div>}
 
       <div className="inline-flex rounded-md border border-zinc-200 bg-white p-0.5">
-        <button onClick={() => setMode('features')} className={`px-3 py-1.5 text-xs rounded ${mode === 'features' ? 'bg-zinc-900 text-white' : 'text-zinc-600'}`}>Feature Flags</button>
-        <button onClick={() => setMode('permissions')} className={`px-3 py-1.5 text-xs rounded ${mode === 'permissions' ? 'bg-zinc-900 text-white' : 'text-zinc-600'}`}>Permissions</button>
+        <button onClick={() => setMode('features')} className={`px-3 py-1.5 text-xs rounded ${mode === 'features' ? 'bg-indigo-600 text-white' : 'text-zinc-600'}`}>Feature Flags</button>
+        <button onClick={() => setMode('permissions')} className={`px-3 py-1.5 text-xs rounded ${mode === 'permissions' ? 'bg-indigo-600 text-white' : 'text-zinc-600'}`}>Permissions</button>
       </div>
 
       <Card className="border-zinc-200 shadow-sm dark:border-zinc-800">

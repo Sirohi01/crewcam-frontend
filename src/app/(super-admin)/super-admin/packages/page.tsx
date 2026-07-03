@@ -29,7 +29,7 @@ export default function SuperAdminPackagesPage() {
           <h1 className="text-lg font-md tracking-tight text-zinc-900 dark:text-zinc-50">Package Management</h1>
           <p className="text-xs text-zinc-500">Manage subscription packages, per-user pricing, setup fees, and AI credits.</p>
         </div>
-        <Button asChild className="h-8 text-xs bg-zinc-900 text-white hover:bg-zinc-800">
+        <Button asChild className="h-8 text-xs bg-indigo-600 text-white hover:bg-indigo-700">
           <Link href="/super-admin/packages/new"><Plus size={14} className="mr-1" /> Add Package</Link>
         </Button>
       </div>

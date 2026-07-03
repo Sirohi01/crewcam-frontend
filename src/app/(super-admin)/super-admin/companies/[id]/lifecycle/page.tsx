@@ -154,7 +154,7 @@ export default function CompanyLifecyclePage() {
               </div>
 
               {tenant.lifecycleStatus === 'SUSPENDED' && (
-                <Button onClick={() => handleSetStatus('ACTIVE')} className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Reactivate</Button>
+                <Button onClick={() => handleSetStatus('ACTIVE')} className="h-8 text-xs bg-indigo-600 hover:bg-indigo-700 text-white">Reactivate</Button>
               )}
               {(tenant.lifecycleStatus === 'ACTIVE' || tenant.lifecycleStatus === 'LIVE') && (
                 <Button onClick={() => handleSetStatus('SUSPENDED')} variant="outline" className="h-8 text-xs text-amber-600 border-amber-200 hover:bg-amber-50">Suspend</Button>

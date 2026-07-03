@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Building2, Users, Package, Flag, ArrowUpRight, ShieldAlert,
-  IndianRupee, AlertTriangle, CheckCircle2, Loader2,
+  IndianRupee, AlertTriangle, CheckCircle2, Loader2, TrendingUp, TrendingDown, Gauge,
 } from 'lucide-react';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import api from '@/lib/axios';
@@ -40,6 +40,9 @@ interface DashboardStats {
   newCompaniesInRange: number;
   activityCountInRange: number;
   paymentAlerts: PaymentAlert[];
+  mrrINR: number;
+  arpuINR: number;
+  churnRatePercent: number;
 }
 
 const RANGE_LABELS: Record<RangeKey, string> = {
@@ -106,12 +109,12 @@ export default function SuperAdminOverviewPage() {
           <p className="text-[11px] text-zinc-500 uppercase tracking-wider font-md">{RANGE_LABELS[range]} Overview</p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="inline-flex rounded-md border border-zinc-200 bg-white p-0.5">
+          <div className="inline-flex rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-0.5">
             {(['today', 'week', 'month', 'custom'] as RangeKey[]).map((r) => (
               <button
                 key={r}
                 onClick={() => setRange(r)}
-                className={`px-3 py-1.5 text-xs font-medium rounded ${range === r ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:text-zinc-900'}`}
+                className={`px-3 py-1.5 text-xs font-medium rounded ${range === r ? 'bg-red-600 text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'}`}
               >
                 {RANGE_LABELS[r]}
               </button>
@@ -119,9 +122,9 @@ export default function SuperAdminOverviewPage() {
           </div>
           {range === 'custom' && (
             <div className="flex items-center gap-1.5">
-              <input type="date" value={customFrom} max={customTo} onChange={(e) => setCustomFrom(e.target.value)} className="h-8 border border-zinc-200 rounded-md text-xs px-2" />
+              <input type="date" value={customFrom} max={customTo} onChange={(e) => setCustomFrom(e.target.value)} className="h-8 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-zinc-100 rounded-md text-xs px-2" />
               <span className="text-zinc-400 text-xs">to</span>
-              <input type="date" value={customTo} min={customFrom} onChange={(e) => setCustomTo(e.target.value)} className="h-8 border border-zinc-200 rounded-md text-xs px-2" />
+              <input type="date" value={customTo} min={customFrom} onChange={(e) => setCustomTo(e.target.value)} className="h-8 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-zinc-100 rounded-md text-xs px-2" />
             </div>
           )}
         </div>
@@ -163,12 +166,54 @@ export default function SuperAdminOverviewPage() {
           <CardContent className="p-3">
             <div className="flex justify-between items-center mb-2">
               <p className="text-[11px] font-md text-zinc-500 uppercase tracking-wider">New Companies</p>
-              <Building2 size={14} className="text-indigo-500" />
+              <Building2 size={14} className="text-red-500" />
             </div>
             <h3 className="text-xl font-md tracking-tight text-zinc-900 dark:text-zinc-50 leading-none">
               {isLoading ? '—' : data?.newCompaniesInRange ?? 0}
             </h3>
             <p className="text-[10px] text-zinc-400 mt-1.5">{isLoading ? '' : `${data?.activityCountInRange ?? 0} activity events in this range`}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Executive KPIs */}
+      <div className="grid grid-cols-3 gap-3">
+        <Card className="border-zinc-200/80 shadow-sm dark:border-zinc-800 rounded-lg">
+          <CardContent className="p-3">
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-[11px] font-md text-zinc-500 uppercase tracking-wider">MRR</p>
+              <TrendingUp size={14} className="text-emerald-500" />
+            </div>
+            <h3 className="text-xl font-md tracking-tight text-zinc-900 dark:text-zinc-50 leading-none">
+              {isLoading ? '—' : formatMoney(data?.mrrINR || 0)}
+            </h3>
+            <p className="text-[10px] text-zinc-400 mt-1.5">Monthly recurring revenue, active subscriptions</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-zinc-200/80 shadow-sm dark:border-zinc-800 rounded-lg">
+          <CardContent className="p-3">
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-[11px] font-md text-zinc-500 uppercase tracking-wider">Churn Rate</p>
+              <TrendingDown size={14} className="text-rose-500" />
+            </div>
+            <h3 className="text-xl font-md tracking-tight text-zinc-900 dark:text-zinc-50 leading-none">
+              {isLoading ? '—' : `${(data?.churnRatePercent || 0).toFixed(1)}%`}
+            </h3>
+            <p className="text-[10px] text-zinc-400 mt-1.5">Cancelled subscriptions, {RANGE_LABELS[range].toLowerCase()}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-zinc-200/80 shadow-sm dark:border-zinc-800 rounded-lg">
+          <CardContent className="p-3">
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-[11px] font-md text-zinc-500 uppercase tracking-wider">ARPU</p>
+              <Gauge size={14} className="text-red-500" />
+            </div>
+            <h3 className="text-xl font-md tracking-tight text-zinc-900 dark:text-zinc-50 leading-none">
+              {isLoading ? '—' : formatMoney(data?.arpuINR || 0)}
+            </h3>
+            <p className="text-[10px] text-zinc-400 mt-1.5">Average monthly revenue per active company</p>
           </CardContent>
         </Card>
       </div>
@@ -197,7 +242,7 @@ export default function SuperAdminOverviewPage() {
                     size="sm"
                     disabled={actingOnId === paymentAlert.tenantId}
                     onClick={() => handleResolveAlert(paymentAlert)}
-                    className="h-7 text-[11px] bg-zinc-900 hover:bg-zinc-800 text-white shrink-0"
+                    className="h-7 text-[11px] bg-indigo-600 hover:bg-indigo-700 text-white shrink-0"
                   >
                     {actingOnId === paymentAlert.tenantId ? <Loader2 size={12} className="animate-spin" /> : paymentAlert.type === 'SETUP_FEE_PENDING' ? 'Mark Paid' : 'Record Payment'}
                   </Button>
@@ -254,18 +299,18 @@ export default function SuperAdminOverviewPage() {
                 <AreaChart data={data?.growth || []} margin={{ top: 5, right: 0, left: -25, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#18181b" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#18181b" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#dc2626" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#dc2626" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#a1a1aa' }} dy={10} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#a1a1aa' }} allowDecimals={false} />
                   <Tooltip
                     contentStyle={{ borderRadius: '6px', border: '1px solid #e4e4e7', padding: '4px 8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
-                    itemStyle={{ color: '#18181b', fontSize: '12px', fontWeight: 600 }}
+                    itemStyle={{ color: '#dc2626', fontSize: '12px', fontWeight: 600 }}
                     labelStyle={{ fontSize: '10px', color: '#71717a' }}
                   />
-                  <Area type="monotone" dataKey="value" name="New companies" stroke="#18181b" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
+                  <Area type="monotone" dataKey="value" name="New companies" stroke="#dc2626" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -305,7 +350,7 @@ export default function SuperAdminOverviewPage() {
       <Card className="border-zinc-200/80 shadow-sm dark:border-zinc-800 rounded-lg overflow-hidden mt-2">
         <CardHeader className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800/50 bg-zinc-50/50 dark:bg-zinc-900/30 flex flex-row items-center justify-between">
           <CardTitle className="text-[13px] font-md">Recently Onboarded Companies</CardTitle>
-          <Link href="/super-admin/companies" className="flex items-center gap-0.5 text-[10px] font-medium text-indigo-600 hover:text-indigo-700">
+          <Link href="/super-admin/companies" className="flex items-center gap-0.5 text-[10px] font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
             View all <ArrowUpRight size={12} />
           </Link>
         </CardHeader>

@@ -376,7 +376,7 @@ function SuperAdminCompaniesPageInner() {
           <button
             onClick={() => openTopUpModal(row)}
             title="Top up AI credits"
-            className="p-1.5 text-zinc-400 hover:text-violet-600 hover:bg-violet-50 rounded-md transition-colors"
+            className="p-1.5 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
           >
             <Sparkles size={14} />
           </button>
@@ -461,13 +461,13 @@ function SuperAdminCompaniesPageInner() {
                   )}
                   <div className="pt-2 flex justify-end gap-3">
                     <Button type="button" variant="outline" size="sm" onClick={() => setTopUpTarget(null)}>Cancel</Button>
-                    <Button type="submit" size="sm" disabled={topUpSubmitting} className="bg-violet-600 hover:bg-violet-700 text-white">{topUpSubmitting ? 'Adding...' : 'Add Credits'}</Button>
+                    <Button type="submit" size="sm" disabled={topUpSubmitting} className="bg-indigo-600 hover:bg-indigo-700 text-white">{topUpSubmitting ? 'Adding...' : 'Add Credits'}</Button>
                   </div>
                 </form>
               )}
               {topUpResult && (
                 <div className="pt-2 flex justify-end">
-                  <Button size="sm" className="bg-zinc-900 hover:bg-zinc-800 text-white" onClick={() => setTopUpTarget(null)}>Done</Button>
+                  <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => setTopUpTarget(null)}>Done</Button>
                 </div>
               )}
             </div>
@@ -529,7 +529,7 @@ function SuperAdminCompaniesPageInner() {
                 </>
               )}
               <div className="pt-2 flex justify-end">
-                <Button size="sm" className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 text-white" onClick={() => setCredentialsPanel(null)}>Done</Button>
+                <Button size="sm" className="h-8 text-xs bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => setCredentialsPanel(null)}>Done</Button>
               </div>
             </div>
           </div>

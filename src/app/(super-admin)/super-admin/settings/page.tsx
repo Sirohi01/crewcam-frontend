@@ -21,19 +21,19 @@ export default function SuperAdminSettingsPage() {
       <div className="inline-flex rounded-md border border-zinc-200 bg-white p-0.5">
         <button
           onClick={() => setTab('packages')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded ${tab === 'packages' ? 'bg-zinc-900 text-white' : 'text-zinc-600'}`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded ${tab === 'packages' ? 'bg-indigo-600 text-white' : 'text-zinc-600'}`}
         >
           <Package size={13} /> Packages & Limits
         </button>
         <button
           onClick={() => setTab('banners')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded ${tab === 'banners' ? 'bg-zinc-900 text-white' : 'text-zinc-600'}`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded ${tab === 'banners' ? 'bg-indigo-600 text-white' : 'text-zinc-600'}`}
         >
           <ImageIcon size={13} /> Dashboard Banners
         </button>
         <button
           onClick={() => setTab('coupons')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded ${tab === 'coupons' ? 'bg-zinc-900 text-white' : 'text-zinc-600'}`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded ${tab === 'coupons' ? 'bg-indigo-600 text-white' : 'text-zinc-600'}`}
         >
           <Tag size={13} /> Coupons
         </button>

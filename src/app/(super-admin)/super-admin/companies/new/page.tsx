@@ -435,7 +435,7 @@ export default function CompanyCreationWizardPage() {
           <ChevronLeft size={14} className="mr-1" /> Back
         </Button>
         {step < STEPS.length - 1 ? (
-          <Button onClick={goNext} className="h-9 text-xs bg-zinc-900 hover:bg-zinc-800 text-white">
+          <Button onClick={goNext} className="h-9 text-xs bg-indigo-600 hover:bg-indigo-700 text-white">
             Next <ChevronRight size={14} className="ml-1" />
           </Button>
         ) : (
