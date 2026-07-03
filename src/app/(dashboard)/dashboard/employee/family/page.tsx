@@ -134,8 +134,8 @@ export default function FamilyDetail() {
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-4">
 
           {/* Left Sidebar - Profile Card */}
-          <div className="col-span-1 space-y-6">
-            <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm flex flex-col items-center text-center">
+          <div className="col-span-1 h-full">
+            <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm flex flex-col items-center text-center h-full">
               <div className="relative mb-4">
                 <img src={employee.avatar} alt="Profile" className="h-24 w-24 rounded-full border border-zinc-200 object-cover p-1 bg-white shadow-sm" />
               </div>
@@ -262,10 +262,10 @@ export default function FamilyDetail() {
             </div>
 
             {/* Emergency & Other Info Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 lg:grid-cols-9 gap-2">
 
               {/* Emergency Contacts */}
-              <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm flex flex-col h-full">
+              <div className="col-span-5 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm flex flex-col h-full">
                 <div className="mb-4 flex items-center justify-between border-b border-zinc-100 pb-3">
                   <div className="flex items-center gap-2">
                     <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-blue-50">
@@ -277,24 +277,24 @@ export default function FamilyDetail() {
                 <div className="flex-1">
                   <table className="w-full text-left text-[10px]">
                     <thead>
-                      <tr className="border-b border-zinc-100 text-[#1d4ed8] whitespace-nowrap">
-                        <th className="pb-2 font-semibold">Name</th>
-                        <th className="pb-2 font-semibold">Relationship</th>
-                        <th className="pb-2 font-semibold">Mobile Number</th>
-                        <th className="pb-2 font-semibold">Alternate Number</th>
-                        <th className="pb-2 font-semibold">Address</th>
-                        <th className="pb-2 font-semibold text-center">Action</th>
+                      <tr className="border-b border-zinc-100 text-[#1d4ed8] ">
+                        <th className="pb-2 px-0.5 font-semibold">Name</th>
+                        <th className="pb-2 px-0.5 font-semibold">Relationship</th>
+                        <th className="pb-2 px-0.5 font-semibold">Mobile No.</th>
+                        <th className="pb-2 px-0.5 font-semibold">Alternate No.</th>
+                        <th className="pb-2 px-0.5 font-semibold">Address</th>
+                        <th className="pb-2 px-0.5 font-semibold text-center">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-100">
                       {emergencyContacts.map((contact) => (
                         <tr key={contact.id}>
-                          <td className="py-2 font-semibold text-zinc-900">{contact.name}</td>
-                          <td className="py-2 text-zinc-600">{contact.relation}</td>
-                          <td className="py-2 text-zinc-600">{contact.mobile}</td>
-                          <td className="py-2 text-zinc-600">{contact.altMobile}</td>
-                          <td className="py-2 text-zinc-600 whitespace-pre-line leading-tight">{contact.address}</td>
-                          <td className="py-2">
+                          <td className="py-2 px-0.5 font-semibold text-zinc-900">{contact.name}</td>
+                          <td className="py-2 px-0.5 text-zinc-600">{contact.relation}</td>
+                          <td className="py-2 px-0.5 text-zinc-600">{contact.mobile}</td>
+                          <td className="py-2 px-0.5 text-zinc-600">{contact.altMobile}</td>
+                          <td className="py-2 px-0.5 text-zinc-600 whitespace-pre-line leading-tight">{contact.address}</td>
+                          <td className="py-2 px-0.5">
                             <div className="flex justify-center gap-2">
                               <button className="rounded border border-blue-100 p-1 text-[#1d4ed8] hover:bg-blue-50">
                                 <Pencil size={12} />
@@ -317,7 +317,7 @@ export default function FamilyDetail() {
               </div>
 
               {/* Other Family Information */}
-              <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm flex flex-col h-full">
+              <div className="col-span-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm flex flex-col h-full">
                 <div className="mb-4 flex items-center justify-between border-b border-zinc-100 pb-3">
                   <div className="flex items-center gap-2">
                     <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-blue-50">
@@ -401,7 +401,7 @@ export default function FamilyDetail() {
             ))}
 
             {/* Upload Card */}
-            <div className="rounded-lg border-2 border-dashed border-[#1d4ed8]/30 bg-blue-50/30 p-4 flex flex-col items-center justify-center text-center hover:bg-blue-50/50 cursor-pointer transition-colors min-h-[140px]">
+            <div className="rounded-lg  border border-[#1d4ed8]/30 bg-blue-50/30 p-4 flex flex-col items-center justify-center text-center hover:bg-blue-50/50 cursor-pointer transition-colors min-h-[140px]">
               <UploadCloud size={24} className="text-[#1d4ed8] mb-2" />
               <p className="text-[10px] font-semibold text-[#1d4ed8]">Upload Document</p>
               <p className="text-[10px] text-zinc-500 mt-1">PDF, JPG, PNG (Max. 5MB)</p>

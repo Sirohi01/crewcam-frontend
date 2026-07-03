@@ -142,8 +142,8 @@ export default function BankDetailsPage() {
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-4">
 
           {/* Left Sidebar — exact same as Family page */}
-          <div className="col-span-1 space-y-6">
-            <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm flex flex-col items-center text-center">
+          <div className="col-span-1 h-full">
+            <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm flex flex-col items-center text-center h-full">
               <div className="relative mb-4">
                 <img src={employee.avatar} alt="Profile" className="h-24 w-24 rounded-full border border-zinc-200 object-cover p-1 bg-white shadow-sm" />
               </div>
@@ -409,28 +409,29 @@ export default function BankDetailsPage() {
 
             </div>
 
-            {/* Important Information — same card style as Family */}
-            <div className="rounded-xl border border-violet-200 bg-violet-50/50 p-4 shadow-sm flex items-start lg:items-center justify-between flex-col lg:flex-row gap-2">
-              <div className="flex items-start gap-2">
-                <div className="mt-0.5 rounded-full bg-violet-100 p-1 text-violet-600">
-                  <ShieldCheck size={12} />
-                </div>
-                <div>
-                  <h3 className="text-[11px] font-bold text-violet-900 mb-1">Important Information</h3>
-                  <ul className="list-disc pl-4 text-[10px] text-violet-800/80 space-y-0.5 marker:text-violet-400">
-                    <li>Ensure your bank details are correct to avoid payment failures.</li>
-                    <li>It is mandatory to keep your primary account active for salary credits.</li>
-                    <li>In case of any changes, please update your bank details and documents.</li>
-                  </ul>
-                </div>
-              </div>
-              <button className="shrink-0 flex items-center gap-1.5 rounded-md border border-violet-200 bg-violet-100/50 px-3 py-1.5 text-[10px] font-semibold text-violet-700 hover:bg-violet-200 transition-colors">
-                <Clock size={12} /> View Bank Update History
-              </button>
-            </div>
-
           </div>
         </div>
+
+        {/* Important Information — full width at bottom, same as Family's Documents section */}
+        <div className="mt-2 rounded-xl border border-violet-200 bg-violet-50/50 p-4 shadow-sm flex items-start lg:items-center justify-between flex-col lg:flex-row gap-2">
+          <div className="flex items-start gap-2">
+            <div className="mt-0.5 rounded-full bg-violet-100 p-1 text-violet-600">
+              <ShieldCheck size={12} />
+            </div>
+            <div>
+              <h3 className="text-[11px] font-bold text-violet-900 mb-1">Important Information</h3>
+              <ul className="list-disc pl-4 text-[10px] text-violet-800/80 space-y-0.5 marker:text-violet-400">
+                <li>Ensure your bank details are correct to avoid payment failures.</li>
+                <li>It is mandatory to keep your primary account active for salary credits.</li>
+                <li>In case of any changes, please update your bank details and documents.</li>
+              </ul>
+            </div>
+          </div>
+          <button className="shrink-0 flex items-center gap-1.5 rounded-md border border-violet-200 bg-violet-100/50 px-3 py-1.5 text-[10px] font-semibold text-violet-700 hover:bg-violet-200 transition-colors">
+            <Clock size={12} /> View Bank Update History
+          </button>
+        </div>
+
       </div>
     </div>
   );
