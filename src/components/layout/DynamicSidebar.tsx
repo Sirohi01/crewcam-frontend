@@ -34,19 +34,19 @@ type GroupedItem = SidebarItem | { isGroup: true; label: string; children: Sideb
 // Static item injected under PEOPLE section
 const STATIC_PEOPLE_ITEMS: SidebarItem[] = [
   {
-    _id: '__my-profile__',
-    section: 'WORKSPACE',
-    label: 'My Profile Extension',
-    href: '/dashboard/my-profile-extension',
-    icon: 'User',
-    order: 0,
-  },
-  {
     _id: '__employee-dashboard__',
     section: 'WORKSPACE',
     label: 'Employee Dashboard',
     href: '/dashboard/employee',
     icon: 'LayoutGrid',
+    order: 0,
+  },
+  {
+    _id: '__my-profile__',
+    section: 'WORKSPACE',
+    label: 'My Profile Extension',
+    href: '/dashboard/my-profile-extension',
+    icon: 'User',
     order: 1,
   },
   {
@@ -56,6 +56,14 @@ const STATIC_PEOPLE_ITEMS: SidebarItem[] = [
     href: '/dashboard/my-profile',
     icon: 'User',
     order: 2,
+  },
+  {
+    _id: '__employee-leave__',
+    section: 'WORKSPACE',
+    label: 'Leave Management',
+    href: '/dashboard/employee-leave',
+    icon: 'User',
+    order: 3,
   },
 ];
 
