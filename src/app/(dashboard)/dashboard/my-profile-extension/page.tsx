@@ -8,10 +8,12 @@ import {
   Eye, EyeOff, Pencil, Award, Building2, IndianRupee, TrendingUp, CalendarCheck, Star,
   Plus, Loader2, LucideIcon, Download, Laptop, ShieldCheck, Clock, AlertTriangle, Search,
   MoreVertical, UploadCloud, ChevronLeft, ChevronRight, Headset, Info, ChevronDown,
+  Trash2, BarChart3, BadgeCheck, Target, Rocket,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import moment from 'moment';
+import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 type TabKey = 'personal' | 'family' | 'bank' | 'education' | 'experience' | 'documents' | 'skills' | 'assets' | 'emergency' | 'more';
 
@@ -123,6 +125,48 @@ const DOC_LIST = [
   { name: 'Bank Statement (Apr 2025).pdf', category: 'Bank Details', uploadedOn: '12 May 2025', expiry: '-', status: 'Verified' },
 ];
 
+const SKILL_CATEGORY_STYLE: Record<string, { badge: string; color: string }> = {
+  'Core Skill': { badge: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', color: '#22c55e' },
+  'Soft Skill': { badge: 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400', color: '#a855f7' },
+  'Technical Skill': { badge: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', color: '#3b82f6' },
+};
+
+const SKILL_STATS = { total: 12, core: 7, avgProficiency: 78, certifications: 4 };
+
+const SKILL_LIST = [
+  { name: 'Sales Strategy', category: 'Core Skill', pct: 90, updated: '20 May 2025' },
+  { name: 'Client Relationship Management', category: 'Core Skill', pct: 85, updated: '18 May 2025' },
+  { name: 'Business Development', category: 'Core Skill', pct: 80, updated: '18 May 2025' },
+  { name: 'Negotiation', category: 'Core Skill', pct: 75, updated: '15 May 2025' },
+  { name: 'Communication', category: 'Soft Skill', pct: 85, updated: '15 May 2025' },
+  { name: 'Presentation', category: 'Soft Skill', pct: 80, updated: '12 May 2025' },
+  { name: 'Team Leadership', category: 'Soft Skill', pct: 70, updated: '12 May 2025' },
+  { name: 'CRM Software (Salesforce)', category: 'Technical Skill', pct: 75, updated: '10 May 2025' },
+  { name: 'Microsoft Excel', category: 'Technical Skill', pct: 80, updated: '10 May 2025' },
+  { name: 'Data Analysis', category: 'Technical Skill', pct: 65, updated: '08 May 2025' },
+];
+
+const SKILL_CATEGORY_BREAKDOWN = [
+  { name: 'Core Skills', count: 7, pct: 58, color: '#22c55e' },
+  { name: 'Soft Skills', count: 3, pct: 25, color: '#a855f7' },
+  { name: 'Technical Skills', count: 2, pct: 17, color: '#3b82f6' },
+];
+
+const TOP_SKILLS = [
+  { name: 'Sales Strategy', pct: 90 },
+  { name: 'Client Relationship Management', pct: 85 },
+  { name: 'Communication', pct: 85 },
+  { name: 'Microsoft Excel', pct: 80 },
+  { name: 'Business Development', pct: 80 },
+];
+
+const SKILL_CERTIFICATIONS = [
+  { name: 'Salesforce Administrator', issued: '15 Feb 2024' },
+  { name: 'Advanced Excel Certification', issued: '10 Dec 2023' },
+  { name: 'Effective Communication Specialist', issued: '05 Aug 2023' },
+  { name: 'Negotiation Skills Professional', issued: '12 Jun 2023' },
+];
+
 function InfoField({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="min-w-0">
@@ -219,6 +263,75 @@ function SkillBars({ skills, columns = 1 }: { skills: { name: string; pct: numbe
         </div>
       ))}
     </div>
+  );
+}
+
+function ProfileSummaryCard({ employee, tenure, comingSoon, className }: {
+  employee: any; tenure: { years: number; months: number } | null; comingSoon: (what: string) => () => void; className?: string;
+}) {
+  return (
+    <Card className={`border-zinc-200/70 shadow-sm dark:border-zinc-800 ${className || ''}`}>
+      <CardContent className="p-5 flex flex-col items-center text-center">
+        <div className="relative">
+          <img src={employee?.profilePictureUrl || DUMMY.photo} alt="" className="h-24 w-24 rounded-full object-cover border-4 border-zinc-100 dark:border-zinc-800" />
+          <button onClick={comingSoon('Photo upload')} className="absolute bottom-0 right-0 h-7 w-7 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-800">
+            <Camera size={12} className="text-zinc-600 dark:text-zinc-300" />
+          </button>
+        </div>
+        <div className="flex items-center gap-1.5 mt-3">
+          <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">{employee?.firstName || DUMMY.firstName} {employee?.lastName || DUMMY.lastName}</p>
+          <CheckCircle2 size={14} className="text-emerald-500" />
+        </div>
+        <p className="text-xs text-zinc-500 mt-0.5">{employee?.employeeCode || DUMMY.employeeCode}</p>
+        <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">{employee?.designationId?.name || DUMMY.designation}</p>
+        <span className={`mt-2 inline-flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full ${employee?.isActive ?? true ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'}`}>
+          <span className={`h-1.5 w-1.5 rounded-full ${employee?.isActive ?? true ? 'bg-emerald-500' : 'bg-zinc-400'}`} /> {(employee?.isActive ?? true) ? 'Active' : 'Inactive'}
+        </span>
+
+        <div className="w-full flex flex-col gap-2.5 mt-4 text-left">
+          <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+            <Mail size={13} className="text-zinc-400 shrink-0" /> <span className="truncate">{employee?.email || DUMMY.email}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+            <Phone size={13} className="text-zinc-400 shrink-0" /> {employee?.mobileNumber || DUMMY.phone}
+          </div>
+          <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+            <CalendarDays size={13} className="text-zinc-400 shrink-0" />
+            <span>{employee?.dateOfJoining ? moment(employee.dateOfJoining).format('DD MMM YYYY') : DUMMY.dateOfJoining}{tenure && ` · ${tenure.years} Yrs ${tenure.months} Mths`}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+            <MapPin size={13} className="text-zinc-400 shrink-0" /> {employee?.branchId?.name || DUMMY.branch}
+          </div>
+        </div>
+
+        <div className="w-full flex items-center gap-2 mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 text-left">
+          {employee?.reportingToId ? (
+            <>
+              {employee.reportingToId.profilePictureUrl ? (
+                <img src={employee.reportingToId.profilePictureUrl} alt="" className="h-8 w-8 rounded-full object-cover shrink-0" />
+              ) : (
+                <div className="h-8 w-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-semibold text-zinc-500 shrink-0">
+                  {employee.reportingToId.firstName?.[0]}{employee.reportingToId.lastName?.[0]}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="text-[10px] text-zinc-400">Reporting To</p>
+                <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate">{employee.reportingToId.firstName} {employee.reportingToId.lastName}</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <img src={DUMMY.reportingManager.photo} alt="" className="h-8 w-8 rounded-full object-cover shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[10px] text-zinc-400">Reporting To</p>
+                <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate">{DUMMY.reportingManager.name}</p>
+                <p className="text-[10px] text-zinc-400 truncate">{DUMMY.reportingManager.designation}</p>
+              </div>
+            </>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -319,69 +432,7 @@ export default function MyProfilePage() {
       {tab === 'personal' && (
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            {/* Profile card */}
-            <Card className="lg:col-span-3 lg:row-span-2 border-zinc-200/70 shadow-sm dark:border-zinc-800">
-              <CardContent className="p-5 flex flex-col items-center text-center">
-                <div className="relative">
-                  <img src={employee?.profilePictureUrl || DUMMY.photo} alt="" className="h-24 w-24 rounded-full object-cover border-4 border-zinc-100 dark:border-zinc-800" />
-                  <button onClick={comingSoon('Photo upload')} className="absolute bottom-0 right-0 h-7 w-7 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-800">
-                    <Camera size={12} className="text-zinc-600 dark:text-zinc-300" />
-                  </button>
-                </div>
-                <div className="flex items-center gap-1.5 mt-3">
-                  <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">{employee?.firstName || DUMMY.firstName} {employee?.lastName || DUMMY.lastName}</p>
-                  <CheckCircle2 size={14} className="text-emerald-500" />
-                </div>
-                <p className="text-xs text-zinc-500 mt-0.5">{employee?.employeeCode || DUMMY.employeeCode}</p>
-                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">{employee?.designationId?.name || DUMMY.designation}</p>
-                <span className={`mt-2 inline-flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full ${employee?.isActive ?? true ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'}`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${employee?.isActive ?? true ? 'bg-emerald-500' : 'bg-zinc-400'}`} /> {(employee?.isActive ?? true) ? 'Active' : 'Inactive'}
-                </span>
-
-                <div className="w-full flex flex-col gap-2.5 mt-4 text-left">
-                  <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
-                    <Mail size={13} className="text-zinc-400 shrink-0" /> <span className="truncate">{employee?.email || DUMMY.email}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
-                    <Phone size={13} className="text-zinc-400 shrink-0" /> {employee?.mobileNumber || DUMMY.phone}
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
-                    <CalendarDays size={13} className="text-zinc-400 shrink-0" />
-                    <span>{employee?.dateOfJoining ? moment(employee.dateOfJoining).format('DD MMM YYYY') : DUMMY.dateOfJoining}{tenure && ` · ${tenure.years} Yrs ${tenure.months} Mths`}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
-                    <MapPin size={13} className="text-zinc-400 shrink-0" /> {employee?.branchId?.name || DUMMY.branch}
-                  </div>
-                </div>
-
-                <div className="w-full flex items-center gap-2 mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 text-left">
-                  {employee?.reportingToId ? (
-                    <>
-                      {employee.reportingToId.profilePictureUrl ? (
-                        <img src={employee.reportingToId.profilePictureUrl} alt="" className="h-8 w-8 rounded-full object-cover shrink-0" />
-                      ) : (
-                        <div className="h-8 w-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-semibold text-zinc-500 shrink-0">
-                          {employee.reportingToId.firstName?.[0]}{employee.reportingToId.lastName?.[0]}
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <p className="text-[10px] text-zinc-400">Reporting To</p>
-                        <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate">{employee.reportingToId.firstName} {employee.reportingToId.lastName}</p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <img src={DUMMY.reportingManager.photo} alt="" className="h-8 w-8 rounded-full object-cover shrink-0" />
-                      <div className="min-w-0">
-                        <p className="text-[10px] text-zinc-400">Reporting To</p>
-                        <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate">{DUMMY.reportingManager.name}</p>
-                        <p className="text-[10px] text-zinc-400 truncate">{DUMMY.reportingManager.designation}</p>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <ProfileSummaryCard employee={employee} tenure={tenure} comingSoon={comingSoon} className="lg:col-span-3 lg:row-span-2" />
 
             {/* Personal Information */}
             <Card className="lg:col-span-5 border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
@@ -763,15 +814,185 @@ export default function MyProfilePage() {
       )}
 
       {tab === 'skills' && (
-        <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
-          <CardHeader className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2 text-zinc-800 dark:text-zinc-100"><Sparkles size={15} className="text-indigo-600" /> Skills</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4">
-            <SkillBars skills={DUMMY.skills} columns={2} />
-            <button onClick={comingSoon('Adding skills')} className="mt-4 text-xs font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1"><Plus size={12} /> Add Skill</button>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <ProfileSummaryCard employee={employee} tenure={tenure} comingSoon={comingSoon} className="lg:col-span-3" />
+
+          <div className="lg:col-span-6 flex flex-col gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <StatTile icon={GraduationCap} bg="bg-blue-50 dark:bg-blue-900/20" color="text-blue-600" label="Total Skills" value={String(SKILL_STATS.total)} sub="All Skills Added" />
+              <StatTile icon={Star} bg="bg-emerald-50 dark:bg-emerald-900/20" color="text-emerald-600" label="Core Skills" value={String(SKILL_STATS.core)} sub="Key Expertise Areas" />
+              <StatTile icon={BarChart3} bg="bg-amber-50 dark:bg-amber-900/20" color="text-amber-600" label="Average Proficiency" value={`${SKILL_STATS.avgProficiency}%`} sub="Across All Skills" />
+              <StatTile icon={Award} bg="bg-violet-50 dark:bg-violet-900/20" color="text-violet-600" label="Certifications" value={String(SKILL_STATS.certifications)} sub="Related to Skills" />
+            </div>
+
+            <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
+              <CardHeader className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
+                <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">My Skills</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/40">
+                        <th className="h-8 px-3 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Skill Name</th>
+                        <th className="h-8 px-3 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Category</th>
+                        <th className="h-8 px-3 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Proficiency</th>
+                        <th className="h-8 px-3 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Last Updated</th>
+                        <th className="h-8 px-3 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {SKILL_LIST.map(s => {
+                        const style = SKILL_CATEGORY_STYLE[s.category];
+                        return (
+                          <tr key={s.name} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30">
+                            <td className="px-3 py-1.5">
+                              <div className="flex items-center gap-2">
+                                <div className="h-6 w-6 rounded-full flex items-center justify-center shrink-0" style={{ background: `${style.color}1A` }}>
+                                  <Sparkles size={11} style={{ color: style.color }} />
+                                </div>
+                                <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200 whitespace-nowrap">{s.name}</span>
+                              </div>
+                            </td>
+                            <td className="px-3 py-1.5">
+                              <span className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${style.badge}`}>{s.category}</span>
+                            </td>
+                            <td className="px-3 py-1.5">
+                              <div className="flex items-center gap-2 min-w-[130px]">
+                                <div className="h-1.5 flex-1 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                                  <div className="h-full rounded-full" style={{ width: `${s.pct}%`, background: style.color }} />
+                                </div>
+                                <span className="text-[10.5px] text-zinc-500 dark:text-zinc-400 w-8 text-right">{s.pct}%</span>
+                              </div>
+                            </td>
+                            <td className="px-3 py-1.5 text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{s.updated}</td>
+                            <td className="px-3 py-1.5">
+                              <div className="flex items-center gap-1">
+                                <button onClick={comingSoon('Editing skill')} className="h-6 w-6 rounded text-zinc-400 hover:text-indigo-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center"><Pencil size={12} /></button>
+                                <button onClick={comingSoon('Deleting skill')} className="h-6 w-6 rounded text-zinc-400 hover:text-rose-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center"><Trash2 size={12} /></button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="flex flex-col items-center gap-2 px-3 py-3 border-t border-zinc-100 dark:border-zinc-800">
+                  <span className="text-xs text-zinc-500">Showing 1 to {SKILL_LIST.length} of {SKILL_STATS.total} skills</span>
+                  <button onClick={comingSoon('Viewing all skills')} className="text-xs font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">View All Skills <ChevronDown size={12} /></button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/50 dark:bg-indigo-900/10 shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    <Rocket size={16} className="text-indigo-600 shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Add &amp; Improve Your Skills</p>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Keep your skills up to date to help us understand your strengths better and recommend relevant opportunities.</p>
+                    </div>
+                  </div>
+                  <button onClick={comingSoon('Adding a new skill')} className="text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg inline-flex items-center gap-1.5 shadow-sm shadow-indigo-600/20 transition-colors shrink-0">
+                    <Plus size={13} /> Add New Skill
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-indigo-100 dark:border-indigo-900/40">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-lg bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-center shrink-0"><Plus size={14} className="text-indigo-600" /></div>
+                    <div>
+                      <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200">Add new skills</p>
+                      <p className="text-[10.5px] text-zinc-400">Keep your profile complete</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-lg bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-center shrink-0"><BarChart3 size={14} className="text-indigo-600" /></div>
+                    <div>
+                      <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200">Track proficiency</p>
+                      <p className="text-[10.5px] text-zinc-400">Update your skill levels</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-lg bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-center shrink-0"><Target size={14} className="text-indigo-600" /></div>
+                    <div>
+                      <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200">Get best opportunities</p>
+                      <p className="text-[10.5px] text-zinc-400">Based on your expertise</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="lg:col-span-3 flex flex-col gap-4">
+            <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
+              <CardContent className="p-4">
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-3">Skill Categories</p>
+                <div className="flex items-center gap-4">
+                  <div className="h-[100px] w-[100px] relative shrink-0">
+                    <ResponsiveContainer>
+                      <PieChart>
+                        <Pie data={SKILL_CATEGORY_BREAKDOWN} dataKey="count" nameKey="name" innerRadius={32} outerRadius={48} paddingAngle={2} stroke="none">
+                          {SKILL_CATEGORY_BREAKDOWN.map(c => <Cell key={c.name} fill={c.color} />)}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                      <span className="text-base font-bold text-zinc-900 dark:text-zinc-50">{SKILL_STATS.total}</span>
+                      <span className="text-[9px] text-zinc-500">Total Skills</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1.5 text-xs flex-1">
+                    {SKILL_CATEGORY_BREAKDOWN.map(c => (
+                      <div key={c.name} className="flex items-center justify-between gap-2">
+                        <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400"><span className="h-2 w-2 rounded-full shrink-0" style={{ background: c.color }} />{c.name}</span>
+                        <span className="font-medium text-zinc-800 dark:text-zinc-200 whitespace-nowrap">{c.count} ({c.pct}%)</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
+              <CardContent className="p-4">
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-3 flex items-center gap-1.5"><Target size={14} className="text-indigo-600" /> Top Skills</p>
+                <div className="flex flex-col gap-2">
+                  {TOP_SKILLS.map(s => (
+                    <div key={s.name} className="flex items-center justify-between gap-2 text-xs">
+                      <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400 min-w-0"><Star size={11} className="text-amber-400 shrink-0" /> <span className="truncate">{s.name}</span></span>
+                      <span className="text-[10.5px] font-semibold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 shrink-0">{s.pct}%</span>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={comingSoon('Viewing all skills')} className="mt-3 text-xs font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">View All Skills <ChevronRight size={12} /></button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
+              <CardContent className="p-4">
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-3 flex items-center gap-1.5"><BadgeCheck size={14} className="text-indigo-600" /> Certifications Related to Skills</p>
+                <div className="flex flex-col gap-3">
+                  {SKILL_CERTIFICATIONS.map(c => (
+                    <div key={c.name} className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-2 min-w-0">
+                        <div className="h-7 w-7 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center shrink-0 mt-0.5"><Award size={13} className="text-indigo-600" /></div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200">{c.name}</p>
+                          <p className="text-[10.5px] text-zinc-400">Issued on {c.issued}</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 shrink-0">Verified</span>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={comingSoon('Viewing all certifications')} className="mt-3 text-xs font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">View All Certifications <ChevronRight size={12} /></button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       )}
 
       {tab === 'assets' && (
