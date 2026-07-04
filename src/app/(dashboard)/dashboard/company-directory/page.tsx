@@ -290,7 +290,7 @@ const QUICK_LINKS: QuickLink[] = [
 ]
 
 const DEPT_GLANCE: DeptGlance[] = [
-  { id: 'md', icon: UsersRound, iconBg: 'bg-slate-100', iconColor: 'text-slate-600', name: 'Managing Director', count: 1 },
+  { id: 'md', icon: UsersRound, iconBg: 'bg-slate-100', iconColor: '', name: 'Managing Director', count: 1 },
   { id: 'sales', icon: Briefcase, iconBg: 'bg-emerald-50', iconColor: 'text-emerald-500', name: 'Sales & Marketing', count: 45 },
   { id: 'finance', icon: Building2, iconBg: 'bg-blue-50', iconColor: 'text-blue-500', name: 'Finance & Accounts', count: 32 },
   { id: 'hr', icon: UsersRound, iconBg: 'bg-violet-50', iconColor: 'text-violet-500', name: 'Human Resources', count: 18 },
@@ -403,9 +403,9 @@ const StatCardView: React.FC<{ stat: StatCard }> = ({ stat }) => {
         <Icon className={`h-4 w-4 ${stat.iconColor}`} />
       </div>
       <div className="min-w-0">
-        <p className="text-xs text-slate-500 truncate">{stat.label}</p>
+        <p className="text-xs  truncate">{stat.label}</p>
         <p className="text-lg font-bold leading-tight">{stat.value}</p>
-        <p className="text-[11px] text-slate-400 truncate">{stat.linkText}</p>
+        <p className="text-[11px]  truncate">{stat.linkText}</p>
       </div>
     </div>
   )
@@ -414,16 +414,16 @@ const StatCardView: React.FC<{ stat: StatCard }> = ({ stat }) => {
 
 const CompanyDirectory: React.FC = () => {
   return (
-    <div className="flex flex-col gap-2 h-[calc(100vh-48px)] overflow-hidden">
+   <div className="flex h-[calc(100vh-48px)] min-h-[650px] flex-col gap-2 overflow-hidden bg-slate-50 p-2 text-slate-900">
       {/* Breadcrumb + Header */}
       <div className="flex flex-col gap-0.5 shrink-0">
-        <div className="flex items-center gap-1 text-[11px] font-medium text-slate-500">
+        <div className="flex items-center gap-1 text-[11px] font-medium ">
           <span>Dashboard</span>
           <ChevronRight className="h-3 w-3" />
-          <span className="text-slate-900">Company Directory</span>
+          <span className="">Company Directory</span>
         </div>
-        <h1 className="text-lg font-bold text-slate-900 leading-none">Company Directory</h1>
-        <p className="text-[11px] font-medium text-slate-500">
+        <h1 className="text-lg font-bold  leading-none">Company Directory</h1>
+        <p className="text-[11px] font-medium ">
           Find and connect with people across the organization.
         </p>
       </div>
@@ -442,33 +442,33 @@ const CompanyDirectory: React.FC = () => {
           {/* Search / filters - always a single row */}
           <div className="relative rounded-tl-lg rounded-tr-lg  border border-slate-200 bg-white p-2 flex min-h-0 overflow-hidden  flex-row flex-nowrap items-center gap-2 shrink-0 overflow-x-auto">
             <div className="flex-1 flex items-center gap-1.5 rounded-md border border-slate-200 px-2 py-1.5 min-w-[160px]">
-              <Search className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+              <Search className="h-3.5 w-3.5  shrink-0" />
               <input
                 type="text"
                 placeholder="Search by name, role, department or location..."
-                className="flex-1 text-[11px] font-medium text-slate-900 placeholder:text-slate-400 outline-none min-w-0"
+                className="flex-1 text-[11px] font-medium  placeholder: outline-none min-w-0"
               />
             </div>
             {FILTERS.map((filter) => (
               <button
                 key={filter}
                 type="button"
-                className="flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1.5 text-[11px] font-medium text-slate-700 whitespace-nowrap shrink-0"
+                className="flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1.5 text-[11px] font-medium  whitespace-nowrap shrink-0"
               >
                 {filter}
-                <ChevronRight className="h-3 w-3 rotate-90 text-slate-400" />
+                <ChevronRight className="h-3 w-3 rotate-90 " />
               </button>
             ))}
             <button
               type="button"
-              className="flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1.5 text-[11px] font-medium text-slate-700 whitespace-nowrap shrink-0"
+              className="flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1.5 text-[11px] font-medium  whitespace-nowrap shrink-0"
             >
               <SlidersHorizontal className="h-3 w-3" />
               More Filters
             </button>
             <button
               type="button"
-              className="flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1.5 text-[11px] font-medium text-slate-700 whitespace-nowrap shrink-0"
+              className="flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1.5 text-[11px] font-medium  whitespace-nowrap shrink-0"
             >
               <RotateCcw className="h-3 w-3" />
               Reset
@@ -498,7 +498,7 @@ const CompanyDirectory: React.FC = () => {
                       <Avatar initials={emp.initials} bg={emp.avatarBg} text={emp.avatarText} />
                       <div className="min-w-0">
                         <div className="flex items-center gap-1">
-                          <span className="text-[11px] font-semibold text-slate-900 truncate">
+                          <span className="text-[11px] font-semibold  truncate">
                             {emp.name}
                           </span>
                           {emp.isYou ? (
@@ -507,22 +507,22 @@ const CompanyDirectory: React.FC = () => {
                             </span>
                           ) : null}
                         </div>
-                        <span className="text-[9px] font-medium text-slate-500">{emp.empId}</span>
+                        <span className="text-[9px] font-medium ">{emp.empId}</span>
                       </div>
                     </div>
-                    <span className="text-[11px] font-medium text-slate-700 truncate">
+                    <span className="text-[11px] font-medium  truncate">
                       {emp.designation}
                     </span>
-                    <span className="text-[11px] font-medium text-slate-700 truncate">
+                    <span className="text-[11px] font-medium  truncate">
                       {emp.department}
                     </span>
-                    <span className="flex items-center gap-0.5 text-[11px] font-medium text-slate-700 truncate">
-                      <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
+                    <span className="flex items-center gap-0.5 text-[11px] font-medium  truncate">
+                      <MapPin className="h-3 w-3  shrink-0" />
                       {emp.location}
                     </span>
                     <div className="min-w-0">
                       <p className="text-[10px] font-medium text-blue-600 truncate">{emp.email}</p>
-                      <p className="text-[10px] font-medium text-slate-500 truncate">{emp.phone}</p>
+                      <p className="text-[10px] font-medium  truncate">{emp.phone}</p>
                     </div>
                     <div className="flex items-center justify-end gap-1">
                       <button
@@ -539,7 +539,7 @@ const CompanyDirectory: React.FC = () => {
                       </button>
                       <button
                         type="button"
-                        className="h-6 w-6 rounded-md flex items-center justify-center text-slate-500 hover:bg-slate-50"
+                        className="h-6 w-6 rounded-md flex items-center justify-center  hover:bg-slate-50"
                       >
                         <MoreVertical className="h-3 w-3" />
                       </button>
@@ -552,19 +552,19 @@ const CompanyDirectory: React.FC = () => {
 
           {/* Pagination */}
           <div className="relative rounded-bl-lg rounded-br-lg  border border-slate-200 bg-white p-2 flex min-h-0 overflow-hidden flex-row items-center justify-between gap-2 shrink-0">
-            <span className="text-[11px] font-medium text-slate-500">
+            <span className="text-[11px] font-medium ">
               Showing 1 to 8 of 256 employees
             </span>
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                className="h-6 w-6 rounded-md border border-slate-200 flex items-center justify-center text-slate-500"
+                className="h-6 w-6 rounded-md border border-slate-200 flex items-center justify-center "
               >
                 <ChevronLeft className="h-3 w-3" />
               </button>
               {PAGES.map((page, idx) =>
                 page === 'ellipsis' ? (
-                  <span key={`ellipsis-${idx}`} className="text-[11px] font-medium text-slate-400 px-1">
+                  <span key={`ellipsis-${idx}`} className="text-[11px] font-medium  px-1">
                     ...
                   </span>
                 ) : (
@@ -574,7 +574,7 @@ const CompanyDirectory: React.FC = () => {
                     className={`h-6 w-6 rounded-md text-[11px] font-semibold flex items-center justify-center ${
                       page === 1
                         ? 'bg-blue-600 text-white'
-                        : 'border border-slate-200 text-slate-700'
+                        : 'border border-slate-200 '
                     }`}
                   >
                     {page}
@@ -583,17 +583,17 @@ const CompanyDirectory: React.FC = () => {
               )}
               <button
                 type="button"
-                className="h-6 w-6 rounded-md border border-slate-200 flex items-center justify-center text-slate-500"
+                className="h-6 w-6 rounded-md border border-slate-200 flex items-center justify-center "
               >
                 <ChevronRight className="h-3 w-3" />
               </button>
             </div>
             <button
               type="button"
-              className="flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-700"
+              className="flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-[11px] font-medium "
             >
               10 / page
-              <ChevronRight className="h-3 w-3 rotate-90 text-slate-400" />
+              <ChevronRight className="h-3 w-3 rotate-90 " />
             </button>
           </div>
 
@@ -605,7 +605,7 @@ const CompanyDirectory: React.FC = () => {
         <div className="flex flex-col gap-2 min-h-0">
           {/* Quick Links */}
           <Card className="flex-1 min-h-0">
-            <span className="text-[12px] font-semibold text-slate-900 mb-1 shrink-0">
+            <span className="text-[12px] font-semibold  mb-1 shrink-0">
               Quick Links
             </span>
             <div className="flex flex-col justify-between flex-1 min-h-0">
@@ -623,14 +623,14 @@ const CompanyDirectory: React.FC = () => {
                       <Icon className={`h-3.5 w-3.5 ${link.iconColor}`} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-semibold text-slate-900 truncate">
+                      <p className="text-[11px] font-semibold  truncate">
                         {link.title}
                       </p>
-                      <p className="text-[9px] font-medium text-slate-500 truncate">
+                      <p className="text-[9px] font-medium  truncate">
                         {link.description}
                       </p>
                     </div>
-                    <ChevronRight className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                    <ChevronRight className="h-3.5 w-3.5  shrink-0" />
                   </button>
                 )
               })}
@@ -640,7 +640,7 @@ const CompanyDirectory: React.FC = () => {
           {/* Organization at a Glance */}
           <Card className="flex-[1.4] min-h-0">
             <div className="flex items-center justify-between shrink-0 mb-1">
-              <span className="text-[12px] font-semibold text-slate-900">
+              <span className="text-[12px] font-semibold ">
                 Organization at a Glance
               </span>
               <button
@@ -661,10 +661,10 @@ const CompanyDirectory: React.FC = () => {
                     >
                       <Icon className={`h-3 w-3 ${d.iconColor}`} />
                     </div>
-                    <span className="text-[11px] font-semibold text-slate-700 flex-1 truncate">
+                    <span className="text-[11px] font-semibold  flex-1 truncate">
                       {d.name}
                     </span>
-                    <span className="text-[10px] font-bold text-slate-900 bg-slate-100 rounded-full px-1.5 py-0.5 shrink-0">
+                    <span className="text-[10px] font-bold  bg-slate-100 rounded-full px-1.5 py-0.5 shrink-0">
                       {d.count}
                     </span>
                   </div>
@@ -677,7 +677,7 @@ const CompanyDirectory: React.FC = () => {
        <div className="grid grid-cols-3 gap-2 shrink-0" style={{ height: '18%' }}>
             <Card>
               <div className="flex items-center justify-between shrink-0 mb-1">
-                <span className="text-[12px] font-semibold text-slate-900">Upcoming Birthdays</span>
+                <span className="text-[12px] font-semibold ">Upcoming Birthdays</span>
                 <button
                   type="button"
                   className="flex items-center gap-0.5 text-[10px] font-semibold text-blue-600"
@@ -701,10 +701,10 @@ const CompanyDirectory: React.FC = () => {
         />
 
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold text-slate-900 truncate">
+          <p className="text-[11px] font-semibold  truncate">
             {p.name}
           </p>
-          <p className="text-[9px] font-medium text-slate-500 truncate">
+          <p className="text-[9px] font-medium  truncate">
             {p.role}
           </p>
         </div>
@@ -714,7 +714,7 @@ const CompanyDirectory: React.FC = () => {
         <p className="text-[11px] font-bold leading-none text-emerald-600">
           {p.day}
         </p>
-        <p className="text-[8px] font-semibold leading-none text-slate-500">
+        <p className="text-[8px] font-semibold leading-none ">
           {p.month}
         </p>
       </div>
@@ -725,7 +725,7 @@ const CompanyDirectory: React.FC = () => {
 
             <Card>
               <div className="flex items-center justify-between shrink-0 mb-1">
-                <span className="text-[12px] font-semibold text-slate-900">
+                <span className="text-[12px] font-semibold ">
                   Upcoming Work Anniversaries
                 </span>
                 <button
@@ -750,10 +750,10 @@ const CompanyDirectory: React.FC = () => {
           size="h-6 w-6"
         />
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold text-slate-900 truncate">
+          <p className="text-[11px] font-semibold  truncate">
             {p.name}
           </p>
-          <p className="text-[9px] font-medium text-slate-500 truncate">
+          <p className="text-[9px] font-medium  truncate">
             {p.role}
           </p>
         </div>
@@ -763,7 +763,7 @@ const CompanyDirectory: React.FC = () => {
         <p className="text-[11px] font-bold leading-none text-amber-600">
           {p.years}
         </p>
-        <p className="text-[8px] font-semibold leading-none text-slate-500">
+        <p className="text-[8px] font-semibold leading-none ">
           Years
         </p>
       </div>
@@ -780,8 +780,8 @@ const CompanyDirectory: React.FC = () => {
               />
               <div className="absolute inset-0 z-0 bg-white/85" />
               <div className="relative z-10 flex flex-col items-center justify-center p-2 h-full w-full">
-                <span className="text-[12px] font-bold text-slate-900">Can&apos;t find someone?</span>
-                <p className="text-[10px] font-medium text-slate-500 mt-0.5">
+                <span className="text-[12px] font-bold ">Can&apos;t find someone?</span>
+                <p className="text-[10px] font-medium  mt-0.5">
                   If you are unable to find the person you are looking for, please contact HR.
                 </p>
                 <button

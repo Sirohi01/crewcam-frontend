@@ -230,7 +230,7 @@ const SectionTitle: React.FC<{ icon?: React.ElementType; children: React.ReactNo
 }) => (
   <div className="flex items-center gap-1 mb-2 shrink-0">
     {Icon ? <Icon className="h-3.5 w-3.5 text-indigo-500" /> : null}
-    <h2 className="text-[13px] font-semibold text-slate-900">{children}</h2>
+    <h2 className="text-[13px] font-semibold ">{children}</h2>
   </div>
 )
 
@@ -260,14 +260,14 @@ const StatCardView: React.FC<{ stat: StatCard }> = ({ stat }) => {
 
       {/* Right Content */}
       <div className="flex flex-col gap-0.5 min-w-0">
-        <span className="text-[11px] font-medium text-slate-500">{stat.label}</span>
+        <span className="text-[11px] font-medium ">{stat.label}</span>
 
         <div className="flex items-baseline gap-1">
-          <span className="text-lg font-bold leading-none truncate text-slate-900">
+          <span className="text-lg font-bold leading-none truncate ">
             {stat.value}
           </span>
           {stat.valueSuffix && (
-            <span className="text-[11px] font-medium text-slate-500">{stat.valueSuffix}</span>
+            <span className="text-[11px] font-medium ">{stat.valueSuffix}</span>
           )}
         </div>
 
@@ -284,7 +284,7 @@ const StatCardView: React.FC<{ stat: StatCard }> = ({ stat }) => {
         )}
 
         {stat.helper && (
-          <span className="flex items-center gap-0.5 truncate text-[10px] font-medium text-slate-500">
+          <span className="flex items-center gap-0.5 truncate text-[10px] font-medium ">
             {stat.helperIcon && (
               <ArrowUp className="h-2.5 w-2.5 shrink-0 text-emerald-500" />
             )}
@@ -312,8 +312,8 @@ const MiniDonut: React.FC<MiniDonutProps> = ({
   centerValue,
   centerLabel,
   size = 'h-20 w-20',
-  valueClassName = 'text-sm font-bold text-slate-900 leading-none',
-  labelClassName = 'text-[8px] font-medium text-slate-500 leading-none mt-0.5',
+  valueClassName = 'text-sm font-bold  leading-none',
+  labelClassName = 'text-[8px] font-medium  leading-none mt-0.5',
 }) => {
   const total = data.reduce((sum, d) => sum + d.value, 0)
   const chartData = total > 0 ? data : [{ id: 'empty', value: 1, color: '#e2e8f0' }]
@@ -357,10 +357,10 @@ const StartSelfReviewModal: React.FC<{ open: boolean; onOpenChange: (open: boole
       <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[90vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-4 shadow-lg">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <Dialog.Title className="text-[14px] font-bold text-slate-900">
+            <Dialog.Title className="text-[14px] font-bold ">
               Start Self Review
             </Dialog.Title>
-            <Dialog.Description className="mt-1 text-[11px] font-medium text-slate-500">
+            <Dialog.Description className="mt-1 text-[11px] font-medium ">
               This is a placeholder for the self review flow. Hook this up to your actual review
               form when it&apos;s ready.
             </Dialog.Description>
@@ -368,7 +368,7 @@ const StartSelfReviewModal: React.FC<{ open: boolean; onOpenChange: (open: boole
           <Dialog.Close asChild>
             <button
               type="button"
-              className="shrink-0 rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              className="shrink-0 rounded-md p-1  hover:bg-slate-100"
             >
               <X className="h-4 w-4" />
             </button>
@@ -378,7 +378,7 @@ const StartSelfReviewModal: React.FC<{ open: boolean; onOpenChange: (open: boole
           <Dialog.Close asChild>
             <button
               type="button"
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+              className="rounded-md border border-slate-300 px-3 py-1.5 text-[11px] font-semibold  hover:bg-slate-50"
             >
               Cancel
             </button>
@@ -402,20 +402,20 @@ const MyPerformance: React.FC = () => {
 
   return (
     <PageLayout>
-      <div className="flex flex-col gap-2 min-h-screen overflow-visible lg:h-[calc(100vh-48px)] lg:overflow-y-auto">
+     <div className="flex h-[calc(100vh-48px)] min-h-[650px] flex-col gap-2 overflow-hidden bg-slate-50 text-slate-900">
         {/* Breadcrumb + Header */}
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 shrink-0">
           <div className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-1 text-[11px] font-medium text-slate-500">
+            <div className="flex items-center gap-1 text-[11px] font-medium ">
               <span>Dashboard</span>
               <ChevronRight className="h-3 w-3" />
-              <span className="text-slate-900">My Performance</span>
+              <span className="">My Performance</span>
             </div>
             <div className="flex items-center gap-1">
-              <h1 className="text-lg font-bold text-slate-900 leading-none">My Performance</h1>
-              <Info className="h-3.5 w-3.5 text-slate-400" />
+              <h1 className="text-lg font-bold  leading-none">My Performance</h1>
+              <Info className="h-3.5 w-3.5 " />
             </div>
-            <p className="text-[11px] font-medium text-slate-500">
+            <p className="text-[11px] font-medium ">
               Track your performance, achievements and growth.
             </p>
           </div>
@@ -457,7 +457,7 @@ const MyPerformance: React.FC = () => {
               className={`pb-2 text-[12px] font-semibold whitespace-nowrap ${
                 idx === 0
                   ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-slate-500 hover:text-slate-700'
+                  : ' hover:'
               }`}
             >
               {tab}
@@ -479,8 +479,8 @@ const MyPerformance: React.FC = () => {
                     centerValue="4.4"
                     centerLabel="/ 5"
                     size="h-28 w-28"
-                    valueClassName="text-2xl font-bold text-slate-900 leading-none"
-                    labelClassName="text-[10px] font-medium text-slate-500 leading-none mt-0.5"
+                    valueClassName="text-2xl font-bold  leading-none"
+                    labelClassName="text-[10px] font-medium  leading-none mt-0.5"
                   />
                   <div className="flex gap-0.5">
                     {[0, 1, 2, 3].map((i) => (
@@ -491,12 +491,12 @@ const MyPerformance: React.FC = () => {
                   <span className="text-[11px] font-semibold text-emerald-600">
                     Excellent Performance
                   </span>
-                  <p className="text-[10px] font-medium text-slate-500 text-center leading-tight">
+                  <p className="text-[10px] font-medium  text-center leading-tight">
                     You are performing above expectations. Keep it up!
                   </p>
                 </div>
                 <div className="flex-1 flex flex-col min-h-0">
-                  <div className="grid grid-cols-[1fr_auto_2fr_auto] gap-x-3 text-[10px] font-semibold text-slate-500 pb-1">
+                  <div className="grid grid-cols-[1fr_auto_2fr_auto] gap-x-3 text-[10px] font-semibold  pb-1">
                     <span>Competency</span>
                     <span>Rating</span>
                     <span></span>
@@ -508,10 +508,10 @@ const MyPerformance: React.FC = () => {
                         key={c.id}
                         className="grid grid-cols-[1fr_auto_2fr_auto] gap-x-3 items-center"
                       >
-                        <span className="text-[11px] font-semibold text-slate-900 truncate">
+                        <span className="text-[11px] font-semibold  truncate">
                           {c.name}
                         </span>
-                        <span className="text-[11px] font-semibold text-slate-900">
+                        <span className="text-[11px] font-semibold ">
                           {c.rating.toFixed(1)}
                         </span>
                         <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
@@ -524,7 +524,7 @@ const MyPerformance: React.FC = () => {
                           {c.delta > 0 ? (
                             <ArrowUp className="h-2.5 w-2.5" />
                           ) : (
-                            <Minus className="h-2.5 w-2.5 text-slate-400" />
+                            <Minus className="h-2.5 w-2.5 " />
                           )}
                           {c.delta > 0 ? `${c.delta.toFixed(1)}` : '0.0'}
                         </span>
@@ -564,7 +564,7 @@ const MyPerformance: React.FC = () => {
       {GOAL_SLICES.map((g) => (
         <div
           key={g.id}
-          className="flex items-center justify-between gap-2 text-[10px] font-medium text-slate-700"
+          className="flex items-center justify-between gap-2 text-[10px] font-medium "
         >
           <div className="flex items-center gap-1 min-w-0">
             <span
@@ -574,7 +574,7 @@ const MyPerformance: React.FC = () => {
             <span className="truncate">{g.label}</span>
           </div>
 
-          <span className="text-slate-500 shrink-0">
+          <span className=" shrink-0">
             {g.value} ({g.percent})
           </span>
         </div>
@@ -599,14 +599,14 @@ const MyPerformance: React.FC = () => {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-[11px] font-semibold text-slate-900 truncate">
+                            <span className="text-[11px] font-semibold  truncate">
                               {a.title}
                             </span>
-                            <span className="text-[9px] font-medium text-slate-500 shrink-0">
+                            <span className="text-[9px] font-medium  shrink-0">
                               {a.date}
                             </span>
                           </div>
-                          <p className="text-[10px] font-medium text-slate-500 truncate">
+                          <p className="text-[10px] font-medium  truncate">
                             {a.description}
                           </p>
                         </div>
@@ -625,7 +625,7 @@ const MyPerformance: React.FC = () => {
             <Card className="min-h-[240px] lg:flex-1 lg:min-h-0">
               <div className="flex items-center justify-between shrink-0 mb-1">
                 <SectionTitle>Performance Trend</SectionTitle>
-                <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-500 border border-slate-300 rounded-md px-1.5 py-0.5">
+                <div className="flex items-center gap-1 text-[10px] font-semibold  border border-slate-300 rounded-md px-1.5 py-0.5">
                   <RefreshCw className="h-2.5 w-2.5" />
                   Last 4 Cycles
                 </div>
@@ -671,13 +671,13 @@ const MyPerformance: React.FC = () => {
                 />
                 <div className="flex flex-col gap-1 min-w-0">
                   {FEEDBACK_SLICES.map((f) => (
-                    <div key={f.id} className="flex items-center gap-1 text-[10px] font-medium text-slate-700">
+                    <div key={f.id} className="flex items-center gap-1 text-[10px] font-medium ">
                       <span
                         className="h-2 w-2 rounded-full shrink-0"
                         style={{ backgroundColor: f.color }}
                       />
                       <span className="truncate">{f.label}</span>
-                      <span className="text-slate-500 shrink-0">
+                      <span className=" shrink-0">
                         {f.value} ({f.percent})
                       </span>
                     </div>
@@ -691,12 +691,12 @@ const MyPerformance: React.FC = () => {
             <Card className="min-h-[150px] lg:flex-1 lg:min-h-0">
               <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
                 <div className="flex flex-col min-h-0">
-                  <span className="text-[11px] font-semibold text-slate-900 mb-1 shrink-0">
+                  <span className="text-[11px] font-semibold  mb-1 shrink-0">
                     Top Strengths
                   </span>
                   <div className="flex flex-col gap-1 overflow-hidden">
                     {STRENGTHS.map((s) => (
-                      <div key={s.id} className="flex items-center gap-1 text-[10px] font-medium text-slate-700">
+                      <div key={s.id} className="flex items-center gap-1 text-[10px] font-medium ">
                         <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
                         <span className="truncate">{s.label}</span>
                       </div>
@@ -704,12 +704,12 @@ const MyPerformance: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex flex-col min-h-0">
-                  <span className="text-[11px] font-semibold text-slate-900 mb-1 shrink-0">
+                  <span className="text-[11px] font-semibold  mb-1 shrink-0">
                     Areas to Improve
                   </span>
                   <div className="flex flex-col gap-1 overflow-hidden">
                     {IMPROVEMENTS.map((i) => (
-                      <div key={i.id} className="flex items-center gap-1 text-[10px] font-medium text-slate-700">
+                      <div key={i.id} className="flex items-center gap-1 text-[10px] font-medium ">
                         <ArrowUp className="h-3 w-3 text-orange-500 shrink-0" />
                         <span className="truncate">{i.label}</span>
                       </div>
@@ -727,10 +727,10 @@ const MyPerformance: React.FC = () => {
           <div className="flex items-center gap-2 min-w-0">
             <Pencil className="h-4 w-4 text-blue-600 shrink-0" />
             <div className="min-w-0">
-              <p className="text-[11px] font-bold text-slate-900 truncate">
+              <p className="text-[11px] font-bold  truncate">
                 Take Charge of Your Growth
               </p>
-              <p className="text-[10px] font-medium text-slate-500 truncate">
+              <p className="text-[10px] font-medium  truncate">
                 Complete your self review to help your manager understand your perspective better.
               </p>
             </div>

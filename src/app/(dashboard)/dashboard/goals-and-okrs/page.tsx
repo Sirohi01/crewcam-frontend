@@ -204,7 +204,7 @@ const FormModal: React.FC<{
         <div className="mb-2 flex items-center justify-between">
           <Dialog.Title className="text-sm font-semibold">{title}</Dialog.Title>
           <Dialog.Close asChild>
-            <button type="button" className="text-slate-500 hover:text-slate-700">
+            <button type="button" className=" hover:">
               <X className="h-4 w-4" />
             </button>
           </Dialog.Close>
@@ -343,9 +343,9 @@ const StatCard: React.FC<{ stat: SummaryStat }> = ({ stat }) => {
         <Icon className={`h-4 w-4 ${stat.iconColor}`} />
       </div>
       <div className="min-w-0">
-        <p className="text-xs text-slate-500 truncate">{stat.label}</p>
+        <p className="text-xs  truncate">{stat.label}</p>
         <p className="text-lg font-bold leading-tight">{stat.value}</p>
-        <p className="text-[11px] text-slate-400 truncate">{stat.sub}</p>
+        <p className="text-[11px]  truncate">{stat.sub}</p>
       </div>
     </div>
   )
@@ -356,12 +356,12 @@ const KeyResultRow: React.FC<{ kr: KeyResult; status: OkrStatus }> = ({
   status,
 }) => (
   <div className="flex w-full items-center gap-3 py-2">
-    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-slate-400 text-[8px] text-slate-400">
+    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-slate-400 text-[8px] ">
       /
     </span>
 
     {/* Title */}
-<p className="flex-1 min-w-0 truncate text-[11px] text-slate-600">
+<p className="flex-1 min-w-0 truncate text-[11px] ">
   {kr.title}
 </p>
 
@@ -372,9 +372,9 @@ const KeyResultRow: React.FC<{ kr: KeyResult; status: OkrStatus }> = ({
   />
 </div>
 
-<p className="shrink-0 whitespace-nowrap text-right text-[10px] text-slate-500">
+<p className="shrink-0 whitespace-nowrap text-right text-[10px] ">
   {kr.displayCurrent} / {kr.displayTarget}
-  <span className="text-slate-400"> ({kr.progress}%)</span>
+  <span className=""> ({kr.progress}%)</span>
 </p>
   </div>
 );
@@ -409,9 +409,9 @@ const ObjectiveCard: React.FC<{ objective: Objective }> = ({ objective }) => {
             <div className="mt-1 h-1.5 w-20 overflow-hidden rounded-full border border-slate-300 bg-slate-200 sm:w-24">
               <div className={`h-full rounded-full ${progressBarColor[objective.status]}`} style={{ width: `${objective.overallProgress}%` }} />
             </div>
-            <p className="mt-0.5 whitespace-nowrap text-[10px] text-slate-400">Overall Progress</p>
+            <p className="mt-0.5 whitespace-nowrap text-[10px] ">Overall Progress</p>
           </div>
-          <button type="button" className="text-slate-400 hover:text-slate-600">
+          <button type="button" className=" hover:">
             <MoreVertical className="h-4 w-4" />
           </button>
         </div>
@@ -451,19 +451,19 @@ const GoalsAndOkrs: React.FC = () => {
   const [okrModalOpen, setOkrModalOpen] = useState(false)
 
   return (
-    <div className="flex min-h-screen flex-col gap-2 bg-slate-50 p-2 text-slate-900 lg:h-[calc(100vh-48px)] lg:overflow-hidden">
+  <div className="flex h-[calc(100vh-48px)] min-h-[650px] flex-col gap-2 overflow-hidden bg-slate-50 p-2 text-slate-900">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1 text-xs text-slate-400">
+      <div className="flex items-center gap-1 text-xs ">
         <span>Dashboard</span>
         <span>›</span>
-        <span className="font-medium text-slate-600">Goals & OKRs</span>
+        <span className="font-medium ">Goals & OKRs</span>
       </div>
 
       {/* Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-bold">Goals & OKRs</h1>
-          <p className="text-xs text-slate-500">Set goals, track progress and achieve excellence.</p>
+          <p className="text-xs ">Set goals, track progress and achieve excellence.</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -501,7 +501,7 @@ const GoalsAndOkrs: React.FC = () => {
               type="button"
               onClick={() => setActiveTab(tab)}
               className={`relative shrink-0 pb-2 text-sm font-medium ${
-                activeTab === tab ? "text-blue-600" : "text-slate-500 hover:text-slate-700"
+                activeTab === tab ? "text-blue-600" : " hover:"
               }`}
             >
               {tab}
@@ -511,13 +511,13 @@ const GoalsAndOkrs: React.FC = () => {
         </div>
         <div className="flex items-center gap-2 pb-2">
           <button className="flex flex-1 items-center gap-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs sm:flex-none">
-            <Calendar className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+            <Calendar className="h-3.5 w-3.5  shrink-0" />
             <span className="truncate">Q2 2024 (Apr - Jun)</span>
-            <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+            <ChevronDown className="h-3.5 w-3.5  shrink-0" />
           </button>
           <button className="flex flex-1 items-center gap-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs sm:flex-none">
             All Status
-            <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+            <ChevronDown className="h-3.5 w-3.5  shrink-0" />
           </button>
         </div>
       </div>
@@ -530,7 +530,7 @@ const GoalsAndOkrs: React.FC = () => {
             <p className="text-xs font-semibold">My OKRs (3)</p>
             <button className="flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs">
               Sort by: Priority
-              <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+              <ChevronDown className="h-3.5 w-3.5 " />
             </button>
           </div>
 
@@ -551,7 +551,7 @@ const GoalsAndOkrs: React.FC = () => {
               </button>
             </div>
           ) : (
-            <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-slate-300 text-xs text-slate-400">
+            <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-slate-300 text-xs ">
               No data yet in &quot;{activeTab}&quot;
             </div>
           )}
@@ -563,7 +563,7 @@ const GoalsAndOkrs: React.FC = () => {
               </span>
               <div>
                 <p className="text-sm font-semibold">Keep Achieving!</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs ">
                   You are performing better than 72% of employees in your department.
                 </p>
               </div>
@@ -593,7 +593,7 @@ const GoalsAndOkrs: React.FC = () => {
                 </ResponsiveContainer>
                 <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                   <p className="text-base font-bold leading-none">{totalDonut}</p>
-                  <p className="text-[10px] text-slate-400">OKRs</p>
+                  <p className="text-[10px] ">OKRs</p>
                 </div>
               </div>
               <div className="flex flex-1 flex-col gap-1">
@@ -619,7 +619,7 @@ const GoalsAndOkrs: React.FC = () => {
                   <div className="h-3 w-px bg-slate-400" />
                   <span
                     className={`w-full truncate rounded-md px-1 py-1 text-center text-[9px] font-medium ${
-                      node.highlighted ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
+                      node.highlighted ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 "
                     }`}
                   >
                     {node.title}
@@ -641,14 +641,14 @@ const GoalsAndOkrs: React.FC = () => {
                   <span className={`h-7 w-7 shrink-0 rounded-full ${c.avatarBg}`} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-xs font-medium">{c.title}</p>
-                    <p className="truncate text-[11px] text-slate-400">{c.subtitle}</p>
+                    <p className="truncate text-[11px] ">{c.subtitle}</p>
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="flex items-center gap-1 whitespace-nowrap text-[11px] text-slate-500">
+                    <p className="flex items-center gap-1 whitespace-nowrap text-[11px] ">
                       <Calendar className="h-3 w-3" />
                       {c.date}
                     </p>
-                    <p className="text-[10px] text-slate-400">{c.time}</p>
+                    <p className="text-[10px] ">{c.time}</p>
                   </div>
                 </div>
               ))}
