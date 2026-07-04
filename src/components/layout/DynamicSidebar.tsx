@@ -73,6 +73,30 @@ const STATIC_PEOPLE_ITEMS: SidebarItem[] = [
     icon: 'Calendar',
     order: 2,
   },
+  {
+    _id: '__goals-and-okrs__',
+    section: 'WORKSPACE',
+    label: 'Goals & OKRs',
+    href: '/dashboard/goals-and-okrs',
+    icon: 'TrendingUp',
+    order: 4,
+  },
+  {
+    _id: '__my-performance__',
+    section: 'WORKSPACE',
+    label: 'My Performance',
+    href: '/dashboard/my-performance',
+    icon: 'Star',
+    order: 5,
+  },
+  {
+    _id: '__company-directory__',
+    section: 'WORKSPACE',
+    label: 'Company Directory',
+    href: '/dashboard/company-directory',
+    icon: 'Users',
+    order: 6,
+  },
 ];
 
 export default function DynamicSidebar() {
