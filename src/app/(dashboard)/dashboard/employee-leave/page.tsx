@@ -147,18 +147,18 @@ function Card({ className = '', children }: { className?: string; children: Reac
 function BalanceCard({ b }: { b: (typeof leaveBalances)[number] }) {
   const Icon = b.icon;
   return (
-    <Card className="p-3 min-w-0 flex flex-col justify-between">
+    <Card className="p-2 min-w-0 flex flex-col justify-between">
       <div className="flex items-center gap-1.5">
-        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${b.iconBg} ${b.iconColor}`}>
+        <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${b.iconBg} ${b.iconColor}`}>
           <Icon size={14} />
         </span>
         <div className="min-w-0 flex-1">
           <p className="whitespace-nowrap tracking-tight text-[11px] font-semibold text-zinc-600">{b.label}</p>
-          <p className={`mt-1.5 text-[22px] font-bold leading-none ${b.valueColor}`}>{b.value}</p>
+          <p className={`mt-1.5 text-[18px] font-bold leading-none ${b.valueColor}`}>{b.value}</p>
           <p className="mt-1 whitespace-nowrap text-[11px] font-medium text-zinc-500">Days Available</p>
         </div>
       </div>
-      <div className="mt-3">
+      <div className="mt-1.5">
         <p className="mb-1.5 whitespace-nowrap text-[10.5px] font-semibold text-zinc-600">Taken: {b.taken}</p>
         <div className="h-1.5 w-full rounded-full bg-zinc-100 overflow-hidden">
           <div className={`h-full rounded-full ${b.barColor}`} style={{ width: `${b.barPct}%` }} />
@@ -180,232 +180,229 @@ export default function LeaveManagementPage() {
     activeTab === 'All' ? leaveHistory : leaveHistory.filter((l) => l.status === activeTab);
 
   return (
-    <main className="mx-auto max-w-[1600px] space-y-2 pb-4 px-2 sm:px-3">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-1.5 text-[13px] text-zinc-400">
-          <Link href="/dashboard" className="hover:text-zinc-600">Dashboard</Link>
-          <ChevronRight size={13} />
-          <span className="font-[13px] text-zinc-800">Leave Management</span>
-        </div>
+    <main className="mx-auto max-w-[1600px] space-y-1 pb-2 px-2 sm:px-3">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-1.5 text-[13px] text-zinc-400">
+        <Link href="/dashboard" className="hover:text-zinc-600">Dashboard</Link>
+        <ChevronRight size={13} />
+        <span className="font-[13px] text-zinc-800">Leave Management</span>
+      </div>
 
-        {/* Header */}
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-[26px] font-bold text-zinc-900">Leave Management</h1>
-            <p className="mt-0.5 text-[13px] text-zinc-400">
-              Apply for leave, view balances and track your leave requests.
-            </p>
+      {/* Header */}
+      <div className="flex flex-wrap items-start justify-between gap-1.5">
+        <div>
+          <h1 className="text-[26px] font-bold text-zinc-900">Leave Management</h1>
+          <p className="mt-0.5 text-[13px] text-zinc-400">
+            Apply for leave, view balances and track your leave requests.
+          </p>
+        </div>
+        <Link
+          href="/employee-apply-leave"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-[13px] font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
+        >
+          <Plus size={12} /> Apply Leave
+        </Link>
+      </div>
+
+      {/* Leave Balance */}
+      <Card className="p-2 min-w-0">
+        <h2 className="mb-1.5 text-[14px] font-bold text-zinc-900">My Leave Balance (as on 24 May 2025)</h2>
+        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-5">
+          {leaveBalances.map((b) => (
+            <BalanceCard key={b.key} b={b} />
+          ))}
+        </div>
+      </Card>
+
+      {/* History + right column */}
+      <div className="grid w-full grid-cols-1 gap-1.5 xl:grid-cols-[1fr_340px]">
+        {/* Leave History */}
+        <Card className="min-w-0 p-2 h-fit">
+          <div className="mb-1.5 flex items-center justify-between">
+            <h2 className="text-[14px] font-bold text-zinc-900">Leave History</h2>
+            <Link href="/dashboard/leaves" className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-blue-600 hover:text-blue-700">
+              View All <ArrowRight size={13} />
+            </Link>
           </div>
-          <Link
-            href="/employee-apply-leave"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-[13px] font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
-          >
-            <Plus size={12} /> Apply Leave
-          </Link>
-        </div>
 
-        {/* Leave Balance */}
-        <Card className="p-2 min-w-0">
-          <h2 className="mb-3 text-[14px] font-bold text-zinc-900">My Leave Balance (as on 24 May 2025)</h2>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            {leaveBalances.map((b) => (
-              <BalanceCard key={b.key} b={b} />
+          <div className="mb-1.5 flex items-center gap-1.5 border-b border-zinc-100">
+            {historyTabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => { setActiveTab(tab); setPage(1); }}
+                className={`relative pb-2.5 text-[13px] font-semibold transition-colors ${activeTab === tab ? 'text-blue-600' : 'text-zinc-400 hover:text-zinc-600'
+                  }`}
+              >
+                {tab}
+                {activeTab === tab && (
+                  <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-blue-600" />
+                )}
+              </button>
+            ))}
+          </div>
+
+          <div className="w-full overflow-x-auto">
+            <table className="w-full min-w-[560px] border-collapse">
+              <thead>
+                <tr className="text-left text-[11.5px] font-semibold text-zinc-400">
+                  <th className="py-2 pr-2 font-semibold">Leave Type</th>
+                  <th className="py-2 pr-2 font-semibold">From Date</th>
+                  <th className="py-2 pr-2 font-semibold">To Date</th>
+                  <th className="py-2 pr-2 font-semibold">Days</th>
+                  <th className="py-2 pr-2 font-semibold">Reason</th>
+                  <th className="py-2 pr-2 font-semibold">Status</th>
+                  <th className="py-2 pr-2 font-semibold">Applied On</th>
+                  <th className="py-2 pr-0 font-semibold" />
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((row, i) => (
+                  <tr key={i} className="border-t border-zinc-200 text-[12.5px]">
+                    <td className="py-2 pr-2">
+                      <span className={`inline-block rounded-md px-2 py-0.5 text-[11px] font-semibold ${TYPE_BADGE[row.type]}`}>
+                        {row.type}
+                      </span>
+                    </td>
+                    <td className="py-2 pr-2 whitespace-nowrap text-zinc-600">{row.from}</td>
+                    <td className="py-2 pr-2 whitespace-nowrap text-zinc-600">{row.to}</td>
+                    <td className="py-2 pr-2 text-zinc-600">{row.days}</td>
+                    <td className="py-2 pr-2 text-zinc-600">{row.reason}</td>
+                    <td className="py-2 pr-2">
+                      <span className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${STATUS_BADGE[row.status]}`}>
+                        {row.status}
+                      </span>
+                    </td>
+                    <td className="py-2 pr-2 whitespace-nowrap text-zinc-600">{row.applied}</td>
+                    <td className="py-2 pr-0 text-right">
+                      <button className="text-zinc-400 hover:text-zinc-600">
+                        <MoreVertical size={15} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-1.5 flex items-center justify-between text-[12px] text-zinc-400">
+            <span>Showing 1 to {filtered.length} of 12 entries</span>
+            <div className="flex items-center gap-1.5">
+              <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-400 hover:bg-zinc-50">
+                <ChevronLeft size={14} />
+              </button>
+              <button
+                onClick={() => setPage(1)}
+                className={`grid h-7 w-7 place-items-center rounded-md text-[12px] font-semibold ${page === 1 ? 'bg-blue-600 text-white' : 'border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
+                  }`}
+              >
+                1
+              </button>
+              <button
+                onClick={() => setPage(2)}
+                className={`grid h-7 w-7 place-items-center rounded-md text-[12px] font-semibold ${page === 2 ? 'bg-blue-600 text-white' : 'border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
+                  }`}
+              >
+                2
+              </button>
+              <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-400 hover:bg-zinc-50">
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+        </Card>
+
+        {/* Right column */}
+        <div className="min-w-0 space-y-1.5">
+          {/* Upcoming Leaves */}
+          <Card className="p-2">
+            <h2 className="mb-1 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
+              <Calendar size={16} className="text-blue-600" /> Upcoming Leaves
+            </h2>
+            <div className="flex flex-col items-center justify-center py-3 text-center">
+              <span className="mb-1.5 grid h-16 w-16 place-items-center rounded-2xl bg-blue-50 text-blue-500">
+                <Calendar size={28} />
+              </span>
+              <p className="text-[13px] font-bold text-zinc-800">No Upcoming Leaves</p>
+              <p className="mt-1 text-[12px] text-zinc-400">You don&apos;t have any upcoming leaves.</p>
+            </div>
+          </Card>
+
+          {/* Leave Summary */}
+          <Card className="min-w-0 p-3">
+            <h2 className="mb-2 text-[14px] font-bold text-zinc-900">Leave Summary (Year 2025)</h2>
+            <div className="flex items-center gap-2">
+              <div className="relative h-[130px] w-[130px] shrink-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={summaryChartData}
+                      dataKey="value"
+                      innerRadius={45}
+                      outerRadius={62}
+                      startAngle={90}
+                      endAngle={-270}
+                      stroke="none"
+                    >
+                      {summaryChartData.map((entry, i) => (
+                        <Cell key={i} fill={entry.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-[18px] font-bold text-zinc-900">37.5%</span>
+                  <span className="text-[9.5px] text-zinc-400">Utilized</span>
+                </div>
+              </div>
+              <div className="min-w-0 flex-1 space-y-1.5">
+                {leaveSummary.map((s) => (
+                  <div key={s.label} className="flex items-center justify-between gap-2 text-[11.5px]">
+                    <span className="flex min-w-0 items-center gap-1.5 text-zinc-500">
+                      <span className="h-2 w-2 shrink-0 rounded-sm" style={{ backgroundColor: s.color }} />
+                      <span className="truncate">{s.label}</span>
+                    </span>
+                    <span className="shrink-0 font-semibold text-zinc-800">{s.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* Bottom row */}
+      <div className="grid w-full grid-cols-1 gap-1.5 lg:grid-cols-[1fr_340px]">
+        {/* Leave Policy Highlights */}
+        <Card className="min-w-0 p-2">
+          <h2 className="mb-1.5 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
+            <ShieldCheck size={16} className="text-blue-600" /> Leave Policy Highlights
+          </h2>
+          <div className="space-y-1">
+            {policyHighlights.map((item, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-emerald-500" />
+                <span className="text-[12.5px] text-zinc-600">{item}</span>
+              </div>
             ))}
           </div>
         </Card>
 
-        {/* History + right column */}
-        <div className="grid w-full grid-cols-1 gap-5 xl:grid-cols-[1fr_340px]">
-          {/* Leave History */}
-          <Card className="min-w-0 p-3 h-fit">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-[14px] font-bold text-zinc-900">Leave History</h2>
-              <Link href="/dashboard/leaves" className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-blue-600 hover:text-blue-700">
-                View All <ArrowRight size={13} />
-              </Link>
-            </div>
-
-            <div className="mb-3 flex items-center gap-5 border-b border-zinc-100">
-              {historyTabs.map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => { setActiveTab(tab); setPage(1); }}
-                  className={`relative pb-2.5 text-[13px] font-semibold transition-colors ${
-                    activeTab === tab ? 'text-blue-600' : 'text-zinc-400 hover:text-zinc-600'
-                  }`}
-                >
-                  {tab}
-                  {activeTab === tab && (
-                    <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-blue-600" />
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div className="w-full overflow-x-auto">
-              <table className="w-full min-w-[560px] border-collapse">
-                <thead>
-                  <tr className="text-left text-[11.5px] font-semibold text-zinc-400">
-                    <th className="py-2 pr-2 font-semibold">Leave Type</th>
-                    <th className="py-2 pr-2 font-semibold">From Date</th>
-                    <th className="py-2 pr-2 font-semibold">To Date</th>
-                    <th className="py-2 pr-2 font-semibold">Days</th>
-                    <th className="py-2 pr-2 font-semibold">Reason</th>
-                    <th className="py-2 pr-2 font-semibold">Status</th>
-                    <th className="py-2 pr-2 font-semibold">Applied On</th>
-                    <th className="py-2 pr-0 font-semibold" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((row, i) => (
-                    <tr key={i} className="border-t border-zinc-200 text-[12.5px]">
-                      <td className="py-2 pr-2">
-                        <span className={`inline-block rounded-md px-2 py-0.5 text-[11px] font-semibold ${TYPE_BADGE[row.type]}`}>
-                          {row.type}
-                        </span>
-                      </td>
-                      <td className="py-2 pr-2 whitespace-nowrap text-zinc-600">{row.from}</td>
-                      <td className="py-2 pr-2 whitespace-nowrap text-zinc-600">{row.to}</td>
-                      <td className="py-2 pr-2 text-zinc-600">{row.days}</td>
-                      <td className="py-2 pr-2 text-zinc-600">{row.reason}</td>
-                      <td className="py-2 pr-2">
-                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${STATUS_BADGE[row.status]}`}>
-                          {row.status}
-                        </span>
-                      </td>
-                      <td className="py-2 pr-2 whitespace-nowrap text-zinc-600">{row.applied}</td>
-                      <td className="py-2 pr-0 text-right">
-                        <button className="text-zinc-400 hover:text-zinc-600">
-                          <MoreVertical size={15} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="mt-3 flex items-center justify-between text-[12px] text-zinc-400">
-              <span>Showing 1 to {filtered.length} of 12 entries</span>
-              <div className="flex items-center gap-1.5">
-                <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-400 hover:bg-zinc-50">
-                  <ChevronLeft size={14} />
-                </button>
-                <button
-                  onClick={() => setPage(1)}
-                  className={`grid h-7 w-7 place-items-center rounded-md text-[12px] font-semibold ${
-                    page === 1 ? 'bg-blue-600 text-white' : 'border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
-                  }`}
-                >
-                  1
-                </button>
-                <button
-                  onClick={() => setPage(2)}
-                  className={`grid h-7 w-7 place-items-center rounded-md text-[12px] font-semibold ${
-                    page === 2 ? 'bg-blue-600 text-white' : 'border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
-                  }`}
-                >
-                  2
-                </button>
-                <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-400 hover:bg-zinc-50">
-                  <ChevronRight size={14} />
-                </button>
-              </div>
-            </div>
-          </Card>
-
-          {/* Right column */}
-          <div className="min-w-0 space-y-3">
-            {/* Upcoming Leaves */}
-            <Card className="p-3">
-              <h2 className="mb-2 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
-                <Calendar size={16} className="text-blue-600" /> Upcoming Leaves
-              </h2>
-              <div className="flex flex-col items-center justify-center py-3 text-center">
-                <span className="mb-3 grid h-16 w-16 place-items-center rounded-2xl bg-blue-50 text-blue-500">
-                  <Calendar size={28} />
-                </span>
-                <p className="text-[13px] font-bold text-zinc-800">No Upcoming Leaves</p>
-                <p className="mt-1 text-[12px] text-zinc-400">You don&apos;t have any upcoming leaves.</p>
-              </div>
-            </Card>
-
-            {/* Leave Summary */}
-            <Card className="min-w-0 p-3">
-              <h2 className="mb-2 text-[14px] font-bold text-zinc-900">Leave Summary (Year 2025)</h2>
-              <div className="flex items-center gap-4">
-                <div className="relative h-[130px] w-[130px] shrink-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={summaryChartData}
-                        dataKey="value"
-                        innerRadius={45}
-                        outerRadius={62}
-                        startAngle={90}
-                        endAngle={-270}
-                        stroke="none"
-                      >
-                        {summaryChartData.map((entry, i) => (
-                          <Cell key={i} fill={entry.color} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-[18px] font-bold text-zinc-900">37.5%</span>
-                    <span className="text-[9.5px] text-zinc-400">Utilized</span>
-                  </div>
-                </div>
-                <div className="min-w-0 flex-1 space-y-1.5">
-                  {leaveSummary.map((s) => (
-                    <div key={s.label} className="flex items-center justify-between gap-2 text-[11.5px]">
-                      <span className="flex min-w-0 items-center gap-1.5 text-zinc-500">
-                        <span className="h-2 w-2 shrink-0 rounded-sm" style={{ backgroundColor: s.color }} />
-                        <span className="truncate">{s.label}</span>
-                      </span>
-                      <span className="shrink-0 font-semibold text-zinc-800">{s.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Card>
-          </div>
-        </div>
-
-        {/* Bottom row */}
-        <div className="grid w-full grid-cols-1 gap-5 lg:grid-cols-[1fr_340px]">
-          {/* Leave Policy Highlights */}
-          <Card className="min-w-0 p-5">
-            <h2 className="mb-3 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
-              <ShieldCheck size={16} className="text-blue-600" /> Leave Policy Highlights
-            </h2>
-            <div className="space-y-2">
-              {policyHighlights.map((item, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-emerald-500" />
-                  <span className="text-[12.5px] text-zinc-600">{item}</span>
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          {/* Need Help */}
-          <Card className="min-w-0 p-5">
-            <h2 className="mb-3 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
-              <Headset size={16} className="text-blue-600" /> Need Help?
-            </h2>
-            <p className="text-[12.5px] text-zinc-500">
-              For any leave related queries, please contact HR Department.
-            </p>
-            <Link
-              href="/dashboard/helpdesk"
-              className="mt-4 inline-block rounded-lg border border-zinc-200 px-4 py-2 text-[12.5px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
-            >
-              Contact HR
-            </Link>
-          </Card>
-        </div>
-      </main>
+        {/* Need Help */}
+        <Card className="min-w-0 p-2">
+          <h2 className="mb-1.5 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
+            <Headset size={16} className="text-blue-600" /> Need Help?
+          </h2>
+          <p className="text-[12.5px] text-zinc-500">
+            For any leave related queries, please contact HR Department.
+          </p>
+          <Link
+            href="/dashboard/helpdesk"
+            className="mt-1.5 inline-block rounded-lg border border-zinc-200 px-4 py-2 text-[12.5px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
+          >
+            Contact HR
+          </Link>
+        </Card>
+      </div>
+    </main>
   );
 }
