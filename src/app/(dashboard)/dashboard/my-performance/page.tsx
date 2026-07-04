@@ -32,6 +32,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Area,
 } from 'recharts'
 
 // ---------- Types ----------
@@ -495,7 +496,7 @@ const MyPerformance: React.FC = () => {
                     You are performing above expectations. Keep it up!
                   </p>
                 </div>
-                <div className="flex-1 flex flex-col min-h-0">
+                <div className="flex-1 flex flex-col min-h-0 border-1 border-l pl-2">
                   <div className="grid grid-cols-[1fr_auto_2fr_auto] gap-x-3 text-[10px] font-semibold  pb-1">
                     <span>Competency</span>
                     <span>Rating</span>
@@ -531,8 +532,6 @@ const MyPerformance: React.FC = () => {
                       </div>
                     ))}
                   </div>
-                </div>
-              </div>
               <button
                 type="button"
                 className="mt-2 flex items-center justify-center gap-1 rounded-md border border-slate-300 py-1.5 text-[11px] font-semibold text-blue-600 hover:bg-slate-50 shrink-0"
@@ -540,6 +539,8 @@ const MyPerformance: React.FC = () => {
                 View Detailed Competency Breakdown
                 <ChevronRight className="h-3 w-3" />
               </button>
+                </div>
+              </div>
             </Card>
 
             {/* Goals + Achievements */}
@@ -630,33 +631,77 @@ const MyPerformance: React.FC = () => {
                   Last 4 Cycles
                 </div>
               </div>
-              <div className="min-h-[160px] lg:flex-1 lg:min-h-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={TREND} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-                    <CartesianGrid vertical={false} stroke="#f1f5f9" />
-                    <XAxis
-                      dataKey="cycle"
-                      tick={{ fontSize: 8, fill: '#64748b' }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      domain={[1, 5]}
-                      tick={{ fontSize: 9, fill: '#64748b' }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <Tooltip contentStyle={{ fontSize: 10 }} />
-                    <Line
-                      type="monotone"
-                      dataKey="rating"
-                      stroke="#2563eb"
-                      strokeWidth={2}
-                      dot={{ r: 3, fill: '#2563eb' }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+        <div className="min-h-[200px] lg:flex-1 lg:min-h-0">
+  <ResponsiveContainer width="100%" height="100%">
+    <LineChart
+      data={TREND}
+      margin={{ top: 12, right: 12, left: -20, bottom: 0 }}
+    >
+      <defs>
+        <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#2563eb" stopOpacity={0.18} />
+          <stop offset="100%" stopColor="#2563eb" stopOpacity={0} />
+        </linearGradient>
+      </defs>
+
+      <CartesianGrid
+        vertical={false}
+        stroke="#e5e7eb"
+        strokeDasharray="0"
+      />
+
+      <XAxis
+        dataKey="cycle"
+        tick={{ fontSize: 9, fill: "#64748b" }}
+        axisLine={false}
+        tickLine={false}
+      />
+
+      <YAxis
+        domain={[1, 5]}
+        tick={{ fontSize: 9, fill: "#64748b" }}
+        axisLine={false}
+        tickLine={false}
+      />
+
+      <Tooltip
+        contentStyle={{
+          borderRadius: 8,
+          border: "1px solid #e5e7eb",
+          fontSize: 12,
+        }}
+      />
+
+      {/* Gradient Fade */}
+      <Area
+        type="monotone"
+        dataKey="rating"
+        stroke="none"
+        fill="url(#trendGradient)"
+      />
+
+      {/* Line */}
+      <Line
+        type="monotone"
+        dataKey="rating"
+        stroke="#2563eb"
+        strokeWidth={2.5}
+        dot={{
+          r: 4,
+          fill: "#2563eb",
+          stroke: "#fff",
+          strokeWidth: 2,
+        }}
+        activeDot={{
+          r: 5,
+          fill: "#2563eb",
+          stroke: "#fff",
+          strokeWidth: 2,
+        }}
+      />
+    </LineChart>
+  </ResponsiveContainer>
+</div>
               <CardLink>View Trend Details</CardLink>
             </Card>
 
@@ -669,20 +714,26 @@ const MyPerformance: React.FC = () => {
                   centerValue="12"
                   centerLabel="Total"
                 />
-                <div className="flex flex-col gap-1 min-w-0">
-                  {FEEDBACK_SLICES.map((f) => (
-                    <div key={f.id} className="flex items-center gap-1 text-[10px] font-medium ">
-                      <span
-                        className="h-2 w-2 rounded-full shrink-0"
-                        style={{ backgroundColor: f.color }}
-                      />
-                      <span className="truncate">{f.label}</span>
-                      <span className=" shrink-0">
-                        {f.value} ({f.percent})
-                      </span>
-                    </div>
-                  ))}
-                </div>
+           <div className="flex flex-col gap-1 w-full">
+  {FEEDBACK_SLICES.map((f) => (
+    <div
+      key={f.id}
+      className="flex w-full items-center justify-between text-[10px] font-medium"
+    >
+      <div className="flex items-center gap-1 min-w-0 flex-1">
+        <span
+          className="h-2 w-2 rounded-full shrink-0"
+          style={{ backgroundColor: f.color }}
+        />
+        <span className="truncate">{f.label}</span>
+      </div>
+
+      <span className="shrink-0">
+        {f.value} ({f.percent})
+      </span>
+    </div>
+  ))}
+</div>
               </div>
               <CardLink>View All Feedback</CardLink>
             </Card>
