@@ -63,15 +63,33 @@ export default function DynamicSidebar() {
     router.replace('/login');
   };
 
-  const { data: items } = useQuery<SidebarItem[]>({
+  const { data: items, isLoading } = useQuery<SidebarItem[]>({
     queryKey: ['sidebar', 'mine'],
     queryFn: async () => (await api.get('/permissions/sidebar-config/mine')).data,
     staleTime: 5 * 60 * 1000,
   });
 
   const sections: { section: string; items: GroupedItem[] }[] = [];
-  // Merge dynamic items with static injected items, then sort by order
-  const allItems = [...(items || []), ...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
+  
+  // If loading, we wait.
+  // We detect if a user has admin/HR privileges by checking if they have access to admin-only sections.
+  // If they are an admin, we show both the dynamic items and the employee items.
+  // If they are a standard employee, we show *only* the static employee items.
+  const allItems = React.useMemo(() => {
+    if (isLoading) return [];
+    if (!items || items.length === 0) return [...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
+    
+    const isAdmin = items.some(item => 
+      ['People Management', 'Company Setup', 'Admin Section', 'HR Department'].includes(item.section)
+    );
+
+    if (isAdmin) {
+      return [...items, ...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
+    } else {
+      return [...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
+    }
+  }, [items, isLoading]);
+  
   allItems.forEach((item) => {
     let group = sections.find((s) => s.section === item.section);
     if (!group) {
