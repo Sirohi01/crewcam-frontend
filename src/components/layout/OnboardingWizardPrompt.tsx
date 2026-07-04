@@ -23,9 +23,13 @@ export default function OnboardingWizardPrompt() {
           setShowPrompt(true);
         }
       } catch (error: any) {
-        console.error('Failed to check profile completion', error);
-        if (error.response?.status === 404) {
+        const status = error.response?.status;
+        if (status === 404) {
           setShowPrompt(true);
+        } else if (status !== 403) {
+          // 403 means this user isn't allowed to view the company profile (e.g. not an
+          // admin/HR role) — expected for most employees, not worth logging as an error.
+          console.error('Failed to check profile completion', error);
         }
       }
     };
