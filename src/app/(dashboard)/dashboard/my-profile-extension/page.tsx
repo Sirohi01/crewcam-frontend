@@ -620,12 +620,12 @@ export default function MyProfilePage() {
               {/* 1. Personal & Work Information */}
               <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_1fr] gap-1">
                 {/* Personal Information */}
-                <Card className="border-gray-200 shadow-sm rounded-xl bg-white relative hover:shadow-md transition-shadow duration-200 flex flex-col">
-                  <div className="absolute top-4 right-4">
-                    <button className="text-[12px] font-semibold text-blue-600 border border-blue-200 rounded-full px-2 py-1 hover:bg-blue-50 transition-colors bg-white">Edit</button>
-                  </div>
+                <Card className="border-gray-200 shadow-sm rounded-xl bg-white hover:shadow-md transition-shadow duration-200 flex flex-col">
                   <CardContent className="p-2 flex-1 flex flex-col">
-                    <h3 className="text-[15px] font-semibold text-gray-900 mb-1.5 pb-1 border-b border-gray-100">Personal Information</h3>
+                    <div className="flex items-center justify-between mb-1.5 pb-1 border-b border-gray-100">
+                      <h3 className="text-[15px] font-semibold text-gray-900">Personal Information</h3>
+                      <button className="text-[11px] font-semibold text-blue-600 border border-blue-200 rounded-full px-2 py-0.5 hover:bg-blue-50 transition-colors bg-white">Edit</button>
+                    </div>
                     <div className="flex-1 grid grid-cols-3 gap-y-3 gap-x-2 items-start">
                       <div>
                         <p className="text-[11px] text-gray-500 mb-0.5">Full Name</p>
@@ -679,12 +679,12 @@ export default function MyProfilePage() {
                 </Card>
 
                 {/* Work Information */}
-                <Card className="border-gray-200 shadow-sm rounded-xl bg-white relative hover:shadow-md transition-shadow duration-200 flex flex-col">
-                  <div className="absolute top-4 right-4">
-                    <button className="text-[12px] font-semibold text-blue-600 border border-blue-200 rounded-full px-2 py-1 hover:bg-blue-50 transition-colors bg-white">Edit</button>
-                  </div>
+                <Card className="border-gray-200 shadow-sm rounded-xl bg-white hover:shadow-md transition-shadow duration-200 flex flex-col">
                   <CardContent className="p-2 flex-1 flex flex-col">
-                    <h3 className="text-[15px] font-semibold text-gray-900 mb-1.5 pb-1 border-b border-gray-100">Work Information</h3>
+                    <div className="flex items-center justify-between mb-1.5 pb-1 border-b border-gray-100">
+                      <h3 className="text-[15px] font-semibold text-gray-900">Work Information</h3>
+                      <button className="text-[11px] font-semibold text-blue-600 border border-blue-200 rounded-full px-2 py-0.5 hover:bg-blue-50 transition-colors bg-white">Edit</button>
+                    </div>
                     <div className="flex-1 grid grid-cols-2 gap-y-3 gap-x-2 items-start">
                       <div>
                         <p className="text-[11px] text-gray-500 mb-0.5">Employee ID</p>
@@ -964,24 +964,22 @@ export default function MyProfilePage() {
                   <h3 className="text-[15px] font-semibold text-gray-900">My Tasks Overview</h3>
                   <button className="text-[11px] font-semibold text-blue-600 hover:text-blue-700">View All</button>
                 </div>
-                <div className="flex-1 flex items-center justify-center gap-1">
+                <div className="flex-1 flex items-center justify-center gap-6">
                   <div className="relative w-[90px] h-[90px] shrink-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={taskData}
-                          innerRadius={28}
-                          outerRadius={45}
-                          paddingAngle={3}
-                          dataKey="value"
-                          stroke="none"
-                        >
-                          {taskData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                      </PieChart>
-                    </ResponsiveContainer>
+                    <PieChart width={90} height={90}>
+                      <Pie
+                        data={taskData}
+                        innerRadius={28}
+                        outerRadius={45}
+                        paddingAngle={3}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        {taskData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                       <span className="text-[20px] font-bold text-gray-900 leading-none">12</span>
                       <span className="text-[9px] text-gray-500 mt-1">Tasks</span>
@@ -1229,9 +1227,11 @@ export default function MyProfilePage() {
 
       {tab === 'skills' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-1">
-          <ProfileSummaryCard employee={employee} tenure={tenure} comingSoon={comingSoon} className="lg:col-span-3" />
+          <div className="lg:col-span-2">
+            {profileCardContent}
+          </div>
 
-          <div className="lg:col-span-6 flex flex-col gap-1">
+          <div className="lg:col-span-7 flex flex-col gap-1">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-1">
               <StatTile icon={GraduationCap} bg="bg-blue-50 dark:bg-blue-900/20" color="text-blue-600" label="Total Skills" value={String(SKILL_STATS.total)} sub="All Skills Added" />
               <StatTile icon={Star} bg="bg-emerald-50 dark:bg-emerald-900/20" color="text-emerald-600" label="Core Skills" value={String(SKILL_STATS.core)} sub="Key Expertise Areas" />
