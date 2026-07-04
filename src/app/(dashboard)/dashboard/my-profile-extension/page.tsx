@@ -1342,10 +1342,10 @@ export default function MyProfilePage() {
 
           <div className="lg:col-span-3 flex flex-col gap-1">
             <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
-              <CardContent className="p-2">
+              <CardContent className="p-4">
                 <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-1.5">Skill Categories</p>
                 <div className="flex items-center gap-1">
-                  <div className="h-[80px] w-[80px] relative shrink-0">
+                  <div className="h-[100px] w-[100px] relative shrink-0">
                     <ResponsiveContainer>
                       <PieChart>
                         <Pie data={SKILL_CATEGORY_BREAKDOWN} dataKey="count" nameKey="name" innerRadius={32} outerRadius={48} paddingAngle={2} stroke="none">
