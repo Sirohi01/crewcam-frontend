@@ -534,23 +534,28 @@ const GoalsAndOkrs: React.FC = () => {
             </button>
           </div>
 
-          {activeTab === "My OKRs" ? (
-            <div className="flex min-h-0 flex-1 flex-col lg:overflow-y-auto">
-              <div className="flex flex-col gap-2 pb-1">
-                {objectives.map((obj) => (
-                  <ObjectiveCard key={obj.id} objective={obj} />
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={() => setOkrModalOpen(true)}
-                className="flex items-center justify-center gap-1 rounded-lg border border-dashed border-slate-400 bg-white py-2 text-xs font-medium text-blue-600 hover:bg-blue-50"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Add OKR
-              </button>
-            </div>
-          ) : (
+       {activeTab === "My OKRs" ? (
+  <div className="flex flex-1 min-h-0 flex-col">
+    {/* Scrollable list */}
+    <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="flex flex-col gap-2 pr-1">
+        {objectives.map((obj) => (
+          <ObjectiveCard key={obj.id} objective={obj} />
+        ))}
+      </div>
+    </div>
+
+    {/* Fixed button */}
+    <button
+      type="button"
+      onClick={() => setOkrModalOpen(true)}
+      className="mt-2 shrink-0 flex items-center justify-center gap-1 rounded-lg border border-dashed border-slate-400 bg-white py-2 text-xs font-medium text-blue-600 hover:bg-blue-50"
+    >
+      <Plus className="h-3.5 w-3.5" />
+      Add OKR
+    </button>
+  </div>
+)  : (
             <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-slate-300 text-xs ">
               No data yet in &quot;{activeTab}&quot;
             </div>
