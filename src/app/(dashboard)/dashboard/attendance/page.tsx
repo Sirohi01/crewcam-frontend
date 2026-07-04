@@ -283,9 +283,9 @@ export default function AttendancePage() {
   ];
 
   return (
-    <div className="flex flex-col gap-4 animate-in fade-in duration-300 px-4 sm:px-6 pt-4 pb-6 w-full">
+    <div className="flex flex-col gap-2 animate-in fade-in duration-300 px-2 sm:px-3 pt-2 pb-1.5 w-full">
       {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-200/70 dark:border-zinc-800">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1.5 border-b border-zinc-200/70 dark:border-zinc-800">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">My Attendance</h1>
           <p className="text-[13px] text-zinc-500 mt-0.5">Track your attendance, working hours and logs.</p>
@@ -312,9 +312,9 @@ export default function AttendancePage() {
       </header>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
         <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
-          <CardContent className="p-4 flex items-center justify-between gap-2">
+          <CardContent className="p-2 flex items-center justify-between gap-2">
             <div>
               <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wide">Weekly Status</p>
               <p className="text-base font-semibold text-emerald-600 mt-1">{weekly.presentDays > 0 ? 'Present' : '—'}</p>
@@ -328,7 +328,7 @@ export default function AttendancePage() {
         </Card>
 
         <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
-          <CardContent className="p-4">
+          <CardContent className="p-2">
             <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wide">Total Working Hours</p>
             <p className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mt-1">{formatHours(weekly.hours)}</p>
             <p className="text-xs text-zinc-500">of {formatHours(weekly.targetHours)}</p>
@@ -339,9 +339,9 @@ export default function AttendancePage() {
         </Card>
 
         <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
-          <CardContent className="p-4">
-            <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wide mb-2">Attendance % (MTD)</p>
-            <div className="flex items-center gap-3">
+          <CardContent className="p-2">
+            <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wide mb-1">Attendance % (MTD)</p>
+            <div className="flex items-center gap-2">
               <div className="relative h-14 w-14 rounded-full grid place-items-center shrink-0" style={{ background: `conic-gradient(#22c55e ${mtd.pct}%, #e4e4e7 0)` }}>
                 <div className="h-10 w-10 rounded-full bg-white dark:bg-zinc-900 grid place-items-center text-xs font-semibold text-zinc-800 dark:text-zinc-100">{mtd.pct}%</div>
               </div>
@@ -355,7 +355,7 @@ export default function AttendancePage() {
         </Card>
 
         <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
-          <CardContent className="p-4 flex items-center justify-between gap-2">
+          <CardContent className="p-2 flex items-center justify-between gap-2">
             <div>
               <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wide">Current Streak</p>
               <p className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mt-1">{streak.current} <span className="text-xs font-normal text-zinc-500">Days</span></p>
@@ -368,7 +368,7 @@ export default function AttendancePage() {
         </Card>
 
         <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
-          <CardContent className="p-4">
+          <CardContent className="p-2">
             <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wide">Last Punch (Today)</p>
             {!todayRecord ? (
               <>
@@ -409,9 +409,9 @@ export default function AttendancePage() {
       </div>
 
       {/* Calendar / Daily Log / Summary */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
         <Card className="lg:col-span-5 border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
-          <CardHeader className="flex-row items-center justify-between gap-2 px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 space-y-0">
+          <CardHeader className="flex-row items-center justify-between gap-2 px-2 py-1.5 border-b border-zinc-100 dark:border-zinc-800 space-y-0">
             <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 rounded-md p-0.5">
               <button onClick={() => setView('calendar')} className={`px-2.5 py-1 text-xs font-medium rounded ${view === 'calendar' ? 'bg-white dark:bg-zinc-900 shadow-sm text-zinc-900 dark:text-zinc-100' : 'text-zinc-500'}`}>Calendar</button>
               <button onClick={() => setView('daily')} className={`px-2.5 py-1 text-xs font-medium rounded ${view === 'daily' ? 'bg-white dark:bg-zinc-900 shadow-sm text-zinc-900 dark:text-zinc-100' : 'text-zinc-500'}`}>Daily View</button>
@@ -422,7 +422,7 @@ export default function AttendancePage() {
               <button onClick={() => setCalendarMonth(m => moment(m).add(1, 'month'))} disabled={calendarMonth.isSame(moment(), 'month')} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded disabled:opacity-30"><ChevronRight size={15} /></button>
             </div>
           </CardHeader>
-          <CardContent className="p-3">
+          <CardContent className="p-2">
             {view === 'calendar' ? (
               <>
                 <div className="grid grid-cols-7 text-center mb-0.5">
@@ -441,7 +441,8 @@ export default function AttendancePage() {
                       <button
                         key={dateStr}
                         onClick={() => setSelectedDate(dateStr)}
-                        className={`w-full py-1.5 rounded-md flex flex-col items-center justify-center gap-0.5 text-[11px] transition-colors
+                        disabled={isFuture}
+                        className={`w-full py-1.5 rounded-md flex flex-col items-center justify-center gap-0.5 text-[11px] transition-colors disabled:opacity-40 disabled:cursor-not-allowed
                           ${!inMonth ? 'text-zinc-300 dark:text-zinc-700' : 'text-zinc-700 dark:text-zinc-300'}
                           ${isToday ? 'bg-indigo-600 text-white font-semibold' : isSelected ? 'ring-1 ring-indigo-400 bg-indigo-50 dark:bg-indigo-900/20' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/60'}`}
                       >
@@ -470,7 +471,8 @@ export default function AttendancePage() {
                     <button
                       key={dateStr}
                       onClick={() => setSelectedDate(dateStr)}
-                      className={`flex items-center justify-between px-2.5 py-1.5 rounded-md text-left transition-colors ${isSelected ? 'bg-indigo-50 dark:bg-indigo-900/20 ring-1 ring-indigo-300' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/60'}`}
+                      disabled={isFuture}
+                      className={`flex items-center justify-between px-2.5 py-1.5 rounded-md text-left transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${isSelected ? 'bg-indigo-50 dark:bg-indigo-900/20 ring-1 ring-indigo-300' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/60'}`}
                     >
                       <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">{date.format('DD MMM, ddd')}</span>
                       {cat ? <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${CATEGORY_STYLE[cat].badge}`}>{cat}</span> : <span className="text-[10px] text-zinc-300">—</span>}
@@ -483,10 +485,10 @@ export default function AttendancePage() {
         </Card>
 
         <Card className="lg:col-span-3 border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
-          <CardHeader className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+          <CardHeader className="px-2 py-1.5 border-b border-zinc-100 dark:border-zinc-800">
             <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">Daily Log - {moment(selectedDate).format('DD MMMM YYYY')}</CardTitle>
           </CardHeader>
-          <CardContent className="p-4">
+          <CardContent className="p-2">
             {(() => {
               const rec = recordsByDate[selectedDate];
               const isFuture = moment(selectedDate).isAfter(moment(), 'day');
@@ -523,15 +525,15 @@ export default function AttendancePage() {
         </Card>
 
         <Card className="lg:col-span-4 border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
-          <CardHeader className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+          <CardHeader className="px-2 py-1.5 border-b border-zinc-100 dark:border-zinc-800">
             <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">Attendance Summary ({calendarMonth.format('MMMM YYYY')})</CardTitle>
           </CardHeader>
-          <CardContent className="p-4">
+          <CardContent className="p-2">
             {pieData.length === 0 ? (
               <p className="text-xs text-zinc-400 text-center py-8">No attendance data for this month yet.</p>
             ) : (
               <>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
                   <div className="h-[110px] w-[110px] relative shrink-0">
                     <ResponsiveContainer>
                       <PieChart>
@@ -554,7 +556,7 @@ export default function AttendancePage() {
                     ))}
                   </div>
                 </div>
-                <div className="flex items-center justify-between mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800 text-xs">
+                <div className="flex items-center justify-between mt-2 pt-3 border-t border-zinc-100 dark:border-zinc-800 text-xs">
                   <span className="text-zinc-500">Working Days <b className="text-zinc-800 dark:text-zinc-200 ml-1">{monthSummary.workingDaysElapsed}</b></span>
                 </div>
               </>
@@ -564,21 +566,21 @@ export default function AttendancePage() {
       </div>
 
       {/* Logs / Trend / Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-[10fr_7fr_7fr] gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[10fr_7fr_7fr] gap-2">
         <Card id="attendance-logs" className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
-          <CardHeader className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+          <CardHeader className="px-2 py-1.5 border-b border-zinc-100 dark:border-zinc-800">
             <CardTitle className="text-sm font-semibold flex items-center gap-2 text-zinc-800 dark:text-zinc-100">
               <History size={16} className="text-indigo-600 dark:text-indigo-400" /> Attendance Logs
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="py-6 text-center text-[13px] text-zinc-500 flex flex-col items-center gap-2">
+              <div className="py-3 text-center text-[13px] text-zinc-500 flex flex-col items-center gap-2">
                 <Loader2 size={18} className="animate-spin text-zinc-400" /> Loading history…
               </div>
             ) : sortedLogs.length === 0 ? (
-              <div className="m-3 py-6 flex flex-col items-center justify-center text-center text-zinc-400 border border-dashed rounded-lg dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20">
-                <History size={24} className="mb-2 text-zinc-300 dark:text-zinc-700" />
+              <div className="m-3 py-3 flex flex-col items-center justify-center text-center text-zinc-400 border border-dashed rounded-lg dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20">
+                <History size={24} className="mb-1 text-zinc-300 dark:text-zinc-700" />
                 <p className="font-medium text-zinc-600 dark:text-zinc-400 text-sm">No attendance records yet</p>
                 <p className="text-xs text-zinc-500 mt-0.5">Clock in today to start your track.</p>
               </div>
@@ -615,7 +617,7 @@ export default function AttendancePage() {
                   </table>
                 </div>
                 {sortedLogs.length > itemsPerPage && (
-                  <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/10">
+                  <div className="flex items-center justify-between px-2 py-1.5 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/10">
                     <span className="text-xs text-zinc-500">
                       Showing {(logsPage - 1) * itemsPerPage + 1} to {Math.min(logsPage * itemsPerPage, sortedLogs.length)} of {sortedLogs.length} entries
                     </span>
@@ -631,10 +633,10 @@ export default function AttendancePage() {
         </Card>
 
         <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
-          <CardHeader className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+          <CardHeader className="px-2 py-1.5 border-b border-zinc-100 dark:border-zinc-800">
             <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">Attendance Trend (Last 30 Days)</CardTitle>
           </CardHeader>
-          <CardContent className="p-4 h-[180px]">
+          <CardContent className="p-2 h-[180px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trendData} margin={{ top: 5, left: -20, right: 8, bottom: 0 }}>
                 <CartesianGrid vertical={false} stroke="#f1f1f4" />
@@ -647,9 +649,9 @@ export default function AttendancePage() {
           </CardContent>
         </Card>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
           <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
-            <CardHeader className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+            <CardHeader className="px-2 py-1.5 border-b border-zinc-100 dark:border-zinc-800">
               <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="p-2.5 grid grid-cols-2 gap-1.5">
@@ -669,8 +671,8 @@ export default function AttendancePage() {
           </Card>
 
           <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
-            <CardContent className="p-4">
-              <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2 flex items-center gap-1.5"><Info size={13} className="text-indigo-500" /> Note</p>
+            <CardContent className="p-2">
+              <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1 flex items-center gap-1.5"><Info size={13} className="text-indigo-500" /> Note</p>
               <ul className="flex flex-col gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400 list-disc list-inside">
                 <li>Please ensure to check-in within office timing.</li>
                 <li>Late arrivals beyond grace time will be marked.</li>

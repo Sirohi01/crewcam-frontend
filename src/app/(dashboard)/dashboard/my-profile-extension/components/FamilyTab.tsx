@@ -25,23 +25,23 @@ const documents = [
 
 export function FamilyTab({ profileCard }: { profileCard?: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-col xl:flex-row gap-2 h-full">
+    <div className="flex flex-col gap-1">
+      <div className="flex flex-col xl:flex-row gap-1 h-full">
         {profileCard && (
-          <div className="w-full xl:w-[260px] shrink-0 h-full">
+          <div className="w-full xl:w-[220px] shrink-0 h-full">
             {profileCard}
           </div>
         )}
-        <div className="flex-1 flex flex-col gap-2 h-full">
+        <div className="flex-1 flex flex-col gap-1 h-full">
           {/* Family Members Section */}
-          <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
+          <div className="rounded-xl border border-zinc-200 bg-white p-2 shadow-sm">
+            <div className="mb-1 flex items-center justify-between">
+              <div className="flex items-center gap-1">
                 <Users size={12} className="text-[#1d4ed8]" />
                 <h3 className="text-[10px] font-bold text-zinc-900">Family Members</h3>
               </div>
-              <div className="flex gap-2">
-                <button className="flex items-center gap-1.5 rounded-md border border-blue-100 bg-blue-50 px-3 py-1.5 text-[10px] font-semibold text-[#1d4ed8] hover:bg-blue-100">
+              <div className="flex gap-1">
+                <button className="flex items-center gap-1.5 rounded-md border border-blue-100 bg-blue-50 px-2 py-1.5 text-[10px] font-semibold text-[#1d4ed8] hover:bg-blue-100">
                   <Plus size={12} /> Add Family Member
                 </button>
                 <button className="p-1.5 text-zinc-400 hover:bg-zinc-100 rounded-md">
@@ -54,23 +54,23 @@ export function FamilyTab({ profileCard }: { profileCard?: React.ReactNode }) {
               <table className="w-full text-left text-[10px]">
                 <thead>
                   <tr className="border-b border-zinc-200 text-[#1d4ed8] font-medium text-[10px]">
-                    <th className="pb-3 pl-2 font-semibold">Name</th>
-                    <th className="pb-3 font-semibold">Relationship</th>
-                    <th className="pb-3 font-semibold">Date of Birth</th>
-                    <th className="pb-3 font-semibold">Age</th>
-                    <th className="pb-3 font-semibold">Gender</th>
-                    <th className="pb-3 font-semibold">Occupation</th>
-                    <th className="pb-3 font-semibold">Mobile Number</th>
-                    <th className="pb-3 font-semibold">Email ID</th>
-                    <th className="pb-3 font-semibold text-center">Dependent</th>
-                    <th className="pb-3 font-semibold text-center">Action</th>
+                    <th className="pb-1.5 pl-2 font-semibold">Name</th>
+                    <th className="pb-1.5 font-semibold">Relationship</th>
+                    <th className="pb-1.5 font-semibold">Date of Birth</th>
+                    <th className="pb-1.5 font-semibold">Age</th>
+                    <th className="pb-1.5 font-semibold">Gender</th>
+                    <th className="pb-1.5 font-semibold">Occupation</th>
+                    <th className="pb-1.5 font-semibold">Mobile Number</th>
+                    <th className="pb-1.5 font-semibold">Email ID</th>
+                    <th className="pb-1.5 font-semibold text-center">Dependent</th>
+                    <th className="pb-1.5 font-semibold text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100">
                   {familyMembers.map((member) => (
                     <tr key={member.id} className="hover:bg-zinc-50/50">
                       <td className="py-1.5 pl-2">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5">
                           <img src={member.avatar} alt="" className="h-6 w-6 rounded-full object-cover border border-zinc-200" />
                           <span className="font-semibold text-zinc-900">{member.name}</span>
                         </div>
@@ -88,7 +88,7 @@ export function FamilyTab({ profileCard }: { profileCard?: React.ReactNode }) {
                         </span>
                       </td>
                       <td className="py-1.5">
-                        <div className="flex items-center justify-center gap-2">
+                        <div className="flex items-center justify-center gap-1">
                           <button className="rounded border border-blue-100 p-1 text-[#1d4ed8] hover:bg-blue-50">
                             <Pencil size={12} />
                           </button>
@@ -102,17 +102,17 @@ export function FamilyTab({ profileCard }: { profileCard?: React.ReactNode }) {
                 </tbody>
               </table>
             </div>
-            <p className="mt-4 text-[10px] text-zinc-500 font-medium">
+            <p className="mt-1 text-[10px] text-zinc-500 font-medium">
               * Dependent members are considered for insurance, tax benefits and other company policies.
             </p>
           </div>
 
           {/* Emergency & Other Info Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-9 gap-2">
+          <div className="grid grid-cols-1 lg:grid-cols-9 gap-1">
             {/* Emergency Contacts */}
-            <div className="col-span-5 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm flex flex-col h-full">
-              <div className="mb-4 flex items-center justify-between border-b border-zinc-100 pb-3">
-                <div className="flex items-center gap-2">
+            <div className="col-span-5 rounded-xl border border-zinc-200 bg-white p-2 shadow-sm flex flex-col h-full">
+              <div className="mb-1 flex items-center justify-between border-b border-zinc-100 pb-1.5">
+                <div className="flex items-center gap-1">
                   <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-blue-50">
                     <ShieldAlert size={12} className="text-[#1d4ed8]" />
                   </div>
@@ -123,12 +123,12 @@ export function FamilyTab({ profileCard }: { profileCard?: React.ReactNode }) {
                 <table className="w-full text-left text-[10px]">
                   <thead>
                     <tr className="border-b border-zinc-100 text-[#1d4ed8] ">
-                      <th className="pb-2 px-0.5 font-semibold">Name</th>
-                      <th className="pb-2 px-0.5 font-semibold">Relationship</th>
-                      <th className="pb-2 px-0.5 font-semibold">Mobile No.</th>
-                      <th className="pb-2 px-0.5 font-semibold">Alternate No.</th>
-                      <th className="pb-2 px-0.5 font-semibold">Address</th>
-                      <th className="pb-2 px-0.5 font-semibold text-center">Action</th>
+                      <th className="pb-1 px-0.5 font-semibold">Name</th>
+                      <th className="pb-1 px-0.5 font-semibold">Relationship</th>
+                      <th className="pb-1 px-0.5 font-semibold">Mobile No.</th>
+                      <th className="pb-1 px-0.5 font-semibold">Alternate No.</th>
+                      <th className="pb-1 px-0.5 font-semibold">Address</th>
+                      <th className="pb-1 px-0.5 font-semibold text-center">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-100">
@@ -140,7 +140,7 @@ export function FamilyTab({ profileCard }: { profileCard?: React.ReactNode }) {
                         <td className="py-2 px-0.5 text-zinc-600">{contact.altMobile}</td>
                         <td className="py-2 px-0.5 text-zinc-600 whitespace-pre-line leading-tight">{contact.address}</td>
                         <td className="py-2 px-0.5">
-                          <div className="flex justify-center gap-2">
+                          <div className="flex justify-center gap-1">
                             <button className="rounded border border-blue-100 p-1 text-[#1d4ed8] hover:bg-blue-50">
                               <Pencil size={12} />
                             </button>
@@ -154,7 +154,7 @@ export function FamilyTab({ profileCard }: { profileCard?: React.ReactNode }) {
                   </tbody>
                 </table>
               </div>
-              <div className="mt-4">
+              <div className="mt-1">
                 <button className="flex items-center gap-1.5 text-[10px] font-semibold text-[#1d4ed8] hover:underline">
                   <Plus size={12} /> Add Emergency Contact
                 </button>
@@ -162,19 +162,19 @@ export function FamilyTab({ profileCard }: { profileCard?: React.ReactNode }) {
             </div>
 
             {/* Other Family Information */}
-            <div className="col-span-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm flex flex-col h-full">
-              <div className="mb-4 flex items-center justify-between border-b border-zinc-100 pb-3">
-                <div className="flex items-center gap-2">
+            <div className="col-span-4 rounded-xl border border-zinc-200 bg-white p-2 shadow-sm flex flex-col h-full">
+              <div className="mb-1 flex items-center justify-between border-b border-zinc-100 pb-1.5">
+                <div className="flex items-center gap-1">
                   <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-blue-50">
                     <Contact size={12} className="text-[#1d4ed8]" />
                   </div>
                   <h3 className="text-[11px] font-bold text-zinc-900 uppercase">Other Family Information</h3>
                 </div>
-                <button className="rounded-md border border-zinc-200 bg-white px-3 py-1 text-[10px] font-semibold text-[#1d4ed8] hover:bg-zinc-50">
+                <button className="rounded-md border border-zinc-200 bg-white px-2 py-1 text-[10px] font-semibold text-[#1d4ed8] hover:bg-zinc-50">
                   Edit
                 </button>
               </div>
-              <div className="space-y-2 text-[10px] flex-1">
+              <div className="space-y-1 text-[10px] flex-1">
                 <div className="grid grid-cols-5">
                   <span className="col-span-2 text-zinc-500">Family Status</span>
                   <span className="col-span-3 font-medium text-zinc-900">Nuclear Family</span>
@@ -215,17 +215,17 @@ export function FamilyTab({ profileCard }: { profileCard?: React.ReactNode }) {
       </div>
 
       {/* Documents Uploaded Section */}
-      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-        <div className="mb-4 flex items-center gap-2">
+      <div className="rounded-xl border border-zinc-200 bg-white p-2 shadow-sm">
+        <div className="mb-1 flex items-center gap-1">
           <FileBadge2 size={12} className="text-[#1d4ed8]" />
           <h3 className="text-[10px] font-bold text-zinc-900">Documents Uploaded</h3>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-1">
           {documents.map((doc) => (
-            <div key={doc.id} className="rounded-lg border border-zinc-200 p-4 relative group hover:border-zinc-300">
-              <div className="flex items-start gap-3">
+            <div key={doc.id} className="rounded-lg border border-zinc-200 p-2 relative group hover:border-zinc-300">
+              <div className="flex items-start gap-1.5">
                 <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-md ${doc.iconBg}`}>
-                  <doc.icon size={18} className={doc.iconColor} />
+                  <doc.icon size={12} className={doc.iconColor} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-[10px] font-semibold text-zinc-900 whitespace-pre-line leading-tight">{doc.name}</p>
@@ -237,7 +237,7 @@ export function FamilyTab({ profileCard }: { profileCard?: React.ReactNode }) {
                   {doc.status}
                 </span>
               </div>
-              <div className="mt-4 pt-3 border-t border-zinc-100 flex items-center gap-2 text-[10px] text-zinc-500">
+              <div className="mt-1 pt-1.5 border-t border-zinc-100 flex items-center gap-1 text-[10px] text-zinc-500">
                 <span>Uploaded on</span>
                 <span className="font-medium text-zinc-900">{doc.date}</span>
               </div>
@@ -245,8 +245,8 @@ export function FamilyTab({ profileCard }: { profileCard?: React.ReactNode }) {
           ))}
 
           {/* Upload Card */}
-          <div className="rounded-lg  border border-[#1d4ed8]/30 bg-blue-50/30 p-4 flex flex-col items-center justify-center text-center hover:bg-blue-50/50 cursor-pointer transition-colors min-h-[140px]">
-            <UploadCloud size={24} className="text-[#1d4ed8] mb-2" />
+          <div className="rounded-lg  border border-[#1d4ed8]/30 bg-blue-50/30 p-2 flex flex-col items-center justify-center text-center hover:bg-blue-50/50 cursor-pointer transition-colors min-h-[80px]">
+            <UploadCloud size={24} className="text-[#1d4ed8] mb-1" />
             <p className="text-[10px] font-semibold text-[#1d4ed8]">Upload Document</p>
             <p className="text-[10px] text-zinc-500 mt-1">PDF, JPG, PNG (Max. 5MB)</p>
           </div>

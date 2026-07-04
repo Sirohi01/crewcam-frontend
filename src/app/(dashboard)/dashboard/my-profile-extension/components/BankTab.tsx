@@ -34,18 +34,18 @@ const bankDocuments = [
 
 export function BankTab({ profileCard }: { profileCard?: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-col xl:flex-row gap-2 h-full">
+    <div className="flex flex-col gap-1">
+      <div className="flex flex-col xl:flex-row gap-1 h-full">
         {profileCard && (
-          <div className="w-full xl:w-[260px] shrink-0 h-full">
+          <div className="w-full xl:w-[220px] shrink-0 h-full">
             {profileCard}
           </div>
         )}
-        <div className="flex-1 flex flex-col gap-2 h-full">
+        <div className="flex-1 flex flex-col gap-1 h-full">
           {/* Primary Bank Account */}
           <div className="rounded-xl border border-zinc-200 bg-white p-2 shadow-sm">
-            <div className="mb-4 flex items-center justify-between border-b border-zinc-100 pb-3">
-              <div className="flex items-center gap-2">
+            <div className="mb-1 flex items-center justify-between border-b border-zinc-100 pb-1.5">
+              <div className="flex items-center gap-1">
                 <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-blue-50">
                   <Landmark size={12} className="text-[#1d4ed8]" />
                 </div>
@@ -59,9 +59,9 @@ export function BankTab({ profileCard }: { profileCard?: React.ReactNode }) {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-[10px] mb-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-1 text-[10px] mb-1.5">
               {/* Column 1 */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <div className="grid grid-cols-5">
                   <span className="col-span-2 text-zinc-500">Bank Name</span>
                   <span className="col-span-3 font-medium text-zinc-900">{primaryBank.bankName}</span>
@@ -91,7 +91,7 @@ export function BankTab({ profileCard }: { profileCard?: React.ReactNode }) {
               </div>
 
               {/* Column 2 */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <div className="grid grid-cols-5">
                   <span className="col-span-2 text-zinc-500">Account Type</span>
                   <span className="col-span-3 font-medium text-zinc-900">{primaryBank.accountType}</span>
@@ -115,7 +115,7 @@ export function BankTab({ profileCard }: { profileCard?: React.ReactNode }) {
               </div>
 
               {/* Column 3 */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <div className="grid grid-cols-5">
                   <span className="col-span-2 text-zinc-500">UPI ID</span>
                   <span className="col-span-3 font-medium text-zinc-900">{primaryBank.upiId}</span>
@@ -139,38 +139,38 @@ export function BankTab({ profileCard }: { profileCard?: React.ReactNode }) {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 rounded-lg bg-[#f0f4ff] p-2.5 text-[10px] text-[#1d4ed8] font-medium border border-blue-100">
+            <div className="flex items-center gap-1 rounded-lg bg-[#f0f4ff] p-1.5 text-[10px] text-[#1d4ed8] font-medium border border-blue-100">
               <Info size={12} className="fill-[#1d4ed8] text-white shrink-0" />
               This is your primary account. Your salary and reimbursements will be credited to this account.
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-1">
             {/* Other Bank Accounts */}
             <div className="lg:col-span-2 rounded-xl border border-zinc-200 bg-white p-2 shadow-sm flex flex-col h-full">
-              <div className="mb-4 flex items-center justify-between border-b border-zinc-100 pb-3">
-                <div className="flex items-center gap-2">
+              <div className="mb-1 flex items-center justify-between border-b border-zinc-100 pb-1.5">
+                <div className="flex items-center gap-1">
                   <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-blue-50">
                     <Landmark size={12} className="text-[#1d4ed8]" />
                   </div>
                   <h3 className="text-[11px] font-bold text-zinc-900">Other Bank Accounts</h3>
                 </div>
-                <button className="flex items-center gap-1.5 rounded-md border border-blue-100 bg-blue-50 px-3 py-1.5 text-[10px] font-semibold text-[#1d4ed8] hover:bg-blue-100">
+                <button className="flex items-center gap-1.5 rounded-md border border-blue-100 bg-blue-50 px-2 py-1.5 text-[10px] font-semibold text-[#1d4ed8] hover:bg-blue-100">
                   <Plus size={12} /> Add New Account
                 </button>
               </div>
 
-              <div className="overflow-x-auto flex-1 mb-3">
+              <div className="overflow-x-auto flex-1 mb-1.5">
                 <table className="w-full text-left text-[10px]">
                   <thead>
                     <tr className="border-b border-zinc-100 text-[#1d4ed8] whitespace-nowrap">
-                      <th className="pb-2 font-semibold pl-1">Bank Name</th>
-                      <th className="pb-2 font-semibold">Account Number</th>
-                      <th className="pb-2 font-semibold">Account Type</th>
-                      <th className="pb-2 font-semibold">IFSC</th>
-                      <th className="pb-2 font-semibold">Account Holder</th>
-                      <th className="pb-2 font-semibold text-center">Status</th>
-                      <th className="pb-2 font-semibold text-center">Action</th>
+                      <th className="pb-1 font-semibold pl-1">Bank Name</th>
+                      <th className="pb-1 font-semibold">Account Number</th>
+                      <th className="pb-1 font-semibold">Account Type</th>
+                      <th className="pb-1 font-semibold">IFSC</th>
+                      <th className="pb-1 font-semibold">Account Holder</th>
+                      <th className="pb-1 font-semibold text-center">Status</th>
+                      <th className="pb-1 font-semibold text-center">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-100">
@@ -190,7 +190,7 @@ export function BankTab({ profileCard }: { profileCard?: React.ReactNode }) {
                           </span>
                         </td>
                         <td className="py-1.5">
-                          <div className="flex items-center justify-center gap-2">
+                          <div className="flex items-center justify-center gap-1">
                             <button className="rounded border border-blue-100 p-1 text-[#1d4ed8] hover:bg-blue-50">
                               <Pencil size={12} />
                             </button>
@@ -204,7 +204,7 @@ export function BankTab({ profileCard }: { profileCard?: React.ReactNode }) {
                   </tbody>
                 </table>
               </div>
-              <div className="mt-3">
+              <div className="mt-1.5">
                 <p className="text-[10px] text-zinc-500 font-medium">
                   * Inactive accounts are not used for salary or reimbursements.
                 </p>
@@ -213,17 +213,17 @@ export function BankTab({ profileCard }: { profileCard?: React.ReactNode }) {
 
             {/* Bank Documents */}
             <div className="lg:col-span-1 rounded-xl border border-zinc-200 bg-white p-2 shadow-sm flex flex-col h-full">
-              <div className="mb-4 flex items-center gap-2 border-b border-zinc-100 pb-3">
+              <div className="mb-1 flex items-center gap-1 border-b border-zinc-100 pb-1.5">
                 <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-blue-50">
                   <FileDigit size={12} className="text-[#1d4ed8]" />
                 </div>
                 <h3 className="text-[11px] font-bold text-zinc-900">Bank Documents</h3>
               </div>
 
-              <div className="space-y-2 flex-1">
+              <div className="space-y-1 flex-1">
                 {bankDocuments.map(doc => (
                   <div key={doc.id} className="flex items-center justify-between rounded-lg border border-zinc-200 p-2 hover:bg-zinc-50 transition-colors">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-blue-50 text-[#1d4ed8]">
                         <FileText size={12} />
                       </div>
@@ -236,7 +236,7 @@ export function BankTab({ profileCard }: { profileCard?: React.ReactNode }) {
                       <span className="inline-flex rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-600 border border-emerald-100">
                         {doc.status}
                       </span>
-                      <button className="grid h-5 w-5 place-items-center rounded border border-blue-100 text-[#1d4ed8] hover:bg-blue-50">
+                      <button className="grid h-4 w-4 place-items-center rounded border border-blue-100 text-[#1d4ed8] hover:bg-blue-50">
                         <Download size={10} />
                       </button>
                     </div>
@@ -244,7 +244,7 @@ export function BankTab({ profileCard }: { profileCard?: React.ReactNode }) {
                 ))}
               </div>
 
-              <button className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-md border border-[#1d4ed8] bg-white py-1.5 text-[10px] font-semibold text-[#1d4ed8] hover:bg-blue-50">
+              <button className="mt-1.5 flex w-full items-center justify-center gap-1.5 rounded-md border border-[#1d4ed8] bg-white py-1.5 text-[10px] font-semibold text-[#1d4ed8] hover:bg-blue-50">
                 <UploadCloud size={12} /> Upload New Document
               </button>
             </div>
@@ -253,8 +253,8 @@ export function BankTab({ profileCard }: { profileCard?: React.ReactNode }) {
         </div>
       </div>
 
-      <div className="rounded-xl border border-violet-200 bg-violet-50/50 p-2 shadow-sm flex items-start lg:items-center justify-between flex-col lg:flex-row gap-2">
-        <div className="flex items-start gap-2">
+      <div className="rounded-xl border border-violet-200 bg-violet-50/50 p-2 shadow-sm flex items-start lg:items-center justify-between flex-col lg:flex-row gap-1">
+        <div className="flex items-start gap-1">
           <div className="mt-0.5 rounded-full bg-violet-100 p-1 text-violet-600">
             <ShieldCheck size={12} />
           </div>
@@ -267,7 +267,7 @@ export function BankTab({ profileCard }: { profileCard?: React.ReactNode }) {
             </ul>
           </div>
         </div>
-        <button className="shrink-0 flex items-center gap-1.5 rounded-md border border-violet-200 bg-violet-100/50 px-3 py-1.5 text-[10px] font-semibold text-violet-700 hover:bg-violet-200 transition-colors">
+        <button className="shrink-0 flex items-center gap-1.5 rounded-md border border-violet-200 bg-violet-100/50 px-2 py-1.5 text-[10px] font-semibold text-violet-700 hover:bg-violet-200 transition-colors">
           <Clock size={12} /> View Bank Update History
         </button>
       </div>
