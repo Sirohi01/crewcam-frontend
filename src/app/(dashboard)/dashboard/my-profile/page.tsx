@@ -47,7 +47,7 @@ export default function MyProfilePage() {
         </div>
 
         {/* Top Section: Profile Card (Left) + 3 Sections (Right) */}
-        <div className="flex flex-col xl:flex-row gap-4">
+        <div className="flex flex-col xl:flex-row gap-2">
 
           {/* Left: Profile Card */}
           <div className="w-full xl:w-[260px] shrink-0">
@@ -119,10 +119,10 @@ export default function MyProfilePage() {
           </div>
 
           {/* Right: The 3 Sections */}
-          <div className="flex-1 flex flex-col gap-4 min-w-0">
+          <div className="flex-1 flex flex-col gap-2 min-w-0">
 
             {/* 1. Personal & Work Information */}
-            <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_1fr] gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_1fr] gap-2">
               {/* Personal Information */}
               <Card className="border-gray-200 shadow-sm rounded-xl bg-white relative hover:shadow-md transition-shadow duration-200 flex flex-col">
                 <div className="absolute top-4 right-4">
@@ -267,7 +267,7 @@ export default function MyProfilePage() {
             </div>
 
             {/* 3. Documents, Pay, Payslips, Links (4 Cards) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 flex-1">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-2 flex-1">
 
               {/* Documents */}
               <Card className="border-gray-200 shadow-sm rounded-xl bg-white hover:shadow-md transition-shadow duration-200 flex flex-col">
@@ -398,7 +398,7 @@ export default function MyProfilePage() {
         </div>
 
         {/* Bottom Row: 3 Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-[1.1fr_0.9fr_1fr] gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-[1.1fr_0.9fr_1fr] gap-2">
 
           {/* My Time Log */}
           <Card className="border-gray-200 shadow-sm rounded-xl bg-white hover:shadow-md transition-shadow duration-200 flex flex-col">
@@ -408,7 +408,7 @@ export default function MyProfilePage() {
                 <button className="text-[11px] font-semibold text-blue-600 hover:text-blue-700">View All</button>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 flex-1">
+              <div className="flex flex-col sm:flex-row gap-2 flex-1">
                 <div className="flex-1 flex flex-col justify-between">
                   <div className="flex justify-between pr-2">
                     <div>
@@ -468,7 +468,7 @@ export default function MyProfilePage() {
                 <h3 className="text-[15px] font-semibold text-gray-900">My Tasks Overview</h3>
                 <button className="text-[11px] font-semibold text-blue-600 hover:text-blue-700">View All</button>
               </div>
-              <div className="flex-1 flex items-center justify-center gap-4">
+              <div className="flex-1 flex items-center justify-center gap-2">
                 <div className="relative w-[90px] h-[90px] shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
