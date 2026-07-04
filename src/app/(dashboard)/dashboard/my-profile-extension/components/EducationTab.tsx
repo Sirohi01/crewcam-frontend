@@ -29,14 +29,14 @@ export const ADD_ON_COURSES_DATA = [
 
 export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: string) => () => void, profileCard?: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full">
+    <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 h-full">
         {profileCard && (
           <div className="lg:col-span-3 h-full">
             {profileCard}
           </div>
         )}
-        <div className={profileCard ? "lg:col-span-9 flex flex-col gap-4 h-full" : "lg:col-span-12 flex flex-col gap-4 h-full"}>
+        <div className={profileCard ? "lg:col-span-9 flex flex-col gap-2 h-full" : "lg:col-span-12 flex flex-col gap-2 h-full"}>
           {/* Education Summary */}
           <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden shrink-0">
             <CardHeader className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800 space-y-0">
@@ -115,7 +115,7 @@ export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: s
         </div>
       </div>
       {/* Certifications and Courses */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
 
         {/* Certifications */}
         <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden flex flex-col min-w-0">

@@ -16,6 +16,9 @@ import moment from 'moment';
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { EducationTab } from './components/EducationTab';
 import { ExperienceTab } from './components/ExperienceTab';
+import { FamilyTab } from './components/FamilyTab';
+import { BankTab } from './components/BankTab';
+import { AssetsTab } from './components/AssetsTab';
 
 type TabKey = 'personal' | 'family' | 'bank' | 'education' | 'experience' | 'documents' | 'skills' | 'assets' | 'emergency' | 'more';
 
@@ -391,8 +394,64 @@ export default function MyProfilePage() {
     );
   }
 
+  const profileCardContent = (
+    <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 h-full flex flex-col">
+      <CardContent className="p-4 flex flex-col items-center text-center flex-1">
+        <div className="relative">
+          <img src={employee?.profilePictureUrl || DUMMY.photo} alt="" className="h-24 w-24 rounded-full object-cover border-4 border-zinc-100 dark:border-zinc-800" />
+          <button onClick={comingSoon('Photo upload')} className="absolute bottom-0 right-0 h-7 w-7 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-800">
+            <Camera size={12} className="text-zinc-600 dark:text-zinc-300" />
+          </button>
+        </div>
+        <div className="flex items-center gap-1.5 mt-3">
+          <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">{employee?.firstName || DUMMY.firstName} {employee?.lastName || DUMMY.lastName}</p>
+          <CheckCircle2 size={14} className="text-emerald-500" />
+        </div>
+        <p className="text-xs text-zinc-500 mt-0.5">{employee?.employeeCode || DUMMY.employeeCode}</p>
+        <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">{employee?.designationId?.name || DUMMY.designation}</p>
+        <span className={`mt-2 inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded ${employee?.isActive ?? true ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'}`}>
+          {(employee?.isActive ?? true) ? 'Active' : 'Inactive'}
+        </span>
+
+        <div className="w-full flex flex-col gap-3 mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800 text-left">
+          <div className="flex items-center gap-3 text-[13px] text-zinc-700 dark:text-zinc-300 font-medium">
+            <Mail size={15} className="text-zinc-400 shrink-0" /> <span className="truncate">{employee?.email || DUMMY.email}</span>
+          </div>
+          <div className="flex items-center gap-3 text-[13px] text-zinc-700 dark:text-zinc-300 font-medium">
+            <Phone size={15} className="text-zinc-400 shrink-0" /> {employee?.mobileNumber || DUMMY.phone}
+          </div>
+
+          <div className="flex items-start gap-3 text-[13px]">
+            <CalendarDays size={15} className="text-zinc-400 shrink-0 mt-0.5" />
+            <div className="flex flex-col">
+              <span className="text-[11px] text-zinc-500 mb-0.5">Date of Joining</span>
+              <span className="font-semibold text-zinc-800 dark:text-zinc-200">{employee?.dateOfJoining ? moment(employee.dateOfJoining).format('DD MMM YYYY') : DUMMY.dateOfJoining}</span>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 text-[13px]">
+            <MapPin size={15} className="text-zinc-400 shrink-0 mt-0.5" />
+            <div className="flex flex-col">
+              <span className="text-[11px] text-zinc-500 mb-0.5">Work Location</span>
+              <span className="font-semibold text-zinc-800 dark:text-zinc-200">{employee?.branchId?.name || DUMMY.branch}</span>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 text-[13px] mt-1">
+            <img src={DUMMY.managerPhoto || "https://i.pravatar.cc/150?u=44"} alt="Manager" className="h-8 w-8 rounded-full object-cover border border-zinc-200 mt-1" />
+            <div className="flex flex-col">
+              <span className="text-[11px] text-zinc-500 mb-0.5">Reporting To</span>
+              <span className="font-bold text-zinc-900 dark:text-zinc-100">Amit Kumar</span>
+              <span className="text-[11px] text-zinc-500 font-medium">Sales Manager</span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
-    <div className="flex flex-col gap-4 animate-in fade-in duration-300 px-2 sm:px-4 pt-4 pb-6 w-full">
+    <div className="flex flex-col gap-2 animate-in fade-in duration-300 px-2 sm:px-4 pt-4 pb-6 w-full">
       <div className="flex items-center text-[13px] text-zinc-500 mb-1">
         <span className="hover:text-indigo-600 cursor-pointer transition-colors">Dashboard</span>
         <ChevronRight size={14} className="mx-1" />
@@ -464,8 +523,8 @@ export default function MyProfilePage() {
       </div>
 
       {tab === 'personal' && (
-        <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
             <ProfileSummaryCard employee={employee} tenure={tenure} comingSoon={comingSoon} className="lg:col-span-3 lg:row-span-2" />
 
             {/* Personal Information */}
@@ -558,7 +617,7 @@ export default function MyProfilePage() {
               </CardContent>
             </Card>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
             <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
               <CardHeader className="flex-row items-center justify-between px-3 py-2 border-b border-zinc-100 dark:border-zinc-800 space-y-0">
                 <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">Previous Experience</CardTitle>
@@ -614,107 +673,17 @@ export default function MyProfilePage() {
       )}
 
       {tab === 'family' && (
-        <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
-          <CardHeader className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2 text-zinc-800 dark:text-zinc-100"><Users size={15} className="text-indigo-600" /> Family Details</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3">
-            <SimpleTable
-              columns={['Name', 'Relation', 'Date of Birth', 'Occupation']}
-              rows={DUMMY.family.map(f => [`${f.name} ${employee?.lastName || ''}`.trim(), f.relation, f.dob, f.occupation])}
-              addLabel="Add Family Member"
-              onAdd={comingSoon('Adding family members')}
-            />
-          </CardContent>
-        </Card>
+        <FamilyTab profileCard={profileCardContent} />
       )}
 
       {tab === 'bank' && (
-        <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
-          <CardHeader className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2 text-zinc-800 dark:text-zinc-100"><Landmark size={15} className="text-indigo-600" /> Bank Details</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-indigo-50/60 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/40 max-w-md">
-              <div className="h-10 w-10 rounded-lg bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-center shrink-0">
-                <Landmark size={18} className="text-indigo-600" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 truncate">{DUMMY.bank.name}</p>
-                <p className="text-[11px] text-zinc-500 truncate">{DUMMY.bank.accountNumber} · {DUMMY.bank.type}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-2xl">
-              <InfoField label="Bank Name" value={DUMMY.bank.name} />
-              <InfoField label="Account Number" value={DUMMY.bank.accountNumber} />
-              <InfoField label="IFSC Code" value={DUMMY.bank.ifsc} />
-              <InfoField label="Account Type" value={DUMMY.bank.type} />
-              <InfoField label="Branch" value={DUMMY.bank.branch} />
-              <InfoField label="Primary Account" value={DUMMY.bank.primary} />
-            </div>
-            <button onClick={comingSoon('Adding bank details')} className="mt-4 text-xs font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1"><Plus size={12} /> Add Bank Account</button>
-          </CardContent>
-        </Card>
+        <BankTab profileCard={profileCardContent} />
       )}
 
       {tab === 'education' && (
         <EducationTab
           comingSoon={comingSoon}
-          profileCard={
-            <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 h-full flex flex-col">
-              <CardContent className="p-4 flex flex-col items-center text-center flex-1">
-                <div className="relative">
-                  <img src={employee?.profilePictureUrl || DUMMY.photo} alt="" className="h-24 w-24 rounded-full object-cover border-4 border-zinc-100 dark:border-zinc-800" />
-                  <button onClick={comingSoon('Photo upload')} className="absolute bottom-0 right-0 h-7 w-7 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-800">
-                    <Camera size={12} className="text-zinc-600 dark:text-zinc-300" />
-                  </button>
-                </div>
-                <div className="flex items-center gap-1.5 mt-3">
-                  <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">{employee?.firstName || DUMMY.firstName} {employee?.lastName || DUMMY.lastName}</p>
-                  <CheckCircle2 size={14} className="text-emerald-500" />
-                </div>
-                <p className="text-xs text-zinc-500 mt-0.5">{employee?.employeeCode || DUMMY.employeeCode}</p>
-                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">{employee?.designationId?.name || DUMMY.designation}</p>
-                <span className={`mt-2 inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded ${employee?.isActive ?? true ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'}`}>
-                  {(employee?.isActive ?? true) ? 'Active' : 'Inactive'}
-                </span>
-
-                <div className="w-full flex flex-col gap-3 mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800 text-left">
-                  <div className="flex items-center gap-3 text-[13px] text-zinc-700 dark:text-zinc-300 font-medium">
-                    <Mail size={15} className="text-zinc-400 shrink-0" /> <span className="truncate">{employee?.email || DUMMY.email}</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-[13px] text-zinc-700 dark:text-zinc-300 font-medium">
-                    <Phone size={15} className="text-zinc-400 shrink-0" /> {employee?.mobileNumber || DUMMY.phone}
-                  </div>
-
-                  <div className="flex items-start gap-3 text-[13px]">
-                    <CalendarDays size={15} className="text-zinc-400 shrink-0 mt-0.5" />
-                    <div className="flex flex-col">
-                      <span className="text-[11px] text-zinc-500 mb-0.5">Date of Joining</span>
-                      <span className="font-semibold text-zinc-800 dark:text-zinc-200">{employee?.dateOfJoining ? moment(employee.dateOfJoining).format('DD MMM YYYY') : DUMMY.dateOfJoining}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 text-[13px]">
-                    <MapPin size={15} className="text-zinc-400 shrink-0 mt-0.5" />
-                    <div className="flex flex-col">
-                      <span className="text-[11px] text-zinc-500 mb-0.5">Work Location</span>
-                      <span className="font-semibold text-zinc-800 dark:text-zinc-200">{employee?.branchId?.name || DUMMY.branch}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 text-[13px] mt-1">
-                    <img src={DUMMY.managerPhoto || "https://i.pravatar.cc/150?u=44"} alt="Manager" className="h-8 w-8 rounded-full object-cover border border-zinc-200 mt-1" />
-                    <div className="flex flex-col">
-                      <span className="text-[11px] text-zinc-500 mb-0.5">Reporting To</span>
-                      <span className="font-bold text-zinc-900 dark:text-zinc-100">Amit Kumar</span>
-                      <span className="text-[11px] text-zinc-500 font-medium">Sales Manager</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          }
+          profileCard={profileCardContent}
         />
       )}
 
@@ -723,7 +692,7 @@ export default function MyProfilePage() {
       )}
 
       {tab === 'documents' && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">My Documents</h2>
@@ -741,11 +710,11 @@ export default function MyProfilePage() {
             <StatTile icon={AlertTriangle} bg="bg-rose-50 dark:bg-rose-900/20" color="text-rose-600" label="Expiring Soon" value={String(DOC_STATS.expiring)} sub="Within next 60 days" />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
             <Card className="lg:col-span-9 border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
               <CardContent className="p-0">
                 <div className="flex flex-col gap-3 p-3 border-b border-zinc-100 dark:border-zinc-800">
-                  <div className="flex items-center gap-4 text-xs font-medium">
+                  <div className="flex items-center gap-2 text-xs font-medium">
                     {(['all', 'mine', 'shared'] as const).map(k => (
                       <button
                         key={k}
@@ -836,7 +805,7 @@ export default function MyProfilePage() {
               </CardContent>
             </Card>
 
-            <div className="lg:col-span-3 flex flex-col gap-4">
+            <div className="lg:col-span-3 flex flex-col gap-2">
               <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
                 <CardContent className="p-4">
                   <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-3">Document Categories</p>
@@ -881,10 +850,10 @@ export default function MyProfilePage() {
       )}
 
       {tab === 'skills' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
           <ProfileSummaryCard employee={employee} tenure={tenure} comingSoon={comingSoon} className="lg:col-span-3" />
 
-          <div className="lg:col-span-6 flex flex-col gap-4">
+          <div className="lg:col-span-6 flex flex-col gap-2">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <StatTile icon={GraduationCap} bg="bg-blue-50 dark:bg-blue-900/20" color="text-blue-600" label="Total Skills" value={String(SKILL_STATS.total)} sub="All Skills Added" />
               <StatTile icon={Star} bg="bg-emerald-50 dark:bg-emerald-900/20" color="text-emerald-600" label="Core Skills" value={String(SKILL_STATS.core)} sub="Key Expertise Areas" />
@@ -993,11 +962,11 @@ export default function MyProfilePage() {
             </Card>
           </div>
 
-          <div className="lg:col-span-3 flex flex-col gap-4">
+          <div className="lg:col-span-3 flex flex-col gap-2">
             <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
               <CardContent className="p-4">
                 <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-3">Skill Categories</p>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
                   <div className="h-[100px] w-[100px] relative shrink-0">
                     <ResponsiveContainer>
                       <PieChart>
@@ -1063,27 +1032,7 @@ export default function MyProfilePage() {
       )}
 
       {tab === 'assets' && (
-        <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
-          <CardHeader className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2 text-zinc-800 dark:text-zinc-100"><Package size={15} className="text-indigo-600" /> Assets Allocated</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {DUMMY.assets.map(a => (
-                <div key={a.tag} className="flex items-center gap-2.5 p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:border-emerald-200 dark:hover:border-emerald-800 hover:shadow-sm transition-all">
-                  <div className="h-9 w-9 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center shrink-0">
-                    <Laptop size={15} className="text-emerald-600" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 truncate">{a.name}</p>
-                    <p className="text-[10.5px] text-zinc-400 truncate">Tag: {a.tag}</p>
-                    <p className="text-[10.5px] text-zinc-400 truncate">Allocated {a.allocatedOn}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <AssetsTab />
       )}
 
       {tab === 'emergency' && (
