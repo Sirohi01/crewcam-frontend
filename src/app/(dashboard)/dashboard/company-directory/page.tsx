@@ -602,77 +602,85 @@ const CompanyDirectory: React.FC = () => {
         </div>
 
         {/* Right column */}
-        <div className="flex flex-col gap-2 min-h-0">
-          {/* Quick Links */}
-          <Card className="flex-1 min-h-0">
-            <span className="text-[12px] font-semibold  mb-1 shrink-0">
-              Quick Links
-            </span>
-            <div className="flex flex-col justify-between flex-1 min-h-0">
-              {QUICK_LINKS.map((link) => {
-                const Icon = link.icon
-                return (
-                  <button
-                    key={link.id}
-                    type="button"
-                    className="flex items-center gap-2 text-left"
-                  >
-                    <div
-                      className={`h-7 w-7 rounded-md flex items-center justify-center shrink-0 ${link.iconBg}`}
-                    >
-                      <Icon className={`h-3.5 w-3.5 ${link.iconColor}`} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-semibold  truncate">
-                        {link.title}
-                      </p>
-                      <p className="text-[9px] font-medium  truncate">
-                        {link.description}
-                      </p>
-                    </div>
-                    <ChevronRight className="h-3.5 w-3.5  shrink-0" />
-                  </button>
-                )
-              })}
-            </div>
-          </Card>
+      <div className="flex flex-col gap-2 min-h-0">
+  {/* Quick Links */}
+  <Card className="flex-1 min-h-0 flex flex-col">
+    <span className="text-[12px] font-semibold mb-1 shrink-0">
+      Quick Links
+    </span>
 
-          {/* Organization at a Glance */}
-          <Card className="flex-[1.4] min-h-0">
-            <div className="flex items-center justify-between shrink-0 mb-1">
-              <span className="text-[12px] font-semibold ">
-                Organization at a Glance
-              </span>
-              <button
-                type="button"
-                className="flex items-center gap-0.5 text-[10px] font-semibold text-blue-600 whitespace-nowrap"
-              >
-                View Full Org Chart
-                <ChevronRight className="h-2.5 w-2.5" />
-              </button>
+    <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 pr-1">
+      {QUICK_LINKS.map((link) => {
+        const Icon = link.icon;
+        return (
+          <button
+            key={link.id}
+            type="button"
+            className="flex items-center gap-2 text-left"
+          >
+            <div
+              className={`h-7 w-7 rounded-md flex items-center justify-center shrink-0 ${link.iconBg}`}
+            >
+              <Icon className={`h-3.5 w-3.5 ${link.iconColor}`} />
             </div>
-            <div className="flex flex-col justify-between flex-1 min-h-0">
-              {DEPT_GLANCE.map((d) => {
-                const Icon = d.icon
-                return (
-                  <div key={d.id} className="flex items-center gap-1.5">
-                    <div
-                      className={`h-6 w-6 rounded-md flex items-center justify-center shrink-0 ${d.iconBg}`}
-                    >
-                      <Icon className={`h-3 w-3 ${d.iconColor}`} />
-                    </div>
-                    <span className="text-[11px] font-semibold  flex-1 truncate">
-                      {d.name}
-                    </span>
-                    <span className="text-[10px] font-bold  bg-slate-100 rounded-full px-1.5 py-0.5 shrink-0">
-                      {d.count}
-                    </span>
-                  </div>
-                )
-              })}
+
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-semibold truncate">
+                {link.title}
+              </p>
+              <p className="text-[9px] font-medium truncate">
+                {link.description}
+              </p>
             </div>
-          </Card>
-        </div>
+
+            <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+          </button>
+        );
+      })}
+    </div>
+  </Card>
+
+  {/* Organization at a Glance */}
+  <Card className="flex-[1.4] min-h-0 flex flex-col">
+    <div className="flex items-center justify-between mb-1 shrink-0">
+      <span className="text-[12px] font-semibold">
+        Organization at a Glance
+      </span>
+
+      <button
+        type="button"
+        className="flex items-center gap-0.5 text-[10px] font-semibold text-blue-600 whitespace-nowrap"
+      >
+        View Full Org Chart
+        <ChevronRight className="h-2.5 w-2.5" />
+      </button>
+    </div>
+
+    <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 pr-1">
+      {DEPT_GLANCE.map((d) => {
+        const Icon = d.icon;
+
+        return (
+          <div key={d.id} className="flex items-center gap-1.5">
+            <div
+              className={`h-6 w-6 rounded-md flex items-center justify-center shrink-0 ${d.iconBg}`}
+            >
+              <Icon className={`h-3 w-3 ${d.iconColor}`} />
+            </div>
+
+            <span className="text-[11px] font-semibold flex-1 truncate">
+              {d.name}
+            </span>
+
+            <span className="text-[10px] font-bold bg-slate-100 rounded-full px-1.5 py-0.5 shrink-0">
+              {d.count}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  </Card>
+</div>
       </div>
        <div className="grid grid-cols-3 gap-2 shrink-0" style={{ height: '18%' }}>
             <Card>
