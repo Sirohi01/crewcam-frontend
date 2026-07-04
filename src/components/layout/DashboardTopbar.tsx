@@ -1,27 +1,52 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/axios';
 import { Bell, HelpCircle, Mail, MessageSquare, FileText, Calendar, Clock, RefreshCw, Search } from 'lucide-react';
 import Link from 'next/link';
 
+// Converts a route like /dashboard/superadmin/employee-dashboard/123
+// into "superadmin/employee-dashboard"
+function getPageTitle(pathname: string | null): string {
+  if (!pathname) return 'dashboard';
+
+  let segments = pathname.split('/').filter(Boolean);
+  if (segments.length === 0) return 'dashboard';
+
+  // Drop id-like trailing segments (numeric ids, mongo/uuid-style ids)
+  while (
+    segments.length > 0 &&
+    (/^\d+$/.test(segments[segments.length - 1]) ||
+      /^[0-9a-fA-F]{20,}$/.test(segments[segments.length - 1]))
+  ) {
+    segments.pop();
+  }
+
+  // Drop a leading "dashboard" root segment, e.g. /dashboard/superadmin/... -> superadmin/...
+  if (segments[0] === 'dashboard') {
+    segments = segments.slice(1);
+  }
+
+  if (segments.length === 0) return 'dashboard';
+
+  // Show at most the last two meaningful segments, e.g. "superadmin/employee-dashboard"
+  const visible = segments.slice(-2);
+
+  return visible.join('/');
+}
+
 export default function DashboardTopbar() {
   const user = useAuthStore((state) => state.user);
-  const [companyName, setCompanyName] = useState('Loading...');
+  const pathname = usePathname();
   const [currentUser, setCurrentUser] = useState<any>(user);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const pageTitle = getPageTitle(pathname);
+
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await api.get('/companies/profile');
-        setCompanyName(res.data?.legalName || 'Company Profile Incomplete');
-      } catch {
-        setCompanyName('Company Name');
-      }
-    };
     const fetchCurrentUser = async () => {
       try {
         const res = await api.get('/employees/current');
@@ -31,7 +56,6 @@ export default function DashboardTopbar() {
       }
     };
     if (user?.tenantId && user.tenantId !== 'SUPER_ADMIN') {
-      fetchProfile();
       fetchCurrentUser();
     }
   }, [user]);
@@ -69,18 +93,19 @@ export default function DashboardTopbar() {
         borderBottom: '1px solid rgba(99,102,241,0.2)',
       }}
     >
-      {/* Left — company name as text */}
+      {/* Left — current route path (e.g. superadmin/employee-dashboard) */}
       <span
-        className="text-sm font-semibold tracking-wide shrink-0"
+        className="text-sm font-semibold tracking-wide shrink-0 truncate max-w-[220px]"
         style={{ color: '#e2e8f0' }}
+        title={pageTitle}
       >
-        {companyName}
+        {pageTitle}
       </span>
 
-      {/* Center — search bar */}
-      <div className="flex-1 flex justify-center">
+      {/* Center — search bar (made smaller) */}
+      <div className="flex-1 flex justify-center min-w-0">
         <div
-          className="relative flex items-center w-full max-w-[420px] h-8 rounded-lg px-3"
+          className="relative flex items-center w-full min-w-[160px] max-w-[320px] h-8 rounded-lg px-3"
           style={{
             background: 'rgba(255,255,255,0.08)',
             border: '1px solid rgba(99,102,241,0.25)',
@@ -93,7 +118,7 @@ export default function DashboardTopbar() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search employee, module, report..."
-            className="flex-1 bg-transparent outline-none border-none text-xs px-2"
+            className="flex-1 bg-transparent outline-none border-none text-xs px-2 min-w-0"
             style={{ color: '#e2e8f0' }}
           />
           <span
@@ -112,7 +137,7 @@ export default function DashboardTopbar() {
       {/* Right — icons + greeting + avatar */}
       <div className="flex items-center gap-1 shrink-0">
 
-        {/* 4 icon buttons */}
+        {/* 3 icon buttons */}
         {[
           { icon: <MessageSquare size={16} />, badge: 5, href: '/dashboard/communications/chat' },
           { icon: <Bell size={16} />, badge: 1, isBell: true },
