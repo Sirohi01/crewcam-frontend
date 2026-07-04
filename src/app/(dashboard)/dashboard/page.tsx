@@ -138,10 +138,10 @@ const META: Record<string, {
 }> = {
   'org-headcount': { title: 'Total Employees', icon: <UsersRound size={18} />, accent: 'bg-violet-500', fallback: '—', delta: '', deltaType: 'neutral' },
   'team-attendance-today': { title: 'Present Today', icon: <ScanFace size={18} />, accent: 'bg-emerald-500', fallback: '—', delta: '', deltaType: 'neutral' },
+  'on-leave-today': { title: 'On Leave', icon: <UmbrellaOff size={18} />, accent: 'bg-amber-500', fallback: '0', delta: '', deltaType: 'neutral' },
   'absent-today': { title: 'Absent Today', icon: <CalendarX2 size={18} />, accent: 'bg-rose-500', fallback: '0', delta: '', deltaType: 'neutral' },
   'work-from-home': { title: 'Work From Home', icon: <Briefcase size={18} />, accent: 'bg-fuchsia-500', fallback: '0', delta: '', deltaType: 'neutral' },
   'late-coming': { title: 'Late Coming', icon: <Clock3 size={18} />, accent: 'bg-amber-500', fallback: '0', delta: '', deltaType: 'neutral' },
-  'on-leave-today': { title: 'On Leave Today', icon: <UmbrellaOff size={18} />, accent: 'bg-amber-500', fallback: '0', delta: '', deltaType: 'neutral' },
   'new-joinees': { title: 'New Joinees', icon: <UserRoundPlus size={18} />, accent: 'bg-blue-500', fallback: '0', delta: '', deltaType: 'neutral' },
   // 'open-positions': { title: 'Open Positions', icon: <BriefcaseBusiness size={18} />, accent: 'bg-teal-500', fallback: '0', delta: '', deltaType: 'neutral' },
 };
@@ -225,10 +225,7 @@ function MyPerformanceCard() {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   BANNER / HERO SLIDER — commented out as requested (kept in code, not
-   removed). Replaced in the page body by <WelcomeHeader /> below.
-   ─────────────────────────────────────────────────────────────────────────
+/* BANNER / HERO SLIDER — commented out as requested (kept in code, not
 
 const SLIDES = [
   { imageUrl: '/bannerImges/img1.png' },

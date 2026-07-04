@@ -9,14 +9,14 @@ import {
   LayoutDashboard, Users, Building2, Settings, LogOut, Briefcase, UserCog, Plug, Palette,
   Shield, ShieldCheck, Clock, Calendar, MessageSquare, Scale, TrendingUp, UserPlus, IndianRupee,
   Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList, LucideIcon, ChevronRight, ChevronDown,
-  LayoutGrid, User,
+  LayoutGrid, User, GraduationCap,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 
 const ICONS: Record<string, LucideIcon> = {
   LayoutDashboard, Users, Building2, Settings, LogOut, Briefcase, UserCog, Plug, Palette,
   Shield, ShieldCheck, Clock, Calendar, MessageSquare, Scale, TrendingUp, UserPlus, IndianRupee,
-  Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList, LayoutGrid, User,
+  Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList, LayoutGrid, User, GraduationCap,
 };
 
 interface SidebarItem {
@@ -31,7 +31,7 @@ interface SidebarItem {
 
 type GroupedItem = SidebarItem | { isGroup: true; label: string; children: SidebarItem[] };
 
-// Static item injected under PEOPLE section
+// Static item injected under WORKSPACE section
 const STATIC_PEOPLE_ITEMS: SidebarItem[] = [
   {
     _id: '__employee-dashboard__',
@@ -58,12 +58,20 @@ const STATIC_PEOPLE_ITEMS: SidebarItem[] = [
     order: 2,
   },
   {
+    _id: '__employee-dashboard__',
+    section: 'WORKSPACE',
+    label: 'Employee Dashboard',
+    href: '/dashboard/employee',
+    icon: 'LayoutGrid',
+    order: 1,
+  },
+  {
     _id: '__employee-leave__',
     section: 'WORKSPACE',
-    label: 'Leave Management',
+    label: 'Employee Leave',
     href: '/dashboard/employee-leave',
-    icon: 'User',
-    order: 3,
+    icon: 'Calendar',
+    order: 2,
   },
   {
     _id: '__goals-and-okrs__',
@@ -179,26 +187,47 @@ export default function DynamicSidebar() {
         {/* Nav */}
         <div className="sidebar-scroll flex-1 overflow-y-auto py-2">
           <div className="px-2 space-y-4">
-            {sections.map((group) => (
-              <nav key={group.section} className="space-y-0.5">
-                <SectionLabel>{group.section}</SectionLabel>
-                {group.items.map((item) => {
-                  if ('isGroup' in item) {
-                    return <NavGroup key={item.label} label={item.label} items={item.children} pathname={pathname} />;
-                  }
-                  return (
-                    <NavItem
-                      key={item._id}
-                      href={item.href}
-                      icon={React.createElement(ICONS[item.icon] || Circle, { size: 14 })}
-                      label={item.label}
-                      active={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
-                      disabled={item.href.includes('/coming-soon')}
-                    />
-                  );
-                })}
-              </nav>
-            ))}
+
+            {/* ── WORKSPACE (always visible, hardcoded) ── */}
+            <nav className="space-y-0.5">
+              <SectionLabel>WORKSPACE</SectionLabel>
+              <NavItem
+                href="/dashboard/employee"
+                icon={<LayoutGrid size={14} />}
+                label="Employee Dashboard"
+                active={pathname === '/dashboard/employee'}
+              />
+              <NavItem
+                href="/dashboard/employee-leave"
+                icon={<Calendar size={14} />}
+                label="Employee Leave"
+                active={pathname === '/dashboard/employee-leave'}
+              />
+            </nav>
+
+            {/* ── Dynamic sections from API ── */}
+            {sections
+              .filter((g) => g.section !== 'WORKSPACE')
+              .map((group) => (
+                <nav key={group.section} className="space-y-0.5">
+                  <SectionLabel>{group.section}</SectionLabel>
+                  {group.items.map((item) => {
+                    if ('isGroup' in item) {
+                      return <NavGroup key={item.label} label={item.label} items={item.children} pathname={pathname} />;
+                    }
+                    return (
+                      <NavItem
+                        key={item._id}
+                        href={item.href}
+                        icon={React.createElement(ICONS[item.icon] || Circle, { size: 14 })}
+                        label={item.label}
+                        active={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
+                        disabled={item.href.includes('/coming-soon')}
+                      />
+                    );
+                  })}
+                </nav>
+              ))}
           </div>
         </div>
 
