@@ -31,72 +31,23 @@ interface SidebarItem {
 
 type GroupedItem = SidebarItem | { isGroup: true; label: string; children: SidebarItem[] };
 
-// Static item injected under WORKSPACE section
 const STATIC_PEOPLE_ITEMS: SidebarItem[] = [
-  {
-    _id: '__employee-dashboard__',
-    section: 'WORKSPACE',
-    label: 'Employee Dashboard',
-    href: '/dashboard/employee',
-    icon: 'LayoutGrid',
-    order: 0,
-  },
-  {
-    _id: '__my-profile__',
-    section: 'WORKSPACE',
-    label: 'My Profile Extension',
-    href: '/dashboard/my-profile-extension',
-    icon: 'User',
-    order: 1,
-  },
-  {
-    _id: '__employee-profile__',
-    section: 'WORKSPACE',
-    label: 'My Profile',
-    href: '/dashboard/my-profile',
-    icon: 'User',
-    order: 2,
-  },
-  {
-    _id: '__employee-dashboard__',
-    section: 'WORKSPACE',
-    label: 'Employee Dashboard',
-    href: '/dashboard/employee',
-    icon: 'LayoutGrid',
-    order: 1,
-  },
-  {
-    _id: '__employee-leave__',
-    section: 'WORKSPACE',
-    label: 'Employee Leave',
-    href: '/dashboard/employee-leave',
-    icon: 'Calendar',
-    order: 2,
-  },
-  {
-    _id: '__goals-and-okrs__',
-    section: 'WORKSPACE',
-    label: 'Goals & OKRs',
-    href: '/dashboard/goals-and-okrs',
-    icon: 'TrendingUp',
-    order: 4,
-  },
-  {
-    _id: '__my-performance__',
-    section: 'WORKSPACE',
-    label: 'My Performance',
-    href: '/dashboard/my-performance',
-    icon: 'Star',
-    order: 5,
-  },
-  {
-    _id: '__company-directory__',
-    section: 'WORKSPACE',
-    label: 'Company Directory',
-    href: '/dashboard/company-directory',
-    icon: 'Users',
-    order: 6,
-  },
+  { _id: 'e1', section: 'WORKSPACE', label: 'Dashboard', href: '/dashboard/employee', icon: 'LayoutDashboard', order: 1 },
+  { _id: 'e2', section: 'WORKSPACE', label: 'My Profile', href: '/dashboard/my-profile-extension', icon: 'User', order: 2 },
+  { _id: 'e3', section: 'WORKSPACE', label: 'Attendance', href: '/dashboard/attendance', icon: 'Clock', order: 3 },
+  { _id: 'e4', section: 'WORKSPACE', label: 'Leave', href: '/dashboard/employee-leave', icon: 'Calendar', order: 4 },
+  { _id: 'e5', section: 'WORKSPACE', label: 'My Performance', href: '/dashboard/my-performance', icon: 'TrendingUp', order: 5 },
+  { _id: 'e6', section: 'WORKSPACE', label: 'Goals & OKRs', href: '/dashboard/goals-and-okrs', icon: 'Circle', order: 6 },
+  { _id: 'e7', section: 'WORKSPACE', label: 'Payslip & Income Tax', href: '/dashboard/payslip-and-income-tax', icon: 'Receipt', order: 7 },
+  { _id: 'e8', section: 'WORKSPACE', label: 'Reimbursement (Imprest)', href: '/dashboard/reimbursement', icon: 'Wallet', order: 8 },
+  { _id: 'e9', section: 'WORKSPACE', label: 'My Requests', href: '/dashboard/my-requests', icon: 'ClipboardList', order: 9 },
+  { _id: 'e10', section: 'WORKSPACE', label: 'My Tasks', href: '/dashboard/my-tasks', icon: 'ListTree', order: 10 },
+  { _id: 'e11', section: 'WORKSPACE', label: 'Training & Development', href: '/dashboard/training-development', icon: 'GraduationCap', order: 11 },
+  { _id: 'e12', section: 'WORKSPACE', label: 'Policies & Documents', href: '/dashboard/policies', icon: 'FileSignature', order: 12 },
+  { _id: 'e13', section: 'WORKSPACE', label: 'Company Directory', href: '/dashboard/company-directory', icon: 'Users', order: 13 },
+  { _id: 'e14', section: 'WORKSPACE', label: 'Announcements', href: '/dashboard/announcements', icon: 'MessageSquare', order: 14 },
+  { _id: 'e15', section: 'WORKSPACE', label: 'Helpdesk / Support', href: '/dashboard/helpdesk', icon: 'ShieldCheck', order: 15 },
+  { _id: 'e16', section: 'WORKSPACE', label: 'Settings', href: '/dashboard/settings', icon: 'Settings', order: 16 },
 ];
 
 export default function DynamicSidebar() {
@@ -188,46 +139,27 @@ export default function DynamicSidebar() {
         <div className="sidebar-scroll flex-1 overflow-y-auto py-2">
           <div className="px-2 space-y-4">
 
-            {/* ── WORKSPACE (always visible, hardcoded) ── */}
-            <nav className="space-y-0.5">
-              <SectionLabel>WORKSPACE</SectionLabel>
-              <NavItem
-                href="/dashboard/employee"
-                icon={<LayoutGrid size={14} />}
-                label="Employee Dashboard"
-                active={pathname === '/dashboard/employee'}
-              />
-              <NavItem
-                href="/dashboard/employee-leave"
-                icon={<Calendar size={14} />}
-                label="Employee Leave"
-                active={pathname === '/dashboard/employee-leave'}
-              />
-            </nav>
-
-            {/* ── Dynamic sections from API ── */}
-            {sections
-              .filter((g) => g.section !== 'WORKSPACE')
-              .map((group) => (
-                <nav key={group.section} className="space-y-0.5">
-                  <SectionLabel>{group.section}</SectionLabel>
-                  {group.items.map((item) => {
-                    if ('isGroup' in item) {
-                      return <NavGroup key={item.label} label={item.label} items={item.children} pathname={pathname} />;
-                    }
-                    return (
-                      <NavItem
-                        key={item._id}
-                        href={item.href}
-                        icon={React.createElement(ICONS[item.icon] || Circle, { size: 14 })}
-                        label={item.label}
-                        active={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
-                        disabled={item.href.includes('/coming-soon')}
-                      />
-                    );
-                  })}
-                </nav>
-              ))}
+            {/* ── Dynamic sections from API + Static WORKSPACE ── */}
+            {sections.map((group) => (
+              <nav key={group.section} className="space-y-0.5">
+                {group.section !== 'WORKSPACE' && <SectionLabel>{group.section}</SectionLabel>}
+                {group.items.map((item) => {
+                  if ('isGroup' in item) {
+                    return <NavGroup key={item.label} label={item.label} items={item.children} pathname={pathname} />;
+                  }
+                  return (
+                    <NavItem
+                      key={item._id}
+                      href={item.href}
+                      icon={React.createElement(ICONS[item.icon] || Circle, { size: 14 })}
+                      label={item.label}
+                      active={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
+                      disabled={item.href.includes('/coming-soon')}
+                    />
+                  );
+                })}
+              </nav>
+            ))}
           </div>
         </div>
 
