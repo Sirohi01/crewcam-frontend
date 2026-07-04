@@ -184,7 +184,7 @@ function InfoField({ label, value }: { label: string; value: React.ReactNode }) 
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-3 py-1">
+    <div className="flex items-center justify-between gap-2 py-1">
       <span className="text-xs text-zinc-500 dark:text-zinc-400 shrink-0">{label}</span>
       <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200 text-right truncate">{value ?? '—'}</span>
     </div>
@@ -413,15 +413,15 @@ export default function MyProfilePage() {
           {(employee?.isActive ?? true) ? 'Active' : 'Inactive'}
         </span>
 
-        <div className="w-full flex flex-col gap-3 mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800 text-left">
-          <div className="flex items-center gap-3 text-[13px] text-zinc-700 dark:text-zinc-300 font-medium">
+        <div className="w-full flex flex-col gap-2 mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800 text-left">
+          <div className="flex items-center gap-2 text-[13px] text-zinc-700 dark:text-zinc-300 font-medium">
             <Mail size={15} className="text-zinc-400 shrink-0" /> <span className="truncate">{employee?.email || DUMMY.email}</span>
           </div>
-          <div className="flex items-center gap-3 text-[13px] text-zinc-700 dark:text-zinc-300 font-medium">
+          <div className="flex items-center gap-2 text-[13px] text-zinc-700 dark:text-zinc-300 font-medium">
             <Phone size={15} className="text-zinc-400 shrink-0" /> {employee?.mobileNumber || DUMMY.phone}
           </div>
 
-          <div className="flex items-start gap-3 text-[13px]">
+          <div className="flex items-start gap-2 text-[13px]">
             <CalendarDays size={15} className="text-zinc-400 shrink-0 mt-0.5" />
             <div className="flex flex-col">
               <span className="text-[11px] text-zinc-500 mb-0.5">Date of Joining</span>
@@ -429,7 +429,7 @@ export default function MyProfilePage() {
             </div>
           </div>
 
-          <div className="flex items-start gap-3 text-[13px]">
+          <div className="flex items-start gap-2 text-[13px]">
             <MapPin size={15} className="text-zinc-400 shrink-0 mt-0.5" />
             <div className="flex flex-col">
               <span className="text-[11px] text-zinc-500 mb-0.5">Work Location</span>
@@ -437,7 +437,7 @@ export default function MyProfilePage() {
             </div>
           </div>
 
-          <div className="flex items-start gap-3 text-[13px] mt-1">
+          <div className="flex items-start gap-2 text-[13px] mt-1">
             <img src={DUMMY.managerPhoto || "https://i.pravatar.cc/150?u=44"} alt="Manager" className="h-8 w-8 rounded-full object-cover border border-zinc-200 mt-1" />
             <div className="flex flex-col">
               <span className="text-[11px] text-zinc-500 mb-0.5">Reporting To</span>
@@ -451,27 +451,27 @@ export default function MyProfilePage() {
   );
 
   return (
-    <div className="flex flex-col gap-2 animate-in fade-in duration-300 px-2 sm:px-4 pt-4 pb-6 w-full">
-      <div className="flex items-center text-[13px] text-zinc-500 mb-1">
+    <div className="flex flex-col gap-1 animate-in fade-in duration-300 pb-2 w-full">
+      <div className="flex items-center text-[11px] font-medium text-zinc-500 mb-0.5">
         <span className="hover:text-indigo-600 cursor-pointer transition-colors">Dashboard</span>
-        <ChevronRight size={14} className="mx-1" />
+        <ChevronRight size={12} className="mx-1" />
         <span className="hover:text-indigo-600 cursor-pointer transition-colors">My Profile</span>
         {tab === 'experience' && (
           <>
-            <ChevronRight size={14} className="mx-1" />
-            <span className="font-medium text-zinc-900 dark:text-zinc-50">Experience</span>
+            <ChevronRight size={12} className="mx-1" />
+            <span className="text-zinc-900 dark:text-zinc-50">Experience</span>
           </>
         )}
       </div>
 
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-200/70 dark:border-zinc-800">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-0">
         {tab === 'experience' ? (
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 leading-tight">Experience</h1>
-            <p className="text-[13px] text-zinc-500 mt-1">Add and manage your work experience details.</p>
+            <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 leading-tight">Experience</h1>
+            <p className="text-[11px] text-zinc-500 mt-0.5">Add and manage your work experience details.</p>
           </div>
         ) : (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-sm shrink-0">
               <UserRound size={20} className="text-white" />
             </div>
@@ -510,14 +510,14 @@ export default function MyProfilePage() {
       </header>
 
       {/* Tab bar */}
-      <div className="flex items-center gap-1 overflow-x-auto bg-zinc-100 dark:bg-zinc-800/60 rounded-xl p-1">
+      <div className="flex items-center gap-1 overflow-x-auto border-b border-zinc-200/70 dark:border-zinc-800 pb-1 mb-0 scrollbar-none">
         {TABS.map(t => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${tab === t.key ? 'bg-white dark:bg-zinc-900 text-indigo-600 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all ${tab === t.key ? 'bg-white dark:bg-zinc-900 text-indigo-600 shadow-sm border border-zinc-200' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-100/50'}`}
           >
-            <t.icon size={14} /> {t.label}
+            <t.icon size={13} /> {t.label}
           </button>
         ))}
       </div>
@@ -533,7 +533,7 @@ export default function MyProfilePage() {
                 <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">Personal Information</CardTitle>
                 <button onClick={comingSoon('Editing personal information')} className="text-xs font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1"><Pencil size={12} /> Edit</button>
               </CardHeader>
-              <CardContent className="p-3 grid grid-cols-2 gap-3">
+              <CardContent className="p-3 grid grid-cols-2 gap-2">
                 <InfoField label="Full Name" value={`${employee?.firstName || DUMMY.firstName} ${employee?.lastName || DUMMY.lastName}`.trim()} />
                 <InfoField label="Aadhaar Number" value={(
                   <span className="inline-flex items-center gap-1.5">
@@ -554,7 +554,7 @@ export default function MyProfilePage() {
             </Card>
 
             {/* Summary tiles */}
-            <div className="lg:col-span-4 grid grid-cols-2 gap-3">
+            <div className="lg:col-span-4 grid grid-cols-2 gap-2">
               <StatTile icon={Award} bg="bg-violet-50 dark:bg-violet-900/20" color="text-violet-600" label="Total Experience" value={DUMMY.totalExperience} sub="Overall Experience" />
               <StatTile icon={Building2} bg="bg-blue-50 dark:bg-blue-900/20" color="text-blue-600" label="Company Experience" value={tenure ? `${tenure.years} Yrs ${tenure.months} Mths` : '—'} sub={employee?.dateOfJoining ? `Since ${moment(employee.dateOfJoining).format('DD MMM YYYY')}` : undefined} />
               <StatTile icon={IndianRupee} bg="bg-emerald-50 dark:bg-emerald-900/20" color="text-emerald-600" label="Current CTC (Annual)" value={`₹ ${DUMMY.ctc}`} sub="Cost to Company" />
@@ -649,7 +649,7 @@ export default function MyProfilePage() {
                 <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">Other Information</CardTitle>
                 <button onClick={comingSoon('Editing other information')} className="text-[11px] font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1"><Pencil size={11} /> Edit</button>
               </CardHeader>
-              <CardContent className="p-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <CardContent className="p-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div className="flex flex-col gap-2">
                   <InfoField label="Employee ID" value={employee?.employeeCode || '—'} />
                   <InfoField label="Department" value={employee?.departmentId?.name || '—'} />
@@ -693,7 +693,7 @@ export default function MyProfilePage() {
 
       {tab === 'documents' && (
         <div className="flex flex-col gap-2">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">My Documents</h2>
               <p className="text-[13px] text-zinc-500 mt-0.5">Upload, manage and access all your official documents in one place.</p>
@@ -703,7 +703,7 @@ export default function MyProfilePage() {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
             <StatTile icon={FileText} bg="bg-blue-50 dark:bg-blue-900/20" color="text-blue-600" label="Total Documents" value={String(DOC_STATS.total)} sub="Across all categories" />
             <StatTile icon={ShieldCheck} bg="bg-emerald-50 dark:bg-emerald-900/20" color="text-emerald-600" label="Verified Documents" value={String(DOC_STATS.verified)} sub="Verified & Approved" />
             <StatTile icon={Clock} bg="bg-amber-50 dark:bg-amber-900/20" color="text-amber-600" label="Pending Verification" value={String(DOC_STATS.pending)} sub="Awaiting Approval" />
@@ -713,7 +713,7 @@ export default function MyProfilePage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
             <Card className="lg:col-span-9 border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
               <CardContent className="p-0">
-                <div className="flex flex-col gap-3 p-3 border-b border-zinc-100 dark:border-zinc-800">
+                <div className="flex flex-col gap-2 p-3 border-b border-zinc-100 dark:border-zinc-800">
                   <div className="flex items-center gap-2 text-xs font-medium">
                     {(['all', 'mine', 'shared'] as const).map(k => (
                       <button
@@ -854,7 +854,7 @@ export default function MyProfilePage() {
           <ProfileSummaryCard employee={employee} tenure={tenure} comingSoon={comingSoon} className="lg:col-span-3" />
 
           <div className="lg:col-span-6 flex flex-col gap-2">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <StatTile icon={GraduationCap} bg="bg-blue-50 dark:bg-blue-900/20" color="text-blue-600" label="Total Skills" value={String(SKILL_STATS.total)} sub="All Skills Added" />
               <StatTile icon={Star} bg="bg-emerald-50 dark:bg-emerald-900/20" color="text-emerald-600" label="Core Skills" value={String(SKILL_STATS.core)} sub="Key Expertise Areas" />
               <StatTile icon={BarChart3} bg="bg-amber-50 dark:bg-amber-900/20" color="text-amber-600" label="Average Proficiency" value={`${SKILL_STATS.avgProficiency}%`} sub="Across All Skills" />
@@ -923,7 +923,7 @@ export default function MyProfilePage() {
 
             <Card className="border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/50 dark:bg-indigo-900/10 shadow-sm">
               <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                   <div className="flex items-center gap-2">
                     <Rocket size={16} className="text-indigo-600 shrink-0" />
                     <div>
@@ -935,7 +935,7 @@ export default function MyProfilePage() {
                     <Plus size={13} /> Add New Skill
                   </button>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-indigo-100 dark:border-indigo-900/40">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-3 border-t border-indigo-100 dark:border-indigo-900/40">
                   <div className="flex items-center gap-2">
                     <div className="h-8 w-8 rounded-lg bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-center shrink-0"><Plus size={14} className="text-indigo-600" /></div>
                     <div>
@@ -1010,7 +1010,7 @@ export default function MyProfilePage() {
             <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
               <CardContent className="p-4">
                 <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-3 flex items-center gap-1.5"><BadgeCheck size={14} className="text-indigo-600" /> Certifications Related to Skills</p>
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2">
                   {SKILL_CERTIFICATIONS.map(c => (
                     <div key={c.name} className="flex items-start justify-between gap-2">
                       <div className="flex items-start gap-2 min-w-0">
@@ -1041,7 +1041,7 @@ export default function MyProfilePage() {
             <CardTitle className="text-sm font-semibold flex items-center gap-2 text-zinc-800 dark:text-zinc-100"><HeartPulse size={15} className="text-rose-600" /> Emergency Contact</CardTitle>
           </CardHeader>
           <CardContent className="p-3">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-lg">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 max-w-lg">
               <InfoField label="Name" value={employee?.emergencyContactName || DUMMY.emergency.name} />
               <InfoField label="Relation" value={employee?.emergencyContactRelation || DUMMY.emergency.relation} />
               <InfoField label="Phone Number" value={employee?.emergencyContactNumber || DUMMY.emergency.number} />
@@ -1055,7 +1055,7 @@ export default function MyProfilePage() {
           <CardHeader className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
             <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">More Information</CardTitle>
           </CardHeader>
-          <CardContent className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <CardContent className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
             <InfoField label="Employee Code" value={employee?.employeeCode || '—'} />
             <InfoField label="Role" value={employee?.roleId?.name || '—'} />
             <InfoField label="Employment Status" value={employee?.isActive ? 'Active' : 'Inactive'} />
