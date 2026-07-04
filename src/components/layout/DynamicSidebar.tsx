@@ -179,6 +179,30 @@ export default function DynamicSidebar() {
                 label="Employee Leave"
                 active={pathname === '/dashboard/employee-leave'}
               />
+              <NavItem
+                href="/dashboard/reimbursement"
+                icon={<Receipt size={14} />}
+                label="Reimbursement (imprest)"
+                active={pathname === '/dashboard/reimbursement'}
+              />
+              <NavItem
+                href="/dashboard/my-request"
+                icon={<ClipboardList size={14} />}
+                label="My Request"
+                active={pathname === '/dashboard/my-request'}
+              />
+              <NavItem
+                href="/dashboard/my-task"
+                icon={<ListTree size={14} />}
+                label="My Task"
+                active={pathname === '/dashboard/my-task'}
+              />
+              <NavItem
+                href="/dashboard/payslip-income-tax"
+                icon={<IndianRupee size={14} />}
+                label="Payslip and Income Tax"
+                active={pathname === '/dashboard/payslip-income-tax'}
+              />
             </nav>
 
             {/* ── Dynamic sections from API ── */}
