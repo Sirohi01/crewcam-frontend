@@ -224,8 +224,8 @@ export function ExperienceTab({ comingSoon }: { comingSoon: (what: string) => ()
                 <CalendarDays size={12} className="text-blue-600" />
               </div>
               <div>
-                <p className="text-[11px] font-medium text-gray-500 mb-0.5 uppercase tracking-wide">Total Experience</p>
-                <p className="text-[16px] font-bold text-blue-700">6 yrs 10 mos</p>
+                <p className="text-[11.5px] font-semibold text-zinc-500 mb-0.5">Total Experience</p>
+                <p className="text-[15px] font-bold text-zinc-900">6 yrs 10 mos</p>
               </div>
             </div>
 
@@ -234,8 +234,8 @@ export function ExperienceTab({ comingSoon }: { comingSoon: (what: string) => ()
                 <Building2 size={12} className="text-purple-600" />
               </div>
               <div>
-                <p className="text-[11px] font-medium text-gray-500 mb-0.5 uppercase tracking-wide">Total Companies</p>
-                <p className="text-[16px] font-bold text-purple-700">3</p>
+                <p className="text-[11.5px] font-semibold text-zinc-500 mb-0.5">Total Companies</p>
+                <p className="text-[15px] font-bold text-zinc-900">3</p>
               </div>
             </div>
 
@@ -244,8 +244,8 @@ export function ExperienceTab({ comingSoon }: { comingSoon: (what: string) => ()
                 <UserCircle2 size={12} className="text-amber-600" />
               </div>
               <div>
-                <p className="text-[11px] font-medium text-gray-500 mb-0.5 uppercase tracking-wide">Total Roles</p>
-                <p className="text-[16px] font-bold text-amber-700">3</p>
+                <p className="text-[11.5px] font-semibold text-zinc-500 mb-0.5">Total Roles</p>
+                <p className="text-[15px] font-bold text-zinc-900">3</p>
               </div>
             </div>
 
@@ -254,8 +254,8 @@ export function ExperienceTab({ comingSoon }: { comingSoon: (what: string) => ()
                 <CalendarDays size={12} className="text-emerald-600" />
               </div>
               <div>
-                <p className="text-[11px] font-medium text-gray-500 mb-0.5 uppercase tracking-wide">Average Tenure</p>
-                <p className="text-[16px] font-bold text-emerald-700">2 yrs 1 mo</p>
+                <p className="text-[11.5px] font-semibold text-zinc-500 mb-0.5">Average Tenure</p>
+                <p className="text-[15px] font-bold text-zinc-900">2 yrs 1 mo</p>
               </div>
             </div>
           </CardContent>

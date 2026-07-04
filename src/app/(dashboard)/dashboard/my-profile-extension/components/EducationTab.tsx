@@ -67,7 +67,7 @@ export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: s
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto pb-8">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/40">
@@ -107,7 +107,7 @@ export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: s
                   </tbody>
                 </table>
               </div>
-              <div className="px-2 py-1.5 border-t border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 mt-auto">
+              <div className="px-2 py-1.5 border-t border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 mt-8">
                 <p className="text-[11px] text-zinc-500 font-medium">Showing 1 to 4 of 4 entries</p>
               </div>
             </CardContent>
