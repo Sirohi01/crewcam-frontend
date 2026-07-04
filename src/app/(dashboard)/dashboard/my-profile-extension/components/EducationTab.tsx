@@ -30,13 +30,13 @@ export const ADD_ON_COURSES_DATA = [
 export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: string) => () => void, profileCard?: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-2">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 h-full">
+      <div className="flex flex-col xl:flex-row gap-2 h-full">
         {profileCard && (
-          <div className="lg:col-span-3 h-full">
+          <div className="w-full xl:w-[260px] shrink-0 h-full">
             {profileCard}
           </div>
         )}
-        <div className={profileCard ? "lg:col-span-9 flex flex-col gap-2 h-full" : "lg:col-span-12 flex flex-col gap-2 h-full"}>
+        <div className="flex-1 flex flex-col gap-2 h-full">
           {/* Education Summary */}
           <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden shrink-0">
             <CardHeader className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800 space-y-0">

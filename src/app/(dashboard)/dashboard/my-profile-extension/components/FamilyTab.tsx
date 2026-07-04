@@ -26,13 +26,13 @@ const documents = [
 export function FamilyTab({ profileCard }: { profileCard?: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-2">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 h-full">
+      <div className="flex flex-col xl:flex-row gap-2 h-full">
         {profileCard && (
-          <div className="lg:col-span-3 h-full">
+          <div className="w-full xl:w-[260px] shrink-0 h-full">
             {profileCard}
           </div>
         )}
-        <div className={profileCard ? "lg:col-span-9 flex flex-col gap-2 h-full" : "lg:col-span-12 flex flex-col gap-2 h-full"}>
+        <div className="flex-1 flex flex-col gap-2 h-full">
           {/* Family Members Section */}
           <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
@@ -116,7 +116,7 @@ export function FamilyTab({ profileCard }: { profileCard?: React.ReactNode }) {
                   <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-blue-50">
                     <ShieldAlert size={12} className="text-[#1d4ed8]" />
                   </div>
-                  <h3 className="text-[11px] font-bold text-zinc-900">Emergency Contacts</h3>
+                  <h3 className="text-[11px] font-bold text-zinc-900 uppercase">Emergency Contacts</h3>
                 </div>
               </div>
               <div className="flex-1">
@@ -168,7 +168,7 @@ export function FamilyTab({ profileCard }: { profileCard?: React.ReactNode }) {
                   <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-blue-50">
                     <Contact size={12} className="text-[#1d4ed8]" />
                   </div>
-                  <h3 className="text-[11px] font-bold text-zinc-900">Other Family Information</h3>
+                  <h3 className="text-[11px] font-bold text-zinc-900 uppercase">Other Family Information</h3>
                 </div>
                 <button className="rounded-md border border-zinc-200 bg-white px-3 py-1 text-[10px] font-semibold text-[#1d4ed8] hover:bg-zinc-50">
                   Edit

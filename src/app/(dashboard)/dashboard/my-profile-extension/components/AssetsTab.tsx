@@ -64,13 +64,13 @@ export function AssetsTab({ profileCard }: { profileCard?: React.ReactNode }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full">
+      <div className="flex flex-col xl:flex-row gap-4 h-full">
         {profileCard && (
-          <div className="lg:col-span-3 h-full">
+          <div className="w-full xl:w-[260px] shrink-0 h-full">
             {profileCard}
           </div>
         )}
-        <div className={profileCard ? "lg:col-span-9 flex flex-col gap-2 h-full" : "lg:col-span-12 flex flex-col gap-2 h-full"}>
+        <div className="flex-1 flex flex-col gap-2 h-full">
           {/* Top Stat Cards (4 cards) */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
             <div className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm flex items-center gap-3">
