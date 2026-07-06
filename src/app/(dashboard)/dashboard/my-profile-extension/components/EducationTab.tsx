@@ -82,7 +82,7 @@ export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: s
                       <th className="h-9 px-2 text-center align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Action</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="capitalize">
                     {ACADEMIC_QUALIFICATIONS_DATA.map((row, i) => (
                       <tr key={i} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30">
                         <td className="px-2 py-1.5 align-middle text-xs font-semibold text-zinc-800 dark:text-zinc-200">{row.qual}</td>
@@ -144,7 +144,7 @@ export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: s
                     <th className="h-7 px-2 text-center align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Action</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="capitalize">
                   {CERTIFICATIONS_DATA.map((row, i) => (
                     <tr key={i} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30">
                       <td className="px-2 py-1.5 align-middle text-xs font-semibold text-zinc-800 dark:text-zinc-200 whitespace-nowrap">{row.name}</td>
@@ -199,7 +199,7 @@ export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: s
                     <th className="h-7 px-2 text-center align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Action</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="capitalize">
                   {ADD_ON_COURSES_DATA.map((row, i) => (
                     <tr key={i} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30">
                       <td className="px-2 py-1.5 align-middle text-xs font-semibold text-zinc-800 dark:text-zinc-200 whitespace-nowrap">{row.name}</td>

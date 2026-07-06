@@ -243,7 +243,7 @@ function SimpleTable({ columns, rows, addLabel, onAdd }: {
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="capitalize">
             {rows.map((row, i) => (
               <tr key={i} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0">
                 {row.map((cell, j) => (
@@ -1064,7 +1064,7 @@ export default function MyProfilePage() {
       )}
 
       {tab === 'experience' && (
-        <ExperienceTab comingSoon={comingSoon} />
+        <ExperienceTab comingSoon={comingSoon} profileCard={profileCardContent} />
       )}
 
       {tab === 'documents' && (
@@ -1133,7 +1133,7 @@ export default function MyProfilePage() {
                         <th className="h-7 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Actions</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="capitalize">
                       {DOC_LIST.map(d => (
                         <tr key={d.name} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30">
                           <td className="px-2 py-1.5">
@@ -1255,7 +1255,7 @@ export default function MyProfilePage() {
                         <th className="h-8 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Action</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="capitalize">
                       {SKILL_LIST.map(s => {
                         const style = SKILL_CATEGORY_STYLE[s.category];
                         return (

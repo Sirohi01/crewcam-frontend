@@ -95,7 +95,7 @@ export default function DashboardTopbar() {
     >
       {/* Left — current route path (e.g. superadmin/employee-dashboard) */}
       <span
-        className="text-sm font-semibold tracking-wide shrink-0 truncate max-w-[220px]"
+        className="text-sm font-semibold tracking-wide shrink-0 truncate max-w-[220px] capitalize"
         style={{ color: '#e2e8f0' }}
         title={pageTitle}
       >
