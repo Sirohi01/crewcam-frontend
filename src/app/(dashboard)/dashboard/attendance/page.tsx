@@ -70,6 +70,25 @@ function TrendDot(props: any) {
   return <circle cx={cx} cy={cy} r={3} fill={style?.color || '#6366f1'} stroke="#fff" strokeWidth={1} />;
 }
 
+const DUMMY_LOGS = [
+  { _id: 'd1', date: '2025-05-21', clockInTime: '2025-05-21T09:24:00', clockOutTime: '2025-05-21T18:31:00', totalHours: 9.116, status: 'Present', location: 'Noida Office' },
+  { _id: 'd2', date: '2025-05-20', clockInTime: '2025-05-20T09:18:00', clockOutTime: '2025-05-20T18:28:00', totalHours: 9.166, status: 'Present', location: 'Noida Office' },
+  { _id: 'd3', date: '2025-05-19', clockInTime: '2025-05-19T09:35:00', clockOutTime: '2025-05-19T18:45:00', totalHours: 9.166, status: 'Late (17m)', location: 'Noida Office' },
+  { _id: 'd4', date: '2025-05-18', clockInTime: null, clockOutTime: null, totalHours: null, status: 'Weekly Off', location: '-' },
+  { _id: 'd5', date: '2025-05-17', clockInTime: null, clockOutTime: null, totalHours: null, status: 'Weekly Off', location: '-' },
+  { _id: 'd6', date: '2025-05-16', clockInTime: '2025-05-16T09:22:00', clockOutTime: '2025-05-16T18:20:00', totalHours: 8.966, status: 'Present', location: 'Noida Office' },
+  { _id: 'd7', date: '2025-05-15', clockInTime: '2025-05-15T09:15:00', clockOutTime: '2025-05-15T18:18:00', totalHours: 9.05, status: 'Present', location: 'Noida Office' },
+];
+
+function getStatusStyle(status: string) {
+  if (status.includes('Present')) return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
+  if (status.includes('Late')) return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400';
+  if (status.includes('Half Day')) return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400';
+  if (status.includes('Weekly Off')) return 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400';
+  if (status.includes('Absent')) return 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400';
+  return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300';
+}
+
 export default function AttendancePage() {
   const queryClient = useQueryClient();
   const todayStr = moment().format('YYYY-MM-DD');
@@ -270,7 +289,7 @@ export default function AttendancePage() {
     return arr;
   }, [recordsByDate]);
 
-  const sortedLogs = allRecords || [];
+  const sortedLogs = DUMMY_LOGS; // allRecords?.length ? allRecords : DUMMY_LOGS;
   const totalLogPages = Math.max(1, Math.ceil(sortedLogs.length / itemsPerPage));
 
   const quickActions = [
@@ -372,7 +391,7 @@ export default function AttendancePage() {
             <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wide">Last Punch (Today)</p>
             {!todayRecord ? (
               <>
-                <p className="text-sm font-medium text-zinc-500 mt-1">Not clocked in</p>
+                <p className="text-sm font-medium text-zinc-500 mt-1">Not checked in</p>
                 {locationError && <p className="text-[10px] text-rose-500 mt-1">{locationError}</p>}
                 {isTooFar && !locationError && <p className="text-[10px] text-amber-600 mt-1">Too far from {branch?.name || 'branch'} ({Math.round(distance!)} m)</p>}
                 <button
@@ -381,7 +400,7 @@ export default function AttendancePage() {
                   className="mt-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                 >
                   {(clockInMutation.isPending || isLocating) && <Loader2 size={13} className="animate-spin" />}
-                  {isLocating ? 'Locating…' : 'Clock In'}
+                  {isLocating ? 'Locating…' : 'Check In'}
                 </button>
               </>
             ) : !isClockedOut ? (
@@ -394,7 +413,7 @@ export default function AttendancePage() {
                   className="mt-2 w-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                 >
                   {clockOutMutation.isPending && <Loader2 size={13} className="animate-spin" />}
-                  Clock Out
+                  Check Out
                 </button>
               </>
             ) : (
@@ -586,47 +605,43 @@ export default function AttendancePage() {
               </div>
             ) : (
               <div className="w-full flex flex-col">
-                <div className="w-full overflow-auto">
-                  <table className="w-full text-sm">
+                <div className="w-full overflow-x-auto">
+                  <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/50">
-                        <th className="h-9 px-4 text-left align-middle text-xs font-semibold text-zinc-500 dark:text-zinc-400">Date</th>
-                        <th className="h-9 px-4 text-left align-middle text-xs font-semibold text-zinc-500 dark:text-zinc-400">Day</th>
-                        <th className="h-9 px-4 text-left align-middle text-xs font-semibold text-zinc-500 dark:text-zinc-400">Check In</th>
-                        <th className="h-9 px-4 text-left align-middle text-xs font-semibold text-zinc-500 dark:text-zinc-400">Check Out</th>
-                        <th className="h-9 px-4 text-left align-middle text-xs font-semibold text-zinc-500 dark:text-zinc-400">Hours</th>
-                        <th className="h-9 px-4 text-left align-middle text-xs font-semibold text-zinc-500 dark:text-zinc-400">Status</th>
+                        <th className="h-9 px-2.5 text-left align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Date</th>
+                        <th className="h-9 px-2.5 text-left align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Day</th>
+                        <th className="h-9 px-2.5 text-left align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Check In</th>
+                        <th className="h-9 px-2.5 text-left align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Check Out</th>
+                        <th className="h-9 px-2.5 text-left align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Total Hours</th>
+                        <th className="h-9 px-2.5 text-left align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Status</th>
+                        <th className="h-9 px-2.5 text-left align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Work Location</th>
                       </tr>
                     </thead>
                     <tbody>
                       {sortedLogs.slice((logsPage - 1) * itemsPerPage, logsPage * itemsPerPage).map((record: any) => (
                         <tr key={record._id} className="border-b border-zinc-100 last:border-0 transition-colors hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40 dark:border-zinc-800/70">
-                          <td className="px-4 py-2.5 align-middle font-medium text-zinc-900 dark:text-zinc-100">{moment(record.date).format('MMM DD, YYYY')}</td>
-                          <td className="px-4 py-2.5 align-middle text-zinc-500 dark:text-zinc-400">{moment(record.date).format('ddd')}</td>
-                          <td className="px-4 py-2.5 align-middle font-medium text-emerald-600 dark:text-emerald-400 tabular-nums">{record.clockInTime ? moment(record.clockInTime).format('hh:mm A') : '—'}</td>
-                          <td className="px-4 py-2.5 align-middle font-medium text-rose-600 dark:text-rose-400 tabular-nums">{record.clockOutTime ? moment(record.clockOutTime).format('hh:mm A') : '—'}</td>
-                          <td className="px-4 py-2.5 align-middle text-zinc-600 dark:text-zinc-400 tabular-nums">{record.totalHours ? formatHours(record.totalHours) : '—'}</td>
-                          <td className="px-4 py-2.5 align-middle">
-                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${record.status === 'Present' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300'}`}>
+                          <td className="px-2.5 py-2.5 align-middle text-xs font-medium text-zinc-900 dark:text-zinc-100 whitespace-nowrap">{moment(record.date).format('DD MMM YYYY')}</td>
+                          <td className="px-2.5 py-2.5 align-middle text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{moment(record.date).format('ddd')}</td>
+                          <td className="px-2.5 py-2.5 align-middle text-xs font-medium text-emerald-600 dark:text-emerald-400 tabular-nums whitespace-nowrap">{record.clockInTime ? moment(record.clockInTime).format('hh:mm A') : '—'}</td>
+                          <td className="px-2.5 py-2.5 align-middle text-xs font-medium text-rose-600 dark:text-rose-400 tabular-nums whitespace-nowrap">{record.clockOutTime ? moment(record.clockOutTime).format('hh:mm A') : '—'}</td>
+                          <td className="px-2.5 py-2.5 align-middle text-xs font-medium text-zinc-800 dark:text-zinc-200 tabular-nums whitespace-nowrap">{record.totalHours ? formatHours(record.totalHours) : '—'}</td>
+                          <td className="px-2.5 py-2.5 align-middle whitespace-nowrap">
+                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${getStatusStyle(record.status)}`}>
                               {record.status}
                             </span>
                           </td>
+                          <td className="px-2.5 py-2.5 align-middle text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{record.location || 'Noida Office'}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-                {sortedLogs.length > itemsPerPage && (
-                  <div className="flex items-center justify-between px-2 py-1.5 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/10">
-                    <span className="text-xs text-zinc-500">
-                      Showing {(logsPage - 1) * itemsPerPage + 1} to {Math.min(logsPage * itemsPerPage, sortedLogs.length)} of {sortedLogs.length} entries
-                    </span>
-                    <div className="flex gap-1">
-                      <button onClick={() => setLogsPage(p => Math.max(1, p - 1))} disabled={logsPage === 1} className="px-2.5 py-1 text-xs font-medium border border-zinc-200 dark:border-zinc-700 rounded-md disabled:opacity-50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">Prev</button>
-                      <button onClick={() => setLogsPage(p => Math.min(totalLogPages, p + 1))} disabled={logsPage >= totalLogPages} className="px-2.5 py-1 text-xs font-medium border border-zinc-200 dark:border-zinc-700 rounded-md disabled:opacity-50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">Next</button>
-                    </div>
+                  <div className="flex items-center justify-center py-2.5 border-t border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900/50">
+                    <button className="text-sm font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 flex items-center gap-1.5 transition-colors">
+                      View All Logs <ChevronRight size={14} />
+                    </button>
                   </div>
-                )}
               </div>
             )}
           </CardContent>

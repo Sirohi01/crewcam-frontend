@@ -164,7 +164,7 @@ export function AssetsTab({ profileCard }: { profileCard?: React.ReactNode }) {
                         <th className="pb-1.5 text-center">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-100">
+                    <tbody className="divide-y divide-zinc-100 capitalize">
                       {assetsData.map((asset) => (
                         <tr key={asset.id} className="hover:bg-zinc-50/50 transition-colors">
                           <td className="py-1.5 pl-2">
