@@ -19,6 +19,7 @@ import { ExperienceTab } from './components/ExperienceTab';
 import { FamilyTab } from './components/FamilyTab';
 import { BankTab } from './components/BankTab';
 import { AssetsTab } from './components/AssetsTab';
+import Link from 'next/link';
 
 const taskData = [
   { name: 'Completed', value: 6, color: '#22c55e' },
@@ -511,12 +512,11 @@ export default function MyProfilePage() {
             </button>
           ) : (
             <>
-              <button
-                onClick={comingSoon('Public profile view')}
+              <Link href="/dashboard/view-public-profile" target="_blank"
                 className="text-xs font-medium bg-white hover:bg-zinc-50 text-zinc-700 px-2 py-1.5 rounded-lg inline-flex items-center gap-1.5 border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-800 transition-colors"
               >
                 <Eye size={13} /> View Public Profile
-              </button>
+              </Link>
               <button
                 onClick={comingSoon('Profile editing')}
                 className="text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1.5 rounded-lg inline-flex items-center gap-1.5 shadow-sm shadow-indigo-600/20 transition-colors"
