@@ -1,7 +1,8 @@
 'use client'
 
 import PageLayout from '@/components/ui/pageLayout'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import api from '@/lib/axios'
 import * as Dialog from '@radix-ui/react-dialog'
 import {
   ChevronRight,
@@ -92,6 +93,17 @@ interface GoalSlice {
 interface ListItem {
   id: string
   label: string
+}
+
+interface MyPerformanceSummary {
+  stats?: Partial<StatCard>[]
+  competencies?: CompetencyRow[]
+  achievements?: Partial<AchievementItem>[]
+  trend?: TrendPoint[]
+  feedbackSlices?: FeedbackSlice[]
+  goalSlices?: GoalSlice[]
+  strengths?: ListItem[]
+  improvements?: ListItem[]
 }
 
 // ---------- Data ----------
@@ -400,10 +412,84 @@ const StartSelfReviewModal: React.FC<{ open: boolean; onOpenChange: (open: boole
 
 const MyPerformance: React.FC = () => {
   const [isReviewOpen, setIsReviewOpen] = useState(false)
+  const [stats, setStats] = useState(STATS)
+  const [competencies, setCompetencies] = useState(COMPETENCIES)
+  const [achievements, setAchievements] = useState(ACHIEVEMENTS)
+  const [trend, setTrend] = useState(TREND)
+  const [feedbackSlices, setFeedbackSlices] = useState(FEEDBACK_SLICES)
+  const [goalSlices, setGoalSlices] = useState(GOAL_SLICES)
+  const [strengths, setStrengths] = useState(STRENGTHS)
+  const [improvements, setImprovements] = useState(IMPROVEMENTS)
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadSummary = async () => {
+      try {
+        setErrorMessage(null)
+        const response = await api.get<MyPerformanceSummary>('/pms/my-performance')
+        if (!isMounted) return
+        const summary = response.data
+
+        if (summary.stats) {
+          setStats(
+            STATS.map((stat) => ({
+              ...stat,
+              ...summary.stats?.find((item) => item.id === stat.id),
+              icon: stat.icon,
+              iconBg: stat.iconBg,
+              iconColor: stat.iconColor,
+            }))
+          )
+        }
+
+        if (summary.competencies) setCompetencies(summary.competencies)
+        if (summary.trend) setTrend(summary.trend)
+        if (summary.feedbackSlices) setFeedbackSlices(summary.feedbackSlices)
+        if (summary.goalSlices) setGoalSlices(summary.goalSlices)
+        if (summary.strengths) setStrengths(summary.strengths)
+        if (summary.improvements) setImprovements(summary.improvements)
+
+        if (summary.achievements) {
+          setAchievements(
+            summary.achievements.map((achievement, index) => ({
+              ...ACHIEVEMENTS[index % ACHIEVEMENTS.length],
+              ...achievement,
+              icon: ACHIEVEMENTS[index % ACHIEVEMENTS.length].icon,
+              iconBg: ACHIEVEMENTS[index % ACHIEVEMENTS.length].iconBg,
+              iconColor: ACHIEVEMENTS[index % ACHIEVEMENTS.length].iconColor,
+            }))
+          )
+        }
+      } catch (error) {
+        console.error('Failed to load performance summary', error)
+        if (isMounted) {
+          setErrorMessage('Unable to load performance data right now. Please try again.')
+        }
+      } finally {
+        if (isMounted) setIsLoading(false)
+      }
+    }
+
+    loadSummary()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const totalGoals = goalSlices.reduce((sum, goal) => sum + goal.value, 0)
+  const ratingStat = stats.find((stat) => stat.id === 'rating')
+  const overallRating = Number(ratingStat?.value ?? '4.4')
+  const filledStars = Math.max(0, Math.min(5, Math.round(overallRating)))
+  const performanceLabel = overallRating >= 4.5 ? 'Excellent Performance' : overallRating >= 3.5 ? 'Strong Performance' : 'On Track'
+  const performanceMessage = overallRating >= 4.5 ? 'You are performing above expectations. Keep it up!' : overallRating >= 3.5 ? 'You are maintaining a strong growth trajectory.' : 'A little more focus will help raise your score.'
 
   return (
     <PageLayout>
-     <div className="flex h-[calc(100vh-48px)] min-h-[650px] flex-col gap-2 overflow-hidden bg-slate-50 text-slate-900">
+     <div className={`flex h-[calc(100vh-48px)] min-h-[650px] flex-col gap-2 overflow-hidden bg-slate-50 text-slate-900 transition-opacity ${isLoading ? 'opacity-80' : 'opacity-100'}`}>
         {/* Breadcrumb + Header */}
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 shrink-0">
           <div className="flex flex-col gap-0.5">
@@ -444,10 +530,16 @@ const MyPerformance: React.FC = () => {
 
         {/* Stat cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 shrink-0">
-          {STATS.map((stat) => (
+          {stats.map((stat) => (
             <StatCardView key={stat.id} stat={stat} />
           ))}
         </div>
+
+        {errorMessage ? (
+          <div className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-2 text-[11px] font-medium text-amber-700 shrink-0">
+            {errorMessage}
+          </div>
+        ) : null}
 
         {/* Tabs */}
         <div className="flex items-center gap-4 border-b border-slate-300 border-t border-slate-300 pt-2 sm:border-t-0 sm:pt-0 shrink-0 overflow-x-auto">
@@ -476,24 +568,29 @@ const MyPerformance: React.FC = () => {
               <div className="flex flex-col sm:flex-row gap-3 flex-1 min-h-0">
                 <div className="flex flex-col items-center justify-center gap-1 w-full sm:w-40 shrink-0">
                   <MiniDonut
-                    data={[{ id: 'r', value: 4.4, color: '#22c55e' }, { id: 'rest', value: 0.6, color: '#e2e8f0' }]}
-                    centerValue="4.4"
+                    data={[
+                      { id: 'rating', value: Math.min(overallRating, 5), color: '#22c55e' },
+                      { id: 'rest', value: Math.max(0, 5 - Math.min(overallRating, 5)), color: '#e2e8f0' },
+                    ]}
+                    centerValue={overallRating.toFixed(1)}
                     centerLabel="/ 5"
                     size="h-28 w-28"
-                    valueClassName="text-2xl font-bold  leading-none"
-                    labelClassName="text-[10px] font-medium  leading-none mt-0.5"
+                    valueClassName="text-2xl font-bold leading-none"
+                    labelClassName="text-[10px] font-medium leading-none mt-0.5"
                   />
                   <div className="flex gap-0.5">
-                    {[0, 1, 2, 3].map((i) => (
-                      <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-3 w-3 ${i < filledStars ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`}
+                      />
                     ))}
-                    <Star className="h-3 w-3 text-slate-300" />
                   </div>
                   <span className="text-[11px] font-semibold text-emerald-600">
-                    Excellent Performance
+                    {performanceLabel}
                   </span>
-                  <p className="text-[10px] font-medium  text-center leading-tight">
-                    You are performing above expectations. Keep it up!
+                  <p className="text-[10px] font-medium text-center leading-tight">
+                    {performanceMessage}
                   </p>
                 </div>
                 <div className="flex-1 flex flex-col min-h-0 border-1 border-l pl-2">
@@ -504,7 +601,7 @@ const MyPerformance: React.FC = () => {
                     <span>vs Last</span>
                   </div>
                   <div className="flex flex-col justify-between flex-1 min-h-0">
-                    {COMPETENCIES.map((c) => (
+                    {competencies.map((c) => (
                       <div
                         key={c.id}
                         className="grid grid-cols-[1fr_auto_2fr_auto] gap-x-3 items-center"
@@ -551,18 +648,18 @@ const MyPerformance: React.FC = () => {
   <div className="flex flex-1 items-center gap-4 min-h-0 w-full">
     <div className="flex items-center justify-center flex-1">
       <MiniDonut
-        data={GOAL_SLICES.map((g) => ({
+        data={goalSlices.map((g) => ({
           id: g.id,
           value: g.value,
           color: g.color,
         }))}
-        centerValue="5"
+        centerValue={String(totalGoals || 0)}
         centerLabel="Total Goals"
       />
     </div>
 
     <div className="flex flex-1 flex-col justify-center gap-2 min-w-0">
-      {GOAL_SLICES.map((g) => (
+      {goalSlices.map((g) => (
         <div
           key={g.id}
           className="flex items-center justify-between gap-2 text-[10px] font-medium "
@@ -589,7 +686,7 @@ const MyPerformance: React.FC = () => {
               <Card>
                 <SectionTitle icon={Award}>Recent Achievements</SectionTitle>
                 <div className="flex flex-col gap-1.5 flex-1 min-h-0 overflow-hidden">
-                  {ACHIEVEMENTS.map((a) => {
+                  {achievements.map((a) => {
                     const Icon = a.icon
                     return (
                       <div key={a.id} className="flex items-start gap-2">
@@ -634,7 +731,7 @@ const MyPerformance: React.FC = () => {
         <div className="min-h-[200px] lg:flex-1 lg:min-h-0">
   <ResponsiveContainer width="100%" height="100%">
     <LineChart
-      data={TREND}
+      data={trend}
       margin={{ top: 12, right: 12, left: -20, bottom: 0 }}
     >
       <defs>
@@ -710,12 +807,12 @@ const MyPerformance: React.FC = () => {
               <SectionTitle>Feedback Summary</SectionTitle>
               <div className="flex items-center gap-3 flex-1 min-h-0">
                 <MiniDonut
-                  data={FEEDBACK_SLICES.map((f) => ({ id: f.id, value: f.value, color: f.color }))}
-                  centerValue="12"
+                  data={feedbackSlices.map((f) => ({ id: f.id, value: f.value, color: f.color }))}
+                  centerValue={String(feedbackSlices.reduce((sum, item) => sum + item.value, 0))}
                   centerLabel="Total"
                 />
            <div className="flex flex-col gap-1 w-full">
-  {FEEDBACK_SLICES.map((f) => (
+  {feedbackSlices.map((f) => (
     <div
       key={f.id}
       className="flex w-full items-center justify-between text-[10px] font-medium"
@@ -746,7 +843,7 @@ const MyPerformance: React.FC = () => {
                     Top Strengths
                   </span>
                   <div className="flex flex-col gap-1 overflow-hidden">
-                    {STRENGTHS.map((s) => (
+                    {strengths.map((s) => (
                       <div key={s.id} className="flex items-center gap-1 text-[10px] font-medium ">
                         <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
                         <span className="truncate">{s.label}</span>
@@ -759,7 +856,7 @@ const MyPerformance: React.FC = () => {
                     Areas to Improve
                   </span>
                   <div className="flex flex-col gap-1 overflow-hidden">
-                    {IMPROVEMENTS.map((i) => (
+                    {improvements.map((i) => (
                       <div key={i.id} className="flex items-center gap-1 text-[10px] font-medium ">
                         <ArrowUp className="h-3 w-3 text-orange-500 shrink-0" />
                         <span className="truncate">{i.label}</span>

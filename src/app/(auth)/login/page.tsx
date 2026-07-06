@@ -66,8 +66,8 @@ export default function LoginPage() {
 
       if (requires2FA) {
         const response = await api.post('/auth/login-2fa', { email, password, token: totpToken });
-        const { user } = response.data;
-        setAuth(user, user.tenantId);
+        const { user, token } = response.data;
+        setAuth(user, user.tenantId, token);
         router.push(user.tenantId && user.tenantId !== 'SUPER_ADMIN' ? '/dashboard' : '/super-admin');
       } else {
         const response = await api.post('/auth/login', { email, password });
@@ -75,8 +75,8 @@ export default function LoginPage() {
           setRequires2FA(true);
           return;
         }
-        const { user } = response.data;
-        setAuth(user, user.tenantId);
+        const { user, token } = response.data;
+        setAuth(user, user.tenantId, token);
         router.push(user.tenantId && user.tenantId !== 'SUPER_ADMIN' ? '/dashboard' : '/super-admin');
       }
     } catch (err: any) {
@@ -247,7 +247,7 @@ export default function LoginPage() {
                   placeholder="123456"
                   required
                   autoFocus
-                  className="h-11 px-4 text-sm border-zinc-200 bg-white rounded-lg focus-visible:ring-1 focus-visible:ring-indigo-600 focus-visible:border-indigo-600 transition-colors shadow-sm text-center tracking-widest text-lg"
+                  className="h-11 px-4 border-zinc-200 bg-white rounded-lg focus-visible:ring-1 focus-visible:ring-indigo-600 focus-visible:border-indigo-600 transition-colors shadow-sm text-center tracking-widest text-lg"
                   value={totpToken}
                   onChange={(e) => setTotpToken(e.target.value)}
                   maxLength={6}

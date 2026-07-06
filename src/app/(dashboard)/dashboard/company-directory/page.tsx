@@ -1,6 +1,7 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import api from '@/lib/axios'
 import {
   ChevronRight,
   ChevronLeft,
@@ -413,6 +414,41 @@ const StatCardView: React.FC<{ stat: StatCard }> = ({ stat }) => {
 // ---------- Main component ----------
 
 const CompanyDirectory: React.FC = () => {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await api.get('/companies/directory');
+        setData(res.data);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch directory data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const statsMap = data?.stats || {};
+  const currentStats = STATS.map(s => {
+    if (s.id === 'employees') return { ...s, value: statsMap.totalEmployees?.toString() || '0' };
+    if (s.id === 'departments') return { ...s, value: statsMap.totalDepartments?.toString() || '0' };
+    if (s.id === 'locations') return { ...s, value: statsMap.totalLocations?.toString() || '0' };
+    if (s.id === 'positions') return { ...s, value: statsMap.openPositions?.toString() || '0' };
+    if (s.id === 'joiners') return { ...s, value: statsMap.newJoiners?.toString() || '0' };
+    return s;
+  });
+
+  const currentEmployees = data?.employees || EMPLOYEES;
+  const currentDeptGlance = data?.deptGlance?.map((d: any) => ({
+    id: d.id, icon: Briefcase, iconBg: 'bg-slate-100', iconColor: 'text-slate-600', name: d.name, count: d.count
+  })) || DEPT_GLANCE;
+  const currentBirthdays = data?.birthdays || BIRTHDAYS;
+  const currentAnniversaries = data?.anniversaries || ANNIVERSARIES;
+
   return (
    <div className="flex h-[calc(100vh-48px)] min-h-[650px] flex-col gap-2 overflow-hidden bg-slate-50 p-2 text-slate-900">
       {/* Breadcrumb + Header */}
@@ -428,15 +464,21 @@ const CompanyDirectory: React.FC = () => {
         </p>
       </div>
 
-      {/* Stat cards - always a single row */}
-      <div className="grid grid-cols-5 gap-2 shrink-0">
-        {STATS.map((stat) => (
-          <StatCardView key={stat.id} stat={stat} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="flex-1 flex items-center justify-center">Loading...</div>
+      ) : error ? (
+        <div className="flex-1 flex items-center justify-center text-red-500">{error}</div>
+      ) : (
+      <>
+        {/* Stat cards - always a single row */}
+        <div className="grid grid-cols-5 gap-2 shrink-0">
+          {currentStats.map((stat) => (
+            <StatCardView key={stat.id} stat={stat} />
+          ))}
+        </div>
 
-      {/* Main content */}
-      <div className="grid grid-cols-[2.4fr_1fr] gap-2 flex-1 min-h-0">
+        {/* Main content */}
+        <div className="grid grid-cols-[2.4fr_1fr] gap-2 flex-1 min-h-0">
         {/* Left column */}
         <div className="flex flex-col min-h-0 ">
           {/* Search / filters - always a single row */}
@@ -489,7 +531,7 @@ const CompanyDirectory: React.FC = () => {
   {/* Scrollable body */}
   <div className="flex-1 min-h-0 overflow-y-auto">
     <div className="flex flex-col">
-      {EMPLOYEES.map((emp) => (
+      {currentEmployees.map((emp: any) => (
         <div
           key={emp.id}
           className="grid grid-cols-[1.6fr_1.2fr_1.4fr_1fr_1.6fr_0.9fr] gap-2 items-center border-b border-slate-50 last:border-b-0"
@@ -657,8 +699,8 @@ const CompanyDirectory: React.FC = () => {
     </div>
 
     <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 pr-1">
-      {DEPT_GLANCE.map((d) => {
-        const Icon = d.icon;
+      {currentDeptGlance.map((d: any) => {
+        const Icon = d.icon || Briefcase;
 
         return (
           <div key={d.id} className="flex items-center gap-1.5">
@@ -695,7 +737,7 @@ const CompanyDirectory: React.FC = () => {
                 </button>
               </div>
           <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
-  {BIRTHDAYS.map((p) => (
+  {currentBirthdays.map((p: any) => (
     <div
       key={p.id}
       className="flex items-center justify-between gap-2"
@@ -745,7 +787,7 @@ const CompanyDirectory: React.FC = () => {
                 </button>
               </div>
        <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
-  {ANNIVERSARIES.map((p) => (
+  {currentAnniversaries.map((p: any) => (
     <div
       key={p.id}
       className="flex items-center justify-between gap-2 rounded-lg"
@@ -802,6 +844,8 @@ const CompanyDirectory: React.FC = () => {
               </div>
             </Card>
           </div>
+      </>
+      )}
     </div>
   )
 }
