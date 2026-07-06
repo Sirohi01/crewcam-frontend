@@ -85,7 +85,7 @@ export default function ApplyLeavePage() {
 
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#F7F8FA]">
-      <div className="mx-auto w-full max-w-[1300px] space-y-2 p-3">
+      <div className="mx-auto w-full max-w-[1300px] space-y-1 p-2">
         {/* Breadcrumb */}
         <div className="flex items-center gap-1.5 text-[13px] text-zinc-400">
           <Link href="/dashboard" className="hover:text-zinc-600">Dashboard</Link>
@@ -102,16 +102,16 @@ export default function ApplyLeavePage() {
         </div>
 
         {/* Main grid */}
-        <div className="grid w-full grid-cols-1 gap-5 xl:grid-cols-[1fr_340px]">
+        <div className="grid w-full grid-cols-1 gap-1.5 xl:grid-cols-[1fr_340px]">
           {/* Left column — form */}
-          <div className="min-w-0 space-y-2">
+          <div className="min-w-0 space-y-1">
             {/* Leave Details */}
-            <Card className="p-3">
-              <h2 className="mb-3 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
+            <Card className="p-2">
+              <h2 className="mb-1.5 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
                 <StepBadge n={1} /> Leave Details
               </h2>
 
-              <div className="space-y-2.5">
+              <div className="space-y-1.5">
                 <div>
                   <Label required>Leave Type</Label>
                   <select
@@ -129,7 +129,7 @@ export default function ApplyLeavePage() {
                   <p className="mt-1 text-[11px] text-zinc-400">Choose the type of leave you want to apply for.</p>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
                   <div>
                     <Label required>From Date</Label>
                     <div className="relative">
@@ -172,7 +172,7 @@ export default function ApplyLeavePage() {
                 </div>
 
                 <div>
-                  <p className="mb-2 text-[13px] font-semibold text-zinc-700">Session</p>
+                  <p className="mb-1 text-[13px] font-semibold text-zinc-700">Session</p>
                   <div className="flex flex-wrap gap-6">
                     <label className="flex items-center gap-2 text-[13px] text-zinc-600">
                       <input
@@ -222,11 +222,11 @@ export default function ApplyLeavePage() {
               </div>
 
               {/* Contact During Leave */}
-              <div className="mt-6">
-                <h2 className="mb-3 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
+              <div className="mt-1.5">
+                <h2 className="mb-1.5 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
                   <StepBadge n={2} /> Contact During Leave
                 </h2>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
                   <div>
                     <Label required>Mobile Number</Label>
                     <input
@@ -251,11 +251,11 @@ export default function ApplyLeavePage() {
               </div>
 
               {/* Upload Document */}
-              <div className="mt-6">
+              <div className="mt-1.5">
                 <h2 className="mb-1 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
                   <StepBadge n={3} /> Upload Document (Optional)
                 </h2>
-                <p className="mb-2 text-[11px] text-zinc-400">Upload supporting document if required (e.g., medical certificate)</p>
+                <p className="mb-1 text-[11px] text-zinc-400">Upload supporting document if required (e.g., medical certificate)</p>
                 <label className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-zinc-200 bg-zinc-50/50 py-3 text-center hover:bg-zinc-50">
                   <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" />
                   <div className="flex items-center gap-1.5">
@@ -270,7 +270,7 @@ export default function ApplyLeavePage() {
             </Card>
 
             {/* Actions */}
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-1.5">
               <button className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-[13px] font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors">
                 <Send size={14} /> Submit Leave Request
               </button>
@@ -281,10 +281,10 @@ export default function ApplyLeavePage() {
           </div>
 
           {/* Right column */}
-          <div className="min-w-0 space-y-3">
+          <div className="min-w-0 space-y-1.5">
             {/* Leave Balance Summary */}
-            <Card className="p-3">
-              <div className="mb-3 flex items-center justify-between gap-2">
+            <Card className="p-2">
+              <div className="mb-1.5 flex items-center justify-between gap-2">
                 <h2 className="flex items-center gap-2 text-[14px] font-bold text-zinc-900">
                   <ClipboardList size={16} className="text-blue-600" /> Leave Balance Summary
                 </h2>
@@ -316,17 +316,17 @@ export default function ApplyLeavePage() {
                 </tbody>
               </table>
 
-              <Link href="/dashboard/leaves" className="mt-3 inline-flex items-center gap-1 text-[12.5px] font-semibold text-blue-600 hover:text-blue-700">
+              <Link href="/dashboard/leaves" className="mt-1.5 inline-flex items-center gap-1 text-[12.5px] font-semibold text-blue-600 hover:text-blue-700">
                 View All Balances <ArrowRight size={13} />
               </Link>
             </Card>
 
             {/* Leave Policy Highlights */}
-            <Card className="p-3">
-              <h2 className="mb-3 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
+            <Card className="p-2">
+              <h2 className="mb-1.5 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
                 <ShieldCheck size={16} className="text-blue-600" /> Leave Policy Highlights
               </h2>
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {policyHighlights.map((item, i) => (
                   <div key={i} className="flex items-start gap-2">
                     <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-500" />
@@ -334,14 +334,14 @@ export default function ApplyLeavePage() {
                   </div>
                 ))}
               </div>
-              <Link href="/dashboard/leaves/policy" className="mt-3 inline-flex items-center gap-1 text-[12.5px] font-semibold text-blue-600 hover:text-blue-700">
+              <Link href="/dashboard/leaves/policy" className="mt-1.5 inline-flex items-center gap-1 text-[12.5px] font-semibold text-blue-600 hover:text-blue-700">
                 View Leave Policy <ArrowRight size={13} />
               </Link>
             </Card>
 
             {/* Approval Flow */}
-            <Card className="p-3">
-              <h2 className="mb-3 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
+            <Card className="p-2">
+              <h2 className="mb-1.5 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
                 <Users size={16} className="text-blue-600" /> Approval Flow
               </h2>
               <div className="flex items-center justify-between gap-1.5">
@@ -357,7 +357,7 @@ export default function ApplyLeavePage() {
                   </React.Fragment>
                 ))}
               </div>
-              <p className="mt-3 text-[11.5px] text-zinc-400">
+              <p className="mt-1.5 text-[11.5px] text-zinc-400">
                 You will be notified via email and dashboard once your leave request is approved or rejected.
               </p>
             </Card>

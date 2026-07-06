@@ -63,19 +63,19 @@ export function AssetsTab({ profileCard }: { profileCard?: React.ReactNode }) {
   ];
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full">
+    <div className="flex flex-col gap-1">
+      <div className="flex flex-col xl:flex-row gap-1 h-full">
         {profileCard && (
-          <div className="lg:col-span-3 h-full">
+          <div className="w-full xl:w-[220px] shrink-0 h-full">
             {profileCard}
           </div>
         )}
-        <div className={profileCard ? "lg:col-span-9 flex flex-col gap-2 h-full" : "lg:col-span-12 flex flex-col gap-2 h-full"}>
+        <div className="flex-1 flex flex-col gap-1 h-full">
           {/* Top Stat Cards (4 cards) */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-            <div className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm flex items-center gap-3">
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-blue-50 text-[#1d4ed8]">
-                <ShoppingBag size={16} />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-1">
+            <div className="rounded-xl border border-zinc-200 bg-white p-1.5 shadow-sm flex items-center gap-1.5">
+              <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-blue-50 text-[#1d4ed8]">
+                <ShoppingBag size={13} />
               </div>
               <div>
                 <p className="text-[10px] font-medium text-zinc-500">Total Assets</p>
@@ -83,9 +83,9 @@ export function AssetsTab({ profileCard }: { profileCard?: React.ReactNode }) {
                 <p className="text-[9px] text-zinc-400">All Assets Assigned</p>
               </div>
             </div>
-            <div className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm flex items-center gap-3">
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-600">
-                <CheckCircle size={16} />
+            <div className="rounded-xl border border-zinc-200 bg-white p-1.5 shadow-sm flex items-center gap-1.5">
+              <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-600">
+                <CheckCircle size={13} />
               </div>
               <div>
                 <p className="text-[10px] font-medium text-zinc-500">Active Assets</p>
@@ -93,9 +93,9 @@ export function AssetsTab({ profileCard }: { profileCard?: React.ReactNode }) {
                 <p className="text-[9px] text-zinc-400">Currently in Use</p>
               </div>
             </div>
-            <div className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm flex items-center gap-3">
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-orange-50 text-orange-600">
-                <Wrench size={16} />
+            <div className="rounded-xl border border-zinc-200 bg-white p-1.5 shadow-sm flex items-center gap-1.5">
+              <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-orange-50 text-orange-600">
+                <Wrench size={13} />
               </div>
               <div>
                 <p className="text-[10px] font-medium text-zinc-500">Under Maintenance</p>
@@ -103,9 +103,9 @@ export function AssetsTab({ profileCard }: { profileCard?: React.ReactNode }) {
                 <p className="text-[9px] text-zinc-400">Not Available</p>
               </div>
             </div>
-            <div className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm flex items-center gap-3">
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-purple-50 text-purple-600">
-                <Clock size={16} />
+            <div className="rounded-xl border border-zinc-200 bg-white p-1.5 shadow-sm flex items-center gap-1.5">
+              <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-purple-50 text-purple-600">
+                <Clock size={13} />
               </div>
               <div>
                 <p className="text-[10px] font-medium text-zinc-500">Returned Assets</p>
@@ -115,17 +115,17 @@ export function AssetsTab({ profileCard }: { profileCard?: React.ReactNode }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-2">
-            <div className="xl:col-span-3 flex flex-col gap-2">
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-1">
+            <div className="xl:col-span-3 flex flex-col gap-1">
               {/* Table Area */}
-              <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm flex-1 flex flex-col">
+              <div className="rounded-xl border border-zinc-200 bg-white p-2 shadow-sm flex-1 flex flex-col">
                 {/* Table Header / Filters */}
-                <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 pb-3">
-                  <div className="flex gap-4 text-[10px] font-bold">
-                    <span className="text-[#1d4ed8] border-b-[2.5px] border-[#1d4ed8] pb-3 -mb-[14px] cursor-pointer">All Assets</span>
-                    <span className="text-zinc-500 hover:text-zinc-800 cursor-pointer pb-3">Returned Assets</span>
+                <div className="mb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-zinc-100 pb-1.5">
+                  <div className="flex gap-1 text-[10px] font-bold">
+                    <span className="text-[#1d4ed8] border-b-[2.5px] border-[#1d4ed8] pb-1.5 -mb-[14px] cursor-pointer">All Assets</span>
+                    <span className="text-zinc-500 hover:text-zinc-800 cursor-pointer pb-1.5">Returned Assets</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <div className="relative">
                       <select className="appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] font-semibold text-zinc-700 outline-none hover:bg-zinc-50">
                         <option>All Status</option>
@@ -154,22 +154,22 @@ export function AssetsTab({ profileCard }: { profileCard?: React.ReactNode }) {
                   <table className="w-full text-left text-[10px]">
                     <thead>
                       <tr className="border-b border-zinc-100 font-semibold text-zinc-900 whitespace-nowrap">
-                        <th className="pb-3 pl-2">Asset Details</th>
-                        <th className="pb-3">Asset ID</th>
-                        <th className="pb-3">Category</th>
-                        <th className="pb-3">Assigned On</th>
-                        <th className="pb-3 text-center">Status</th>
-                        <th className="pb-3">Condition</th>
-                        <th className="pb-3">Current Value (₹)</th>
-                        <th className="pb-3 text-center">Actions</th>
+                        <th className="pb-1.5 pl-2">Asset Details</th>
+                        <th className="pb-1.5">Asset ID</th>
+                        <th className="pb-1.5">Category</th>
+                        <th className="pb-1.5">Assigned On</th>
+                        <th className="pb-1.5 text-center">Status</th>
+                        <th className="pb-1.5">Condition</th>
+                        <th className="pb-1.5">Current Value (₹)</th>
+                        <th className="pb-1.5 text-center">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-100">
                       {assetsData.map((asset) => (
                         <tr key={asset.id} className="hover:bg-zinc-50/50 transition-colors">
-                          <td className="py-2.5 pl-2">
-                            <div className="flex items-center gap-3">
-                              <div className={`grid h-8 w-8 shrink-0 place-items-center rounded-md overflow-hidden bg-white border border-zinc-200`}>
+                          <td className="py-1.5 pl-2">
+                            <div className="flex items-center gap-1.5">
+                              <div className={`grid h-6 w-6 shrink-0 place-items-center rounded-md overflow-hidden bg-white border border-zinc-200`}>
                                 <Image src={asset.img} alt={asset.name} width={32} height={32} className='w-full h-full object-contain p-1' />
                               </div>
                               <div>
@@ -178,21 +178,21 @@ export function AssetsTab({ profileCard }: { profileCard?: React.ReactNode }) {
                               </div>
                             </div>
                           </td>
-                          <td className="py-2.5 text-zinc-600 font-medium">{asset.assetId}</td>
-                          <td className="py-2.5">
+                          <td className="py-1.5 text-zinc-600 font-medium">{asset.assetId}</td>
+                          <td className="py-1.5">
                             <span className={`inline-block rounded px-2 py-0.5 text-[9px] font-bold border ${getCategoryColor(asset.category)}`}>
                               {asset.category}
                             </span>
                           </td>
-                          <td className="py-2.5 text-zinc-600 font-medium">{asset.assignedOn}</td>
-                          <td className="py-2.5 text-center">
+                          <td className="py-1.5 text-zinc-600 font-medium">{asset.assignedOn}</td>
+                          <td className="py-1.5 text-center">
                             <span className={`inline-block rounded px-2 py-0.5 text-[9px] font-bold border ${getStatusColor(asset.status)}`}>
                               {asset.status}
                             </span>
                           </td>
-                          <td className="py-2.5 text-zinc-600 font-medium">{asset.condition}</td>
-                          <td className="py-2.5 text-zinc-900 font-semibold">{asset.value}</td>
-                          <td className="py-2.5">
+                          <td className="py-1.5 text-zinc-600 font-medium">{asset.condition}</td>
+                          <td className="py-1.5 text-zinc-900 font-semibold">{asset.value}</td>
+                          <td className="py-1.5">
                             <div className="flex items-center justify-center gap-1.5">
                               <button className="rounded border border-blue-100 p-1 text-[#1d4ed8] hover:bg-blue-50 transition-colors">
                                 <EyeIcon size={10} />
@@ -211,34 +211,34 @@ export function AssetsTab({ profileCard }: { profileCard?: React.ReactNode }) {
                   </table>
                 </div>
 
-                <div className="mt-4 text-[10px] text-zinc-500 font-medium border-t border-zinc-100 pt-3">
+                <div className="mt-1 text-[10px] text-zinc-500 font-medium border-t border-zinc-100 pt-1.5">
                   Showing 1 to 6 of 6 assets
                 </div>
               </div>
 
               {/* Need Help Banner */}
-              <div className="rounded-xl border border-violet-200 bg-[#f8f7ff] p-4 shadow-sm flex items-center justify-between">
-                <div className="flex items-start gap-3">
-                  <div className="grid h-8 w-8 place-items-center rounded-lg bg-violet-100 text-violet-600">
-                    <ShieldCheck size={16} />
+              <div className="rounded-xl border border-violet-200 bg-[#f8f7ff] p-2 shadow-sm flex items-center justify-between">
+                <div className="flex items-start gap-1.5">
+                  <div className="grid h-6 w-6 place-items-center rounded-lg bg-violet-100 text-violet-600">
+                    <ShieldCheck size={13} />
                   </div>
                   <div>
                     <h3 className="text-[11px] font-bold text-zinc-900">Need Help?</h3>
                     <p className="text-[10px] text-zinc-500 mt-0.5">For any asset related queries or issues, please contact the IT Department.</p>
                   </div>
                 </div>
-                <button className="flex items-center gap-2 rounded-md border border-[#1d4ed8] bg-white px-3 py-1.5 text-[10px] font-semibold text-[#1d4ed8] hover:bg-blue-50 transition-colors">
+                <button className="flex items-center gap-1 rounded-md border border-[#1d4ed8] bg-white px-2 py-1.5 text-[10px] font-semibold text-[#1d4ed8] hover:bg-blue-50 transition-colors">
                   <LifeBuoy size={12} /> Contact IT Department
                 </button>
               </div>
             </div>
 
             {/* Right Sidebar Stats (1 Column) */}
-            <div className="xl:col-span-1 flex flex-col gap-2">
+            <div className="xl:col-span-1 flex flex-col gap-1">
               {/* Merged Total Value & Breakdown Card */}
               <div className="rounded-xl border border-zinc-200 bg-white shadow-sm flex flex-col">
                 {/* Top: Total Value */}
-                <div className="flex items-center justify-between border-b border-zinc-100 p-4">
+                <div className="flex items-center justify-between border-b border-zinc-100 p-2">
                   <div>
                     <p className="text-[11px] font-bold text-zinc-900">Total Current Value (₹)</p>
                     <p className="text-2xl font-bold text-zinc-900 mt-1.5">₹1,48,750</p>
@@ -250,11 +250,11 @@ export function AssetsTab({ profileCard }: { profileCard?: React.ReactNode }) {
                 </div>
 
                 {/* Bottom: Breakdown by Category */}
-                <div className="p-4 pt-4">
-                  <h3 className="text-[11px] font-bold text-zinc-900 mb-4">Breakdown by Category</h3>
-                  <div className="flex items-center gap-4">
+                <div className="p-2 pt-1">
+                  <h3 className="text-[11px] font-bold text-zinc-900 mb-1">Breakdown by Category</h3>
+                  <div className="flex items-center gap-1">
                     {/* Animated SVG Donut Chart */}
-                    <div className="relative h-20 w-20 shrink-0">
+                    <div className="relative h-16 w-16 shrink-0">
                       <svg viewBox="0 0 42 42" className="w-full h-full -rotate-90">
                         {segments.map((seg, i) => (
                           <circle
@@ -277,7 +277,7 @@ export function AssetsTab({ profileCard }: { profileCard?: React.ReactNode }) {
                       </div>
                     </div>
                     {/* Legend */}
-                    <div className="flex-1 space-y-2 text-[9px] font-bold">
+                    <div className="flex-1 space-y-1 text-[9px] font-bold">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-zinc-700">
                           <div className="h-2 w-2 rounded-[2px] bg-blue-500"></div> IT Equipment
@@ -308,21 +308,21 @@ export function AssetsTab({ profileCard }: { profileCard?: React.ReactNode }) {
               </div>
 
               {/* Assets Needing Attention */}
-              <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-                <h3 className="text-[11px] font-bold text-[#1e293b] mb-4">Assets Needing Attention</h3>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-gradient-to-br from-orange-100 to-orange-50/50 text-orange-500 border border-orange-100/50">
-                      <Wrench size={16} />
+              <div className="rounded-xl border border-zinc-200 bg-white p-2 shadow-sm">
+                <h3 className="text-[11px] font-bold text-[#1e293b] mb-1">Assets Needing Attention</h3>
+                <div className="space-y-1">
+                  <div className="flex items-start gap-1.5">
+                    <div className="grid h-7 w-7 shrink-0 place-items-center rounded-[10px] bg-gradient-to-br from-orange-100 to-orange-50/50 text-orange-500 border border-orange-100/50">
+                      <Wrench size={13} />
                     </div>
                     <div className="pt-0.5">
                       <p className="text-[11px] font-bold text-[#1e293b]">Under Maintenance</p>
                       <p className="text-[10px] font-medium text-slate-500 mt-1">No assets under maintenance</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-gradient-to-br from-rose-100 to-rose-50/50 text-rose-600 border border-rose-100/50">
-                      <Calendar size={16} />
+                  <div className="flex items-start gap-1.5">
+                    <div className="grid h-7 w-7 shrink-0 place-items-center rounded-[10px] bg-gradient-to-br from-rose-100 to-rose-50/50 text-rose-600 border border-rose-100/50">
+                      <Calendar size={13} />
                     </div>
                     <div className="pt-0.5">
                       <p className="text-[11px] font-bold text-[#1e293b]">Need to Return</p>
@@ -334,23 +334,23 @@ export function AssetsTab({ profileCard }: { profileCard?: React.ReactNode }) {
               </div>
 
               {/* Guidelines */}
-              <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm flex-1 flex flex-col">
-                <h3 className="text-[11px] font-bold text-zinc-900 mb-3">Guidelines</h3>
-                <ul className="space-y-2.5 text-[10px] text-zinc-700 flex-1">
-                  <li className="flex items-start gap-2">
+              <div className="rounded-xl border border-zinc-200 bg-white p-2 shadow-sm flex-1 flex flex-col">
+                <h3 className="text-[11px] font-bold text-zinc-900 mb-1.5">Guidelines</h3>
+                <ul className="space-y-1 text-[10px] text-zinc-700 flex-1">
+                  <li className="flex items-start gap-1">
                     <CheckCircle2 size={12} className="text-[#1d4ed8] shrink-0 mt-0.5" /> Take care of the assets assigned to you.
                   </li>
-                  <li className="flex items-start gap-2">
+                  <li className="flex items-start gap-1">
                     <CheckCircle2 size={12} className="text-[#1d4ed8] shrink-0 mt-0.5" /> Do not share company assets with others.
                   </li>
-                  <li className="flex items-start gap-2">
+                  <li className="flex items-start gap-1">
                     <CheckCircle2 size={12} className="text-[#1d4ed8] shrink-0 mt-0.5" /> Report any damage or issue immediately.
                   </li>
-                  <li className="flex items-start gap-2">
+                  <li className="flex items-start gap-1">
                     <CheckCircle2 size={12} className="text-[#1d4ed8] shrink-0 mt-0.5" /> Return assets on or before your last working day.
                   </li>
                 </ul>
-                <button className="text-[10px] font-bold text-[#1d4ed8] hover:underline mt-4 text-left">
+                <button className="text-[10px] font-bold text-[#1d4ed8] hover:underline mt-1 text-left">
                   View Asset Policy →
                 </button>
               </div>

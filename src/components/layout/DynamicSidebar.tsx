@@ -9,14 +9,14 @@ import {
   LayoutDashboard, Users, Building2, Settings, LogOut, Briefcase, UserCog, Plug, Palette,
   Shield, ShieldCheck, Clock, Calendar, MessageSquare, Scale, TrendingUp, UserPlus, IndianRupee,
   Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList, LucideIcon, ChevronRight, ChevronDown,
-  LayoutGrid, User,
+  LayoutGrid, User, GraduationCap,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 
 const ICONS: Record<string, LucideIcon> = {
   LayoutDashboard, Users, Building2, Settings, LogOut, Briefcase, UserCog, Plug, Palette,
   Shield, ShieldCheck, Clock, Calendar, MessageSquare, Scale, TrendingUp, UserPlus, IndianRupee,
-  Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList, LayoutGrid, User,
+  Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList, LayoutGrid, User, GraduationCap,
 };
 
 interface SidebarItem {
@@ -31,48 +31,23 @@ interface SidebarItem {
 
 type GroupedItem = SidebarItem | { isGroup: true; label: string; children: SidebarItem[] };
 
-// Static item injected under WORKSPACE section
 const STATIC_PEOPLE_ITEMS: SidebarItem[] = [
-  {
-    _id: '__employee-dashboard__',
-    section: 'WORKSPACE',
-    label: 'Employee Dashboard',
-    href: '/dashboard/employee',
-    icon: 'LayoutGrid',
-    order: 0,
-  },
-  {
-    _id: '__my-profile__',
-    section: 'WORKSPACE',
-    label: 'My Profile Extension',
-    href: '/dashboard/my-profile-extension',
-    icon: 'User',
-    order: 1,
-  },
-  {
-    _id: '__employee-profile__',
-    section: 'WORKSPACE',
-    label: 'My Profile',
-    href: '/dashboard/my-profile',
-    icon: 'User',
-    order: 2,
-  },
-  {
-    _id: '__employee-dashboard__',
-    section: 'WORKSPACE',
-    label: 'Employee Dashboard',
-    href: '/dashboard/employee',
-    icon: 'LayoutGrid',
-    order: 1,
-  },
-  {
-    _id: '__employee-leave__',
-    section: 'WORKSPACE',
-    label: 'Employee Leave',
-    href: '/dashboard/employee-leave',
-    icon: 'Calendar',
-    order: 2,
-  },
+  { _id: 'e1', section: 'WORKSPACE', label: 'Dashboard', href: '/dashboard/employee', icon: 'LayoutDashboard', order: 1 },
+  { _id: 'e2', section: 'WORKSPACE', label: 'My Profile', href: '/dashboard/my-profile-extension', icon: 'User', order: 2 },
+  { _id: 'e3', section: 'WORKSPACE', label: 'Attendance', href: '/dashboard/attendance', icon: 'Clock', order: 3 },
+  { _id: 'e4', section: 'WORKSPACE', label: 'Leave', href: '/dashboard/employee-leave', icon: 'Calendar', order: 4 },
+  { _id: 'e5', section: 'WORKSPACE', label: 'My Performance', href: '/dashboard/my-performance', icon: 'TrendingUp', order: 5 },
+  { _id: 'e6', section: 'WORKSPACE', label: 'Goals & OKRs', href: '/dashboard/goals-and-okrs', icon: 'Circle', order: 6 },
+  { _id: 'e7', section: 'WORKSPACE', label: 'Payslip & Income Tax', href: '/dashboard/payslip-and-income-tax', icon: 'Receipt', order: 7 },
+  { _id: 'e8', section: 'WORKSPACE', label: 'Reimbursement (Imprest)', href: '/dashboard/reimbursement', icon: 'Wallet', order: 8 },
+  { _id: 'e9', section: 'WORKSPACE', label: 'My Requests', href: '/dashboard/my-requests', icon: 'ClipboardList', order: 9 },
+  { _id: 'e10', section: 'WORKSPACE', label: 'My Tasks', href: '/dashboard/my-tasks', icon: 'ListTree', order: 10 },
+  { _id: 'e11', section: 'WORKSPACE', label: 'Training & Development', href: '/dashboard/training-development', icon: 'GraduationCap', order: 11 },
+  { _id: 'e12', section: 'WORKSPACE', label: 'Policies & Documents', href: '/dashboard/policies', icon: 'FileSignature', order: 12 },
+  { _id: 'e13', section: 'WORKSPACE', label: 'Company Directory', href: '/dashboard/company-directory', icon: 'Users', order: 13 },
+  { _id: 'e14', section: 'WORKSPACE', label: 'Announcements', href: '/dashboard/announcements', icon: 'MessageSquare', order: 14 },
+  { _id: 'e15', section: 'WORKSPACE', label: 'Helpdesk / Support', href: '/dashboard/helpdesk', icon: 'ShieldCheck', order: 15 },
+  { _id: 'e16', section: 'WORKSPACE', label: 'Settings', href: '/dashboard/settings', icon: 'Settings', order: 16 },
 ];
 
 export default function DynamicSidebar() {
@@ -88,15 +63,33 @@ export default function DynamicSidebar() {
     router.replace('/login');
   };
 
-  const { data: items } = useQuery<SidebarItem[]>({
+  const { data: items, isLoading } = useQuery<SidebarItem[]>({
     queryKey: ['sidebar', 'mine'],
     queryFn: async () => (await api.get('/permissions/sidebar-config/mine')).data,
     staleTime: 5 * 60 * 1000,
   });
 
   const sections: { section: string; items: GroupedItem[] }[] = [];
-  // Merge dynamic items with static injected items, then sort by order
-  const allItems = [...(items || []), ...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
+  
+  // If loading, we wait.
+  // We detect if a user has admin/HR privileges by checking if they have access to admin-only sections.
+  // If they are an admin, we show both the dynamic items and the employee items.
+  // If they are a standard employee, we show *only* the static employee items.
+  const allItems = React.useMemo(() => {
+    if (isLoading) return [];
+    if (!items || items.length === 0) return [...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
+    
+    const isAdmin = items.some(item => 
+      ['People Management', 'Company Setup', 'Admin Section', 'HR Department'].includes(item.section)
+    );
+
+    if (isAdmin) {
+      return [...items, ...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
+    } else {
+      return [...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
+    }
+  }, [items, isLoading]);
+  
   allItems.forEach((item) => {
     let group = sections.find((s) => s.section === item.section);
     if (!group) {

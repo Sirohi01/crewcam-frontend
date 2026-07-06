@@ -411,7 +411,7 @@ function ReimbursementSummaryCard() {
                 <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: d.color }} />
                 {d.key}
               </span>
-              <span className="shrink-0 text-right text-[11px] font-semibold text-zinc-800">
+              <span className="min-w-0 truncate text-right text-[11px] font-semibold text-zinc-800">
                 ₹{d.value.toLocaleString('en-IN')} ({d.pct})
               </span>
             </div>
