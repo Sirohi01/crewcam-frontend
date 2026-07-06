@@ -157,27 +157,70 @@ export default function DynamicSidebar() {
         <div className="sidebar-scroll flex-1 overflow-y-auto py-2">
           <div className="px-2 space-y-4">
 
-            {/* ── Dynamic sections from API + Static WORKSPACE ── */}
-            {sections.map((group) => (
-              <nav key={group.section} className="space-y-0.5">
-                {group.section !== 'WORKSPACE' && <SectionLabel>{group.section}</SectionLabel>}
-                {group.items.map((item) => {
-                  if ('isGroup' in item) {
-                    return <NavGroup key={item.label} label={item.label} items={item.children} pathname={pathname} />;
-                  }
-                  return (
-                    <NavItem
-                      key={item._id}
-                      href={item.href}
-                      icon={React.createElement(ICONS[item.icon] || Circle, { size: 14 })}
-                      label={item.label}
-                      active={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
-                      disabled={item.href.includes('/coming-soon')}
-                    />
-                  );
-                })}
-              </nav>
-            ))}
+            {/* ── WORKSPACE (always visible, hardcoded) ── */}
+            <nav className="space-y-0.5">
+              <SectionLabel>WORKSPACE</SectionLabel>
+              <NavItem
+                href="/dashboard/employee"
+                icon={<LayoutGrid size={14} />}
+                label="Employee Dashboard"
+                active={pathname === '/dashboard/employee'}
+              />
+              <NavItem
+                href="/dashboard/employee-leave"
+                icon={<Calendar size={14} />}
+                label="Employee Leave"
+                active={pathname === '/dashboard/employee-leave'}
+              />
+              <NavItem
+                href="/dashboard/reimbursement"
+                icon={<Receipt size={14} />}
+                label="Reimbursement (imprest)"
+                active={pathname === '/dashboard/reimbursement'}
+              />
+              <NavItem
+                href="/dashboard/my-request"
+                icon={<ClipboardList size={14} />}
+                label="My Request"
+                active={pathname === '/dashboard/my-request'}
+              />
+              <NavItem
+                href="/dashboard/my-task"
+                icon={<ListTree size={14} />}
+                label="My Task"
+                active={pathname === '/dashboard/my-task'}
+              />
+              <NavItem
+                href="/dashboard/payslip-income-tax"
+                icon={<IndianRupee size={14} />}
+                label="Payslip and Income Tax"
+                active={pathname === '/dashboard/payslip-income-tax'}
+              />
+            </nav>
+
+            {/* ── Dynamic sections from API ── */}
+            {sections
+              .filter((g) => g.section !== 'WORKSPACE')
+              .map((group) => (
+                <nav key={group.section} className="space-y-0.5">
+                  <SectionLabel>{group.section}</SectionLabel>
+                  {group.items.map((item) => {
+                    if ('isGroup' in item) {
+                      return <NavGroup key={item.label} label={item.label} items={item.children} pathname={pathname} />;
+                    }
+                    return (
+                      <NavItem
+                        key={item._id}
+                        href={item.href}
+                        icon={React.createElement(ICONS[item.icon] || Circle, { size: 14 })}
+                        label={item.label}
+                        active={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
+                        disabled={item.href.includes('/coming-soon')}
+                      />
+                    );
+                  })}
+                </nav>
+              ))}
           </div>
         </div>
 
