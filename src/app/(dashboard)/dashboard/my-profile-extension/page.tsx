@@ -20,6 +20,8 @@ import { FamilyTab } from './components/FamilyTab';
 import { BankTab } from './components/BankTab';
 import { AssetsTab } from './components/AssetsTab';
 import Link from 'next/link';
+import { MoreInfoTab } from './components/MoreInfoTab';
+import { EmergencyTab } from './components/EmergencyTab';
 
 const taskData = [
   { name: 'Completed', value: 6, color: '#22c55e' },
@@ -424,7 +426,7 @@ export default function MyProfilePage() {
           </div>
         </div>
 
-        <div className="p-2 space-y-1 flex-1">
+        <div className="p-2 space-y-1">
           <div className="flex items-center gap-1.5">
             <Mail size={12} className="text-gray-400 shrink-0" />
             <p className="text-[12px] text-gray-600 break-all leading-tight">rohan.mehta@crewcam.com</p>
@@ -1414,36 +1416,11 @@ export default function MyProfilePage() {
       )}
 
       {tab === 'emergency' && (
-        <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
-          <CardHeader className="px-2 py-2 border-b border-zinc-100 dark:border-zinc-800">
-            <CardTitle className="text-sm font-semibold flex items-center gap-1 text-zinc-800 dark:text-zinc-100"><HeartPulse size={12} className="text-rose-600" /> Emergency Contact</CardTitle>
-          </CardHeader>
-          <CardContent className="p-1.5">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 max-w-lg">
-              <InfoField label="Name" value={employee?.emergencyContactName || DUMMY.emergency.name} />
-              <InfoField label="Relation" value={employee?.emergencyContactRelation || DUMMY.emergency.relation} />
-              <InfoField label="Phone Number" value={employee?.emergencyContactNumber || DUMMY.emergency.number} />
-            </div>
-          </CardContent>
-        </Card>
+        <EmergencyTab profileCard={profileCardContent} />
       )}
 
       {tab === 'more' && (
-        <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
-          <CardHeader className="px-2 py-2 border-b border-zinc-100 dark:border-zinc-800">
-            <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">More Information</CardTitle>
-          </CardHeader>
-          <CardContent className="p-1.5 grid grid-cols-2 sm:grid-cols-3 gap-1">
-            <InfoField label="Employee Code" value={employee?.employeeCode || '—'} />
-            <InfoField label="Role" value={employee?.roleId?.name || '—'} />
-            <InfoField label="Employment Status" value={employee?.isActive ? 'Active' : 'Inactive'} />
-            <InfoField label="Branch Address" value={employee?.branchId?.address || '—'} />
-            <InfoField label="Grade" value="E2" />
-            <InfoField label="UAN Number" value="101234567890" />
-            <InfoField label="PF Number" value="DL/12345/67890" />
-            <InfoField label="ESIC Number" value="3412345678" />
-          </CardContent>
-        </Card>
+        <MoreInfoTab />
       )}
     </div>
   );
