@@ -13,6 +13,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import moment from 'moment';
+import Link from 'next/link';
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { EducationTab } from './components/EducationTab';
 import { ExperienceTab } from './components/ExperienceTab';
@@ -579,10 +580,19 @@ export default function MyProfilePage() {
             </button>
           ) : (
             <>
+<<<<<<< Updated upstream
               <Link href="/dashboard/view-public-profile" target="_blank"
                 className="text-xs font-medium bg-white hover:bg-zinc-50 text-zinc-700 px-2 py-1.5 rounded-lg inline-flex items-center gap-1.5 border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-800 transition-colors"
               >
                 <Eye size={13} /> View Public Profile
+=======
+              <Link href="/dashboard/view-public-profile">
+                <button
+                  className="text-xs font-medium bg-white hover:bg-zinc-50 text-zinc-700 px-2 py-1.5 rounded-lg inline-flex items-center gap-1.5 border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-800 transition-colors"
+                >
+                  <Eye size={13} /> View Public Profile
+                </button>
+>>>>>>> Stashed changes
               </Link>
               <button
                 onClick={comingSoon('Profile editing')}
