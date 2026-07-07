@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
+import api from "@/lib/axios"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -179,16 +180,6 @@ const goalSchema = z.object({
 })
 type GoalFormValues = z.infer<typeof goalSchema>
 
-const okrSchema = z.object({
-  objective: z.string().min(3, "Objective title daalo"),
-  description: z.string().optional(),
-  startDate: z.string().min(1, "Start date daalo"),
-  endDate: z.string().min(1, "End date daalo"),
-  keyResult: z.string().min(3, "Kam se kam ek key result daalo"),
-  targetValue: z.string().min(1, "Target value daalo"),
-})
-type OkrFormValues = z.infer<typeof okrSchema>
-
 // ---------- Modal shell ----------
 
 const FormModal: React.FC<{
@@ -222,13 +213,17 @@ const CreateGoalForm: React.FC<{ onDone: () => void }> = ({ onDone }) => {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<GoalFormValues>({ resolver: zodResolver(goalSchema) })
 
-  const onSubmit = (data: GoalFormValues) => {
-    console.log("Create Goal data:", data)
-    reset()
-    onDone()
+  const onSubmit = async (data: GoalFormValues) => {
+    try {
+      await api.post('/pms/goals-and-okrs', { ...data, type: 'goal' });
+      reset()
+      onDone()
+    } catch (err) {
+      console.error("Failed to create goal", err);
+    }
   }
 
   return (
@@ -270,27 +265,63 @@ const CreateGoalForm: React.FC<{ onDone: () => void }> = ({ onDone }) => {
         <input type="date" {...register("dueDate")} className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs" />
         {errors.dueDate && <p className="mt-0.5 text-[10px] text-red-600">{errors.dueDate.message}</p>}
       </div>
-      <button type="submit" className="mt-1 rounded-md bg-blue-600 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
-        Save Goal
+      <button type="submit" disabled={isSubmitting} className="mt-1 rounded-md bg-blue-600 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-70">
+        {isSubmitting ? 'Saving...' : 'Save Goal'}
       </button>
     </form>
   )
 }
 
 // ---------- Create OKR form ----------
+import { useFieldArray } from "react-hook-form" // add this import along with useForm
+
+// ---------- Zod schema (updated) ----------
+
+const okrSchema = z.object({
+  objective: z.string().min(3, "Objective title daalo"),
+  description: z.string().optional(),
+  startDate: z.string().min(1, "Start date daalo"),
+  endDate: z.string().min(1, "End date daalo"),
+  keyResults: z
+    .array(
+      z.object({
+        title: z.string().min(3, "Key result kam se kam 3 characters ka ho"),
+        targetValue: z.string().min(1, "Target value daalo"),
+      })
+    )
+    .min(1, "Kam se kam ek key result daalo"),
+})
+type OkrFormValues = z.infer<typeof okrSchema>
+
+// ---------- Create OKR form (updated) ----------
 
 const CreateOkrForm: React.FC<{ onDone: () => void }> = ({ onDone }) => {
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
-  } = useForm<OkrFormValues>({ resolver: zodResolver(okrSchema) })
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<OkrFormValues>({
+    resolver: zodResolver(okrSchema),
+    defaultValues: {
+      keyResults: [{ title: "", targetValue: "" }],
+    },
+  })
 
-  const onSubmit = (data: OkrFormValues) => {
-    console.log("Create OKR data:", data)
-    reset()
-    onDone()
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "keyResults",
+  })
+
+  const onSubmit = async (data: OkrFormValues) => {
+    try {
+      await api.post('/pms/goals-and-okrs', { ...data, type: 'okr' });
+      reset({ keyResults: [{ title: "", targetValue: "" }] })
+      onDone()
+    } catch (err) {
+      console.error("Failed to create okr", err);
+    }
   }
 
   return (
@@ -316,18 +347,55 @@ const CreateOkrForm: React.FC<{ onDone: () => void }> = ({ onDone }) => {
           {errors.endDate && <p className="mt-0.5 text-[10px] text-red-600">{errors.endDate.message}</p>}
         </div>
       </div>
-      <div>
-        <label className="mb-1 block text-xs font-medium">Key Result</label>
-        <input {...register("keyResult")} className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs" placeholder="e.g. Achieve NPS score of 60+" />
-        {errors.keyResult && <p className="mt-0.5 text-[10px] text-red-600">{errors.keyResult.message}</p>}
+
+      {/* Dynamic Key Results */}
+      <div className="flex flex-col gap-2">
+        <label className="block text-xs font-medium">Key Results</label>
+        {fields.map((field, index) => (
+          <div key={field.id} className="flex items-start gap-1.5 rounded-md border border-slate-200 p-1.5">
+            <div className="flex-1">
+              <input
+                {...register(`keyResults.${index}.title` as const)}
+                className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs"
+                placeholder="e.g. Achieve NPS score of 60+"
+              />
+              {errors.keyResults?.[index]?.title && (
+                <p className="mt-0.5 text-[10px] text-red-600">{errors.keyResults[index]?.title?.message}</p>
+              )}
+            </div>
+            <div className="w-24 shrink-0">
+              <input
+                {...register(`keyResults.${index}.targetValue` as const)}
+                className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs"
+                placeholder="Target"
+              />
+              {errors.keyResults?.[index]?.targetValue && (
+                <p className="mt-0.5 text-[10px] text-red-600">{errors.keyResults[index]?.targetValue?.message}</p>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => remove(index)}
+              disabled={fields.length === 1}
+              className="mt-1 shrink-0 rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={() => append({ title: "", targetValue: "" })}
+          className="flex items-center justify-center gap-1 rounded-md border border-dashed border-slate-300 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Add Key Result
+        </button>
       </div>
-      <div>
-        <label className="mb-1 block text-xs font-medium">Target Value</label>
-        <input {...register("targetValue")} className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs" placeholder="e.g. 60" />
-        {errors.targetValue && <p className="mt-0.5 text-[10px] text-red-600">{errors.targetValue.message}</p>}
-      </div>
-      <button type="submit" className="mt-1 rounded-md bg-blue-600 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
-        Save OKR
+
+      <button type="submit" disabled={isSubmitting} className="mt-1 rounded-md bg-blue-600 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-70">
+        {isSubmitting ? 'Saving...' : 'Save OKR'}
       </button>
     </form>
   )
@@ -445,12 +513,53 @@ const DonutLegendRow: React.FC<{ slice: DonutSlice; total: number }> = ({ slice,
 // ---------- Main component ----------
 
 const GoalsAndOkrs: React.FC = () => {
-  const totalDonut = donutData.reduce((sum, d) => sum + d.value, 0)
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState<TabName>("My OKRs")
   const [goalModalOpen, setGoalModalOpen] = useState(false)
   const [okrModalOpen, setOkrModalOpen] = useState(false)
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await api.get('/pms/goals-and-okrs');
+        setData(res.data);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [refreshKey]);
+
+  const triggerRefresh = () => setRefreshKey(k => k + 1);
+
+  const currentSummaryStats = data?.summaryStats || summaryStats;
+  const currentObjectives = data?.objectives || objectives;
+  const currentDonutData = data?.donutData || donutData;
+  const currentAlignmentChildren = data?.alignmentChildren || alignmentChildren;
+  const currentCheckIns = data?.checkIns || checkIns;
+  const totalDonut = currentDonutData.reduce((sum: number, d: any) => sum + d.value, 0)
+
+  // Tab config -- ab sabkuch defined hone ke baad
+  const TAB_CONFIG: Record<TabName, { types: string[]; emptyLabel: string; addLabel: string; onAdd: 'goal' | 'okr' | null }> = {
+    "My OKRs": { types: ["okr"], emptyLabel: "OKRs", addLabel: "Add OKR", onAdd: "okr" },
+    "My Goals": { types: ["goal"], emptyLabel: "Goals", addLabel: "Add Goal", onAdd: "goal" },
+    "Team OKRs": { types: ["okr"], emptyLabel: "Team OKRs", addLabel: "Add OKR", onAdd: "okr" },
+    "Team Goals": { types: ["goal"], emptyLabel: "Team Goals", addLabel: "Add Goal", onAdd: "goal" },
+    "Aligned OKRs": { types: ["okr"], emptyLabel: "Aligned OKRs", addLabel: "Add OKR", onAdd: "okr" },
+    "Archived": { types: ["goal", "okr"], emptyLabel: "Archived items", addLabel: "", onAdd: null },
+  }
+  const activeConfig = TAB_CONFIG[activeTab]
+  const filteredItems = currentObjectives.filter((o: any) =>
+    activeConfig.types.includes(o.type || "okr")
+  )
+
   return (
+    
   <div className="flex h-[calc(100vh-48px)] min-h-[650px] flex-col gap-2 overflow-hidden bg-slate-50 p-2 text-slate-900">
       {/* Breadcrumb */}
       <div className="flex items-center gap-1 text-xs ">
@@ -459,7 +568,13 @@ const GoalsAndOkrs: React.FC = () => {
         <span className="font-medium ">Goals & OKRs</span>
       </div>
 
-      {/* Header */}
+      {loading ? (
+        <div className="flex-1 flex items-center justify-center">Loading...</div>
+      ) : error ? (
+        <div className="flex-1 flex items-center justify-center text-red-500">{error}</div>
+      ) : (
+      <>
+        {/* Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-bold">Goals & OKRs</h1>
@@ -487,8 +602,11 @@ const GoalsAndOkrs: React.FC = () => {
 
       {/* Stat cards */}
       <div className="flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
-        {summaryStats.map((stat) => (
-          <StatCard key={stat.id} stat={stat} />
+        {currentSummaryStats.map((stat: any) => (
+          <StatCard key={stat.id} stat={{
+            ...stat,
+            icon: stat.icon === "Target" ? Target : stat.icon === "CheckCircle2" ? CheckCircle2 : stat.icon === "Clock" ? Clock : stat.icon === "AlertCircle" ? AlertCircle : Flag
+          }} />
         ))}
       </div>
 
@@ -522,63 +640,76 @@ const GoalsAndOkrs: React.FC = () => {
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-2 lg:grid-cols-[1fr_28%]">
-        {/* Left column */}
-        <div className="flex min-h-0 flex-col gap-2 lg:overflow-hidden">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold">My OKRs (3)</p>
-            <button className="flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs">
-              Sort by: Priority
-              <ChevronDown className="h-3.5 w-3.5 " />
-            </button>
-          </div>
-
-       {activeTab === "My OKRs" ? (
-  <div className="flex flex-1 min-h-0 flex-col">
-    {/* Scrollable list */}
-    <div className="flex-1 min-h-0 overflow-y-auto">
-      <div className="flex flex-col gap-2 pr-1">
-        {objectives.map((obj) => (
-          <ObjectiveCard key={obj.id} objective={obj} />
-        ))}
-      </div>
+ {/* Main content */}
+<div className="grid min-h-0 flex-1 grid-cols-1 gap-2 lg:grid-cols-[1fr_28%]">
+  {/* Left column */}
+  <div className="flex min-h-0 flex-col gap-2 lg:overflow-hidden">
+    <div className="flex items-center justify-between">
+      <p className="text-xs font-semibold">
+        {activeTab} ({filteredItems.length})
+      </p>
+      <button className="flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs">
+        Sort by: Priority
+        <ChevronDown className="h-3.5 w-3.5 " />
+      </button>
     </div>
 
-    {/* Fixed button */}
-    <button
-      type="button"
-      onClick={() => setOkrModalOpen(true)}
-      className="mt-2 shrink-0 flex items-center justify-center gap-1 rounded-lg border border-dashed border-slate-400 bg-white py-2 text-xs font-medium text-blue-600 hover:bg-blue-50"
-    >
-      <Plus className="h-3.5 w-3.5" />
-      Add OKR
-    </button>
-  </div>
-)  : (
-            <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-slate-300 text-xs ">
-              No data yet in &quot;{activeTab}&quot;
-            </div>
-          )}
-
-          <div className="flex flex-col items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 p-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                <Sparkles className="h-4 w-4" />
-              </span>
-              <div>
-                <p className="text-sm font-semibold">Keep Achieving!</p>
-                <p className="text-xs ">
-                  You are performing better than 72% of employees in your department.
-                </p>
-              </div>
-            </div>
-            <button className="flex w-full items-center justify-center gap-1 rounded-md border border-blue-300 bg-white px-3 py-1.5 text-xs font-medium text-blue-600 sm:w-auto">
-              <BarChart3 className="h-3.5 w-3.5" />
-              View Insights
-            </button>
+    {filteredItems.length > 0 ? (
+      <div className="flex flex-1 min-h-0 flex-col">
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          <div className="flex flex-col gap-2 pr-1">
+            {filteredItems.map((item: any) => (
+              <ObjectiveCard
+                key={item.id}
+                objective={{
+                  ...item,
+                  icon: item.icon === "Rocket" ? Rocket
+                    : item.icon === "Users" ? Users
+                    : item.icon === "BarChart3" ? BarChart3
+                    : item.icon === "CheckCircle2" ? CheckCircle2
+                    : Target,
+                }}
+              />
+            ))}
           </div>
         </div>
+
+        {activeConfig.onAdd && (
+          <button
+            type="button"
+            onClick={() => activeConfig.onAdd === "goal" ? setGoalModalOpen(true) : setOkrModalOpen(true)}
+            className="mt-2 shrink-0 flex items-center justify-center gap-1 rounded-lg border border-dashed border-slate-400 bg-white py-2 text-xs font-medium text-blue-600 hover:bg-blue-50"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {activeConfig.addLabel}
+          </button>
+        )}
+      </div>
+    ) : (
+      <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-slate-300 text-xs ">
+        No data yet in &quot;{activeTab}&quot;
+      </div>
+    )}
+
+    <div className="flex flex-col items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 p-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center gap-2">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+          <Sparkles className="h-4 w-4" />
+        </span>
+        <div>
+          <p className="text-sm font-semibold">Keep Achieving!</p>
+          <p className="text-xs ">
+            You are performing better than 72% of employees in your department.
+          </p>
+        </div>
+      </div>
+      <button className="flex w-full items-center justify-center gap-1 rounded-md border border-blue-300 bg-white px-3 py-1.5 text-xs font-medium text-blue-600 sm:w-auto">
+        <BarChart3 className="h-3.5 w-3.5" />
+        View Insights
+      </button>
+    </div>
+  </div>
+        
 
         {/* Right column */}
         <div className="flex min-h-0 flex-col gap-2 lg:overflow-y-auto">
@@ -589,8 +720,8 @@ const GoalsAndOkrs: React.FC = () => {
               <div className="relative aspect-square w-[28%] max-w-[96px] shrink-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={donutData} dataKey="value" innerRadius="60%" outerRadius="95%" startAngle={90} endAngle={-270} stroke="none">
-                      {donutData.map((slice) => (
+                    <Pie data={currentDonutData} dataKey="value" innerRadius="60%" outerRadius="95%" startAngle={90} endAngle={-270} stroke="none">
+                      {currentDonutData.map((slice: any) => (
                         <Cell key={slice.name} fill={slice.color} />
                       ))}
                     </Pie>
@@ -602,7 +733,7 @@ const GoalsAndOkrs: React.FC = () => {
                 </div>
               </div>
               <div className="flex flex-1 flex-col gap-1">
-                {donutData.map((slice) => (
+                {currentDonutData.map((slice: any) => (
                   <DonutLegendRow key={slice.name} slice={slice} total={totalDonut} />
                 ))}
               </div>
@@ -619,7 +750,7 @@ const GoalsAndOkrs: React.FC = () => {
             </div>
             <div className="mx-auto h-3 w-px bg-slate-400" />
             <div className="grid grid-cols-3 gap-1">
-              {alignmentChildren.map((node) => (
+              {currentAlignmentChildren.map((node: any) => (
                 <div key={node.id} className="flex flex-col items-center gap-1">
                   <div className="h-3 w-px bg-slate-400" />
                   <span
@@ -641,7 +772,7 @@ const GoalsAndOkrs: React.FC = () => {
               <button className="text-xs font-medium text-blue-600">View Calendar</button>
             </div>
             <div className="flex flex-col divide-y divide-slate-200">
-              {checkIns.map((c) => (
+              {currentCheckIns.map((c: any) => (
                 <div key={c.id} className="flex items-center gap-2 py-1.5">
                   <span className={`h-7 w-7 shrink-0 rounded-full ${c.avatarBg}`} />
                   <div className="min-w-0 flex-1">
@@ -665,13 +796,15 @@ const GoalsAndOkrs: React.FC = () => {
           </div>
         </div>
       </div>
+      </>
+      )}
 
       {/* Modals */}
       <FormModal open={goalModalOpen} onOpenChange={setGoalModalOpen} title="Create Goal">
-        <CreateGoalForm onDone={() => setGoalModalOpen(false)} />
+        <CreateGoalForm onDone={() => { setGoalModalOpen(false); triggerRefresh(); }} />
       </FormModal>
       <FormModal open={okrModalOpen} onOpenChange={setOkrModalOpen} title="Create OKR">
-        <CreateOkrForm onDone={() => setOkrModalOpen(false)} />
+        <CreateOkrForm onDone={() => { setOkrModalOpen(false); triggerRefresh(); }} />
       </FormModal>
     </div>
   )
