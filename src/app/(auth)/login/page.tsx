@@ -67,7 +67,7 @@ export default function LoginPage() {
       if (requires2FA) {
         const response = await api.post('/auth/login-2fa', { email, password, token: totpToken });
         const { user, token } = response.data;
-        setAuth(user, user.tenantId);
+        setAuth(user, user.tenantId, token);
         router.push(user.tenantId && user.tenantId !== 'SUPER_ADMIN' ? '/dashboard' : '/super-admin');
       } else {
         const response = await api.post('/auth/login', { email, password });
@@ -76,7 +76,7 @@ export default function LoginPage() {
           return;
         }
         const { user, token } = response.data;
-        setAuth(user, user.tenantId);
+        setAuth(user, user.tenantId, token);
         router.push(user.tenantId && user.tenantId !== 'SUPER_ADMIN' ? '/dashboard' : '/super-admin');
       }
     } catch (err: any) {

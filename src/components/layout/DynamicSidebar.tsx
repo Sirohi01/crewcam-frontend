@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Users, Building2, Settings, LogOut, Briefcase, UserCog, Plug, Palette,
   Shield, ShieldCheck, Clock, Calendar, MessageSquare, Scale, TrendingUp, UserPlus, IndianRupee,
   Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList, LucideIcon, ChevronRight, ChevronDown,
-  LayoutGrid, User, GraduationCap,
+  LayoutGrid, User, GraduationCap, ShieldAlert,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 
@@ -17,6 +17,7 @@ const ICONS: Record<string, LucideIcon> = {
   LayoutDashboard, Users, Building2, Settings, LogOut, Briefcase, UserCog, Plug, Palette,
   Shield, ShieldCheck, Clock, Calendar, MessageSquare, Scale, TrendingUp, UserPlus, IndianRupee,
   Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList, LayoutGrid, User, GraduationCap,
+  ShieldAlert,
 };
 
 interface SidebarItem {
@@ -63,32 +64,30 @@ export default function DynamicSidebar() {
     router.replace('/login');
   };
 
-  const { data: items, isLoading } = useQuery<SidebarItem[]>({
+  const { data, isLoading } = useQuery<{ items: SidebarItem[]; roleCategory: string }>({
     queryKey: ['sidebar', 'mine'],
     queryFn: async () => (await api.get('/permissions/sidebar-config/mine')).data,
     staleTime: 5 * 60 * 1000,
   });
+  const items = data?.items;
+  const roleCategory = data?.roleCategory;
 
   const sections: { section: string; items: GroupedItem[] }[] = [];
 
-  // If loading, we wait.
-  // We detect if a user has admin/HR privileges by checking if they have access to admin-only sections.
-  // If they are an admin, we show both the dynamic items and the employee items.
-  // If they are a standard employee, we show *only* the static employee items.
+  // If loading, we wait. Whether to merge the dynamic (role-permissioned) items with
+  // the static employee items comes straight from the backend-resolved role category
+  // (see resolveRoleCategory) — a plain 'employee' only gets the static self-service
+  // items, every other category (company_admin, hr, hr_admin, hod, finance, admin,
+  // developer, reporting_manager) gets both. This used to be guessed client-side from
+  // which sidebar sections happened to come back, which broke for any admin whose role
+  // didn't have the specific permissions gating those particular sections.
   const allItems = React.useMemo(() => {
     if (isLoading) return [];
-    if (!items || items.length === 0) return [...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
-
-    const isAdmin = items.some(item =>
-      ['People Management', 'Company Setup', 'Admin Section', 'HR Department'].includes(item.section)
-    );
-
-    if (isAdmin) {
-      return [...items, ...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
-    } else {
+    if (!items || items.length === 0 || roleCategory === 'employee') {
       return [...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
     }
-  }, [items, isLoading]);
+    return [...items, ...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
+  }, [items, isLoading, roleCategory]);
 
   allItems.forEach((item) => {
     let group = sections.find((s) => s.section === item.section);

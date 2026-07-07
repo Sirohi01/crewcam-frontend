@@ -1,0 +1,112 @@
+CREWCAM-FRONTEND — RECOMMENDED (RIGHT) FILE STRUCTURE
+======================================================
+Next.js 16 (App Router) + TypeScript project.
+Yeh file batati hai ki har type ki cheez kahan honi chahiye, taaki
+structure consistent aur maintainable rahe.
+
+crewcam-frontend/
+│
+├── public/                          # Static assets (images, icons, fonts)
+│   ├── assets/
+│   ├── bannerImges/
+│   └── crewcam.png
+│
+├── src/
+│   │
+│   ├── app/                         # ROUTES ONLY (Next.js App Router)
+│   │   │                            # Har route folder ke andar sirf page.tsx,
+│   │   │                            # layout.tsx, loading.tsx, error.tsx jaisi
+│   │   │                            # Next.js special files honi chahiye.
+│   │   │
+│   │   ├── layout.tsx                # Root layout
+│   │   ├── page.tsx                  # Root ("/") page
+│   │   ├── globals.css
+│   │   │
+│   │   ├── (auth)/                   # Route group: unauthenticated pages
+│   │   │   ├── login/page.tsx
+│   │   │   ├── register/page.tsx
+│   │   │   ├── forgot-password/page.tsx
+│   │   │   └── reset-password/page.tsx
+│   │   │
+│   │   ├── (dashboard)/              # Route group: logged-in company/user area
+│   │   │   ├── layout.tsx
+│   │   │   ├── employee-apply-leave/page.tsx
+│   │   │   └── dashboard/
+│   │   │       ├── page.tsx
+│   │   │       ├── employees/[id]/page.tsx
+│   │   │       ├── attendance/...
+│   │   │       ├── hiring/...
+│   │   │       ├── finance/...
+│   │   │       ├── settings/...
+│   │   │       └── ... (baaki sab feature routes isi tarah nested)
+│   │   │
+│   │   └── (super-admin)/            # Route group: super-admin area
+│   │       ├── layout.tsx
+│   │       └── super-admin/
+│   │           ├── page.tsx
+│   │           ├── companies/...
+│   │           ├── leads/...
+│   │           └── ...
+│   │
+│   ├── components/                  # REUSABLE UI — routes ke bahar
+│   │   ├── ui/                       # Generic/base components (button, card, input...)
+│   │   ├── layout/                   # Sidebars, topbar, shell components
+│   │   ├── auth/                     # Auth-related components (AuthGuard etc.)
+│   │   ├── shared/                   # Cross-feature shared components (DataTable, PageHeader...)
+│   │   ├── hiring/                   # Feature-specific: hiring module components
+│   │   ├── hr-admin/                 # Feature-specific: hr-admin module components
+│   │   ├── leads/                    # Feature-specific: leads module components
+│   │   ├── providers/                # Context/query providers
+│   │   └── theme/                    # Theme provider/toggle
+│   │
+│   ├── lib/                          # Non-UI logic: API clients, helpers, constants
+│   │   ├── axios.ts                   # Axios instance/config
+│   │   ├── utils.ts                   # Generic helper functions
+│   │   ├── csv.ts / geo.ts / geocode.ts / fileUrls.ts
+│   │   └── hiringSteps.ts / leadStages.ts   # Domain constants/enums
+│   │
+│   ├── store/                        # Global state (zustand/redux etc.)
+│   │   └── authStore.ts
+│   │
+│   ├── hooks/                        # (Recommended addition) Custom React hooks
+│   │   └── useXyz.ts
+│   │
+│   ├── types/                        # (Recommended addition) Shared TS types/interfaces
+│   │   └── index.ts
+│   │
+│   └── proxy.ts                      # Next.js server/proxy config helper
+│
+├── .env.local                       # Environment variables (never commit)
+├── next.config.ts
+├── tsconfig.json
+├── package.json
+└── FILE_STRUCTURE.txt               # (yeh file)
+
+------------------------------------------------------------
+IMPORTANT RULES (isse "right" structure maintain hoti hai)
+------------------------------------------------------------
+1. `app/` ke andar sirf ROUTES rakhein — koi bhi reusable component
+   seedha kisi page folder ke andar mat banayein. Agar ek component
+   sirf ek page use karta hai, to us page folder ke andar
+   `components/` sub-folder banayein (jaise my-profile-extension/components
+   mein already kiya gaya hai — yeh sahi pattern hai).
+
+2. `components/` ke andar cheezein feature-wise group karein
+   (hiring, hr-admin, leads, layout, ui, shared) — flat mat rakhein.
+
+3. `lib/` sirf non-UI logic ke liye hai: API calls, formatters,
+   constants, config. Koi bhi .tsx/JSX yahan mat rakhein.
+
+4. Naya reusable hook banate waqt `src/hooks/` folder use karein
+   (abhi missing hai, add karna recommended hai).
+
+5. Shared TypeScript types/interfaces ke liye `src/types/` folder
+   banayein, taaki types alag-alag files mein duplicate na hon.
+
+6. Route groups — (auth), (dashboard), (super-admin) — ka use
+   layout aur access-control alag rakhne ke liye already sahi hai,
+   isi pattern ko follow karte rahein.
+
+7. File naming: components PascalCase (Button.tsx), routes/pages
+   lowercase-kebab (page.tsx andar folder ka naam kebab-case),
+   utils/lib files camelCase (axios.ts, csv.ts).

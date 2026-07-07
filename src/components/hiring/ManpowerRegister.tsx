@@ -145,8 +145,8 @@ export default function ManpowerRegister() {
       <div className=" rounded-[4px] shadow-sm border border-slate-200 overflow-hidden mx-2">
         <div className="grid gap-2 sm:grid-cols-4 bg-slate-50/50">
           {cards.map((c, i) => (
-            <div className='bg-white gap-4'>
-              <div key={c.label} className={`p-4 flex items-center gap-3  ${i !== cards.length - 1 ? 'border-r border-slate-200' : ''}`}>
+            <div key={c.label} className='bg-white gap-4'>
+              <div className={`p-4 flex items-center gap-3  ${i !== cards.length - 1 ? 'border-r border-slate-200' : ''}`}>
                 < div className={`h-8 w-8 rounded-md flex items-center justify-center shrink-0 ${c.cls}`}><c.icon size={15} /></div>
                 <div>
                   <p className="text-[10px] uppercase font-bold tracking-wider text-slate-500">{c.label}</p>
