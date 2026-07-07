@@ -209,7 +209,7 @@ export default function ManpowerRequestsTab({ formOnly = false, requestId }: { f
       qc.invalidateQueries({ queryKey: ['manpower-requests'] });
       qc.invalidateQueries({ queryKey: ['manpower-request', requestId] });
       if (formOnly) {
-        router.replace('/dashboard/hiring/manpower');
+        router.replace('/company/hiring/manpower');
         return;
       }
       if (!requestId) setForm(empty());

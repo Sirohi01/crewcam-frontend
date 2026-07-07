@@ -49,7 +49,7 @@ export default function CandidateRegister() {
           </div>
           <div className="flex items-center gap-3">
             <Button asChild className="h-7 gap-2 bg-[#0d3c68] px-3 text-[11px] font-bold uppercase hover:bg-[#0a2e50] text-white rounded-[2px]">
-              <Link href="/dashboard/hiring/candidates/new/create"><Plus size={12} /> Add Candidate</Link>
+              <Link href="/company/hiring/candidates/new/create"><Plus size={12} /> Add Candidate</Link>
             </Button>
           </div>
         </div>
@@ -114,7 +114,7 @@ export default function CandidateRegister() {
                   <td className="px-3 py-2 text-center">
                     <div className="flex items-center justify-center">
                       <Button size="sm" variant="outline" className="h-7 px-3 text-[10px] font-bold uppercase" asChild>
-                        <Link href={`/dashboard/hiring/${candidate._id}`}>Open Workflow</Link>
+                        <Link href={`/company/hiring/${candidate._id}`}>Open Workflow</Link>
                       </Button>
                     </div>
                   </td>

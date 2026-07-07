@@ -68,7 +68,7 @@ export default function LoginPage() {
         const response = await api.post('/auth/login-2fa', { email, password, token: totpToken });
         const { user } = response.data;
         setAuth(user, user.tenantId);
-        router.push(user.tenantId && user.tenantId !== 'SUPER_ADMIN' ? '/dashboard' : '/super-admin');
+        router.push(user.tenantId && user.tenantId !== 'SUPER_ADMIN' ? '/company' : '/super-admin');
       } else {
         const response = await api.post('/auth/login', { email, password });
         if (response.data.requires2FA) {
@@ -77,7 +77,7 @@ export default function LoginPage() {
         }
         const { user } = response.data;
         setAuth(user, user.tenantId);
-        router.push(user.tenantId && user.tenantId !== 'SUPER_ADMIN' ? '/dashboard' : '/super-admin');
+        router.push(user.tenantId && user.tenantId !== 'SUPER_ADMIN' ? '/company' : '/super-admin');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid credentials. Please try again.');

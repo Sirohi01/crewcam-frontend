@@ -52,7 +52,7 @@ export default function OnboardingWizardPrompt() {
         <Button
           onClick={() => {
             setShowPrompt(false);
-            router.push('/dashboard/settings/company');
+            router.push('/company/settings/company');
           }}
           className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-md"
         >

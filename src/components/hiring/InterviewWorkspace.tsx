@@ -319,10 +319,10 @@ export default function InterviewWorkspace({ view }: { view: View }) {
                       <td className="px-4 py-2 text-center">
                         <div className="flex justify-end items-center gap-1.5">
                           <Button variant="outline" size="sm" className="h-7 px-2.5 rounded-[2px] border-slate-300 text-[10px] font-bold uppercase text-slate-700" asChild>
-                            <Link href={`/dashboard/hiring/${candidate._id}`}><Eye size={12} className="mr-1" /> View</Link>
+                            <Link href={`/company/hiring/${candidate._id}`}><Eye size={12} className="mr-1" /> View</Link>
                           </Button>
                           <Button variant="outline" size="sm" className="h-7 px-2.5 rounded-[2px] border-slate-300 text-[10px] font-bold uppercase text-slate-700" asChild>
-                            <Link href={`/dashboard/hiring/interviews/questions/${item._id}`}><MessageSquareText size={12} className="mr-1" /> Questions</Link>
+                            <Link href={`/company/hiring/interviews/questions/${item._id}`}><MessageSquareText size={12} className="mr-1" /> Questions</Link>
                           </Button>
                           <button
                             onClick={(e) => toggleMenu(item._id, e)}

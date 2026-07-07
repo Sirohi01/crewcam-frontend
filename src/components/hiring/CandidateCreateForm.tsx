@@ -93,7 +93,7 @@ export default function CandidateCreateForm() {
     mutationFn: async () => (await api.post('/hiring/candidates', form)).data,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['candidates'] });
-      router.push('/dashboard/hiring/candidates/new');
+      router.push('/company/hiring/candidates/new');
     },
   });
 

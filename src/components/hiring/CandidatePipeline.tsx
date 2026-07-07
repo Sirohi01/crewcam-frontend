@@ -91,7 +91,7 @@ export default function CandidatePipeline() {
           <div className="flex items-center gap-3">
             <Button
               className="h-7 gap-2 bg-[#0d3c68] px-3 text-[11px] font-bold uppercase hover:bg-[#0a2e50] text-white rounded-[2px]"
-              onClick={() => router.push('/dashboard/hiring/candidates/new')}
+              onClick={() => router.push('/company/hiring/candidates/new')}
             >
               <Plus size={12} /> Add Candidate
             </Button>
@@ -228,7 +228,7 @@ export default function CandidatePipeline() {
                       >
                         <div
                           className="flex items-start gap-2.5 cursor-pointer"
-                          onClick={() => router.push(`/dashboard/hiring/${candidate._id}`)}
+                          onClick={() => router.push(`/company/hiring/${candidate._id}`)}
                         >
                           {/* Avatar */}
                           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-600 overflow-hidden">
@@ -299,7 +299,7 @@ export default function CandidatePipeline() {
                 <div className="p-2 border-t border-slate-200 bg-white">
                   <button
                     className={`flex w-full items-center justify-center gap-1.5 rounded-[2px] py-1.5 text-[10px] font-bold uppercase tracking-wider ${config.color} hover:${config.bg} transition-colors`}
-                    onClick={() => router.push('/dashboard/hiring/candidates/new')}
+                    onClick={() => router.push('/company/hiring/candidates/new')}
                   >
                     <Plus size={12} /> Add Candidate
                   </button>

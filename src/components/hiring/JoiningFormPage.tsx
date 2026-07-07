@@ -104,7 +104,7 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
     <div className="mx-auto max-w-5xl space-y-4 pb-10">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-zinc-200 pb-3 dark:border-zinc-800">
-        <Button variant="ghost" className="h-8 gap-2 px-2 text-xs" onClick={() => router.push(`/dashboard/hiring/${candidateId}`)}>
+        <Button variant="ghost" className="h-8 gap-2 px-2 text-xs" onClick={() => router.push(`/company/hiring/${candidateId}`)}>
           <ArrowLeft size={14} /> Candidate Workflow
         </Button>
         <StepGate unlocked={!locked} blockedBy={stepState?.gate?.blockedBy || []} compact />

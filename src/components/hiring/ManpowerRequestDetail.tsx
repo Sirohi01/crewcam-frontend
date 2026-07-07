@@ -134,7 +134,7 @@ export default function ManpowerRequestDetail({ id }: { id: string }) {
           <p className="text-xs text-zinc-500">View the source requisition record before candidate intake.</p>
         </div>
         <div className="flex gap-2">
-          {request.status === 'Pending' && <Button variant="outline" size="sm" asChild><Link href={`/dashboard/hiring/manpower/${id}/edit`}><Pencil size={13} className="mr-1.5" />Edit</Link></Button>}
+          {request.status === 'Pending' && <Button variant="outline" size="sm" asChild><Link href={`/company/hiring/manpower/${id}/edit`}><Pencil size={13} className="mr-1.5" />Edit</Link></Button>}
           <Button size="sm" disabled={generatePdf.isPending} onClick={() => generatePdf.mutate()} className="bg-indigo-600 hover:bg-indigo-700"><FileText size={13} className="mr-1.5" />Generate PDF</Button>
         </div>
       </div>

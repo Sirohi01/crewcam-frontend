@@ -32,22 +32,22 @@ interface SidebarItem {
 type GroupedItem = SidebarItem | { isGroup: true; label: string; children: SidebarItem[] };
 
 const STATIC_PEOPLE_ITEMS: SidebarItem[] = [
-  { _id: 'e1', section: 'WORKSPACE', label: 'Dashboard', href: '/dashboard/employee', icon: 'LayoutDashboard', order: 1 },
-  { _id: 'e2', section: 'WORKSPACE', label: 'My Profile', href: '/dashboard/my-profile-extension', icon: 'User', order: 2 },
-  { _id: 'e3', section: 'WORKSPACE', label: 'Attendance', href: '/dashboard/attendance', icon: 'Clock', order: 3 },
-  { _id: 'e4', section: 'WORKSPACE', label: 'Leave', href: '/dashboard/employee-leave', icon: 'Calendar', order: 4 },
-  { _id: 'e5', section: 'WORKSPACE', label: 'My Performance', href: '/dashboard/my-performance', icon: 'TrendingUp', order: 5 },
-  { _id: 'e6', section: 'WORKSPACE', label: 'Goals & OKRs', href: '/dashboard/goals-and-okrs', icon: 'Circle', order: 6 },
-  { _id: 'e7', section: 'WORKSPACE', label: 'Payslip & Income Tax', href: '/dashboard/payslip-and-income-tax', icon: 'Receipt', order: 7 },
-  { _id: 'e8', section: 'WORKSPACE', label: 'Reimbursement (Imprest)', href: '/dashboard/reimbursement', icon: 'Wallet', order: 8 },
-  { _id: 'e9', section: 'WORKSPACE', label: 'My Requests', href: '/dashboard/my-requests', icon: 'ClipboardList', order: 9 },
-  { _id: 'e10', section: 'WORKSPACE', label: 'My Tasks', href: '/dashboard/my-tasks', icon: 'ListTree', order: 10 },
-  { _id: 'e11', section: 'WORKSPACE', label: 'Training & Development', href: '/dashboard/training-development', icon: 'GraduationCap', order: 11 },
-  { _id: 'e12', section: 'WORKSPACE', label: 'Policies & Documents', href: '/dashboard/policies', icon: 'FileSignature', order: 12 },
-  { _id: 'e13', section: 'WORKSPACE', label: 'Company Directory', href: '/dashboard/company-directory', icon: 'Users', order: 13 },
-  { _id: 'e14', section: 'WORKSPACE', label: 'Announcements', href: '/dashboard/announcements', icon: 'MessageSquare', order: 14 },
-  { _id: 'e15', section: 'WORKSPACE', label: 'Helpdesk / Support', href: '/dashboard/helpdesk', icon: 'ShieldCheck', order: 15 },
-  { _id: 'e16', section: 'WORKSPACE', label: 'Settings', href: '/dashboard/settings', icon: 'Settings', order: 16 },
+  { _id: 'e1', section: 'WORKSPACE', label: 'Dashboard', href: '/company/employees/dashboard', icon: 'LayoutDashboard', order: 1 },
+  { _id: 'e2', section: 'WORKSPACE', label: 'My Profile', href: '/company/employees/my-profile', icon: 'User', order: 2 },
+  { _id: 'e3', section: 'WORKSPACE', label: 'Attendance', href: '/company/attendance', icon: 'Clock', order: 3 },
+  { _id: 'e4', section: 'WORKSPACE', label: 'Leave', href: '/company/employee-leave', icon: 'Calendar', order: 4 },
+  { _id: 'e5', section: 'WORKSPACE', label: 'My Performance', href: '/company/my-performance', icon: 'TrendingUp', order: 5 },
+  { _id: 'e6', section: 'WORKSPACE', label: 'Goals & OKRs', href: '/company/goals-and-okrs', icon: 'Circle', order: 6 },
+  { _id: 'e7', section: 'WORKSPACE', label: 'Payslip & Income Tax', href: '/company/payslip-and-income-tax', icon: 'Receipt', order: 7 },
+  { _id: 'e8', section: 'WORKSPACE', label: 'Reimbursement (Imprest)', href: '/company/reimbursement', icon: 'Wallet', order: 8 },
+  { _id: 'e9', section: 'WORKSPACE', label: 'My Requests', href: '/company/my-requests', icon: 'ClipboardList', order: 9 },
+  { _id: 'e10', section: 'WORKSPACE', label: 'My Tasks', href: '/company/my-tasks', icon: 'ListTree', order: 10 },
+  { _id: 'e11', section: 'WORKSPACE', label: 'Training & Development', href: '/company/training-development', icon: 'GraduationCap', order: 11 },
+  { _id: 'e12', section: 'WORKSPACE', label: 'Policies & Documents', href: '/company/policies', icon: 'FileSignature', order: 12 },
+  { _id: 'e13', section: 'WORKSPACE', label: 'Company Directory', href: '/company/company-directory', icon: 'Users', order: 13 },
+  { _id: 'e14', section: 'WORKSPACE', label: 'Announcements', href: '/company/announcements', icon: 'MessageSquare', order: 14 },
+  { _id: 'e15', section: 'WORKSPACE', label: 'Helpdesk / Support', href: '/company/helpdesk', icon: 'ShieldCheck', order: 15 },
+  { _id: 'e16', section: 'WORKSPACE', label: 'Settings', href: '/company/settings', icon: 'Settings', order: 16 },
 ];
 
 export default function DynamicSidebar() {
@@ -171,7 +171,7 @@ export default function DynamicSidebar() {
                       href={item.href}
                       icon={React.createElement(ICONS[item.icon] || Circle, { size: 14 })}
                       label={item.label}
-                      active={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
+                      active={pathname === item.href || (item.href !== '/company' && pathname.startsWith(item.href))}
                       disabled={item.href.includes('/coming-soon')}
                     />
                   );
@@ -254,7 +254,7 @@ function NavItem({
 }
 
 function NavGroup({ label, items, pathname }: { label: string; items: SidebarItem[]; pathname: string }) {
-  const isAnyChildActive = items.some(item => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)));
+  const isAnyChildActive = items.some(item => pathname === item.href || (item.href !== '/company' && pathname.startsWith(item.href)));
   const [expanded, setExpanded] = React.useState(isAnyChildActive);
 
   return (
@@ -298,7 +298,7 @@ function NavGroup({ label, items, pathname }: { label: string; items: SidebarIte
           style={{ borderLeft: '1px solid rgba(99,102,241,0.35)' }}
         >
           {items.map((item) => {
-            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+            const isActive = pathname === item.href || (item.href !== '/company' && pathname.startsWith(item.href));
             return (
               <Link
                 key={item._id}

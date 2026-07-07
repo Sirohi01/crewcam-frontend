@@ -119,7 +119,7 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
       if (pendingStep) {
         const stepConfig = HIRING_STEPS.find(s => s.stepKey === pendingStep.key);
         if (stepConfig) {
-          router.replace(`/dashboard/hiring/${candidateId}/steps/${stepConfig.id}`);
+          router.replace(`/company/hiring/${candidateId}/steps/${stepConfig.id}`);
         }
       }
     }
@@ -129,7 +129,7 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
     return (
       <div className="py-10 text-center text-sm text-zinc-500">
         Candidate not found. Open this page from the{' '}
-        <Link href="/dashboard/hiring/pipeline" className="text-[#0e4778] underline">Candidate Pipeline</Link>{' '}
+        <Link href="/company/hiring/pipeline" className="text-[#0e4778] underline">Candidate Pipeline</Link>{' '}
         instead of typing the URL directly.
       </div>
     );
@@ -305,7 +305,7 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
                             )}
                             {!disabled ? (
                               <Button asChild variant="outline" className="h-7 gap-1 px-2.5 text-xs">
-                                <Link href={`/dashboard/hiring/${candidateId}/steps/${step.id}`}>
+                                <Link href={`/company/hiring/${candidateId}/steps/${step.id}`}>
                                   <ExternalLink size={13} /> Open
                                 </Link>
                               </Button>

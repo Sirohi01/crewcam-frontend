@@ -139,9 +139,9 @@ export default function DashboardTopbar() {
 
         {/* 3 icon buttons */}
         {[
-          { icon: <MessageSquare size={16} />, badge: 5, href: '/dashboard/communications/chat' },
+          { icon: <MessageSquare size={16} />, badge: 5, href: '/company/communications/chat' },
           { icon: <Bell size={16} />, badge: 1, isBell: true },
-          { icon: <HelpCircle size={16} />, badge: 0, href: '/dashboard/support/faq' },
+          { icon: <HelpCircle size={16} />, badge: 0, href: '/company/support/faq' },
         ].map(({ icon, badge, href, isBell }, i) => {
           const content = (
             <>
@@ -204,7 +204,7 @@ export default function DashboardTopbar() {
                       ))}
                     </div>
                     <div className="p-3 border-t border-slate-100 text-center">
-                      <Link href="/dashboard/notifications" onClick={() => setIsNotifOpen(false)} className="text-sm font-bold text-[#0e4778] hover:underline">View all notifications</Link>
+                      <Link href="/company/notifications" onClick={() => setIsNotifOpen(false)} className="text-sm font-bold text-[#0e4778] hover:underline">View all notifications</Link>
                     </div>
                   </div>
                 )}

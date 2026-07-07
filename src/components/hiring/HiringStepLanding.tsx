@@ -119,9 +119,9 @@ export default function HiringStepLanding({ stepId }: { stepId: string }) {
           onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }}
           searchValue={searchValue}
           onSearchChange={(v) => { setSearchValue(v); setCurrentPage(1); }}
-          onRowClick={(c: any) => router.push(`/dashboard/hiring/${c._id}/steps/${step.id}`)}
-          onView={(c: any) => router.push(`/dashboard/hiring/${c._id}/steps/${step.id}`)}
-          onNextStep={(c: any) => router.push(`/dashboard/hiring/${c._id}/steps/${step.id}`)}
+          onRowClick={(c: any) => router.push(`/company/hiring/${c._id}/steps/${step.id}`)}
+          onView={(c: any) => router.push(`/company/hiring/${c._id}/steps/${step.id}`)}
+          onNextStep={(c: any) => router.push(`/company/hiring/${c._id}/steps/${step.id}`)}
           showActions={true}
           showPrint={false}
           selectable={true}

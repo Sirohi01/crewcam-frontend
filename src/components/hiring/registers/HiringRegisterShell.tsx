@@ -45,13 +45,13 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
       const employeeId = idOf(row.employeeId) || (step?.entityField === 'employeeId' ? idOf(row[step?.entityField]) : null);
       if (employeeId) {
         const response = await api.get(`/hiring/employees/${employeeId}/candidate`);
-        router.push(`/dashboard/hiring/${response.data.candidateId}/steps/${nextStep.id}`);
+        router.push(`/company/hiring/${response.data.candidateId}/steps/${nextStep.id}`);
         return;
       }
     }
     const candidateId = idOf(row.candidateId) || (step?.entityField === 'candidateId' ? idOf(row[step?.entityField]) : null);
     if (!candidateId) return;
-    router.push(`/dashboard/hiring/${candidateId}/steps/${nextStep.id}`);
+    router.push(`/company/hiring/${candidateId}/steps/${nextStep.id}`);
   };
   const [search, setSearch] = useState('');
   const [pageSize, setPageSize] = useState(5);
@@ -138,12 +138,12 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
       const employeeId = idOf(row.employeeId);
       if (!employeeId) return;
       const response = await api.get(`/hiring/employees/${employeeId}/candidate`);
-      router.push(`/dashboard/hiring/${response.data.candidateId}/steps/${stepId}?edit=${row._id}`);
+      router.push(`/company/hiring/${response.data.candidateId}/steps/${stepId}?edit=${row._id}`);
       return;
     }
     const candidateId = idOf(row.candidateId);
     if (!candidateId) return;
-    router.push(`/dashboard/hiring/${candidateId}/steps/${stepId}?edit=${row._id}`);
+    router.push(`/company/hiring/${candidateId}/steps/${stepId}?edit=${row._id}`);
   };
 
   const filteredData = records.filter((item: any) => {
@@ -412,10 +412,10 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                     onClick={async () => {
                       if (step.entityField === 'employeeId') {
                         const response = await api.get(`/hiring/employees/${candidate._id}/candidate`);
-                        router.push(`/dashboard/hiring/${response.data.candidateId}/steps/${stepId}`);
+                        router.push(`/company/hiring/${response.data.candidateId}/steps/${stepId}`);
                         return;
                       }
-                      router.push(`/dashboard/hiring/${candidate._id}/steps/${stepId}`);
+                      router.push(`/company/hiring/${candidate._id}/steps/${stepId}`);
                     }}
                     className="w-full group flex items-center justify-between gap-3 p-4 transition-colors hover:bg-blue-50/50 text-left"
                   >

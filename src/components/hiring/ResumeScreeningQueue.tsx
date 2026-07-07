@@ -273,7 +273,7 @@ export default function ResumeScreeningQueue() {
                     <td className="px-4 py-2 text-center">
                       <div className="flex justify-end items-center gap-1.5">
                         <Button variant="outline" size="sm" className="h-7 px-2.5 rounded-[2px] border-slate-300 text-[10px] font-bold uppercase text-slate-700" asChild>
-                          <Link href={`/dashboard/hiring/${item._id}`}><FileText size={12} className="mr-1" />View</Link>
+                          <Link href={`/company/hiring/${item._id}`}><FileText size={12} className="mr-1" />View</Link>
                         </Button>
                         <Button size="sm" className="h-7 px-2.5 rounded-[2px] text-[10px] font-bold uppercase bg-[#0d3c68] hover:bg-[#0a2e50] text-white" disabled={screen.isPending} onClick={() => screen.mutate(item._id)}>
                           {screen.isPending ? <Loader2 size={11} className="mr-1 animate-spin" /> : <Sparkles size={11} className="mr-1" />}
@@ -293,7 +293,7 @@ export default function ResumeScreeningQueue() {
                   if (!activeItem) return null;
                   return (
                     <div ref={menuRef} style={{ position: 'fixed', top: menuPos.top, left: menuPos.left }} className="z-[100] w-44 rounded-[2px] border border-slate-200 bg-white shadow-lg py-1 text-left">
-                      <Link href={`/dashboard/hiring/${activeItem._id}`} className="block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50" onClick={() => setOpenMenuId(null)}>View screening history</Link>
+                      <Link href={`/company/hiring/${activeItem._id}`} className="block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50" onClick={() => setOpenMenuId(null)}>View screening history</Link>
                       <a href={`mailto:${activeItem.email}`} className="block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50" onClick={() => setOpenMenuId(null)}>Email candidate</a>
                     </div>
                   );

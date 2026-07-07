@@ -65,7 +65,7 @@ export default function InterviewQuestionsPage({ interviewId }: { interviewId: s
 
   return (
     <div className="space-y-3 pb-10">
-      <Link href="/dashboard/hiring/interviews/list" className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-indigo-600">
+      <Link href="/company/hiring/interviews/list" className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-indigo-600">
         <ArrowLeft size={13} /> Back to interview register
       </Link>
 
@@ -96,7 +96,7 @@ export default function InterviewQuestionsPage({ interviewId }: { interviewId: s
           </Button>
           {questions.length > 0 && interview.status !== 'Cancelled' && interview.status !== 'No_Show' && (
             <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm" asChild>
-              <Link href={`/dashboard/hiring/interviews/live/${interviewId}`}>
+              <Link href={`/company/hiring/interviews/live/${interviewId}`}>
                 <Video size={14} className="mr-2" />
                 {interview.status === 'In_Progress' ? 'Resume Interview' : interview.status === 'Completed' ? 'View Summary' : 'Start Interview'}
               </Link>

@@ -79,7 +79,7 @@
 
 //   const { data: dynamicBanners, isLoading: bannersLoading } = useQuery({
 //     queryKey: ['dashboard', 'banners'],
-//     queryFn: async () => (await api.get('/dashboard/banners')).data,
+//     queryFn: async () => (await api.get('/company/banners')).data,
 //     staleTime: 30_000,
 //   });
 
@@ -167,11 +167,11 @@
 // // ─── Page ─────────────────────────────────────────────────────────────────────
 
 // export default function DashboardPage() {
-//   const { data: config, isLoading } = useQuery<DashboardConfig>({ queryKey: ['dashboard', 'config'], queryFn: async () => (await api.get('/dashboard/config')).data });
+//   const { data: config, isLoading } = useQuery<DashboardConfig>({ queryKey: ['dashboard', 'config'], queryFn: async () => (await api.get('/company/config')).data });
 //   const liveWidgets = config?.widgets?.length ? config.widgets : FALLBACK_WIDGETS;
 //   const primaryWidgets = [...liveWidgets, ...FALLBACK_WIDGETS.filter((key) => !liveWidgets.includes(key))].slice(0, 4);
-//   const { data: hiring } = useQuery({ queryKey: ['dashboard', 'widget', 'hiring-pipeline-summary'], queryFn: async () => (await api.get('/dashboard/widget-data/hiring-pipeline-summary')).data });
-//   const { data: attendance } = useQuery({ queryKey: ['dashboard', 'widget', 'team-attendance-today'], queryFn: async () => (await api.get('/dashboard/widget-data/team-attendance-today')).data });
+//   const { data: hiring } = useQuery({ queryKey: ['dashboard', 'widget', 'hiring-pipeline-summary'], queryFn: async () => (await api.get('/company/widget-data/hiring-pipeline-summary')).data });
+//   const { data: attendance } = useQuery({ queryKey: ['dashboard', 'widget', 'team-attendance-today'], queryFn: async () => (await api.get('/company/widget-data/team-attendance-today')).data });
 //   const pipelineData = Object.entries(hiring || {}).map(([name, value]) => ({ name, count: Number(value || 0) })).filter((row) => row.count > 0);
 //   const resolvedPipeline = pipelineData.length ? pipelineData : fallbackPipeline;
 //   const pipelineTotal = resolvedPipeline.reduce((total, item) => total + item.count, 0);
@@ -201,7 +201,7 @@
 //       </section>
 
 //       <section className="grid gap-2 xl:grid-cols-12">
-//         <ChartCard className="xl:col-span-7" title="Attendance trend" subtitle="Daily check-ins across the past 7 days" action="View attendance" href="/dashboard/attendance/today">
+//         <ChartCard className="xl:col-span-7" title="Attendance trend" subtitle="Daily check-ins across the past 7 days" action="View attendance" href="/company/attendance/today">
 //           <div className="h-[185px]">
 //             <ResponsiveContainer width="100%" height="100%">
 //               <AreaChart data={weeklyActivity} margin={{ top: 8, right: 5, left: -22, bottom: 0 }}>
@@ -230,7 +230,7 @@
 //       </section>
 
 //       <section className="grid gap-2 xl:grid-cols-12">
-//         <ChartCard className="xl:col-span-4" title="Hiring pipeline" subtitle="Candidates by current stage" action="Open pipeline" href="/dashboard/hiring/pipeline">
+//         <ChartCard className="xl:col-span-4" title="Hiring pipeline" subtitle="Candidates by current stage" action="Open pipeline" href="/company/hiring/pipeline">
 //           <div className="flex h-[185px] items-center">
 //             <div className="relative h-[175px] w-[48%]">
 //               <ResponsiveContainer width="100%" height="100%">
@@ -254,7 +254,7 @@
 //             <h3 className="mt-3 text-base font-md">Weekly focus</h3>
 //             <p className="mt-1 text-sm leading-5 text-zinc-500">You&apos;re moving well. A few small actions can keep the week on track.</p>
 //             <div className="mt-3 space-y-2"><Focus text="Review 3 pending approvals" done /><Focus text="Schedule 2 final interviews" /><Focus text="Publish team Friday update" /></div>
-//             <Link href="/dashboard/todos" className="mt-auto inline-flex items-center gap-1.5 text-sm font-md text-violet-700">Open task board <ArrowRight size={15} /></Link>
+//             <Link href="/company/todos" className="mt-auto inline-flex items-center gap-1.5 text-sm font-md text-violet-700">Open task board <ArrowRight size={15} /></Link>
 //           </CardContent>
 //         </Card>
 //       </section>
@@ -279,15 +279,15 @@
 //           <CardContent className="p-4">
 //             <div className="flex items-start justify-between"><div><p className="text-sm font-md">Quick actions</p><p className="mt-0.5 text-xs text-zinc-500">The things that need a human touch.</p></div><Sparkles size={18} className="text-violet-500" /></div>
 //             <div className="mt-3 grid gap-2 sm:grid-cols-3">
-//               <QuickAction href="/dashboard/hiring/manpower" icon={<FilePlus2 size={17} />} label="New requisition" />
-//               <QuickAction href="/dashboard/attendance/today" icon={<Activity size={17} />} label="Check attendance" />
-//               <QuickAction href="/dashboard/hiring/pipeline" icon={<UserPlus size={17} />} label="Review candidates" />
-//               <QuickAction href="/dashboard/leaves" icon={<CalendarCheck size={17} />} label="Manage leaves" />
-//               <QuickAction href="/dashboard/todos" icon={<ListTodo size={17} />} label="My task board" />
-//               <QuickAction href="/dashboard/employees" icon={<Users size={17} />} label="Employee directory" />
-//               <QuickAction href="/dashboard/leave-credit" icon={<CalendarCheck size={17} />} label="Credit leave balance" />
-//               <QuickAction href="/dashboard/meetings" icon={<Activity size={17} />} label="Plan a meeting" />
-//               <QuickAction href="/dashboard/settings/company" icon={<Sparkles size={17} />} label="Company settings" />
+//               <QuickAction href="/company/hiring/manpower" icon={<FilePlus2 size={17} />} label="New requisition" />
+//               <QuickAction href="/company/attendance/today" icon={<Activity size={17} />} label="Check attendance" />
+//               <QuickAction href="/company/hiring/pipeline" icon={<UserPlus size={17} />} label="Review candidates" />
+//               <QuickAction href="/company/leaves" icon={<CalendarCheck size={17} />} label="Manage leaves" />
+//               <QuickAction href="/company/todos" icon={<ListTodo size={17} />} label="My task board" />
+//               <QuickAction href="/company/employees" icon={<Users size={17} />} label="Employee directory" />
+//               <QuickAction href="/company/leave-credit" icon={<CalendarCheck size={17} />} label="Credit leave balance" />
+//               <QuickAction href="/company/meetings" icon={<Activity size={17} />} label="Plan a meeting" />
+//               <QuickAction href="/company/settings/company" icon={<Sparkles size={17} />} label="Company settings" />
 //             </div>
 //           </CardContent>
 //         </Card>
@@ -300,7 +300,7 @@
 
 // function KpiCard({ widgetKey }: { widgetKey: string }) {
 //   const meta = META[widgetKey] || META['org-headcount'];
-//   const { data, isLoading } = useQuery({ queryKey: ['dashboard', 'widget', widgetKey], queryFn: async () => (await api.get(`/dashboard/widget-data/${widgetKey}`)).data });
+//   const { data, isLoading } = useQuery({ queryKey: ['dashboard', 'widget', widgetKey], queryFn: async () => (await api.get(`/company/widget-data/${widgetKey}`)).data });
 //   return (
 //     <Card className="group h-[90px] overflow-hidden border-zinc-200/80 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
 //       <CardContent className="relative flex h-full items-center gap-3 p-3">

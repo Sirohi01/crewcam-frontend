@@ -60,7 +60,7 @@ export default function NominationFormPage({ candidateId }: { candidateId: strin
           </div>
           <div className="flex gap-2 items-center">
             <StepGate unlocked={!locked} blockedBy={stepState?.gate?.blockedBy || []} compact />
-            <Button variant="ghost" className="h-8 gap-2 px-3 text-xs border border-slate-200" onClick={() => router.push(`/dashboard/hiring/${candidateId}`)}>
+            <Button variant="ghost" className="h-8 gap-2 px-3 text-xs border border-slate-200" onClick={() => router.push(`/company/hiring/${candidateId}`)}>
               <ArrowLeft size={14} /> Back
             </Button>
           </div>

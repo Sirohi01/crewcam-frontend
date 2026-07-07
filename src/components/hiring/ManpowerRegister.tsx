@@ -135,7 +135,7 @@ export default function ManpowerRegister() {
               <RefreshCw size={12} /> Refresh
             </Button>
             <Button asChild className="h-7 gap-2 bg-[#0d3c68] px-3 text-[11px] font-bold uppercase hover:bg-[#0a2e50] text-white rounded-[2px]">
-              <Link href="/dashboard/hiring/manpower/new"><ExternalLink size={12} /> Add Manpower</Link>
+              <Link href="/company/hiring/manpower/new"><ExternalLink size={12} /> Add Manpower</Link>
             </Button>
           </div>
         </div>
@@ -264,7 +264,7 @@ export default function ManpowerRegister() {
                     </td>
                     <td className="px-3 py-2 text-center">
                       <div className="flex items-center justify-center gap-1">
-                        <Link href={`/dashboard/hiring/manpower/${request._id}`} className="p-1.5 text-slate-700 hover:bg-slate-100 rounded transition-colors" title="View">
+                        <Link href={`/company/hiring/manpower/${request._id}`} className="p-1.5 text-slate-700 hover:bg-slate-100 rounded transition-colors" title="View">
                           <Eye size={13} />
                         </Link>
                         <button disabled={generatePdf.isPending} onClick={() => generatePdf.mutate(request._id)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition-colors" title="Generate PDF">
@@ -286,7 +286,7 @@ export default function ManpowerRegister() {
                     <div ref={menuRef} style={{ position: 'fixed', top: menuPos.top, left: menuPos.left }} className="z-[100] w-36 rounded shadow-lg border border-slate-200 bg-white py-1 text-left overflow-hidden">
                       {activeItem.status === 'Pending' ? (
                         <>
-                          <Link href={`/dashboard/hiring/manpower/${activeItem._id}/edit`} onClick={() => setOpenMenuId(null)} className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"><Pencil size={13} /> Edit</Link>
+                          <Link href={`/company/hiring/manpower/${activeItem._id}/edit`} onClick={() => setOpenMenuId(null)} className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"><Pencil size={13} /> Edit</Link>
                           <button onClick={() => { changeStatus.mutate({ id: activeItem._id, nextStatus: 'Approved' }); setOpenMenuId(null); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium text-emerald-700 hover:bg-emerald-50"><CheckCircle2 size={13} /> Approve</button>
                           <button onClick={() => { changeStatus.mutate({ id: activeItem._id, nextStatus: 'Rejected' }); setOpenMenuId(null); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium text-rose-700 hover:bg-rose-50"><XCircle size={13} /> Reject</button>
                         </>

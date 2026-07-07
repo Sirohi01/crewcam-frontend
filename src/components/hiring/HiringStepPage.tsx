@@ -405,7 +405,7 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
       queryClient.invalidateQueries({ queryKey: ['hiring-register', step?.apiPath] });
       toast.success(`${step?.title || 'Step'} ${editId ? 'updated' : 'saved'} successfully!`);
       if (step) {
-        router.push(`/dashboard/hiring/steps/${step.id}`);
+        router.push(`/company/hiring/steps/${step.id}`);
       }
     },
     onError: (error: any) => {
@@ -462,7 +462,7 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
   return (
     <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-10 px-2 lg:px-4">
       <div className="flex items-center justify-between border-b border-zinc-200 pb-3 dark:border-zinc-800">
-        <Button variant="ghost" className="h-8 gap-2 px-2 text-xs" onClick={() => router.push(`/dashboard/hiring/${candidateId}`)}>
+        <Button variant="ghost" className="h-8 gap-2 px-2 text-xs" onClick={() => router.push(`/company/hiring/${candidateId}`)}>
           <ArrowLeft size={14} /> Candidate Workflow
         </Button>
         <StepGate unlocked={!locked} blockedBy={step.entityField === 'employeeId' && !entityId ? ['employeeId'] : stepState?.gate.blockedBy || []} compact />
@@ -595,7 +595,7 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
               {step.entityField === 'employeeId' && !entityId && (
                 <div className="rounded-md bg-amber-50 p-2 text-xs text-amber-700">Link an employee through Step 9 before this post-joining step can be used.</div>
               )}
-              <Link href={`/dashboard/hiring/${candidateId}`} className="block pt-2 text-xs font-md text-zinc-700 underline dark:text-zinc-200">
+              <Link href={`/company/hiring/${candidateId}`} className="block pt-2 text-xs font-md text-zinc-700 underline dark:text-zinc-200">
                 View all hiring steps
               </Link>
             </CardContent>
