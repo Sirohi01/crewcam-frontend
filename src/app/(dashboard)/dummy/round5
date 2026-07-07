@@ -1,0 +1,692 @@
+'use client';
+
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  Check, ArrowLeft, LogOut, Phone, Mail, MapPin, Link2, ArrowRight,
+  Flag, Sparkles, Bold, Italic, Underline, List, Link as LinkIcon, Code2,
+  FileText, ClipboardList, MessageSquare, Paperclip, CheckCircle2, Clock3,
+  CreditCard, CalendarClock, Gauge, ThumbsUp, Save, CalendarPlus, ExternalLink,
+  MessageCircle, Users, Sparkle, Handshake, Briefcase as BriefcaseIcon,
+  HeartHandshake, Lightbulb, Crown, HelpCircle,
+} from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+
+// ─── Types ──────────────────────────────────────────────────────────────────
+type StepStatus = 'done' | 'active' | 'upcoming';
+
+interface Step {
+  n: number;
+  label: string;
+  status: StepStatus;
+}
+
+interface RoundOverview {
+  n: number;
+  title: string;
+  subtitle: string;
+  status: 'Completed' | 'In Progress' | 'Upcoming';
+  duration: string;
+}
+
+interface Question {
+  tag: string;
+  text: string;
+  aiInsight: string;
+}
+
+// ─── Mock data (matches the reference screenshot) ──────────────────────────
+const STEPS: Step[] = [
+  { n: 1, label: 'Upload CV', status: 'done' },
+  { n: 2, label: 'Review & Edit', status: 'done' },
+  { n: 3, label: 'Submit Application', status: 'done' },
+  { n: 4, label: 'AI Screening', status: 'done' },
+  { n: 5, label: 'HOD Review', status: 'done' },
+  { n: 6, label: 'Interview', status: 'active' },
+  { n: 7, label: 'Offer', status: 'upcoming' },
+  { n: 8, label: 'Onboarding', status: 'upcoming' },
+];
+
+const ROUNDS_OVERVIEW: RoundOverview[] = [
+  { n: 1, title: 'Round 1', subtitle: 'AI Screening Interview', status: 'Completed', duration: '30 Min' },
+  { n: 2, title: 'Round 2', subtitle: 'Technical Interview', status: 'Completed', duration: '40 Min' },
+  { n: 3, title: 'Round 3', subtitle: 'Managerial Interview', status: 'Completed', duration: '40 Min' },
+  { n: 4, title: 'Round 4', subtitle: 'Written Assessment', status: 'Completed', duration: '60 Min' },
+  { n: 5, title: 'Round 5', subtitle: 'HR Interview', status: 'In Progress', duration: '25 Min' },
+];
+
+const COMPETENCIES: { label: string; icon: React.ReactNode }[] = [
+  { label: 'Communication', icon: <MessageCircle size={12} /> },
+  { label: 'Teamwork', icon: <Users size={12} /> },
+  { label: 'Adaptability', icon: <Sparkle size={12} /> },
+  { label: 'Conflict Resolution', icon: <Handshake size={12} /> },
+  { label: 'Work Ethic', icon: <BriefcaseIcon size={12} /> },
+  { label: 'Values Alignment', icon: <HeartHandshake size={12} /> },
+  { label: 'Problem Solving', icon: <Lightbulb size={12} /> },
+  { label: 'Leadership Potential', icon: <Crown size={12} /> },
+];
+
+const GUIDELINES = [
+  'Be honest and confident in your responses.',
+  'Use real examples from your experience.',
+  'Listen carefully and answer thoughtfully.',
+  'Maintain professionalism throughout.',
+  'AI will evaluate your responses in real-time.',
+];
+
+const AI_INSIGHTS = [
+  'Questions are generated in real-time based on HR competencies & culture fit.',
+  'Answers are analyzed for clarity, relevance, and alignment with company values.',
+  'Stay confident, honest and provide real examples.',
+  'Detailed feedback will be provided after the round.',
+];
+
+const QUESTIONS: Question[] = [
+  { tag: 'Culture Fit', text: 'Why do you want to work with our organization?', aiInsight: '' },
+  { tag: 'HR & Culture Fit', text: 'How do you handle conflicts within a team while maintaining a positive work environment? Share a specific example.', aiInsight: 'This question evaluates your interpersonal skills, conflict resolution approach, and ability to maintain team harmony.' },
+];
+
+const PREVIOUS_ANSWER = 'I am impressed by your mission to improve healthcare accessibility and the collaborative culture. I see strong alignment between your values and my vision, and I want to contribute to your growth journey.';
+
+const TABS = ['Interview', 'AI Questions', 'Notes', 'Evaluation', 'Attachments'] as const;
+type TabKey = (typeof TABS)[number];
+
+// ─── Stepper ────────────────────────────────────────────────────────────────
+function Stepper() {
+  return (
+    <div className="flex items-start justify-center flex-nowrap w-full max-w-full">
+      {STEPS.map((s, i) => (
+        <React.Fragment key={s.n}>
+          <div className="flex flex-col items-center gap-0.5 shrink-0 w-[34px] sm:w-[42px]">
+            <div
+              className={`grid h-4 w-4 sm:h-5 sm:w-5 place-items-center rounded-full border-2 text-[7px] sm:text-[8px] font-bold shrink-0 ${
+                s.status === 'done'
+                  ? 'bg-violet-600 border-violet-600 text-white'
+                  : s.status === 'active'
+                  ? 'bg-violet-600 border-violet-600 text-white ring-2 ring-violet-100'
+                  : 'bg-white border-zinc-200 text-zinc-400'
+              }`}
+            >
+              {s.status === 'done' ? <Check size={8} /> : s.n}
+            </div>
+            <span
+              className={`text-[6.5px] sm:text-[7px] font-medium text-center leading-[1.05] px-0.5 line-clamp-1 ${
+                s.status === 'upcoming' ? 'text-zinc-400' : 'text-zinc-700'
+              }`}
+            >
+              {s.label}
+            </span>
+          </div>
+          {i < STEPS.length - 1 && (
+            <div
+              className={`h-[2px] w-1.5 sm:w-3 shrink-0 mt-[7px] sm:mt-[9px] ${
+                s.status === 'done' ? 'bg-violet-600' : 'bg-zinc-200'
+              }`}
+            />
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+// ─── Page header ────────────────────────────────────────────────────────────
+function PageHeader() {
+  return (
+    <section className="flex flex-nowrap items-center justify-between gap-3 py-1 w-full max-w-full overflow-hidden">
+      <div className="shrink-0">
+        <h1 className="text-xl font-bold text-zinc-900 leading-tight">Interview – Round 5</h1>
+        <p className="text-[13px] text-zinc-500 mt-1">HR Interview – AI Powered</p>
+      </div>
+      <div className="flex-1 flex justify-center min-w-0 overflow-hidden px-2">
+        <Stepper />
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:border-violet-300 transition-colors whitespace-nowrap">
+          <ArrowLeft size={14} />
+          Back to Applications
+        </button>
+        <button className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3.5 py-2 text-[12px] font-semibold text-white shadow-sm hover:bg-violet-700 transition-colors whitespace-nowrap">
+          End Interview
+          <LogOut size={14} />
+        </button>
+      </div>
+    </section>
+  );
+}
+
+// ─── Candidate info card ────────────────────────────────────────────────────
+// Refactored into a strict 4-column grid so "Applied For" and "Current Round"
+// always sit side-by-side on the same row and never wrap onto a new line,
+// matching the reference layout exactly.
+function CandidateInfoCard() {
+  return (
+    <Card className="border-zinc-200/80 shadow-sm">
+      <CardContent className="p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,0.9fr)_minmax(0,1.1fr)_minmax(0,0.8fr)] gap-x-6 gap-y-4 items-start">
+          {/* Column 1: photo, name, title, contact */}
+          <div className="flex items-start gap-4 min-w-0">
+            <img
+              src="https://i.pravatar.cc/150?u=amitverma"
+              alt="Amit Kumar Verma"
+              className="w-16 h-16 rounded-xl object-cover border border-zinc-100 shadow-sm shrink-0"
+            />
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-[15px] font-bold text-zinc-900">Amit Kumar Verma</h2>
+                <span className="inline-flex items-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap">
+                  Round 5 In Progress
+                </span>
+              </div>
+              <p className="text-[12.5px] text-zinc-500 mt-0.5">Sales Manager</p>
+              <div className="mt-2 space-y-1">
+                <p className="flex items-center gap-1.5 text-[12px] text-zinc-600"><Phone size={12} className="text-zinc-400" /> +91 98765 43210</p>
+                <p className="flex items-center gap-1.5 text-[12px] text-zinc-600"><Mail size={12} className="text-zinc-400" /> amit.verma@email.com</p>
+                <p className="flex items-center gap-1.5 text-[12px] text-zinc-600"><MapPin size={12} className="text-zinc-400" /> Noida, Uttar Pradesh</p>
+                <p className="flex items-center gap-1.5 text-[12px] text-violet-600"><Link2 size={12} /> linkedin.com/in/amitverma</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Column 2: Applied For / Department / Experience */}
+          <div className="min-w-0">
+            <p className="text-[10.5px] font-semibold uppercase tracking-wide text-zinc-400">Applied For</p>
+            <p className="text-[13px] font-semibold text-zinc-800 mt-1">Sales Manager</p>
+            <p className="text-[10.5px] font-semibold uppercase tracking-wide text-zinc-400 mt-2.5">Department</p>
+            <p className="text-[13px] font-semibold text-zinc-800 mt-1">Sales & Marketing</p>
+            <p className="text-[10.5px] font-semibold uppercase tracking-wide text-zinc-400 mt-2.5">Experience</p>
+            <p className="text-[13px] font-semibold text-zinc-800 mt-1">7 Years</p>
+          </div>
+
+          {/* Column 3: Current Round / Interviewer — stays on the same row */}
+          <div className="min-w-0">
+            <p className="text-[10.5px] font-semibold uppercase tracking-wide text-zinc-400">Current Round</p>
+            <p className="text-[13px] font-semibold text-zinc-800 mt-1">Round 5 – HR Interview</p>
+            <p className="text-[10.5px] font-semibold uppercase tracking-wide text-zinc-400 mt-2.5">Interviewer</p>
+            <div className="flex items-center gap-2 mt-1.5">
+              <img src="https://i.pravatar.cc/150?u=poojasharma" alt="Pooja Sharma" className="w-7 h-7 rounded-full object-cover border border-zinc-100 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[12.5px] font-semibold text-zinc-800 leading-tight truncate">Pooja Sharma</p>
+                <p className="text-[10px] text-zinc-400 leading-tight">HR Manager</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Column 4: action button */}
+          <div className="min-w-0 flex lg:justify-end">
+            <button className="inline-flex items-center gap-1 text-[12px] font-semibold text-violet-600 hover:text-violet-700 transition-colors whitespace-nowrap">
+              View Candidate Profile <ArrowRight size={12} />
+            </button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Application summary card ──────────────────────────────────────────────
+function ApplicationSummaryCard() {
+  const rows = [
+    { icon: <CreditCard size={13} />, label: 'Application ID', value: 'APP-2026-000124' },
+    { icon: <CalendarClock size={13} />, label: 'Applied On', value: '15 June 2026, 11:32 AM' },
+    { icon: <ClipboardList size={13} />, label: 'Current Stage', value: 'Interview – Round 5' },
+    { icon: <Gauge size={13} />, label: 'AI Screening Score', value: '87%' },
+  ];
+  return (
+    <Card className="border-zinc-200/80 shadow-sm">
+      <CardContent className="p-4">
+        <h3 className="text-[13px] font-bold text-zinc-900 mb-3">Application Summary</h3>
+        <div className="space-y-2.5">
+          {rows.map((r) => (
+            <div key={r.label} className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-1.5 text-[12px] text-zinc-500 shrink-0">
+                <span className="text-violet-500">{r.icon}</span>
+                {r.label}
+              </span>
+              <span className="text-[12px] font-semibold text-zinc-800 text-right whitespace-nowrap">{r.value}</span>
+            </div>
+          ))}
+          <div className="flex items-center justify-between gap-3">
+            <span className="flex items-center gap-1.5 text-[12px] text-zinc-500 shrink-0">
+              <span className="text-violet-500"><ThumbsUp size={13} /></span>
+              HOD Review
+            </span>
+            <span className="inline-flex items-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 text-[10px] font-semibold shrink-0 whitespace-nowrap">
+              Recommended
+            </span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Tabs ───────────────────────────────────────────────────────────────────
+function TabsBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) => void }) {
+  const icons: Record<TabKey, React.ReactNode> = {
+    Interview: <MessageSquare size={13} />,
+    'AI Questions': <Sparkles size={13} />,
+    Notes: <FileText size={13} />,
+    Evaluation: <ClipboardList size={13} />,
+    Attachments: <Paperclip size={13} />,
+  };
+  return (
+    <div className="flex flex-wrap items-center gap-1 border-b border-zinc-100">
+      {TABS.map((tab) => (
+        <button
+          key={tab}
+          onClick={() => onChange(tab)}
+          className={`relative flex items-center gap-1.5 px-3 py-2.5 text-[12.5px] font-semibold whitespace-nowrap transition-colors ${
+            active === tab ? 'text-violet-700' : 'text-zinc-500 hover:text-zinc-700'
+          }`}
+        >
+          {icons[tab]}
+          {tab}
+          {active === tab && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-violet-600 rounded-full" />}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── Circular timer ─────────────────────────────────────────────────────────
+function CircularTimer({ remainingSeconds, totalSeconds }: { remainingSeconds: number; totalSeconds: number }) {
+  const radius = 46;
+  const circumference = 2 * Math.PI * radius;
+  const pct = Math.max(0, Math.min(1, remainingSeconds / totalSeconds));
+  const offset = circumference * (1 - pct);
+  const mm = Math.floor(remainingSeconds / 60);
+  const ss = remainingSeconds % 60;
+  const totalMm = Math.floor(totalSeconds / 60);
+
+  return (
+    <div className="relative grid place-items-center h-[118px] w-[118px] mx-auto">
+      <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90">
+        <circle cx="60" cy="60" r={radius} fill="none" stroke="#f0eefc" strokeWidth="8" />
+        <circle
+          cx="60" cy="60" r={radius} fill="none" stroke="#7c3aed" strokeWidth="8"
+          strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
+        />
+      </svg>
+      <div className="absolute inset-0 grid place-items-center flex-col text-center">
+        <div className="flex flex-col items-center">
+          <span className="text-[10px] text-zinc-400 font-medium">Time Remaining</span>
+          <span className="text-[20px] font-bold text-violet-700 leading-tight">{String(mm).padStart(2, '0')}:{String(ss).padStart(2, '0')}</span>
+          <span className="text-[10px] text-zinc-400">of {String(totalMm).padStart(2, '0')}:00</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Round progress panel ───────────────────────────────────────────────────
+function RoundProgressPanel({ remainingSeconds, totalSeconds, answered, total }: {
+  remainingSeconds: number; totalSeconds: number; answered: number; total: number;
+}) {
+  return (
+    <Card className="border-zinc-200/80 shadow-sm h-full">
+      <CardContent className="p-3.5 flex flex-col h-full">
+        <h3 className="text-[13px] font-bold text-zinc-900">Round Progress</h3>
+        <p className="text-[12px] text-zinc-500 mt-0.5">Round 5 of 5</p>
+        <p className="text-[12px] font-semibold text-zinc-700">HR Interview</p>
+
+        <CircularTimer remainingSeconds={remainingSeconds} totalSeconds={totalSeconds} />
+
+        <div className="mt-1 space-y-1.5 text-[12.5px]">
+          <div className="flex items-center justify-between">
+            <span className="text-zinc-500">Total Questions</span>
+            <span className="font-bold text-zinc-800">{total}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-zinc-500">Answered</span>
+            <span className="font-bold text-zinc-800">{answered}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-zinc-500">Remaining</span>
+            <span className="font-bold text-zinc-800">{total - answered}</span>
+          </div>
+        </div>
+
+        <div className="mt-auto pt-3">
+          <div className="rounded-lg bg-violet-50 border border-violet-100 p-2.5 text-[11px] text-violet-700 leading-snug">
+            All questions are AI-generated based on candidate profile, role, and HR competencies.
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Question panel ─────────────────────────────────────────────────────────
+function QuestionPanel({
+  index, total, question, answer, onAnswerChange, onPrev, onNext,
+}: {
+  index: number; total: number; question: Question; answer: string; onAnswerChange: (v: string) => void;
+  onPrev: () => void; onNext: () => void;
+}) {
+  return (
+    <Card className="border-zinc-200/80 shadow-sm h-full">
+      <CardContent className="p-4 flex flex-col h-full">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <div className="flex items-center gap-2">
+            <h3 className="text-[13px] font-bold text-zinc-900">Question {index + 1} of {total}</h3>
+            <span className="inline-flex items-center rounded-full bg-violet-50 text-violet-600 border border-violet-100 px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap">
+              {question.tag}
+            </span>
+          </div>
+          <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-violet-300 transition-colors">
+            <Flag size={12} className="text-zinc-400" />
+            Flag Question
+          </button>
+        </div>
+
+        <p className="text-[15px] font-semibold text-zinc-800 leading-snug mt-2">{question.text}</p>
+
+        {question.aiInsight && (
+          <div className="mt-3 rounded-lg bg-violet-50/70 border border-violet-100 p-3">
+            <p className="flex items-center gap-1.5 text-[11.5px] font-bold text-violet-700">
+              <Sparkles size={13} /> AI Insight
+            </p>
+            <p className="text-[11.5px] text-violet-700/90 mt-1 leading-snug">{question.aiInsight}</p>
+          </div>
+        )}
+
+        <div className="mt-3 rounded-lg border border-zinc-200 overflow-hidden flex-1 flex flex-col min-h-[160px]">
+          <div className="flex items-center gap-1 border-b border-zinc-100 bg-zinc-50/60 px-2 py-1.5">
+            {[Bold, Italic, Underline, List, LinkIcon, Code2].map((Icon, i) => (
+              <button key={i} className="grid h-6 w-6 place-items-center rounded text-zinc-500 hover:bg-zinc-200/60 transition-colors">
+                <Icon size={13} />
+              </button>
+            ))}
+          </div>
+          <textarea
+            value={answer}
+            onChange={(e) => onAnswerChange(e.target.value)}
+            placeholder="Type your answer here..."
+            maxLength={2000}
+            className="w-full flex-1 min-h-[110px] resize-none px-3 py-2.5 text-[12.5px] text-zinc-700 placeholder:text-zinc-400 focus:outline-none"
+          />
+          <div className="flex items-center justify-between px-3 py-1.5 border-t border-zinc-100 text-[10.5px] text-zinc-400">
+            <span>Minimum 50 words</span>
+            <span>{answer.length} / 2000</span>
+          </div>
+        </div>
+
+        <p className="flex items-center gap-1.5 text-[11px] text-emerald-600 mt-2">
+          <CheckCircle2 size={13} /> Your answer is auto-saved
+        </p>
+
+        <div className="flex items-center justify-between gap-2 mt-3">
+          <button
+            onClick={onPrev}
+            disabled={index === 0}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:border-violet-300 disabled:opacity-40 transition-colors"
+          >
+            <ArrowLeft size={13} />
+            Previous Question
+          </button>
+          <button
+            onClick={onNext}
+            disabled={index === total - 1}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3.5 py-2 text-[12px] font-semibold text-white shadow-sm hover:bg-violet-700 disabled:opacity-40 transition-colors"
+          >
+            Next Question
+            <ArrowRight size={13} />
+          </button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── AI Interview Assistant panel ───────────────────────────────────────────
+function AIAssistantPanel() {
+  return (
+    <Card className="border-zinc-200/80 shadow-sm h-full">
+      <CardContent className="p-3.5 flex flex-col h-full">
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles size={15} className="text-violet-600" />
+          <h3 className="text-[13px] font-bold text-zinc-900">AI Interview Assistant</h3>
+          <span className="inline-flex items-center rounded-full bg-violet-600 text-white px-1.5 py-0.5 text-[9px] font-bold">BETA</span>
+        </div>
+        <ul className="space-y-4">
+          {AI_INSIGHTS.map((insight, i) => (
+            <li key={i} className="flex items-start gap-2 text-[12px] text-zinc-600 leading-snug">
+              <span className="mt-1 h-1.5 w-1.5 rounded-full bg-violet-400 shrink-0" />
+              {insight}
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Previous answer card ───────────────────────────────────────────────────
+function PreviousAnswerCard() {
+  return (
+    <Card className="border-zinc-200/80 shadow-sm">
+      <CardContent className="p-3">
+        <h3 className="text-[12px] font-bold text-zinc-900 mb-2">Your Previous Answer (Q1)</h3>
+        <div className="flex items-start gap-2 mb-1.5">
+          <span className="inline-flex items-center rounded-full bg-zinc-100 text-zinc-600 px-1.5 py-0.5 text-[9.5px] font-semibold shrink-0">Q.1</span>
+          <p className="text-[11.5px] font-semibold text-zinc-800 leading-snug">{QUESTIONS[0].text}</p>
+        </div>
+        <div className="rounded-lg bg-emerald-50/60 border border-emerald-100 p-2">
+          <p className="text-[11px] text-zinc-700 leading-snug line-clamp-2">{PREVIOUS_ANSWER}</p>
+          <button className="mt-1 text-[10.5px] font-semibold text-violet-600 hover:text-violet-700 transition-colors">
+            View Full Answer
+          </button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── HR competency areas card ───────────────────────────────────────────────
+function CompetencyAreasCard() {
+  return (
+    <Card className="border-zinc-200/80 shadow-sm">
+      <CardContent className="p-3">
+        <h3 className="text-[12px] font-bold text-zinc-900 mb-2">HR Competency Areas</h3>
+        <div className="flex flex-wrap gap-1.5">
+          {COMPETENCIES.map((c) => (
+            <span
+              key={c.label}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-violet-50 text-violet-700 border border-violet-100 px-2 py-1 text-[10.5px] font-medium whitespace-nowrap"
+            >
+              {c.icon}
+              {c.label}
+            </span>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Interview rounds overview (sidebar) ───────────────────────────────────
+function RoundsOverviewCard() {
+  return (
+    <Card className="border-zinc-200/80 shadow-sm">
+      <CardContent className="p-4">
+        <h3 className="text-[13px] font-bold text-zinc-900 mb-3">Interview Rounds Overview</h3>
+        <div className="space-y-1">
+          {ROUNDS_OVERVIEW.map((r) => (
+            <div
+              key={r.n}
+              className={`flex items-center gap-2.5 rounded-lg p-2 ${r.status === 'In Progress' ? 'bg-violet-50/70' : ''}`}
+            >
+              <span
+                className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${
+                  r.status === 'Completed'
+                    ? 'bg-emerald-500 text-white'
+                    : r.status === 'In Progress'
+                    ? 'bg-white border-2 border-violet-500 text-violet-600'
+                    : 'bg-zinc-100 text-zinc-400'
+                }`}
+              >
+                {r.status === 'Completed' ? <Check size={14} /> : <Clock3 size={14} />}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[12.5px] font-semibold text-zinc-800 leading-tight truncate">{r.title}</p>
+                <p className="text-[10.5px] text-zinc-400 leading-tight truncate">{r.subtitle}</p>
+              </div>
+              <div className="flex flex-col items-end gap-1 shrink-0 w-[74px]">
+                <span
+                  className={`inline-flex items-center justify-center w-full rounded-full border px-1.5 py-0.5 text-[9px] font-semibold whitespace-nowrap ${
+                    r.status === 'Completed'
+                      ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                      : 'bg-violet-50 text-violet-600 border-violet-100'
+                  }`}
+                >
+                  {r.status}
+                </span>
+                <span className="text-[10px] text-zinc-400">{r.duration}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── HR interview guidelines (sidebar) ─────────────────────────────────────
+function GuidelinesCard() {
+  return (
+    <Card className="border-zinc-200/80 shadow-sm">
+      <CardContent className="p-4">
+        <h3 className="text-[13px] font-bold text-zinc-900 mb-3">HR Interview Guidelines</h3>
+        <ul className="space-y-2">
+          {GUIDELINES.map((g, i) => (
+            <li key={i} className="flex items-start gap-2 text-[12px] text-zinc-600 leading-snug">
+              <HelpCircle size={13} className="text-violet-400 mt-0.5 shrink-0" />
+              {g}
+            </li>
+          ))}
+        </ul>
+        <button className="mt-3 inline-flex items-center gap-1 text-[12px] font-semibold text-violet-600 hover:text-violet-700 transition-colors">
+          Need Help? View Guidelines <ExternalLink size={12} />
+        </button>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Bottom action bar ──────────────────────────────────────────────────────
+function BottomActionBar() {
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+      <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3.5 py-2 text-[12.5px] font-semibold text-zinc-700 shadow-sm hover:border-violet-300 transition-colors">
+        <Save size={14} />
+        Save Notes
+      </button>
+      <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3.5 py-2 text-[12.5px] font-semibold text-zinc-700 shadow-sm hover:border-violet-300 transition-colors">
+        <CalendarPlus size={14} />
+        Schedule Next Round
+      </button>
+      <button className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3.5 py-2 text-[12.5px] font-semibold text-white shadow-sm hover:bg-violet-700 transition-colors">
+        <CheckCircle2 size={14} />
+        End Interview & Submit Evaluation
+      </button>
+    </div>
+  );
+}
+
+// ─── Page ───────────────────────────────────────────────────────────────────
+export default function InterviewRoundPage() {
+  const [activeTab, setActiveTab] = useState<TabKey>('Interview');
+  const [questionIndex, setQuestionIndex] = useState(1);
+  const [answers, setAnswers] = useState<string[]>(['', '']);
+  const totalSeconds = 25 * 60;
+  const [remainingSeconds, setRemainingSeconds] = useState(22 * 60 + 35);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setRemainingSeconds((s) => (s > 0 ? s - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const answeredCount = useMemo(() => answers.filter((a) => a.trim() !== '').length || 1, [answers]);
+
+  const handleAnswerChange = (v: string) => {
+    setAnswers((prev) => {
+      const next = [...prev];
+      next[questionIndex] = v;
+      return next;
+    });
+  };
+
+  return (
+    <main className="mx-auto max-w-[1600px] w-full space-y-3 overflow-x-hidden pb-6 px-2 sm:px-3">
+      <PageHeader />
+
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-3">
+        <div className="space-y-3 min-w-0">
+          <CandidateInfoCard />
+
+          <Card className="border-zinc-200/80 shadow-sm">
+            <CardContent className="p-0">
+              <div className="px-3.5 pt-1">
+                <TabsBar active={activeTab} onChange={setActiveTab} />
+              </div>
+
+              {activeTab === 'Interview' ? (
+                <div className="p-3.5 space-y-3">
+                  {/* Middle row: 12-column grid so Round Progress / Question /
+                      AI Assistant share identical heights via items-stretch
+                      and each card's own h-full. 3 / 6 / 3 column split keeps
+                      the question + editor column dominant, matching the
+                      reference proportions. */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+                    <div className="lg:col-span-3">
+                      <RoundProgressPanel
+                        remainingSeconds={remainingSeconds}
+                        totalSeconds={totalSeconds}
+                        answered={answeredCount}
+                        total={QUESTIONS.length + 4}
+                      />
+                    </div>
+                    <div className="lg:col-span-6">
+                      <QuestionPanel
+                        index={questionIndex}
+                        total={QUESTIONS.length + 4}
+                        question={QUESTIONS[questionIndex] ?? QUESTIONS[QUESTIONS.length - 1]}
+                        answer={answers[questionIndex] ?? ''}
+                        onAnswerChange={handleAnswerChange}
+                        onPrev={() => setQuestionIndex((i) => Math.max(0, i - 1))}
+                        onNext={() => setQuestionIndex((i) => Math.min(QUESTIONS.length - 1, i + 1))}
+                      />
+                    </div>
+                    <div className="lg:col-span-3">
+                      <AIAssistantPanel />
+                    </div>
+                  </div>
+
+                  {/* Compact footer row */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <PreviousAnswerCard />
+                    <CompetencyAreasCard />
+                  </div>
+
+                  <BottomActionBar />
+                </div>
+              ) : (
+                <div className="p-8 text-center text-[13px] text-zinc-400">
+                  {activeTab} content will appear here.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-3 min-w-0">
+          <ApplicationSummaryCard />
+          <RoundsOverviewCard />
+          <GuidelinesCard />
+        </div>
+      </div>
+    </main>
+  );
+}
