@@ -79,9 +79,9 @@ const requests = [
 ];
 
 const reimbursementBreakdown = [
-  { key: 'Approved', value: 82450, pct: '80.46%', color: '#22c55e' },
-  { key: 'Pending', value: 18720, pct: '18.27%', color: '#f59e0b' },
-  { key: 'Rejected', value: 1280, pct: '1.25%', color: '#ef4444' },
+  { key: 'Approved', value: 8245, pct: '8%', color: '#22c55e' },
+  { key: 'Pending', value: 1872, pct: '18%', color: '#f59e0b' },
+  { key: 'Rejected', value: 128, pct: '1%', color: '#ef4444' },
 ];
 
 const quickActions = [

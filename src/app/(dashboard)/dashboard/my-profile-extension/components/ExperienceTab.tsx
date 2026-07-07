@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
-export function ExperienceTab({ comingSoon }: { comingSoon: (what: string) => () => void }) {
+export function ExperienceTab({ comingSoon, profileCard }: { comingSoon: (what: string) => () => void, profileCard?: React.ReactNode }) {
   const experiences = [
     {
       id: 1,
@@ -14,7 +14,7 @@ export function ExperienceTab({ comingSoon }: { comingSoon: (what: string) => ()
       logo: 'https://logo.clearbit.com/microsoft.com',
       role: 'Senior Sales Executive',
       duration: 'Jun 2022 - Present',
-      tenure: '2 yrs 11 mos',
+      tenure: '2 yrs 11 mth',
       location: 'Noida, Uttar Pradesh',
       isCurrent: true,
       responsibilities: [
@@ -33,7 +33,7 @@ export function ExperienceTab({ comingSoon }: { comingSoon: (what: string) => ()
       logo: 'https://logo.clearbit.com/dell.com',
       role: 'Sales Executive',
       duration: 'Jan 2020 - May 2022',
-      tenure: '2 yrs 5 mos',
+      tenure: '2 yrs 5 mth',
       location: 'Gurugram, Haryana',
       isCurrent: false,
       responsibilities: [
@@ -52,7 +52,7 @@ export function ExperienceTab({ comingSoon }: { comingSoon: (what: string) => ()
       logo: 'https://logo.clearbit.com/hcltech.com',
       role: 'Business Development Associate',
       duration: 'Jul 2018 - Dec 2019',
-      tenure: '1 yr 6 mos',
+      tenure: '1 yr 6 mth',
       location: 'Noida, Uttar Pradesh',
       isCurrent: false,
       responsibilities: [
@@ -68,13 +68,39 @@ export function ExperienceTab({ comingSoon }: { comingSoon: (what: string) => ()
   ];
 
   const industryData = [
-    { name: 'IT Services', value: 50, color: '#2563EB', duration: '3 yrs 5 mos' },
-    { name: 'Software', value: 43, color: '#6366F1', duration: '2 yrs 11 mos' },
-    { name: 'Hardware', value: 7, color: '#22C55E', duration: '6 mos' },
+    { name: 'IT Services', value: 50, color: '#2563EB', duration: '3 yrs 5 mth' },
+    { name: 'Software', value: 43, color: '#6366F1', duration: '2 yrs 11 mth' },
+    { name: 'Hardware', value: 7, color: '#22C55E', duration: '6 mth' },
   ];
+
+  const totalMonths = experiences.reduce((acc, exp) => {
+    let months = 0;
+    const yrMatch = exp.tenure.match(/(\d+)\s*yrs?/);
+    const moMatch = exp.tenure.match(/(\d+)\s*mth?/);
+    if (yrMatch) months += parseInt(yrMatch[1]) * 12;
+    if (moMatch) months += parseInt(moMatch[1]);
+    return acc + months;
+  }, 0);
+
+  const totalYrs = Math.floor(totalMonths / 12);
+  const remMos = totalMonths % 12;
+  const totalExperienceStr = `${totalYrs} yrs ${remMos > 0 ? remMos + ' mth' : ''}`.trim();
+
+  const totalCompanies = new Set(experiences.map(e => e.company)).size;
+  const totalRoles = experiences.length;
+
+  const avgMonths = totalRoles > 0 ? Math.round(totalMonths / totalRoles) : 0;
+  const avgYrs = Math.floor(avgMonths / 12);
+  const avgRemMos = avgMonths % 12;
+  const avgTenureStr = `${avgYrs > 0 ? avgYrs + ' yrs ' : ''}${avgRemMos > 0 ? avgRemMos + ' mth' : ''}`.trim() || '0 mth';
 
   return (
     <div className="flex flex-col xl:flex-row gap-1">
+      {profileCard && (
+        <div className="w-full xl:w-[220px] shrink-0">
+          {profileCard}
+        </div>
+      )}
       {/* Left Content Area (70%) */}
       <Card className="flex-1 min-w-0 border-gray-200 shadow-sm rounded-xl bg-white dark:bg-zinc-900 dark:border-zinc-800">
         <CardContent className="p-1.5 flex flex-col">
@@ -218,44 +244,44 @@ export function ExperienceTab({ comingSoon }: { comingSoon: (what: string) => ()
           <CardHeader className="px-2 py-2 border-b border-gray-100 dark:border-zinc-800">
             <CardTitle className="text-[14px] font-bold text-gray-900 flex items-center gap-1"><Briefcase size={13} className="text-blue-600" /> Experience Summary</CardTitle>
           </CardHeader>
-          <CardContent className="p-1.5 flex flex-col gap-1">
+          <CardContent className="p-2 lg:p-3 flex flex-col gap-3">
             <div className="flex items-center gap-3.5">
               <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                <CalendarDays size={12} className="text-blue-600" />
+                <CalendarDays size={14} className="text-blue-600" />
               </div>
               <div>
-                <p className="text-[11.5px] font-semibold text-zinc-500 mb-0.5">Total Experience</p>
-                <p className="text-[15px] font-bold text-zinc-900">6 yrs 10 mos</p>
+                <p className="text-xs font-semibold text-zinc-500 mb-0.5">Total Experience</p>
+                <p className="text-sm font-bold text-zinc-900">{totalExperienceStr}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3.5">
               <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
-                <Building2 size={12} className="text-purple-600" />
+                <Building2 size={14} className="text-purple-600" />
               </div>
               <div>
-                <p className="text-[11.5px] font-semibold text-zinc-500 mb-0.5">Total Companies</p>
-                <p className="text-[15px] font-bold text-zinc-900">3</p>
+                <p className="text-xs font-semibold text-zinc-500 mb-0.5">Total Companies</p>
+                <p className="text-sm font-bold text-zinc-900">{totalCompanies}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3.5">
               <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-                <UserCircle2 size={12} className="text-amber-600" />
+                <UserCircle2 size={14} className="text-amber-600" />
               </div>
               <div>
-                <p className="text-[11.5px] font-semibold text-zinc-500 mb-0.5">Total Roles</p>
-                <p className="text-[15px] font-bold text-zinc-900">3</p>
+                <p className="text-xs font-semibold text-zinc-500 mb-0.5">Total Roles</p>
+                <p className="text-sm font-bold text-zinc-900">{totalRoles}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3.5">
               <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
-                <CalendarDays size={12} className="text-emerald-600" />
+                <CalendarDays size={14} className="text-emerald-600" />
               </div>
               <div>
-                <p className="text-[11.5px] font-semibold text-zinc-500 mb-0.5">Average Tenure</p>
-                <p className="text-[15px] font-bold text-zinc-900">2 yrs 1 mo</p>
+                <p className="text-xs font-semibold text-zinc-500 mb-0.5">Average Tenure</p>
+                <p className="text-sm font-bold text-zinc-900">{avgTenureStr}</p>
               </div>
             </div>
           </CardContent>
@@ -266,14 +292,14 @@ export function ExperienceTab({ comingSoon }: { comingSoon: (what: string) => ()
           <CardHeader className="px-2 py-2 border-b border-gray-100 dark:border-zinc-800">
             <CardTitle className="text-[14px] font-bold text-gray-900">Experience by Industry</CardTitle>
           </CardHeader>
-          <CardContent className="p-1.5 flex flex-col items-center">
-            <div className="relative w-[140px] h-[140px]">
+          <CardContent className="p-3 flex flex-row items-center gap-4">
+            <div className="relative w-[110px] h-[110px] shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={industryData}
-                    innerRadius={50}
-                    outerRadius={70}
+                    innerRadius={38}
+                    outerRadius={55}
                     paddingAngle={2}
                     dataKey="value"
                     stroke="none"
@@ -285,21 +311,20 @@ export function ExperienceTab({ comingSoon }: { comingSoon: (what: string) => ()
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-[15px] font-bold text-gray-900 leading-tight text-center">6 yrs<br />10 mos</span>
+                <span className="text-[12px] font-bold text-gray-900 leading-tight text-center">{totalExperienceStr.replace(' yrs', ' yrs\n')}</span>
                 <span className="text-[10px] text-gray-500 mt-0.5">Total</span>
               </div>
             </div>
 
-            <div className="w-full space-y-1 mt-1">
+            <div className="flex-1 flex flex-col gap-2.5">
               {industryData.map((item, i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: item.color }} />
-                    <span className="text-[12.5px] font-medium text-gray-700">{item.name}</span>
-                  </div>
+                <div key={i} className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[12px] text-gray-600">{item.duration}</span>
-                    <span className="text-[10px] text-gray-400 w-8 text-right">({item.value}%)</span>
+                    <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: item.color }} />
+                    <span className="text-[12px] font-bold text-gray-700">{item.name}</span>
+                  </div>
+                  <div className="text-xs font-semibold text-gray-600 whitespace-nowrap">
+                    {item.duration} ({item.value}%)
                   </div>
                 </div>
               ))}

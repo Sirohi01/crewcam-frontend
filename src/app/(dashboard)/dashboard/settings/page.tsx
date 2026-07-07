@@ -92,7 +92,7 @@ function ListRow({ title, desc, href, icon: Icon, bg, fg, shape = 'square' }: { 
 export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <div className="mx-auto w-full max-w-[1280px] px-4 pb-4 pt-1 space-y-4">
+      <div className="mx-auto w-full max-w-[1280px] px-2 pb-2 pt-1 space-y-1.5">
 
         {/* Breadcrumb & Header */}
         <div>
@@ -111,10 +111,10 @@ export default function SettingsPage() {
         </div>
 
         {/* Highlight cards row */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5">
           {highlightCards.map(({ title, desc, cta, href, icon: Icon, bg, fg }) => (
             <Card key={title} className="border-gray-200 shadow-sm rounded-xl bg-white hover:shadow-md transition-shadow duration-200">
-              <CardContent className="p-2.5 flex items-start gap-2">
+              <CardContent className="p-2 flex items-start gap-1.5">
                 <div className={`w-8 h-8 rounded-full ${bg} flex items-center justify-center shrink-0`}>
                   <Icon size={15} className={fg} />
                 </div>
@@ -131,22 +131,22 @@ export default function SettingsPage() {
         </div>
 
         {/* Main grid: left (2/3) + right (1/3) */}
-        <div className="flex flex-col xl:flex-row gap-3">
+        <div className="flex flex-col xl:flex-row gap-1.5">
           {/* Left column */}
-          <div className="flex-1 min-w-0 flex flex-col gap-3">
+          <div className="flex-1 min-w-0 flex flex-col gap-1.5">
             <Card className="border-gray-200 shadow-sm rounded-xl bg-white">
-              <CardContent className="p-3">
-                <h3 className="text-[14px] font-bold text-gray-900 mb-2">Account & Access</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <CardContent className="p-2">
+                <h3 className="text-[14px] font-bold text-gray-900 mb-1.5">Account & Access</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
                   {accountAccess.map((item) => <ListRow key={item.title} {...item} />)}
                 </div>
               </CardContent>
             </Card>
 
             <Card className="border-gray-200 shadow-sm rounded-xl bg-white flex-1 flex flex-col">
-              <CardContent className="p-3 flex-1 flex flex-col justify-center">
-                <h3 className="text-[14px] font-bold text-gray-900 mb-2">HRMS Configuration</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <CardContent className="p-2 flex-1 flex flex-col justify-center">
+                <h3 className="text-[14px] font-bold text-gray-900 mb-1.5">HRMS Configuration</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
                   {hrmsConfig.map((item) => <ListRow key={item.title} {...item} />)}
                 </div>
               </CardContent>
@@ -154,11 +154,11 @@ export default function SettingsPage() {
           </div>
 
           {/* Right column */}
-          <div className="w-full xl:w-[420px] shrink-0 flex flex-col gap-3">
+          <div className="w-full xl:w-[420px] shrink-0 flex flex-col gap-1.5">
             <Card className="border-gray-200 shadow-sm rounded-xl bg-white">
-              <CardContent className="p-3">
+              <CardContent className="p-2">
                 <h3 className="text-[14px] font-bold text-gray-900 mb-1.5">System Preferences</h3>
-                <div className="flex items-stretch gap-2">
+                <div className="flex items-stretch gap-1.5">
                   <div className="w-1/2 shrink-0 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
                     <Monitor size={44} className="text-blue-300" />
                   </div>
@@ -178,9 +178,9 @@ export default function SettingsPage() {
             </Card>
 
             <Card className="border-gray-200 shadow-sm rounded-xl bg-white flex-1 flex flex-col">
-              <CardContent className="p-3 flex-1 flex flex-col justify-center">
-                <h3 className="text-[14px] font-bold text-gray-900 mb-2">Support & Others</h3>
-                <div className="space-y-1.5">
+              <CardContent className="p-2 flex-1 flex flex-col justify-center">
+                <h3 className="text-[14px] font-bold text-gray-900 mb-1.5">Support & Others</h3>
+                <div className="space-y-1">
                   {supportOthers.map((item) => <ListRow key={item.title} {...item} />)}
                 </div>
               </CardContent>
@@ -189,15 +189,15 @@ export default function SettingsPage() {
         </div>
 
         {/* Bottom row */}
-        <div className="flex flex-col lg:flex-row gap-3">
+        <div className="flex flex-col lg:flex-row gap-1.5">
           <Card className="flex-1 border-gray-200 shadow-sm rounded-xl bg-white">
-            <CardContent className="p-4">
-              <h3 className="text-[14px] font-bold text-gray-900 mb-3">System Information</h3>
-              <div className="flex flex-col sm:flex-row items-center gap-4">
+            <CardContent className="p-2">
+              <h3 className="text-[14px] font-bold text-gray-900 mb-2">System Information</h3>
+              <div className="flex flex-col sm:flex-row items-center gap-3">
                 <div className="w-full sm:w-40 h-28 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center shrink-0">
                   <Monitor size={36} className="text-blue-300" />
                 </div>
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 w-full">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 w-full">
                   {systemInfo.map(({ label, value, isLink }) => (
                     <div key={label} className="flex items-center gap-2 text-[13px]">
                       <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
@@ -211,14 +211,14 @@ export default function SettingsPage() {
           </Card>
 
           <Card className="flex-1 border-gray-200 shadow-sm rounded-xl bg-white">
-            <CardContent className="p-4">
-              <h3 className="text-[14px] font-bold text-gray-900 mb-3">Quick Shortcuts</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            <CardContent className="p-2">
+              <h3 className="text-[14px] font-bold text-gray-900 mb-2">Quick Shortcuts</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1.5">
                 {quickShortcuts.map(({ title, href, icon: Icon, bg, fg }) => (
                   <Link
                     key={title}
                     href={href}
-                    className="flex flex-col items-center justify-center gap-2 rounded-xl bg-gray-50/80 p-3 text-center hover:bg-gray-100 transition-colors"
+                    className="flex flex-col items-center justify-center gap-1.5 rounded-xl bg-gray-50/80 p-2 text-center hover:bg-gray-100 transition-colors"
                   >
                     <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center`}>
                       <Icon size={20} className={fg} />

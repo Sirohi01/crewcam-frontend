@@ -173,7 +173,7 @@ export function BankTab({ profileCard }: { profileCard?: React.ReactNode }) {
                       <th className="pb-1 font-semibold text-center">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-100">
+                  <tbody className="divide-y divide-zinc-100 capitalize">
                     {otherAccounts.map((acc) => (
                       <tr key={acc.id} className="hover:bg-zinc-50/50">
                         <td className="py-1.5 pl-1 font-semibold text-zinc-900">{acc.bank}</td>

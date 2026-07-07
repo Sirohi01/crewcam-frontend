@@ -66,7 +66,7 @@ export function FamilyTab({ profileCard }: { profileCard?: React.ReactNode }) {
                     <th className="pb-1.5 font-semibold text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-zinc-100 capitalize">
                   {familyMembers.map((member) => (
                     <tr key={member.id} className="hover:bg-zinc-50/50">
                       <td className="py-1.5 pl-2">
@@ -131,7 +131,7 @@ export function FamilyTab({ profileCard }: { profileCard?: React.ReactNode }) {
                       <th className="pb-1 px-0.5 font-semibold text-center">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-100">
+                  <tbody className="divide-y divide-zinc-100 capitalize">
                     {emergencyContacts.map((contact) => (
                       <tr key={contact.id}>
                         <td className="py-2 px-0.5 font-semibold text-zinc-900">{contact.name}</td>
