@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { LifeBuoy, X, Image as ImageIcon, Download, Send, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 export default function SOSButton() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [screenshot, setScreenshot] = useState<string | null>(null);
@@ -74,6 +76,10 @@ export default function SOSButton() {
       setIssueType('bug');
     }, 300);
   };
+
+  // The dedicated Emergency page has its own "Trigger Emergency Alert" CTA,
+  // so the floating bug-report SOS button would be a confusing duplicate there.
+  if (pathname?.startsWith('/dashboard/employee/emergency')) return null;
 
   return (
     <>

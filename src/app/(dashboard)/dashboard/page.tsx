@@ -23,6 +23,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import api from '@/lib/axios';
 import EmployeeDashboard from './employee/page';
+import RecruiterDashboard from './hr-dashboard/page';
 
 interface DashboardConfig { category: string; effectivePermissions: string[]; widgets: string[]; }
 
@@ -1565,6 +1566,10 @@ export default function DashboardPage() {
 
   if (config && config.category === 'employee') {
     return <EmployeeDashboard />;
+  }
+
+  if (config && config.category === 'hr') {
+    return <RecruiterDashboard />;
   }
 
   return (

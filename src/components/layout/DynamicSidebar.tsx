@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Users, Building2, Settings, LogOut, Briefcase, UserCog, Plug, Palette,
   Shield, ShieldCheck, Clock, Calendar, MessageSquare, Scale, TrendingUp, UserPlus, IndianRupee,
   Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList, LucideIcon, ChevronRight, ChevronDown,
-  LayoutGrid, User, GraduationCap,
+  LayoutGrid, User, GraduationCap, ShieldAlert,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 
@@ -17,6 +17,7 @@ const ICONS: Record<string, LucideIcon> = {
   LayoutDashboard, Users, Building2, Settings, LogOut, Briefcase, UserCog, Plug, Palette,
   Shield, ShieldCheck, Clock, Calendar, MessageSquare, Scale, TrendingUp, UserPlus, IndianRupee,
   Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList, LayoutGrid, User, GraduationCap,
+  ShieldAlert,
 };
 
 interface SidebarItem {
