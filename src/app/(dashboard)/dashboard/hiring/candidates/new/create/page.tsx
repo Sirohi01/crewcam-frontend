@@ -115,7 +115,7 @@ export default function CreateCandidatePage() {
             <Link href="/dashboard/hiring/candidates" className="flex items-center rounded-none border border-zinc-200 bg-white px-3 py-2 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
               Cancel
             </Link>
-            <button type="button" className="flex items-center gap-1.5 rounded-none bg-indigo-600 px-3 py-2 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700">
+            <button type="button" onClick={() => window.open('/dashboard/hiring/candidates/new/create/review-and-edit', '_blank')} className="flex items-center gap-1.5 rounded-none bg-indigo-600 px-3 py-2 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700">
               Next: Review &amp; Edit <ArrowRight size={13} />
             </button>
           </div>

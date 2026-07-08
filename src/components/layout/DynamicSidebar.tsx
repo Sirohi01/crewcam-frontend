@@ -57,22 +57,31 @@ const STATIC_RECRUITMENT_ITEMS: SidebarItem[] = [
   { _id: 'r2', section: 'WORKSPACE', label: 'Job Requisition', href: '/dashboard/hiring/manpower', icon: 'Briefcase', order: 2.02, parent: 'Requirement' },
   { _id: 'r3', section: 'WORKSPACE', label: 'Job Opening', href: '/dashboard/hiring/job-opening', icon: 'ListTree', order: 2.03, parent: 'Requirement' },
   { _id: 'r3b', section: 'WORKSPACE', label: 'Post New Job', href: '/dashboard/hiring/jobs/new', icon: 'PlusSquare', order: 2.04, parent: 'Requirement' },
-  { _id: 'r4', section: 'WORKSPACE', label: 'Submit Application', href: '/dashboard/submit-application', icon: 'UserPlus', order: 2.05, parent: 'Requirement', subParent: 'Job Application' },
-  { _id: 'r4a', section: 'WORKSPACE', label: 'Job Applications', href: '/dashboard/hiring/applications', icon: 'FileText', order: 2.06, parent: 'Requirement', subParent: 'Job Application' },
-  { _id: 'r5', section: 'WORKSPACE', label: 'Application Submitted', href: '/dashboard/application-submitted-ui', icon: 'FileSignature', order: 2.07, parent: 'Requirement', subParent: 'Job Application' },
-  { _id: 'r6', section: 'WORKSPACE', label: 'All candidates', href: '/dashboard/candidates-ui', icon: 'Users', order: 2.08, parent: 'Requirement', subParent: 'Candidates' },
-  { _id: 'r7', section: 'WORKSPACE', label: 'New Application', href: '/dashboard/new-applications-ui', icon: 'User', order: 2.09, parent: 'Requirement', subParent: 'Candidates' },
-  { _id: 'r8', section: 'WORKSPACE', label: 'Shortlist candidates', href: '/dashboard/shortlisted-candidates-ui', icon: 'ShieldCheck', order: 2.10, parent: 'Requirement', subParent: 'Candidates' },
-  { _id: 'r9', section: 'WORKSPACE', label: 'Hold Candidates', href: '/dashboard/hiring/candidates/hold', icon: 'Clock', order: 2.11, parent: 'Requirement', subParent: 'Candidates' },
-  { _id: 'r10', section: 'WORKSPACE', label: 'Rejected candidates', href: '/dashboard/rejected-candidates', icon: 'Circle', order: 2.12, parent: 'Requirement', subParent: 'Candidates' },
-  { _id: 'r11', section: 'WORKSPACE', label: 'Ai screening', href: '/dashboard/ai-screening', icon: 'Sparkles', order: 2.13, parent: 'Requirement', subParent: 'Candidates' },
-  { _id: 'r11a', section: 'WORKSPACE', label: 'AI Screening Evaluation', href: '/dashboard/ai-screening-application-evaluation', icon: 'Sparkles', order: 2.14, parent: 'Requirement', subParent: 'Candidates' },
-  { _id: 'r12', section: 'WORKSPACE', label: 'Assessments', href: '/dashboard/assessments', icon: 'ClipboardList', order: 2.15, parent: 'Requirement', subParent: 'Candidates' },
-  { _id: 'r12a', section: 'WORKSPACE', label: 'Review and Edit', href: '/dashboard/review-and-edit', icon: 'FileSignature', order: 2.16, parent: 'Requirement', subParent: 'Candidates' },
-  { _id: 'r13', section: 'WORKSPACE', label: 'Interviews', href: '/dashboard/interviews', icon: 'MessageSquare', order: 2.17, parent: 'Requirement' },
-  { _id: 'r14', section: 'WORKSPACE', label: 'Offers', href: '/dashboard/offers', icon: 'FileSignature', order: 2.18, parent: 'Requirement' },
-  { _id: 'r15', section: 'WORKSPACE', label: 'Onboarding', href: '/dashboard/onboarding', icon: 'UserPlus', order: 2.19, parent: 'Requirement' },
-  { _id: 'r16', section: 'WORKSPACE', label: 'Reports Analytics', href: '/dashboard/report-analytics', icon: 'TrendingUp', order: 2.20, parent: 'Requirement' },
+
+  { _id: 'r4e', section: 'WORKSPACE', label: 'Job Applications', href: '/dashboard/hiring/applications', icon: 'FileText', order: 2.05, parent: 'Requirement', subParent: 'Job Application' },
+  // { _id: 'r4', section: 'WORKSPACE', label: 'Review and Edit', href: '/dashboard/hiring/candidates/new/create/review-and-edit', icon: 'FileSignature', order: 2.06, parent: 'Requirement', subParent: 'Job Application' },
+  // { _id: 'r4a', section: 'WORKSPACE', label: 'Submit Application', href: '/dashboard/hiring/candidates/new/create/submit-application-preview', icon: 'UserPlus', order: 2.07, parent: 'Requirement', subParent: 'Job Application' },
+  { _id: 'r4a', section: 'WORKSPACE', label: 'AI Screening Evaluation', href: '/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation', icon: 'Sparkles', order: 2.07, parent: 'Requirement', subParent: 'Job Application' },
+  // { _id: 'r4b', section: 'WORKSPACE', label: 'HOD Evaluation', href: '/dashboard/hiring/candidates/new/create/evaluation', icon: 'UserPlus', order: 2.08, parent: 'Requirement', subParent: 'Job Application' },
+  // { _id: 'r4c', section: 'WORKSPACE', label: 'Interview Round - 1', href: '/dashboard/hiring/candidates/new/create/interview-process', icon: 'UserPlus', order: 2.09, parent: 'Requirement', subParent: 'Job Application' },
+  // { _id: 'r4c', section: 'WORKSPACE', label: 'Interview Round - 2', href: '/dashboard/hiring/candidates/new/create/round-2', icon: 'UserPlus', order: 2.09, parent: 'Requirement', subParent: 'Job Application' },
+  // { _id: 'r4c', section: 'WORKSPACE', label: 'Interview Round - 3', href: '/dashboard/hiring/candidates/new/create/interview', icon: 'UserPlus', order: 2.09, parent: 'Requirement', subParent: 'Job Application' },
+  // { _id: 'r4d', section: 'WORKSPACE', label: 'Interview Round - 4', href: '/dashboard/hiring/candidates/new/create/assessment', icon: 'UserPlus', order: 2.10, parent: 'Requirement', subParent: 'Job Application' },
+  // { _id: 'r4d', section: 'WORKSPACE', label: 'Interview Round - 5', href: '/dashboard/hiring/candidates/new/create/round-5', icon: 'UserPlus', order: 2.11, parent: 'Requirement', subParent: 'Job Application' },
+
+  // { _id: 'r5', section: 'WORKSPACE', label: 'Application Submitted', href: '/dashboard/application-submitted', icon: 'FileSignature', order: 2.11, parent: 'Requirement', subParent: 'Job Application' },
+
+  { _id: 'r6', section: 'WORKSPACE', label: 'All candidates', href: '/dashboard/all-candidates', icon: 'Users', order: 2.12, parent: 'Requirement', subParent: 'Candidates' },
+  { _id: 'r7', section: 'WORKSPACE', label: 'New Application', href: '/dashboard/hiring/candidates/new/create/new-applications', icon: 'User', order: 2.13, parent: 'Requirement', subParent: 'Candidates' },
+  { _id: 'r8', section: 'WORKSPACE', label: 'Shortlist candidates', href: '/dashboard/shortlisted-candidates-ui', icon: 'ShieldCheck', order: 2.14, parent: 'Requirement', subParent: 'Candidates' },
+  { _id: 'r9', section: 'WORKSPACE', label: 'Hold Candidates', href: '/dashboard/hiring/candidates/hold', icon: 'Clock', order: 2.15, parent: 'Requirement', subParent: 'Candidates' },
+  { _id: 'r10', section: 'WORKSPACE', label: 'Rejected candidates', href: '/dashboard/rejected-candidates', icon: 'Circle', order: 2.16, parent: 'Requirement', subParent: 'Candidates' },
+  { _id: 'r11', section: 'WORKSPACE', label: 'Ai screening', href: '/dashboard/ai-screening', icon: 'Sparkles', order: 2.17, parent: 'Requirement', subParent: 'Candidates' },
+  { _id: 'r12', section: 'WORKSPACE', label: 'Assessments', href: '/dashboard/assessments', icon: 'ClipboardList', order: 2.19, parent: 'Requirement', subParent: 'Candidates' },
+  { _id: 'r13', section: 'WORKSPACE', label: 'Interviews', href: '/dashboard/interviews', icon: 'MessageSquare', order: 2.20, parent: 'Requirement' },
+  { _id: 'r14', section: 'WORKSPACE', label: 'Offers', href: '/dashboard/offers', icon: 'FileSignature', order: 2.21, parent: 'Requirement' },
+  { _id: 'r15', section: 'WORKSPACE', label: 'Onboarding', href: '/dashboard/onboarding', icon: 'UserPlus', order: 2.22, parent: 'Requirement' },
+  { _id: 'r16', section: 'WORKSPACE', label: 'Reports Analytics', href: '/dashboard/report-analytics', icon: 'TrendingUp', order: 2.23, parent: 'Requirement' },
 ];
 
 export default function DynamicSidebar() {
@@ -144,7 +153,7 @@ export default function DynamicSidebar() {
         parentGroup = { isGroup: true, label: item.parent, children: [] };
         group.items.push(parentGroup);
       }
-      
+
       if (item.subParent) {
         let subParentGroup = parentGroup.children.find((i) => 'isGroup' in i && i.label === item.subParent) as { isGroup: true; label: string; children: GroupedItem[] } | undefined;
         if (!subParentGroup) {
@@ -212,11 +221,11 @@ export default function DynamicSidebar() {
             {sections.map((group) => (
               <nav key={group.section} className="space-y-0.5">
                 {group.section !== 'WORKSPACE' && <SectionLabel>{group.section}</SectionLabel>}
-                  {group.items.map((item) => {
-                    if ('isGroup' in item) {
-                      return <NavGroup key={item.label} label={item.label} items={item.children} pathname={pathname} level={0} />;
-                    }
-                    return (
+                {group.items.map((item) => {
+                  if ('isGroup' in item) {
+                    return <NavGroup key={item.label} label={item.label} items={item.children} pathname={pathname} level={0} />;
+                  }
+                  return (
                     <NavItem
                       key={item._id}
                       href={item.href}
@@ -358,7 +367,7 @@ function NavGroup({ label, items, pathname, level = 0 }: { label: string; items:
             if ('isGroup' in item) {
               return <NavGroup key={item.label} label={item.label} items={item.children} pathname={pathname} level={level + 1} />;
             }
-            
+
             const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
             return (
               <Link

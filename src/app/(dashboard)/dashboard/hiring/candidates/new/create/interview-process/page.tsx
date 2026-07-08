@@ -24,11 +24,11 @@ const applicationSummary = [
 ];
 
 const rounds = [
-  { name: 'Round 1', title: 'AI Screening Interview', badge: 'Current Round', duration: '30 Mins', questionsLabel: 'AI Generated Questions', status: 'In Progress' },
-  { name: 'Round 2', title: 'Technical Interview', badge: 'UPCOMING', duration: '40 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending' },
-  { name: 'Round 3', title: 'Managerial Interview', badge: 'UPCOMING', duration: '30 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending' },
-  { name: 'Round 4', title: 'Written Assessment', badge: 'UPCOMING', duration: '45 Mins', questionsLabel: 'AI Generated Test', status: 'Pending' },
-  { name: 'Round 5', title: 'HR Interview', badge: 'UPCOMING', duration: '25 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending' },
+  { name: 'Round 1', title: 'AI Screening Interview', badge: 'Current Round', duration: '30 Mins', questionsLabel: 'AI Generated Questions', status: 'In Progress', href: '/dashboard/hiring/candidates/new/create/interview-process' },
+  { name: 'Round 2', title: 'Technical Interview', badge: 'UPCOMING', duration: '40 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending', href: '/dashboard/hiring/candidates/new/create/round-2' },
+  { name: 'Round 3', title: 'Managerial Interview', badge: 'UPCOMING', duration: '30 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending', href: '/dashboard/hiring/candidates/new/create/interview' },
+  { name: 'Round 4', title: 'Written Assessment', badge: 'UPCOMING', duration: '45 Mins', questionsLabel: 'AI Generated Test', status: 'Pending', href: '/dashboard/hiring/candidates/new/create/assessment' },
+  { name: 'Round 5', title: 'HR Interview', badge: 'UPCOMING', duration: '25 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending', href: '/dashboard/hiring/candidates/new/create/round-5' },
 ];
 
 const questions = [
@@ -117,7 +117,7 @@ export default function InterviewProcessPage() {
             <Link href="/dashboard/hiring/candidates" className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
               <ArrowLeft size={13} /> Back to Applications
             </Link>
-            <button type="button" className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700">
+            <button type="button" onClick={() => window.open('/dashboard/offers', "_blank")} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700">
               Next: Offer <ArrowRight size={13} />
             </button>
           </div>
@@ -180,7 +180,10 @@ export default function InterviewProcessPage() {
               <div className="mt-1.5 flex items-stretch gap-1">
                 {rounds.map((r, i) => (
                   <React.Fragment key={r.name}>
-                    <div className={`min-w-0 flex-1 rounded-lg border p-1.5 ${i === 0 ? 'border-indigo-300 bg-indigo-50/40' : 'border-zinc-200'}`}>
+                    <div
+                      onClick={() => r.href && window.open(r.href, '_blank')}
+                      className={`min-w-0 flex-1 rounded-lg border p-1.5 cursor-pointer hover:border-indigo-400 transition-colors ${i === 0 ? 'border-indigo-300 bg-indigo-50/40' : 'border-zinc-200'}`}
+                    >
                       <p className="truncate text-[11px] font-bold text-zinc-800">{r.name}</p>
                       <p className="truncate text-[10px] text-zinc-500">{r.title}</p>
                       <span className={`mt-1 inline-block truncate rounded-full px-1.5 py-0.5 text-[8.5px] font-semibold ${i === 0 ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-500'}`}>{r.badge}</span>
@@ -303,11 +306,10 @@ export default function InterviewProcessPage() {
                 {timeline.map((t, i) => (
                   <div key={t.title} className="relative flex gap-2 pb-2 last:pb-0">
                     {i < timeline.length - 1 && <span className="absolute left-[7px] top-4 h-full w-px bg-zinc-200" />}
-                    <span className={`relative z-10 mt-0.5 grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full ${
-                      t.state === 'done' ? 'bg-emerald-500 text-white'
+                    <span className={`relative z-10 mt-0.5 grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full ${t.state === 'done' ? 'bg-emerald-500 text-white'
                         : t.state === 'current' ? 'border-2 border-indigo-600 bg-white'
                           : 'border border-zinc-200 bg-white'
-                    }`}
+                      }`}
                     >
                       {t.state === 'done' && <CheckCircle2 size={11} />}
                       {t.state === 'current' && <Circle size={7} className="fill-indigo-600 text-indigo-600" />}

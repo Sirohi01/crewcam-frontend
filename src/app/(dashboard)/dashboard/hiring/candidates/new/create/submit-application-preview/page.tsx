@@ -183,6 +183,7 @@ export default function SubmitApplicationPreview({
     setSubmitting(true);
     if (onSubmit) onSubmit();
     window.setTimeout(() => setSubmitting(false), 1200);
+    window.open('/dashboard/hiring/candidates/new/create/submit-application', '_blank')
   };
 
   const handleBack = () => {
@@ -204,47 +205,44 @@ export default function SubmitApplicationPreview({
         </div>
 
         {/* Stepper */}
-       <div className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto">
-  {steps.map((step, idx) => (
-    <React.Fragment key={step.id}>
-      <div className="flex flex-col items-center gap-1 text-xs shrink-0">
-        <span
-          className={`w-4 h-4 rounded-full flex items-center justify-center font-bold text-[9px] border ${
-            step.status === "done"
-              ? "bg-emerald-100 text-emerald-800 border-emerald-300"
-              : step.status === "active"
-              ? "bg-indigo-600 text-white border-indigo-600"
-              : "bg-slate-100 text-slate-600 border-slate-300"
-          }`}
-        >
-          {step.status === "done" ? (
-            <Check className="w-2.5 h-2.5" />
-          ) : (
-            step.id
-          )}
-        </span>
+        <div className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto">
+          {steps.map((step, idx) => (
+            <React.Fragment key={step.id}>
+              <div className="flex flex-col items-center gap-1 text-xs shrink-0">
+                <span
+                  className={`w-4 h-4 rounded-full flex items-center justify-center font-bold text-[9px] border ${step.status === "done"
+                      ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                      : step.status === "active"
+                        ? "bg-indigo-600 text-white border-indigo-600"
+                        : "bg-slate-100 text-slate-600 border-slate-300"
+                    }`}
+                >
+                  {step.status === "done" ? (
+                    <Check className="w-2.5 h-2.5" />
+                  ) : (
+                    step.id
+                  )}
+                </span>
 
-        <span
-          className={`whitespace-nowrap ${
-            step.status === "active"
-              ? "text-indigo-900 font-semibold"
-              : "font-medium text-slate-700"
-          }`}
-        >
-          {step.label}
-        </span>
-      </div>
+                <span
+                  className={`whitespace-nowrap ${step.status === "active"
+                      ? "text-indigo-900 font-semibold"
+                      : "font-medium text-slate-700"
+                    }`}
+                >
+                  {step.label}
+                </span>
+              </div>
 
-      {idx < steps.length - 1 && (
-        <div
-          className={`w-6 h-[1px] shrink-0 self-start mt-2 ${
-            step.status === "done" ? "bg-emerald-300" : "bg-slate-200"
-          }`}
-        />
-      )}
-    </React.Fragment>
-  ))}
-</div>
+              {idx < steps.length - 1 && (
+                <div
+                  className={`w-6 h-[1px] shrink-0 self-start mt-2 ${step.status === "done" ? "bg-emerald-300" : "bg-slate-200"
+                    }`}
+                />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
 
         <div className="flex items-center gap-1 shrink-0">
           <button
@@ -315,60 +313,60 @@ export default function SubmitApplicationPreview({
               </div>
             </div>
 
-           <div className="grid flex-1 grid-cols-2 gap-2 sm:ml-4 text-[9px] shrink-0">
-  <div className="flex flex-col border-r border-slate-100 px-2">
-    <div className="pb-1">
-      <div className="font-semibold text-[8px] tracking-wider text-slate-500">
-        Applied For
-      </div>
-      <div className="font-bold text-slate-900">{candidate.appliedFor}</div>
-    </div>
+            <div className="grid flex-1 grid-cols-2 gap-2 sm:ml-4 text-[9px] shrink-0">
+              <div className="flex flex-col border-r border-slate-100 px-2">
+                <div className="pb-1">
+                  <div className="font-semibold text-[8px] tracking-wider text-slate-500">
+                    Applied For
+                  </div>
+                  <div className="font-bold text-slate-900">{candidate.appliedFor}</div>
+                </div>
 
-    <div className="py-1">
-      <div className="font-semibold text-[8px] tracking-wider text-slate-500">
-        Department
-      </div>
-      <div className="font-bold text-slate-900">{candidate.department}</div>
-    </div>
+                <div className="py-1">
+                  <div className="font-semibold text-[8px] tracking-wider text-slate-500">
+                    Department
+                  </div>
+                  <div className="font-bold text-slate-900">{candidate.department}</div>
+                </div>
 
-    <div className="py-1">
-      <div className="font-semibold text-[8px] tracking-wider text-slate-500">
-        Employment Type
-      </div>
-      <div className="font-bold text-slate-900">{candidate.employmentType}</div>
-    </div>
+                <div className="py-1">
+                  <div className="font-semibold text-[8px] tracking-wider text-slate-500">
+                    Employment Type
+                  </div>
+                  <div className="font-bold text-slate-900">{candidate.employmentType}</div>
+                </div>
 
-    <div className="pt-1">
-      <div className="font-semibold text-[8px] tracking-wider text-slate-500">
-        Notice Period
-      </div>
-      <div className="font-bold text-slate-900">{candidate.noticePeriod}</div>
-    </div>
-  </div>
+                <div className="pt-1">
+                  <div className="font-semibold text-[8px] tracking-wider text-slate-500">
+                    Notice Period
+                  </div>
+                  <div className="font-bold text-slate-900">{candidate.noticePeriod}</div>
+                </div>
+              </div>
 
-  <div className="flex flex-col px-2">
-    <div className="pb-1">
-      <div className="font-semibold text-[8px] tracking-wider text-slate-500">
-        Expected CTC
-      </div>
-      <div className="font-bold text-slate-900">{candidate.expectedCTC}</div>
-    </div>
+              <div className="flex flex-col px-2">
+                <div className="pb-1">
+                  <div className="font-semibold text-[8px] tracking-wider text-slate-500">
+                    Expected CTC
+                  </div>
+                  <div className="font-bold text-slate-900">{candidate.expectedCTC}</div>
+                </div>
 
-    <div className="py-1">
-      <div className="font-semibold text-[8px] tracking-wider text-slate-500">
-        Available From
-      </div>
-      <div className="font-bold text-slate-900">{candidate.availableFrom}</div>
-    </div>
+                <div className="py-1">
+                  <div className="font-semibold text-[8px] tracking-wider text-slate-500">
+                    Available From
+                  </div>
+                  <div className="font-bold text-slate-900">{candidate.availableFrom}</div>
+                </div>
 
-    <div className="pt-1">
-      <div className="font-semibold text-[8px] tracking-wider text-slate-500">
-        Current Location
-      </div>
-      <div className="font-bold text-slate-900">{candidate.currentLocation}</div>
-    </div>
-  </div>
-</div>
+                <div className="pt-1">
+                  <div className="font-semibold text-[8px] tracking-wider text-slate-500">
+                    Current Location
+                  </div>
+                  <div className="font-bold text-slate-900">{candidate.currentLocation}</div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Review list + declaration + next steps */}
@@ -408,39 +406,38 @@ export default function SubmitApplicationPreview({
 
               {/* Declaration */}
             </div>
-              <button
-                type="button"
-                onClick={() => setDeclared((v) => !v)}
-                className="w-full flex items-start justify-between gap-2 p-2 rounded border border-indigo-100 bg-indigo-50 text-left mt-2"
-              >
-                <div>
-                  <div className="text-[10px] font-bold text-indigo-900">Declaration</div>
-                  <div className="text-[9px] ">
-                    I confirm that the information provided is true and correct to the best of my knowledge.
-                  </div>
-                </div>
-                <span
-                  className={`w-3.5 h-3.5 rounded flex items-center justify-center shrink-0 mt-0.5 border ${
-                    declared ? "bg-indigo-600 border-indigo-600" : "bg-white border-slate-300"
-                  }`}
-                >
-                  {declared && <Check className="w-2.5 h-2.5 text-white" />}
-                </span>
-              </button>
-
-              {/* What happens next */}
-              <div className="flex items-start gap-2 p-2 rounded border border-emerald-100 bg-emerald-50">
-                <span className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
-                  <Check className="w-2.5 h-2.5 text-white" />
-                </span>
-                <div>
-                  <div className="text-[10px] font-bold text-emerald-900">What happens next?</div>
-                  <div className="text-[9px] ">
-                    Once submitted, this application will be sent for AI screening and then reviewed by the HOD.
-                    You will be notified about the next steps via email.
-                  </div>
+            <button
+              type="button"
+              onClick={() => setDeclared((v) => !v)}
+              className="w-full flex items-start justify-between gap-2 p-2 rounded border border-indigo-100 bg-indigo-50 text-left mt-2"
+            >
+              <div>
+                <div className="text-[10px] font-bold text-indigo-900">Declaration</div>
+                <div className="text-[9px] ">
+                  I confirm that the information provided is true and correct to the best of my knowledge.
                 </div>
               </div>
+              <span
+                className={`w-3.5 h-3.5 rounded flex items-center justify-center shrink-0 mt-0.5 border ${declared ? "bg-indigo-600 border-indigo-600" : "bg-white border-slate-300"
+                  }`}
+              >
+                {declared && <Check className="w-2.5 h-2.5 text-white" />}
+              </span>
+            </button>
+
+            {/* What happens next */}
+            <div className="flex items-start gap-2 p-2 rounded border border-emerald-100 bg-emerald-50">
+              <span className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
+                <Check className="w-2.5 h-2.5 text-white" />
+              </span>
+              <div>
+                <div className="text-[10px] font-bold text-emerald-900">What happens next?</div>
+                <div className="text-[9px] ">
+                  Once submitted, this application will be sent for AI screening and then reviewed by the HOD.
+                  You will be notified about the next steps via email.
+                </div>
+              </div>
+            </div>
 
             {/* Footer */}
             <div className="p-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shrink-0">
