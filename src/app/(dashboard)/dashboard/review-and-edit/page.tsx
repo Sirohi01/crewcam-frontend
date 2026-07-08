@@ -28,7 +28,7 @@ import {
   Trash2,
 } from "lucide-react";
 
-import { FaLinkedin } from "react-icons/fa";
+import { FaLinkedin, FaLinkedinIn } from "react-icons/fa";
 import { CandidateInfo, PortalView } from './types';
 
 const defaultCandidate: CandidateInfo = {
@@ -261,10 +261,10 @@ export default function ReviewPage({
           <div className="w-full lg:w-[68%] h-auto lg:h-full flex flex-col bg-white rounded-lg border border-slate-200 overflow-visible lg:overflow-hidden shadow-sm" id="candidate-form-card">
 
             {/* Candidate Overview Header Card */}
-            <div className="bg-indigo-50/60 p-2 border-b border-indigo-100 flex flex-col sm:flex-row sm:items-center items-start justify-between gap-2" id="form-header-summary">
+            <div className="bg-indigo-50/60 p-2 border-b border-indigo-100 flex flex-col sm:flex-row  items-start justify-between gap-2" id="form-header-summary">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="relative shrink-0">
-                  <div className="w-10 h-10 rounded-full border-2 border-indigo-500 overflow-hidden bg-indigo-100 flex items-center justify-center">
+                  <div className="w-16 h-16 border-2 border-indigo-500 overflow-hidden bg-indigo-100 flex items-center justify-center">
                     <img
                       src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
                       alt="Amit"
@@ -286,25 +286,53 @@ export default function ReviewPage({
                   </div>
 
                   <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5 text-[10px] ">
-                    <span className="flex items-center gap-0.5"><Briefcase className="w-2.5 h-2.5 text-indigo-800 shrink-0" /> {candidate.appliedFor}</span>
-                    <span className="text-slate-300 hidden sm:inline">•</span>
-                    <span className="flex items-center gap-0.5"><MapPin className="w-2.5 h-2.5 text-indigo-800 shrink-0" /> {candidate.currentLocation}</span>
-                    <span className="text-slate-300 hidden sm:inline">•</span>
-                    <span className="flex items-center gap-0.5"><Phone className="w-2.5 h-2.5 text-indigo-800 shrink-0" /> {candidate.mobile}</span>
+                    <span className="flex items-center gap-0.5"> {candidate.appliedFor}</span>
+
+
+                  </div>
+                  <div className="flex flex-col gap-x-2 gap-y-0.5 mt-0.5 text-[10px] ">
+                    <div className="flex flex-col gap-x-3 gap-y-1 text-[10px] text-slate-700 gap-1">
+
+                      <div className='flex gap-1'>
+
+                        <span className="flex items-center gap-1">
+                          <Mail className="w-3 h-3 text-indigo-700 shrink-0" />
+                          {candidate.email}
+                        </span>
+
+                        <span className="flex items-center gap-1">
+                          <Phone className="w-3 h-3 text-indigo-700 shrink-0" />
+                          {candidate.mobile}
+                        </span>
+                      </div>
+
+                      <div>
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-indigo-700 shrink-0" />
+                        {candidate.currentLocation}
+                      </span>
+                      {candidate.linkedin && (
+                        <span className="flex items-center gap-1">
+                          <FaLinkedinIn className="w-3 h-3 text-[#0A66C2] shrink-0" />
+                          {candidate.linkedin}
+                        </span>
+                      )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="hidden lg:flex items-center gap-1 text-[10px] shrink-0">
-                <div className="bg-white p-1 rounded border border-slate-200 text-center min-w-[60px]">
+                <div className="p-1 rounded border border-slate-200 min-w-[60px]">
                   <div className="text-[8px] uppercase font-bold text-indigo-900">Applied For</div>
                   <div className="font-bold  truncate text-[9px]">{candidate.appliedFor}</div>
                 </div>
-                <div className="bg-white p-1 rounded border border-slate-200 text-center min-w-[65px]">
+                <div className="p-1 rounded border border-slate-200 min-w-[65px]">
                   <div className="text-[8px] uppercase font-bold text-indigo-900">Department</div>
                   <div className="font-bold  truncate text-[9px]">{candidate.department}</div>
                 </div>
-                <div className="bg-white p-1 rounded border border-slate-200 text-center min-w-[55px]">
+                <div className="p-1 rounded border border-slate-200 min-w-[55px]">
                   <div className="text-[8px] uppercase font-bold text-indigo-900">Notice Period</div>
                   <div className="font-bold  text-[9px]">{candidate.noticePeriod}</div>
                 </div>
