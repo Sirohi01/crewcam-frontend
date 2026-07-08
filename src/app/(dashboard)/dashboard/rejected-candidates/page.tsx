@@ -218,7 +218,7 @@ export default function RejectedCandidatesPage() {
         <div>
           <div className="flex items-center gap-1.5">
             <h1 className="text-lg font-bold text-slate-900">Rejected Candidates</h1>
-            <span className="bg-orange-100 text-orange-700 text-[10px] font-bold px-1 rounded-sm">✕</span>
+            <span className="bg-orange-100 text-orange-700 text-[10px] font-bold px-1 rounded-full">✕</span>
           </div>
           <p className="text-xs text-slate-500 font-medium">Candidates who were not selected for the current openings</p>
         </div>
@@ -454,8 +454,8 @@ export default function RejectedCandidatesPage() {
 // --- Stat Card Sub-component ---
 function StatCard({ icon, count, label, subtext, borderColor, iconBg, iconColor }: StatCardProps) {
   return (
-    <div className={`bg-white border-l-4 ${borderColor} p-1.5 rounded-r-lg border border-y-slate-200 border-r-slate-200 shadow-sm flex items-center gap-2 transition hover:shadow-md`}>
-      <div className={`${iconBg} ${iconColor} p-1.5 rounded-md flex items-center justify-center shrink-0`}>
+    <div className={`bg-white p-1.5 rounded-lg shadow-sm flex items-center gap-2 transition hover:shadow-md`}>
+      <div className={`${iconBg} ${iconColor} p-1.5 rounded-full flex items-center justify-center shrink-0`}>
         {icon}
       </div>
       <div className="min-w-0">

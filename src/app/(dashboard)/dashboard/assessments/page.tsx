@@ -4,7 +4,11 @@ import React, { useState } from 'react'
 import { 
   Plus, Download, BarChart3, Search, Filter, RotateCcw, 
   Grid, ChevronDown, Eye, Play, CheckCircle2, AlertCircle, 
-  Clock, HelpCircle, ChevronLeft, ChevronRight, MoreVertical 
+  Clock, HelpCircle, ChevronLeft, ChevronRight, MoreVertical, 
+  AlertTriangle,
+    ClipboardCheck,
+  Clock3,
+  Timer,
 } from 'lucide-react'
 import PageLayout from '@/components/ui/pageLayout'
 
@@ -19,7 +23,8 @@ interface StatMetric {
   trendText?: string
   bgIcon: string
   iconColor: string
-  borderColor: string
+  borderColor: string,
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
 }
 
 interface Candidate {
@@ -48,12 +53,59 @@ interface AssessmentRow {
 // ---------- MOCK DATA ----------
 
 const initialStats: StatMetric[] = [
-  { id: 'all', label: 'Assessments Conducted This Week', count: 56, subtext: '', isTrend: true, trendText: '↑ 18.4% from last week', bgIcon: 'bg-violet-50', iconColor: 'text-violet-600', borderColor: 'border-violet-200' },
-  { id: 'completed', label: 'Completed', count: 24, subtext: '42.9% of total', bgIcon: 'bg-emerald-50', iconColor: 'text-emerald-600', borderColor: 'border-emerald-200' },
-  { id: 'progress', label: 'In Progress', count: 18, subtext: '32.1% of total', bgIcon: 'bg-blue-50', iconColor: 'text-blue-600', borderColor: 'border-blue-200' },
-  { id: 'pending', label: 'Pending', count: 8, subtext: '14.3% of total', bgIcon: 'bg-amber-50', iconColor: 'text-amber-600', borderColor: 'border-amber-200' },
-  { id: 'overdue', label: 'Overdue', count: 6, subtext: '10.7% of total', bgIcon: 'bg-rose-50', iconColor: 'text-rose-600', borderColor: 'border-rose-200' }
-]
+  {
+    id: "all",
+    label: "Assessments Conducted This Week",
+    count: 56,
+    subtext: "",
+    isTrend: true,
+    trendText: "↑ 18.4% from last week",
+    bgIcon: "bg-violet-50",
+    iconColor: "text-violet-600",
+    borderColor: "border-violet-200",
+    icon: ClipboardCheck,
+  },
+  {
+    id: "completed",
+    label: "Completed",
+    count: 24,
+    subtext: "42.9% of total",
+    bgIcon: "bg-emerald-50",
+    iconColor: "text-emerald-600",
+    borderColor: "border-emerald-200",
+    icon: CheckCircle2,
+  },
+  {
+    id: "progress",
+    label: "In Progress",
+    count: 18,
+    subtext: "32.1% of total",
+    bgIcon: "bg-blue-50",
+    iconColor: "text-blue-600",
+    borderColor: "border-blue-200",
+    icon: Clock3,
+  },
+  {
+    id: "pending",
+    label: "Pending",
+    count: 8,
+    subtext: "14.3% of total",
+    bgIcon: "bg-amber-50",
+    iconColor: "text-amber-600",
+    borderColor: "border-amber-200",
+    icon: Timer,
+  },
+  {
+    id: "overdue",
+    label: "Overdue",
+    count: 6,
+    subtext: "10.7% of total",
+    bgIcon: "bg-rose-50",
+    iconColor: "text-rose-600",
+    borderColor: "border-rose-200",
+    icon: AlertTriangle,
+  },
+];
 
 const initialRows: AssessmentRow[] = [
   {
@@ -153,25 +205,51 @@ const AssessmentsPage: React.FC = () => {
 
       {/* ---------- TOP COUNTER METRICS CARD GRID ---------- */}
       <div className="w-full grid grid-cols-5 gap-2 shrink-0 h-[11%]">
-        {initialStats.map((stat) => (
-          <div 
-            key={stat.id} 
-            onClick={() => setActiveTab(stat.id)}
-            className={`bg-white rounded-lg border p-2 flex items-center gap-2 cursor-pointer transition-all hover:shadow-sm ${activeTab === stat.id ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-slate-300'}`}
-          >
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${stat.bgIcon}`}>
-              <Grid className={`w-4 h-4 ${stat.iconColor}`} />
-            </div>
-            <div className="min-w-0 flex flex-col">
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-base font-bold text-slate-900 tabular-nums">{stat.count}</span>
-                {stat.isTrend && <span className="text-[9px] font-bold text-emerald-600 whitespace-nowrap">{stat.trendText}</span>}
-              </div>
-              <span className="text-[10px] font-bold text-slate-800 truncate leading-tight">{stat.label}</span>
-              {stat.subtext && <span className="text-[9px] font-medium text-slate-500 whitespace-nowrap">{stat.subtext}</span>}
-            </div>
-          </div>
-        ))}
+     {initialStats.map((stat) => {
+  const Icon = stat.icon;
+
+  return (
+    <div
+      key={stat.id}
+      onClick={() => setActiveTab(stat.id)}
+      className={`bg-white rounded-lg border p-2 flex items-center gap-2 cursor-pointer transition-all hover:shadow-sm ${
+        activeTab === stat.id
+          ? "border-indigo-500 ring-1 ring-indigo-500"
+          : "border-slate-300"
+      }`}
+    >
+      <div
+        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${stat.bgIcon} mr-2`}
+      >
+        <Icon className={`w-4 h-4 ${stat.iconColor}`} strokeWidth={2.2} />
+      </div>
+
+      <div className="min-w-0 flex flex-col">
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-base font-bold text-slate-900 tabular-nums">
+            {stat.count}
+          </span>
+
+          {stat.isTrend && (
+            <span className="text-[9px] font-bold text-emerald-600 whitespace-nowrap">
+              {stat.trendText}
+            </span>
+          )}
+        </div>
+
+        <span className="text-[10px] font-bold text-slate-800 truncate leading-tight">
+          {stat.label}
+        </span>
+
+        {stat.subtext && (
+          <span className="text-[9px] font-medium text-slate-500 whitespace-nowrap">
+            {stat.subtext}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+})}
       </div>
 
       {/* ---------- FILTER AND CONTROL BAR ---------- */}

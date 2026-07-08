@@ -25,6 +25,7 @@ import {
   Briefcase
 } from 'lucide-react';
 import { CandidateInfo, Note, PortalView } from './types';
+import PageLayout from '@/components/ui/pageLayout';
 
 const defaultCandidate: CandidateInfo = {
   fullName: "Amit Kumar Verma",
@@ -132,11 +133,8 @@ export default function SubmittedPage({
   ];
 
   return (
+    <PageLayout>
     <div className="w-full h-screen overflow-hidden flex flex-col bg-slate-50 font-sans text-slate-900 select-none" id="submitted-page-root">
-
-      {/* =========================================================================
-          1. PAGE HEADER — Title, subtitle & primary actions
-          ========================================================================= */}
       <header className="h-[9%] min-h-[56px] bg-white border-b border-slate-100 px-4 flex items-center justify-between">
         <div>
           <h1 className="font-display font-bold text-lg text-indigo-950 leading-none">
@@ -429,6 +427,7 @@ export default function SubmittedPage({
 
             {/* 1. Candidate Application Summary Badge */}
             <div className="bg-white rounded-lg border border-slate-200 p-2 flex flex-col items-center text-center shadow-sm" id="submitted-summary-badge">
+              <div className="flex self-start gap-3">
               <div className="relative">
                 <div className="w-12 h-12 rounded-full border-2 border-indigo-600 overflow-hidden bg-indigo-50">
                   <img
@@ -440,6 +439,7 @@ export default function SubmittedPage({
                 </div>
                 <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
               </div>
+<div className='flex flex-col items-start'>
 
               <h3 className="font-display font-bold text-xs text-indigo-950 mt-1 leading-none">
                 {candidate.fullName}
@@ -451,7 +451,8 @@ export default function SubmittedPage({
               <span className="bg-indigo-100 text-indigo-800 text-[8px] font-bold px-1.5 py-0.5 rounded-full mt-1.5 border border-indigo-200">
                 Application Submitted Successfully
               </span>
-
+</div>
+</div>
               {/* Summary fields Table with icons */}
               <div className="w-full mt-2 space-y-1 text-left text-[10px] text-slate-800 border-t border-slate-100 pt-1.5">
                 {summaryFields.map((field) => {
@@ -527,5 +528,6 @@ export default function SubmittedPage({
         </div>
       </div>
     </div>
+    </PageLayout>
   );
 }

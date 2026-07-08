@@ -25,6 +25,7 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
+  Trash2,
 } from "lucide-react";
 
 import { FaLinkedin } from "react-icons/fa";
@@ -66,7 +67,45 @@ export default function ReviewPage({
   const [candidate, setCandidate] = React.useState<CandidateInfo>(defaultCandidate);
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState<boolean>(false);
   const [activeTab, setActiveTab] = React.useState<string>('personal');
-  
+  interface ExperienceEntry {
+  id: string;
+  role: string;
+  company: string;
+  employmentType: string;
+  startDate: string;
+  endDate: string;
+  bullets: string[];
+}
+
+const defaultExperiences: ExperienceEntry[] = [
+  {
+    id: "exp-1",
+    role: "Sales Manager",
+    company: "ABC Pvt. Ltd.",
+    employmentType: "Full Time",
+    startDate: "Jun 2021",
+    endDate: "Present",
+    bullets: [
+      "Leading a team of 10 sales executives and managing key enterprise accounts.",
+      "Achieved 125% of annual sales target for 2 consecutive years.",
+      "Developed strategic sales plans and increased market share by 16%."
+    ]
+  },
+  {
+    id: "exp-2",
+    role: "Senior Sales Executive",
+    company: "XYZ Solutions Pvt. Ltd.",
+    employmentType: "Full Time",
+    startDate: "May 2019",
+    endDate: "May 2021",
+    bullets: [
+      "Managed client acquisition and retention across Delhi NCR.",
+      "Consistently met and exceeded quarterly sales targets."
+    ]
+  }
+];
+
+const [experiences, setExperiences] = React.useState<ExperienceEntry[]>(defaultExperiences);
   // Interactive UI zoom states for CV
   const [zoomLevel, setZoomLevel] = React.useState<number>(100);
   const [showSuggestions, setShowSuggestions] = React.useState<boolean>(false);
@@ -86,7 +125,54 @@ export default function ReviewPage({
     }));
     setHasUnsavedChanges(true);
   };
+const handleExperienceChange = (expId: string, field: keyof Omit<ExperienceEntry, 'id' | 'bullets'>, value: string) => {
+  setExperiences(prev => prev.map(exp => 
+    exp.id === expId ? { ...exp, [field]: value } : exp
+  ));
+  setHasUnsavedChanges(true);
+};
 
+const handleBulletChange = (expId: string, bulletIndex: number, value: string) => {
+  setExperiences(prev => prev.map(exp => 
+    exp.id === expId 
+      ? { ...exp, bullets: exp.bullets.map((b, i) => i === bulletIndex ? value : b) } 
+      : exp
+  ));
+  setHasUnsavedChanges(true);
+};
+
+const addBullet = (expId: string) => {
+  setExperiences(prev => prev.map(exp => 
+    exp.id === expId ? { ...exp, bullets: [...exp.bullets, ""] } : exp
+  ));
+  setHasUnsavedChanges(true);
+};
+
+const removeBullet = (expId: string, bulletIndex: number) => {
+  setExperiences(prev => prev.map(exp => 
+    exp.id === expId ? { ...exp, bullets: exp.bullets.filter((_, i) => i !== bulletIndex) } : exp
+  ));
+  setHasUnsavedChanges(true);
+};
+
+const addExperience = () => {
+  const newExp: ExperienceEntry = {
+    id: `exp-${Date.now()}`,
+    role: "",
+    company: "",
+    employmentType: "Full Time",
+    startDate: "",
+    endDate: "",
+    bullets: [""]
+  };
+  setExperiences(prev => [newExp, ...prev]);
+  setHasUnsavedChanges(true);
+};
+
+const removeExperience = (expId: string) => {
+  setExperiences(prev => prev.filter(exp => exp.id !== expId));
+  setHasUnsavedChanges(true);
+};
   const handleDiscard = () => {
     setCandidate(defaultCandidate);
     setHasUnsavedChanges(false);
@@ -611,51 +697,132 @@ export default function ReviewPage({
           )}
 
           {/* Category 4: Experience / Timeline */}
-          {(activeTab === 'experience') && (
-            <div className="space-y-1.5" id="experience-info-block">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-0.5">
-                <h3 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
-                  <Briefcase className="w-3.5 h-3.5 text-indigo-700" />
-                  Experience Timeline
-                </h3>
-                <span className="text-[9px] text-slate-500 font-mono">Work History</span>
-              </div>
-              
-              <div className="space-y-1.5 bg-slate-50 p-2 rounded border border-slate-100">
-                <div className="relative border-l-2 border-indigo-200 pl-3 space-y-3 py-1 text-xs text-slate-800">
-                  
-                  {/* Item 1 */}
-                  <div className="relative">
-                    <span className="absolute -left-[17px] top-1 w-2 h-2 rounded-full bg-indigo-600"></span>
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900">Sales Manager</span>
-                      <span className="text-[9px] text-slate-600 font-semibold font-mono">Jun 2021 – Present</span>
-                    </div>
-                    <span className="text-[10px] text-indigo-950 font-medium block">ABC Pvt. Ltd. • Full Time</span>
-                    <ul className="list-disc pl-3 mt-1 space-y-0.5 text-[10px] text-slate-700 leading-snug">
-                      <li>Leading a team of 10 sales executives and managing key enterprise accounts.</li>
-                      <li>Achieved 125% of annual sales target for 2 consecutive years.</li>
-                      <li>Developed strategic sales plans and increased market share by 16%.</li>
-                    </ul>
-                  </div>
+        {(activeTab === 'experience') && (
+  <div className="space-y-1.5" id="experience-info-block">
+    <div className="flex items-center justify-between border-b border-slate-100 pb-0.5">
+      <h3 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
+        <Briefcase className="w-3.5 h-3.5 text-indigo-700" />
+        Experience Timeline
+      </h3>
+      <button
+        onClick={addExperience}
+        className="text-[10px] text-indigo-700 hover:text-indigo-950 font-bold flex items-center gap-0.5 focus:outline-none"
+      >
+        <Plus className="w-3 h-3" />
+        <span>Add Experience</span>
+      </button>
+    </div>
 
-                  {/* Item 2 */}
-                  <div className="relative">
-                    <span className="absolute -left-[17px] top-1 w-2 h-2 rounded-full bg-indigo-400"></span>
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900">Senior Sales Executive</span>
-                      <span className="text-[9px] text-slate-600 font-semibold font-mono">May 2019 – May 2021</span>
-                    </div>
-                    <span className="text-[10px] text-indigo-950 font-medium block">XYZ Solutions Pvt. Ltd. • Full Time</span>
-                    <ul className="list-disc pl-3 mt-1 space-y-0.5 text-[10px] text-slate-700 leading-snug">
-                      <li>Managed client acquisition and retention across Delhi NCR.</li>
-                      <li>Consistently met and exceeded quarterly sales targets.</li>
-                    </ul>
-                  </div>
-                </div>
+    <div className="space-y-2">
+      {experiences.map((exp, expIdx) => (
+        <div key={exp.id} className="bg-slate-50 p-2 rounded border border-slate-200 space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] font-bold text-indigo-900 uppercase tracking-wide">
+              {expIdx === 0 ? "Current / Most Recent" : `Entry ${expIdx + 1}`}
+            </span>
+            <button
+              onClick={() => removeExperience(exp.id)}
+              className="p-0.5 text-rose-600 hover:bg-rose-50 rounded"
+              title="Remove this experience"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
+            <div className="space-y-0.5">
+              <label className="text-[10px] font-bold text-indigo-950">Role / Designation</label>
+              <input
+                type="text"
+                value={exp.role}
+                onChange={(e) => handleExperienceChange(exp.id, 'role', e.target.value)}
+                className="w-full px-2 py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none text-slate-800"
+              />
+            </div>
+            <div className="space-y-0.5">
+              <label className="text-[10px] font-bold text-indigo-950">Company Name</label>
+              <input
+                type="text"
+                value={exp.company}
+                onChange={(e) => handleExperienceChange(exp.id, 'company', e.target.value)}
+                className="w-full px-2 py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none text-slate-800"
+              />
+            </div>
+            <div className="space-y-0.5">
+              <label className="text-[10px] font-bold text-indigo-950">Employment Type</label>
+              <select
+                value={exp.employmentType}
+                onChange={(e) => handleExperienceChange(exp.id, 'employmentType', e.target.value)}
+                className="w-full px-1.5 py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none text-slate-800"
+              >
+                <option value="Full Time">Full Time</option>
+                <option value="Contract">Contract</option>
+                <option value="Internship">Internship</option>
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              <div className="space-y-0.5">
+                <label className="text-[10px] font-bold text-indigo-950">Start Date</label>
+                <input
+                  type="text"
+                  value={exp.startDate}
+                  onChange={(e) => handleExperienceChange(exp.id, 'startDate', e.target.value)}
+                  placeholder="e.g. Jun 2021"
+                  className="w-full px-2 py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none text-slate-800"
+                />
+              </div>
+              <div className="space-y-0.5">
+                <label className="text-[10px] font-bold text-indigo-950">End Date</label>
+                <input
+                  type="text"
+                  value={exp.endDate}
+                  onChange={(e) => handleExperienceChange(exp.id, 'endDate', e.target.value)}
+                  placeholder="Present"
+                  className="w-full px-2 py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none text-slate-800"
+                />
               </div>
             </div>
-          )}
+          </div>
+
+          <div className="space-y-1 pt-0.5">
+            <label className="text-[10px] font-bold text-indigo-950">Key Responsibilities</label>
+            {exp.bullets.map((bullet, bulletIdx) => (
+              <div key={bulletIdx} className="flex items-start gap-1">
+                <input
+                  type="text"
+                  value={bullet}
+                  onChange={(e) => handleBulletChange(exp.id, bulletIdx, e.target.value)}
+                  className="flex-1 px-2 py-1 text-[11px] bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none text-slate-800"
+                />
+                <button
+                  onClick={() => removeBullet(exp.id, bulletIdx)}
+                  disabled={exp.bullets.length === 1}
+                  className="p-1 text-rose-600 hover:bg-rose-50 rounded disabled:opacity-30"
+                  title="Remove bullet"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={() => addBullet(exp.id)}
+              className="text-[10px] text-indigo-700 hover:text-indigo-950 font-bold flex items-center gap-0.5 pt-0.5"
+            >
+              <Plus className="w-3 h-3" />
+              <span>Add Bullet Point</span>
+            </button>
+          </div>
+        </div>
+      ))}
+
+      {experiences.length === 0 && (
+        <div className="text-center text-[10px] text-slate-500 py-4 border border-dashed border-slate-300 rounded">
+          No experience entries. Click "Add Experience" to create one.
+        </div>
+      )}
+    </div>
+  </div>
+)}
 
           {/* Category 5: Other Information */}
           {(activeTab === 'other') && (

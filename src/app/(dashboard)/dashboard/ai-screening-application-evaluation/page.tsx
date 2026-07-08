@@ -13,12 +13,16 @@ import {
   Download,
   Eye,
   Plus,
+  Phone, Mail, MapPin,
   Minus,
   Maximize2,
   Clock,
-  ShieldCheck
+  ShieldCheck,
+  Star
 } from 'lucide-react';
 import { CandidateInfo, Note, Skill, PortalView } from './types';
+import PageLayout from '@/components/ui/pageLayout';
+import { FaLinkedin } from 'react-icons/fa';
 
 const defaultCandidate: CandidateInfo = {
   fullName: "Amit Kumar Verma",
@@ -144,6 +148,8 @@ export default function EvaluationPage({
   };
 
   return (
+    <PageLayout>
+
     <div className="w-full h-screen overflow-hidden flex flex-col bg-slate-50 font-sans text-slate-900 select-none" id="evaluation-page-root">
 
       {/* =========================================================================
@@ -234,8 +240,8 @@ export default function EvaluationPage({
 
         {/* Score Summary Title Hero */}
         <div className="bg-slate-50 p-2 border-b border-slate-200 flex items-center justify-between" id="eval-header-panel">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full border border-indigo-400 overflow-hidden bg-indigo-50">
+          <div className="flex gap-2">
+            <div className="w-16 h-16 rounded-lg border border-indigo-400 overflow-hidden bg-indigo-50">
               <img
                 src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
                 alt="Amit"
@@ -252,31 +258,79 @@ export default function EvaluationPage({
                   AI Screening in Progress
                 </span>
               </div>
-              <p className="text-[9px] text-slate-800 leading-none mt-1">
-                {candidate.appliedFor} • {candidate.department} • {candidate.employmentType}
-              </p>
-              <div className="flex items-center gap-2 text-[8.5px] text-slate-500 mt-1">
-                <span>{candidate.mobile}</span>
-                <span>{candidate.email}</span>
-                <span>{candidate.currentLocation}</span>
-              </div>
+             
+          <div className="flex items-center gap-2 text-[8.5px] text-slate-500 mt-1">
+  <Phone className="w-3 h-3 shrink-0 text-slate-400" />
+  <span className="truncate">{candidate.mobile}</span>
+</div>
+
+<div className="flex items-center gap-2 text-[8.5px] text-slate-500 mt-1">
+  <Mail className="w-3 h-3 shrink-0 text-slate-400" />
+  <span className="truncate">{candidate.email}</span>
+</div>
+
+<div className="flex items-center gap-2 text-[8.5px] text-slate-500 mt-1">
+  <MapPin className="w-3 h-3 shrink-0 text-slate-400" />
+  <span className="truncate">{candidate.currentLocation}</span>
+</div>
+<div className="flex items-center gap-2 text-[8.5px] text-slate-500 mt-1">
+  <FaLinkedin className="w-3 h-3 shrink-0 text-slate-400" />
+  <span className="truncate">{candidate.linkedin}</span>
+</div>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 text-[9px] text-right">
-            <div>
-              <span className="block text-slate-500 font-medium">Experience</span>
-              <span className="block font-bold text-slate-900">{candidate.totalExperience} Years</span>
-            </div>
-            <div>
-              <span className="block text-slate-500 font-medium">Expected CTC</span>
-              <span className="block font-bold text-slate-900">₹ {candidate.expectedCTC}</span>
-            </div>
-            <div>
-              <span className="block text-slate-500 font-medium">Notice Period</span>
-              <span className="block font-bold text-slate-900">{candidate.noticePeriod}</span>
-            </div>
-          </div>
+           <div className="grid grid-cols-2 gap-6">
+  {/* Left Column */}
+  <div className="space-y-2 pr-2 border-r border-slate-200">
+    <div>
+      <p className="text-[10px] font-medium text-slate-500">Applied For</p>
+      <p className="mt-0.5 text-xs font-semibold text-slate-900">
+        {candidate.appliedFor}
+      </p>
+    </div>
+
+    <div>
+      <p className="text-[10px] font-medium text-slate-500">Department</p>
+      <p className="mt-0.5 text-xs font-semibold text-slate-900">
+        {candidate.department}
+      </p>
+    </div>
+
+    <div>
+      <p className="text-[10px] font-medium text-slate-500">
+        Employment Type
+      </p>
+      <p className="mt-0.5 text-xs font-semibold text-slate-900">
+        {candidate.employmentType}
+      </p>
+    </div>
+  </div>
+
+  {/* Right Column */}
+  <div className="space-y-2 pl-2">
+    <div>
+      <p className="text-[10px] font-medium text-slate-500">Experience</p>
+      <p className="mt-0.5 text-xs font-semibold text-slate-900">
+        {candidate.totalExperience} Years
+      </p>
+    </div>
+
+    <div>
+      <p className="text-[10px] font-medium text-slate-500">Expected CTC</p>
+      <p className="mt-0.5 text-xs font-semibold text-slate-900">
+        ₹ {candidate.expectedCTC}
+      </p>
+    </div>
+
+    <div>
+      <p className="text-[10px] font-medium text-slate-500">Notice Period</p>
+      <p className="mt-0.5 text-xs font-semibold text-slate-900">
+        {candidate.noticePeriod}
+      </p>
+    </div>
+  </div>
+</div>
         </div>
 
         {/* Sub Tab selection inside screen 3 */}
@@ -301,7 +355,7 @@ export default function EvaluationPage({
         <div className="flex-1 overflow-y-auto p-2 space-y-2.5" id="eval-scroll-area">
 
           {/* Grid 1: Gauge Chart & Progress Bars (Compact) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
 
             {/* SVG Gauge block */}
             <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 flex flex-col items-center justify-center text-center">
@@ -349,7 +403,7 @@ export default function EvaluationPage({
             </div>
 
             {/* Score Breakdown progress list */}
-            <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-1.5 flex flex-col justify-between">
+            <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-1.5 flex flex-col">
               <span className="text-[10px] uppercase font-bold text-indigo-950">
                 Score Breakdown Parameters
               </span>
@@ -375,10 +429,8 @@ export default function EvaluationPage({
               </div>
             </div>
 
-          </div>
 
           {/* Grid 2: Core Matched Skills & Missing Skills (list style w/ links) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
 
             {/* Top Matched Skills block */}
             <div className="bg-emerald-50/40 p-2 rounded-lg border border-emerald-100 flex flex-col">
@@ -505,20 +557,23 @@ export default function EvaluationPage({
           <div className="min-w-0">
             <span className="text-[10px] font-bold text-emerald-950 flex items-center gap-1">
               AI Recommendation
-              <span className="bg-emerald-600 text-white text-[8px] font-bold px-1.5 py-0.2 rounded-full">Recommended</span>
             </span>
-            <p className="text-[9px] text-emerald-900 leading-snug truncate">
+            <p className="text-[9px] text-emerald-900 leading-snug">
               This candidate has a good match for the role based on the job description. We recommend moving this application to HOD Review.
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
-          <button
-            onClick={() => alert("Shortlisted Amit Kumar Verma for Departmental Interview stage!")}
-            className="px-2.5 py-1 bg-white text-indigo-950 font-bold border border-indigo-200 rounded hover:bg-indigo-50 transition-colors text-xs"
+           <button
+            onClick={() => {
+              alert("Moving application to HOD Review Stage!");
+              setCurrentView('submitted');
+            }}
+            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded flex items-center gap-1 shadow-xs transition-all text-xs"
           >
-            Shortlist for Interview
+            <span>Recommended</span>
+            <Star className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => {
@@ -529,6 +584,12 @@ export default function EvaluationPage({
           >
             <span>Send to HOD Review</span>
             <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => alert("Shortlisted Amit Kumar Verma for Departmental Interview stage!")}
+            className="px-2.5 py-1 bg-white text-indigo-950 font-bold border border-indigo-200 rounded hover:bg-indigo-50 transition-colors text-xs"
+          >
+            Shortlist for Interview
           </button>
         </div>
       </div>
@@ -668,5 +729,6 @@ export default function EvaluationPage({
     </div>
       </div>
     </div>
+    </PageLayout>
   );
 }
