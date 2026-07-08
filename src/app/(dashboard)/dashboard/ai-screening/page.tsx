@@ -337,7 +337,7 @@ export default function AiScreening() {
 
   return (
     <PageLayout>
-    <div className="h-[calc(100vh-48px)] w-full flex flex-col overflow-hidden bg-slate-50/50 p-2 gap-1.5 select-none text-indigo-950">
+    <div className="h-[calc(100vh-48px)] min-h-[650px] w-full flex flex-col overflow-hidden bg-slate-50/50 p-2 gap-1.5 select-none text-indigo-950">
       
       {/* Toast Notice */}
       {exportNotice && (

@@ -180,12 +180,12 @@ const AssessmentsPage: React.FC = () => {
   return (
     <PageLayout>
 
-    <div className="w-full h-[calc(100vh-48px)] flex flex-col gap-1.5 p-2 bg-slate-50 overflow-hidden text-slate-900 font-sans">
+    <div className="w-full h-[calc(100vh-48px)] min-h-[650px] flex flex-col gap-1.5 p-2 bg-slate-50 overflow-hidden text-slate-900 font-sans">
       
       {/* ---------- HEADER SECTION ---------- */}
       <div className="w-full flex items-center justify-between gap-2 shrink-0 h-[6%]">
         <div className="flex flex-col">
-          <h1 className="text-sm font-bold text-slate-900 flex items-center gap-1">
+          <h1 className="text-sm font-semibold text-slate-900 flex items-center gap-1">
             Assessments <HelpCircle className="w-3.5 h-3.5 text-indigo-600 inline cursor-pointer" />
           </h1>
           <p className="text-[10px] font-medium text-slate-600">Evaluate candidates with skill tests and assessments</p>
@@ -226,18 +226,18 @@ const AssessmentsPage: React.FC = () => {
 
       <div className="min-w-0 flex flex-col">
         <div className="flex items-baseline gap-1.5">
-          <span className="text-base font-bold text-slate-900 tabular-nums">
+          <span className="text-base font-semibold text-slate-900 tabular-nums">
             {stat.count}
           </span>
 
           {stat.isTrend && (
-            <span className="text-[9px] font-bold text-emerald-600 whitespace-nowrap">
+            <span className="text-[9px] font-semibold text-emerald-600 whitespace-nowrap">
               {stat.trendText}
             </span>
           )}
         </div>
 
-        <span className="text-[10px] font-bold text-slate-800 truncate leading-tight">
+        <span className="text-[10px] font-semibold text-slate-800 truncate leading-tight">
           {stat.label}
         </span>
 
@@ -288,7 +288,7 @@ const AssessmentsPage: React.FC = () => {
             { label: 'Date Range', value: '01 Jun 2026 - 15 Jun 2026', options: ['01 Jun 2026 - 15 Jun 2026'] }
           ].map((drop, index) => (
             <div key={index} className="flex flex-col gap-0.5">
-              <label className="text-[9px] font-bold text-slate-700">{drop.label}</label>
+              <label className="text-[9px] font-semibold text-slate-700">{drop.label}</label>
               <div className="relative cursor-pointer">
                 <select 
                   className="w-full bg-white border border-slate-300 rounded px-1.5 py-0.5 pr-5 text-[10px] font-semibold text-slate-900 outline-none appearance-none cursor-pointer"
@@ -317,7 +317,7 @@ const AssessmentsPage: React.FC = () => {
             <button 
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`pb-1 text-[11px] font-bold transition-all relative ${activeTab === tab.key ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-700 hover:text-slate-900'}`}
+              className={`pb-1 text-[11px] font-semibold transition-all relative ${activeTab === tab.key ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-700 hover:text-slate-900'}`}
             >
               {tab.label} <span className="text-[10px] text-slate-500 font-semibold">({tab.count})</span>
             </button>
@@ -341,7 +341,7 @@ const AssessmentsPage: React.FC = () => {
       {/* ---------- DATA TABLE CONTAINER ---------- */}
       <div className="w-full flex-1 overflow-auto bg-white border border-slate-300 rounded-lg">
         <table className="w-full table-auto border-collapse text-left">
-          <thead className="bg-slate-50 sticky top-0 z-20 border-b border-slate-300 text-[10px] font-bold text-slate-800">
+          <thead className="bg-slate-50 sticky top-0 z-20 border-b border-slate-300 text-[10px] font-semibold text-slate-800">
             <tr>
               <th className="p-2 w-8"><input type="checkbox" className="rounded text-indigo-600" /></th>
               <th className="p-2">Candidate</th>
@@ -365,11 +365,11 @@ const AssessmentsPage: React.FC = () => {
                 {/* Candidate Info */}
                 <td className="p-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-700 text-[9px] uppercase shrink-0">
+                    <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center font-semibold text-indigo-700 text-[9px] uppercase shrink-0">
                       {row.candidate.name.split(' ').map(n => n[0]).join('')}
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="font-bold text-slate-950 truncate">{row.candidate.name}</span>
+                      <span className="font-semibold text-slate-950 truncate">{row.candidate.name}</span>
                       <span className="text-[10px] text-slate-600 truncate">{row.candidate.email}</span>
                       <span className="text-[9px] text-slate-500 font-mono">{row.candidate.phone}</span>
                     </div>
@@ -379,7 +379,7 @@ const AssessmentsPage: React.FC = () => {
                 {/* Job Details */}
                 <td className="p-2">
                   <div className="flex flex-col">
-                    <span className="font-bold text-slate-900 leading-tight">{row.jobTitle}</span>
+                    <span className="font-semibold text-slate-900 leading-tight">{row.jobTitle}</span>
                     <span className="text-[9px] text-slate-600 font-mono mt-0.5">{row.jobCode}</span>
                   </div>
                 </td>
@@ -387,14 +387,14 @@ const AssessmentsPage: React.FC = () => {
                 {/* Assessment Name */}
                 <td className="p-2">
                   <div className="flex flex-col">
-                    <span className="font-bold text-slate-900 leading-tight">{row.assessmentName}</span>
+                    <span className="font-semibold text-slate-900 leading-tight">{row.assessmentName}</span>
                     {row.assessmentSub && <span className="text-[9px] text-slate-600">{row.assessmentSub}</span>}
                   </div>
                 </td>
 
                 {/* Type Badge */}
                 <td className="p-2">
-                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                  <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
                     row.type === 'Skill Test' ? 'bg-violet-50 text-violet-700 border border-violet-200' :
                     row.type === 'Technical' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
                     row.type === 'Aptitude' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
@@ -409,7 +409,7 @@ const AssessmentsPage: React.FC = () => {
 
                 {/* Status Badge */}
                 <td className="p-2">
-                  <span className={`inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                  <span className={`inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded ${
                     row.status === 'Completed' ? 'bg-emerald-50 text-emerald-700' :
                     row.status === 'In Progress' ? 'bg-blue-50 text-blue-700' :
                     row.status === 'Pending' ? 'bg-amber-50 text-amber-700' :
@@ -424,14 +424,14 @@ const AssessmentsPage: React.FC = () => {
                 </td>
 
                 {/* Score */}
-                <td className="p-2 font-bold text-slate-900 tabular-nums">{row.score || '--'}</td>
+                <td className="p-2 font-semibold text-slate-900 tabular-nums">{row.score || '--'}</td>
 
                 {/* Percentile Rank */}
                 <td className="p-2">
                   {row.percentile ? (
                     <div className="flex flex-col">
-                      <span className="font-bold text-emerald-700 tabular-nums">{row.percentile}</span>
-                      <span className="text-[8px] font-bold text-emerald-600 leading-none">{row.percentileLabel}</span>
+                      <span className="font-semibold text-emerald-700 tabular-nums">{row.percentile}</span>
+                      <span className="text-[8px] font-semibold text-emerald-600 leading-none">{row.percentileLabel}</span>
                     </div>
                   ) : (
                     <span className="text-slate-400 font-mono">--</span>
@@ -441,7 +441,7 @@ const AssessmentsPage: React.FC = () => {
                 {/* Completed Datetime */}
                 <td className="p-2">
                   {row.completedOn ? (
-                    <span className={`text-[10px] ${row.status === 'Overdue' ? 'text-rose-600 font-bold' : 'text-slate-800 font-semibold'}`}>
+                    <span className={`text-[10px] ${row.status === 'Overdue' ? 'text-rose-600 font-semibold' : 'text-slate-800 font-semibold'}`}>
                       {row.completedOn}
                     </span>
                   ) : (
@@ -484,7 +484,7 @@ const AssessmentsPage: React.FC = () => {
       </div>
 
       {/* ---------- FOOTER PAGINATION BAR ---------- */}
-      <div className="w-full flex items-center justify-between border border-slate-300 bg-white rounded-lg p-1.5 shrink-0 h-[6%] text-[11px] font-bold text-slate-800">
+      <div className="w-full flex items-center justify-between border border-slate-300 bg-white rounded-lg p-1.5 shrink-0 h-[6%] text-[11px] font-semibold text-slate-800">
         <div>
           Showing <span className="text-slate-950 font-extrabold">1</span> to <span className="text-slate-950 font-extrabold">10</span> of <span className="text-slate-950 font-extrabold">56</span> entries
         </div>
@@ -493,7 +493,7 @@ const AssessmentsPage: React.FC = () => {
           <div className="flex items-center gap-1">
             <span>Show</span>
             <div className="relative">
-              <select className="bg-slate-50 border border-slate-300 rounded px-1 py-0.5 pr-4 font-bold text-slate-950 appearance-none outline-none">
+              <select className="bg-slate-50 border border-slate-300 rounded px-1 py-0.5 pr-4 font-semibold text-slate-950 appearance-none outline-none">
                 <option>10</option>
                 <option>25</option>
                 <option>50</option>
@@ -510,7 +510,7 @@ const AssessmentsPage: React.FC = () => {
             {['1', '2', '3', '...', '6'].map((page, idx) => (
               <button 
                 key={idx} 
-                className={`w-5 h-5 flex items-center justify-center rounded text-[10px] font-bold ${page === '1' ? 'bg-indigo-600 text-white' : 'border border-slate-300 bg-white hover:bg-slate-100 text-slate-800'}`}
+                className={`w-5 h-5 flex items-center justify-center rounded text-[10px] font-semibold ${page === '1' ? 'bg-indigo-600 text-white' : 'border border-slate-300 bg-white hover:bg-slate-100 text-slate-800'}`}
               >
                 {page}
               </button>

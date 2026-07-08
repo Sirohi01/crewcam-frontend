@@ -26,6 +26,7 @@ export interface CandidateInfo {
   university: string; // e.g. "Amity University, Noida"
   yearOfPassing: string; // e.g. "2017"
   cgpa: string; // e.g. "7.8 CGPA"
+  resumeUrl:string;
 }
 
 export interface Note {

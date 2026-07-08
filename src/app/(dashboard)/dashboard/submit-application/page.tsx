@@ -103,18 +103,12 @@ export default function SubmittedPage({
     setNewNoteText("");
   };
 
-  const handleDownloadCV = () => {
-    const text = `RESUME: ${candidate.fullName}\nEmail: ${candidate.email}\nPhone: ${candidate.mobile}\nExperience: ${candidate.totalExperience} Years`;
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${candidate.fullName.replace(/\s+/g, '_')}_Resume.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-  };
+const handleDownloadCV = () => {
+  const link = document.createElement('a');
+  link.href = "https://drive.google.com/uc?export=download&id=1v9E-G1x-oau8y8te_QeluAIW7z5NHBpN";
+  link.download = 'CV.pdf';
+  link.click();
+};
 
   const pipelineSteps = [
     { title: "AI Screening", delay: "1-2 Days", desc: "Our AI will analyze your CV and match it with the job requirements.", icon: Sparkles, active: true, stage: 'evaluation' as PortalView },
@@ -134,10 +128,10 @@ export default function SubmittedPage({
 
   return (
     <PageLayout>
-    <div className="w-full h-screen overflow-hidden flex flex-col bg-slate-50 font-sans text-slate-900 select-none" id="submitted-page-root">
-      <header className="h-[9%] min-h-[56px] bg-white border-b border-slate-100 px-4 flex items-center justify-between">
+    <div className="w-full min-h-screen lg:h-screen lg:min-h-[650px] overflow-y-auto lg:overflow-hidden flex flex-col bg-slate-50 font-sans text-slate-900 select-none" id="submitted-page-root">
+      <header className="min-h-[70px] lg:h-[9%] lg:min-h-[56px] bg-white border-b border-slate-100 px-3 lg:px-4 py-2 lg:py-0 flex flex-col md:flex-row md:items-center items-start justify-between gap-2 shrink-0">
         <div>
-          <h1 className="font-display font-bold text-lg text-indigo-950 leading-none">
+          <h1 className="font-display font-bold text-base sm:text-lg text-indigo-950 leading-tight">
             Application Submitted Successfully!
           </h1>
           <p className="text-xs text-slate-600 mt-1">
@@ -146,20 +140,20 @@ export default function SubmittedPage({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             onClick={() => alert("Navigating to Dashboard...")}
-            className="px-3 py-1.5 text-xs border border-slate-300 text-slate-800 rounded-lg hover:bg-slate-50 font-bold flex items-center gap-1.5 transition-colors"
+            className="flex-1 sm:flex-none justify-center px-3 py-2 sm:py-1.5 text-xs border border-slate-300 text-slate-800 rounded-lg hover:bg-slate-50 font-bold flex items-center gap-1.5 transition-colors whitespace-nowrap"
           >
             <LayoutDashboard className="w-3.5 h-3.5" />
-            Go to Dashboard
+            <span className="hidden xs:inline sm:inline">Go to Dashboard</span>
           </button>
           <button
             onClick={() => alert("Navigating to My Applications...")}
-            className="px-3 py-1.5 text-xs bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold flex items-center gap-1.5 transition-colors"
+            className="flex-1 sm:flex-none justify-center px-3 py-2 sm:py-1.5 text-xs bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold flex items-center gap-1.5 transition-colors whitespace-nowrap"
           >
             <Briefcase className="w-3.5 h-3.5" />
-            View My Applications
+            <span>View My Applications</span>
           </button>
         </div>
       </header>
@@ -167,11 +161,11 @@ export default function SubmittedPage({
       {/* =========================================================================
           2. FULL 8-STEP JOURNEY STEPPER
           ========================================================================= */}
-      <section className="h-[7%] min-h-[46px] bg-white border-b border-slate-100 px-4 flex items-center">
-        <div className="w-full flex items-center justify-between">
+      <section className="min-h-[46px] lg:h-[7%] bg-white border-b border-slate-100 px-3 lg:px-4 py-1.5 lg:py-0 flex items-center overflow-x-auto shrink-0">
+        <div className="w-full min-w-max lg:min-w-0 flex items-center justify-between gap-1 lg:gap-0">
           {journeySteps.map((step, idx) => (
             <React.Fragment key={step.label}>
-              <div className="flex flex-col items-center gap-1 min-w-[64px]">
+              <div className="flex flex-col items-center gap-1 min-w-[56px] lg:min-w-[64px]">
                 <span
                   className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] border-2 ${
                     step.status === "completed"
@@ -184,7 +178,7 @@ export default function SubmittedPage({
                   {step.status === "completed" ? "✓" : idx + 1}
                 </span>
                 <span
-                  className={`text-[9px] font-medium text-center leading-tight ${
+                  className={`text-[9px] font-medium text-center leading-tight whitespace-nowrap ${
                     step.status === "pending" ? "text-slate-400" : "text-slate-800"
                   } ${step.status === "current" ? "font-bold text-indigo-950" : ""}`}
                 >
@@ -193,7 +187,7 @@ export default function SubmittedPage({
               </div>
               {idx < journeySteps.length - 1 && (
                 <div
-                  className={`flex-1 h-[2px] mb-4 ${
+                  className={`flex-1 min-w-[16px] h-[2px] mb-4 ${
                     step.status === "completed" ? "bg-emerald-400" : "bg-slate-200"
                   }`}
                 />
@@ -206,18 +200,18 @@ export default function SubmittedPage({
       {/* =========================================================================
           3. MAIN CONTAINER
           ========================================================================= */}
-      <div className="h-[84%] flex-1 overflow-hidden flex bg-slate-50 gap-2 p-2">
+      <div className="flex-1 lg:h-[84%] overflow-visible lg:overflow-hidden flex flex-col bg-slate-50 gap-2 p-2">
         <div
-          className="w-full h-full flex gap-2 overflow-hidden"
+          className="w-full h-auto lg:h-full flex flex-col lg:flex-row gap-2 overflow-visible lg:overflow-hidden"
           id="submitted-step-container"
         >
           {/* Left Column: Success Details, Timeline & Docs (68% width) */}
-          <div className="w-[68%] h-full flex flex-col gap-2 overflow-y-auto pr-1" id="submitted-left-column">
+          <div className="w-full lg:w-[68%] h-auto lg:h-full flex flex-col gap-2 overflow-visible lg:overflow-y-auto lg:pr-1" id="submitted-left-column">
 
             {/* 1. Main Welcome Congrats Card */}
-            <div className="bg-emerald-50/70 border border-emerald-200 rounded-lg p-3 flex items-center justify-between shadow-xs" id="congrats-card">
+            <div className="bg-emerald-50/70 border border-emerald-200 rounded-lg p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-xs" id="congrats-card">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-300 text-emerald-700">
+                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-300 text-emerald-700 shrink-0">
                   <CheckCircle className="w-6 h-6" />
                 </div>
                 <div>
@@ -227,7 +221,7 @@ export default function SubmittedPage({
                   <p className="text-[11px] text-slate-800 leading-relaxed mt-0.5">
                     Your application for <span className="font-bold text-indigo-950">{candidate.appliedFor}</span> has been submitted successfully to the <span className="font-bold text-indigo-950">{candidate.department}</span> department.
                   </p>
-                  <div className="flex items-center gap-2 mt-2">
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
                     <span className="text-[10px] font-mono bg-white text-emerald-800 px-2 py-0.5 rounded border border-emerald-300 font-bold">
                       Application ID: APP-2026-000124
                     </span>
@@ -238,7 +232,7 @@ export default function SubmittedPage({
                 </div>
               </div>
 
-              <div className="hidden md:block bg-white p-2 rounded-lg border border-emerald-100 shadow-xs">
+              <div className="hidden md:block bg-white p-2 rounded-lg border border-emerald-100 shadow-xs shrink-0">
                 <Mail className="w-8 h-8 text-emerald-600 animate-bounce" />
               </div>
             </div>
@@ -252,7 +246,7 @@ export default function SubmittedPage({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-1.5">
                 {pipelineSteps.map((step, idx) => {
                   const Icon = step.icon;
                   return (
@@ -299,10 +293,10 @@ export default function SubmittedPage({
             </div>
 
             {/* 3. Info Banner regarding SMS / Email Updates */}
-            <div className="bg-indigo-50 p-1.5 rounded-lg border border-indigo-100 flex items-center gap-2 text-[10px] text-indigo-950" id="sms-info-banner">
+            <div className="bg-indigo-50 p-1.5 rounded-lg border border-indigo-100 flex items-start sm:items-center gap-2 text-[10px] text-indigo-950" id="sms-info-banner">
               <AlertCircle className="w-4 h-4 text-indigo-700 flex-shrink-0" />
               <span>
-                You will receive instant automated updates at <span className="font-bold underline">{candidate.email}</span> and SMS on <span className="font-bold">{candidate.mobile}</span> as the candidate moves through the screening timeline.
+                You will receive instant automated updates at <span className="font-bold underline break-all">{candidate.email}</span> and SMS on <span className="font-bold">{candidate.mobile}</span> as the candidate moves through the screening timeline.
               </span>
             </div>
 
@@ -313,12 +307,12 @@ export default function SubmittedPage({
                 Documents Submitted
               </h4>
 
-              <div className="flex items-center justify-between bg-slate-50 p-1.5 rounded border border-slate-200">
-                <div className="flex items-center gap-1.5">
-                  <div className="bg-rose-100 text-rose-700 font-bold px-1.5 py-1 text-[9px] rounded uppercase">
+              <div className="flex flex-col sm:flex-row sm:items-center items-start justify-between gap-2 bg-slate-50 p-1.5 rounded border border-slate-200">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <div className="bg-rose-100 text-rose-700 font-bold px-1.5 py-1 text-[9px] rounded uppercase shrink-0">
                     PDF
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <span className="text-[10px] font-bold text-slate-900 block truncate max-w-[220px]">
                       {candidate.fullName.replace(/\s+/g, '_')}_Resume.pdf
                     </span>
@@ -330,7 +324,7 @@ export default function SubmittedPage({
 
                 <button
                   onClick={handleDownloadCV}
-                  className="p-1 hover:bg-indigo-50 border border-slate-200 rounded text-indigo-700 hover:text-indigo-900 flex items-center gap-0.5 transition-colors text-[9px] font-bold"
+                  className="p-1.5 sm:p-1 hover:bg-indigo-50 border border-slate-200 rounded text-indigo-700 hover:text-indigo-900 flex items-center gap-0.5 transition-colors text-[9px] font-bold shrink-0"
                 >
                   <Download className="w-3 h-3" />
                   <span>Download</span>
@@ -350,7 +344,7 @@ export default function SubmittedPage({
                   </h4>
                   <button
                     onClick={() => setShowNoteInput(!showNoteInput)}
-                    className="px-2 py-0.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded text-[9px] flex items-center gap-1 transition-colors"
+                    className="px-2 py-1 sm:py-0.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded text-[9px] flex items-center gap-1 transition-colors"
                   >
                     <Plus className="w-3 h-3" />
                     Add Note
@@ -374,18 +368,18 @@ export default function SubmittedPage({
                         if (e.key === 'Enter') handleAddNote();
                       }}
                       autoFocus
-                      className="flex-1 px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none text-slate-900"
+                      className="flex-1 min-w-0 px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none text-slate-900"
                     />
                     <button
                       onClick={handleAddNote}
-                      className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded text-xs flex items-center gap-1 transition-colors"
+                      className="px-2.5 py-1.5 sm:py-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded text-xs flex items-center gap-1 transition-colors shrink-0"
                     >
                       <Send className="w-3 h-3" />
                     </button>
                   </div>
                 )}
 
-                <div className="space-y-1 max-h-[85px] overflow-y-auto pr-1 mt-1">
+                <div className="space-y-1 max-h-[120px] sm:max-h-[85px] overflow-y-auto pr-1 mt-1">
                   {notes.map(note => (
                     <div key={note.id} className="p-1 bg-slate-50 rounded border border-slate-100 text-[9px] leading-tight text-slate-800">
                       <p className="text-slate-900 font-medium">{note.text}</p>
@@ -410,7 +404,7 @@ export default function SubmittedPage({
                     </p>
                 <button
                   onClick={() => alert("Connecting to HR Talent Team...\nHotline: hr-support@portal.com")}
-                  className="px-2 py-1 bg-white border border-indigo-300 text-indigo-700 rounded text-[10px] font-bold hover:bg-indigo-100 transition-colors mt-2 self-start"
+                  className="px-2 py-1.5 sm:py-1 bg-white border border-indigo-300 text-indigo-700 rounded text-[10px] font-bold hover:bg-indigo-100 transition-colors mt-2 self-start"
                 >
                   Contact HR Team
                 </button>
@@ -423,12 +417,12 @@ export default function SubmittedPage({
           </div>
 
           {/* Right Column: Application Summary Card & Vertical Activity Logs (32% width) */}
-          <div className="w-[32%] h-full flex flex-col gap-2 overflow-hidden" id="submitted-right-column">
+          <div className="w-full lg:w-[32%] h-auto lg:h-full flex flex-col gap-2 overflow-visible lg:overflow-hidden" id="submitted-right-column">
 
             {/* 1. Candidate Application Summary Badge */}
-            <div className="bg-white rounded-lg border border-slate-200 p-2 flex flex-col items-center text-center shadow-sm" id="submitted-summary-badge">
+            <div className="bg-white rounded-lg border border-slate-200 p-2 flex flex-col items-center text-center shadow-sm shrink-0" id="submitted-summary-badge">
               <div className="flex self-start gap-3">
-              <div className="relative">
+              <div className="relative shrink-0">
                 <div className="w-12 h-12 rounded-full border-2 border-indigo-600 overflow-hidden bg-indigo-50">
                   <img
                     src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
@@ -439,7 +433,7 @@ export default function SubmittedPage({
                 </div>
                 <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
               </div>
-<div className='flex flex-col items-start'>
+<div className='flex flex-col items-start min-w-0'>
 
               <h3 className="font-display font-bold text-xs text-indigo-950 mt-1 leading-none">
                 {candidate.fullName}
@@ -458,12 +452,12 @@ export default function SubmittedPage({
                 {summaryFields.map((field) => {
                   const Icon = field.icon;
                   return (
-                    <div key={field.label} className="flex items-center justify-between">
-                      <span className="flex items-center gap-1 font-medium text-slate-600">
+                    <div key={field.label} className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-1 font-medium text-slate-600 shrink-0">
                         <Icon className="w-3 h-3 text-indigo-600" />
                         {field.label}
                       </span>
-                      <span className="font-bold text-slate-900 truncate max-w-[120px]">{field.value}</span>
+                      <span className="font-bold text-slate-900 truncate max-w-[140px] sm:max-w-[120px]">{field.value}</span>
                     </div>
                   );
                 })}
@@ -471,12 +465,12 @@ export default function SubmittedPage({
             </div>
 
             {/* 2. Interactive Application Activity Vertical Timeline */}
-            <div className="flex-1 bg-white rounded-lg border border-slate-200 p-2 flex flex-col shadow-sm overflow-hidden" id="activity-logs-box">
+            <div className="lg:flex-1 bg-white rounded-lg border border-slate-200 p-2 flex flex-col shadow-sm overflow-visible lg:overflow-hidden min-h-[280px] lg:min-h-0" id="activity-logs-box">
               <span className="text-xs font-bold text-indigo-950 border-b border-slate-100 pb-1 mb-1.5 block">
                 Application Activity Tracker
               </span>
 
-              <div className="flex-1 overflow-y-auto pr-0.5 space-y-3.5">
+              <div className="flex-1 overflow-visible lg:overflow-y-auto pr-0.5 space-y-3.5 max-h-[420px] lg:max-h-none">
                 {[
                   { title: "Application Submitted", date: "15 June 2026, 11:32 AM", active: true, checked: true, desc: "Form details saved and credentials locked." },
                   { title: "Awaiting AI Screening", date: "15 June 2026, 11:32 AM", active: true, checked: false, desc: "CV matches queued for algorithmic screening.", current: true },
@@ -486,7 +480,7 @@ export default function SubmittedPage({
                   { title: "Onboarding", date: "Pending", active: false, checked: false, desc: "Provisioning systems and welcoming candidate." }
                 ].map((act, i) => (
                   <div key={i} className="flex gap-2 text-[10px]">
-                    <div className="flex flex-col items-center">
+                    <div className="flex flex-col items-center shrink-0">
                       <span className={`w-4 h-4 rounded-full flex items-center justify-center font-bold text-[8px] border ${
                         act.checked
                           ? 'bg-emerald-100 border-emerald-400 text-emerald-800'
@@ -498,12 +492,12 @@ export default function SubmittedPage({
                       </span>
                       {i < 5 && <div className={`w-[2px] flex-1 min-h-[14px] mt-1 ${act.active ? 'bg-indigo-400' : 'bg-slate-200'}`} />}
                     </div>
-                    <div className="flex-1 pb-1">
-                      <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0 pb-1">
+                      <div className="flex flex-wrap items-center justify-between gap-x-2">
                         <span className={`font-bold ${act.active ? 'text-indigo-950' : 'text-slate-800'}`}>
                           {act.title}
                         </span>
-                        <span className="text-[7.5px] text-slate-600 font-semibold font-mono">
+                        <span className="text-[7.5px] text-slate-600 font-semibold font-mono whitespace-nowrap">
                           {act.date}
                         </span>
                       </div>

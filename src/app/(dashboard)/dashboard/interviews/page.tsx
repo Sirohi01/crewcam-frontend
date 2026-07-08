@@ -211,7 +211,7 @@ const Interviews: React.FC = () => {
 
   return (
    <PageLayout> 
-    <div className="w-full h-[calc(100vh-3rem)] flex flex-col gap-2 p-2 bg-gray-50 overflow-hidden">
+    <div className="w-full h-[calc(100vh-3rem)] min-h-[650px] flex flex-col gap-2 p-2 bg-gray-50 overflow-hidden">
       <Toaster position="top-right" toastOptions={{ style: { fontSize: '11px' } }} />
 
       {/* Header */}
@@ -248,7 +248,7 @@ const Interviews: React.FC = () => {
           const Icon = s.icon
           return (
             <div key={i} className="bg-white rounded-xl border border-gray-300 p-2 flex items-center gap-2">
-              <span className={`inline-flex items-center justify-center w-9 h-9 rounded-lg shrink-0 ${s.iconBg}`}>
+              <span className={`inline-flex items-center justify-center w-9 h-9 rounded-full shrink-0 ${s.iconBg}`}>
                 <Icon className={`w-4 h-4 ${s.iconColor}`} />
               </span>
               <div className="min-w-0">
@@ -272,7 +272,7 @@ const Interviews: React.FC = () => {
             className="w-full text-[11px] border border-gray-300 rounded-lg pl-7 pr-2 py-1.5 bg-white outline-none focus:border-indigo-500"
           />
         </div>
-        <button className="relative flex items-center gap-1 text-[10px] font-semibold border border-gray-300 bg-white rounded-lg px-2 py-1.5">
+        <button className={`relative flex items-center gap-1 text-[10px] font-semibold border border-gray-300 bg-white rounded-lg px-2 py-1.5 ${activeFilterCount>0&&'text-blue-500'}`}>
           <Filter className="w-3 h-3" /> Filters
           {activeFilterCount > 0 && (
             <span className="ml-0.5 inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-indigo-600 text-white text-[9px] font-bold">
@@ -366,13 +366,13 @@ const Interviews: React.FC = () => {
                     </div>
                   </td>
                   <td className="py-2 px-2">
-                    <div className="text-gray-900 truncate">{r.jobTitle}</div>
+                    <div className="text-gray-900 truncate font-semibold">{r.jobTitle}</div>
                     <div className="text-[9px]">{r.jobId}</div>
                   </td>
                   <td className="py-2 px-2">
-                    <div className="flex items-center gap-1 text-gray-900">
-                      {r.mode === 'Online' ? <Video className="w-3 h-3 text-indigo-600" /> : <UserIcon className="w-3 h-3 text-indigo-600" />}
+                    <div className="flex items-center gap-1 text-gray-900 font-semibold">
                       {r.interviewType}
+                      {r.mode === 'Online' ? <Video className="w-3 h-3 text-indigo-600" /> : <UserIcon className="w-3 h-3 text-indigo-600" />}
                     </div>
                     <div className="text-[9px] ">{r.mode === 'Online' ? '(Online)' : '(In Person)'}</div>
                   </td>
@@ -390,27 +390,27 @@ const Interviews: React.FC = () => {
                       </div>
                     ) : (
                       <div>
-                        <div className="text-gray-900">{r.interviewers[0]?.name}</div>
+                        <div className="text-gray-900 font-semibold">{r.interviewers[0]?.name}</div>
                         <div className="text-[9px] ">{r.interviewers[0]?.role}</div>
                       </div>
                     )}
                   </td>
                   <td className="py-2 px-2">
-                    <div className="text-gray-900">{r.date}</div>
+                    <div className="text-gray-900 font-semibold">{r.date}</div>
                     <div className="text-[9px] ">{r.time}</div>
                   </td>
                   <td className="py-2 px-2">
-                    <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${statusBadgeClass[r.status]}`}>{r.status}</span>
+                    <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full font-semibold ${statusBadgeClass[r.status]}`}>{r.status}</span>
                   </td>
                   <td className="py-2 px-2">
                     <div className="flex items-center gap-1.5">
-                      <button onClick={() => toast(`Viewing ${r.candidateName}`)} className=" hover:text-indigo-600">
+                      <button onClick={() => toast(`Viewing ${r.candidateName}`)} className=" hover:text-indigo-600 border border-gray-200 p-1 rounded-lg">
                         <Eye className="w-3.5 h-3.5" />
                       </button>
-                      <button onClick={() => toast.success(`Editing ${r.candidateName}`)} className=" hover:text-indigo-600">
+                      <button onClick={() => toast.success(`Editing ${r.candidateName}`)} className=" hover:text-indigo-600 border border-gray-200 p-1 rounded-lg">
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
-                      <button onClick={() => toast(`More options for ${r.candidateName}`)} className=" hover:text-indigo-600">
+                      <button onClick={() => toast(`More options for ${r.candidateName}`)} className=" hover:text-indigo-600 border border-gray-200 p-1 rounded-lg">
                         <MoreHorizontal className="w-3.5 h-3.5" />
                       </button>
                     </div>

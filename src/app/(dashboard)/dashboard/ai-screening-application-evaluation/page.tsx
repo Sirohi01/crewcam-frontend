@@ -46,7 +46,8 @@ const defaultCandidate: CandidateInfo = {
   highestQualification: "MBA - Marketing",
   university: "Amity University, Noida",
   yearOfPassing: "2017",
-  cgpa: "7.8 CGPA"
+  cgpa: "7.8 CGPA",
+  resumeUrl:"https://drive.google.com/file/d/1v9E-G1x-oau8y8te_QeluAIW7z5NHBpN/view?usp=sharing"
 };
 
 const defaultNotes: Note[] = [];
@@ -146,16 +147,27 @@ export default function EvaluationPage({
     setNotes([newNote, ...notes]);
     setNewNoteText("");
   };
+const handlePreviewCV = () => {
+  window.open(candidate.resumeUrl, '_blank');
+};
 
+const handleDownloadCV = () => {
+  const link = document.createElement('a');
+  link.href = candidate.resumeUrl;
+  link.download = `${candidate.fullName.replace(/\s+/g, '_')}_Resume.pdf`;
+  link.click();
+};
   return (
     <PageLayout>
 
-    <div className="w-full h-screen overflow-hidden flex flex-col bg-slate-50 font-sans text-slate-900 select-none" id="evaluation-page-root">
-
-      {/* =========================================================================
-          1. PAGE TITLE HEADER (Title + Application ID + Back / Move buttons)
-          ========================================================================= */}
-      <header className="h-[7%] min-h-[52px] bg-white px-3 flex items-center justify-between border-b border-slate-200 shadow-sm" id="eval-title-header">
+    <div
+      className="w-full min-h-screen lg:h-screen lg:min-h-[650px] overflow-y-auto lg:overflow-hidden flex flex-col bg-slate-50 font-sans text-slate-900 select-none"
+      id="evaluation-page-root"
+    >
+      <header
+        className="min-h-[52px] lg:h-[7%] bg-white px-3 py-2 lg:py-0 flex flex-col sm:flex-row sm:items-center items-start justify-between gap-2 border-b border-slate-200 shadow-sm shrink-0"
+        id="eval-title-header"
+      >
         <div>
           <h1 className="font-display font-bold text-sm text-slate-900 leading-none">
             AI Screening – Application Evaluation
@@ -165,7 +177,7 @@ export default function EvaluationPage({
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 flex-wrap w-full sm:w-auto">
           <button
             onClick={() => setCurrentView('submitted')}
             className="px-2.5 py-1 text-xs border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 font-medium flex items-center gap-1 transition-colors"
@@ -188,8 +200,11 @@ export default function EvaluationPage({
       {/* =========================================================================
           2. STEPPER PROGRESS BAR (8 stage application journey)
           ========================================================================= */}
-      <section className="h-[6%] min-h-[46px] bg-white border-b border-slate-100 px-3 py-1.5 flex items-center justify-center" id="global-page-selector">
-        <div className="flex items-center gap-1.5">
+      <section
+        className="min-h-[46px] lg:h-[6%] bg-white border-b border-slate-100 px-3 py-1.5 overflow-x-auto shrink-0"
+        id="global-page-selector"
+      >
+        <div className="flex items-center gap-1.5 min-w-max mx-auto lg:justify-center lg:w-full">
           {journeySteps.map((step, idx) => {
             const isDone = idx < CURRENT_STEP_INDEX;
             const isActive = idx === CURRENT_STEP_INDEX;
@@ -229,19 +244,22 @@ export default function EvaluationPage({
       {/* =========================================================================
           3. MAIN CONTAINER
           ========================================================================= */}
-      <div className="h-[73%] flex-1 overflow-hidden flex bg-slate-50 gap-2 p-2">
+      <div className="flex-1 lg:h-[73%] overflow-visible lg:overflow-hidden flex flex-col lg:flex-row bg-slate-50 gap-2 p-2">
         <div
-          className="w-full h-full flex gap-2 overflow-hidden"
+          className="w-full h-auto lg:h-full flex flex-col lg:flex-row gap-2 overflow-visible lg:overflow-hidden"
           id="evaluation-step-container"
         >
-      {/* Left Column: AI Screening Report Breakdown (68% width) */}
-      <div className="w-[68%] h-full flex flex-col gap-2 overflow-hidden" id="evaluation-left-column">
-      <div className="flex-1 flex flex-col bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
+      {/* Left Column: AI Screening Report Breakdown (68% width on desktop) */}
+      <div className="w-full lg:w-[68%] h-auto lg:h-full flex flex-col gap-2 overflow-visible lg:overflow-hidden" id="evaluation-left-column">
+      <div className="flex flex-col bg-white rounded-lg border border-slate-200 overflow-visible lg:overflow-hidden shadow-sm lg:flex-1">
 
         {/* Score Summary Title Hero */}
-        <div className="bg-slate-50 p-2 border-b border-slate-200 flex items-center justify-between" id="eval-header-panel">
-          <div className="flex gap-2">
-            <div className="w-16 h-16 rounded-lg border border-indigo-400 overflow-hidden bg-indigo-50">
+        <div
+          className="bg-slate-50 p-2 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center items-start justify-between gap-2"
+          id="eval-header-panel"
+        >
+          <div className="flex gap-2 w-full lg:w-auto">
+            <div className="w-16 h-16 rounded-lg border border-indigo-400 overflow-hidden bg-indigo-50 shrink-0">
               <img
                 src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
                 alt="Amit"
@@ -249,8 +267,8 @@ export default function EvaluationPage({
                 referrerPolicy="no-referrer"
               />
             </div>
-            <div>
-              <div className="flex items-center gap-1">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1 flex-wrap">
                 <h2 className="font-display font-bold text-xs text-indigo-950 leading-none">
                   {candidate.fullName}
                 </h2>
@@ -280,7 +298,7 @@ export default function EvaluationPage({
             </div>
           </div>
 
-           <div className="grid grid-cols-2 gap-6">
+           <div className="grid grid-cols-2 gap-3 sm:gap-6 w-full lg:w-auto">
   {/* Left Column */}
   <div className="space-y-2 pr-2 border-r border-slate-200">
     <div>
@@ -334,13 +352,13 @@ export default function EvaluationPage({
         </div>
 
         {/* Sub Tab selection inside screen 3 */}
-        <div className="flex border-b border-slate-100 bg-slate-50/50 p-1 gap-1" id="eval-subtabs">
+        <div className="flex overflow-x-auto border-b border-slate-100 bg-slate-50/50 p-1 gap-1" id="eval-subtabs">
           {subTabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveSubTab(tab)}
               className={
-                "px-2 py-0.5 text-[10px] font-medium rounded transition-colors " +
+                "px-2 py-0.5 text-[10px] font-medium rounded transition-colors whitespace-nowrap shrink-0 " +
                 (activeSubTab === tab
                   ? "font-bold text-indigo-950 bg-white shadow-xs border border-slate-200"
                   : "text-indigo-900 hover:bg-slate-100/60")
@@ -352,10 +370,10 @@ export default function EvaluationPage({
         </div>
 
         {/* Main Screening details body scroll box */}
-        <div className="flex-1 overflow-y-auto p-2 space-y-2.5" id="eval-scroll-area">
+        <div className="flex-1 overflow-visible lg:overflow-y-auto p-2 space-y-2.5" id="eval-scroll-area">
 
           {/* Grid 1: Gauge Chart & Progress Bars (Compact) */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
 
             {/* SVG Gauge block */}
             <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 flex flex-col items-center justify-center text-center">
@@ -475,7 +493,7 @@ export default function EvaluationPage({
           </div>
 
           {/* Grid 3: Extracted Summary (AI) + Original CV + Resume Preview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
 
             {/* Extracted Summary (AI) */}
             <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 flex flex-col">
@@ -506,43 +524,54 @@ export default function EvaluationPage({
                 </div>
               </div>
               <div className="flex gap-1 mt-auto">
-                <button className="flex-1 flex items-center justify-center gap-1 text-[9px] font-bold text-indigo-700 border border-indigo-200 rounded py-1 hover:bg-indigo-50">
-                  <Eye className="w-3 h-3" />
-                  Preview CV
-                </button>
-                <button className="flex-1 flex items-center justify-center gap-1 text-[9px] font-bold text-white bg-indigo-600 rounded py-1 hover:bg-indigo-700">
-                  <Download className="w-3 h-3" />
-                  Download
-                </button>
+               <button
+  onClick={handlePreviewCV}
+  className="flex-1 flex items-center justify-center gap-1 text-[9px] font-bold text-indigo-700 border border-indigo-200 rounded py-1 hover:bg-indigo-50"
+>
+  <Eye className="w-3 h-3" />
+  Preview CV
+</button>
+<button
+  onClick={handleDownloadCV}
+  className="flex-1 flex items-center justify-center gap-1 text-[9px] font-bold text-white bg-indigo-600 rounded py-1 hover:bg-indigo-700"
+>
+  <Download className="w-3 h-3" />
+  Download
+</button>
               </div>
             </div>
 
             {/* Resume Preview */}
-            <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 flex flex-col overflow-hidden">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] uppercase font-bold text-indigo-950">Resume Preview</span>
-                <div className="flex items-center gap-0.5 text-slate-500">
-                  <button onClick={() => setZoom(z => Math.max(50, z - 10))} className="p-0.5 hover:text-indigo-700">
-                    <Minus className="w-3 h-3" />
-                  </button>
-                  <span className="text-[8px] font-mono w-7 text-center">{zoom}%</span>
-                  <button onClick={() => setZoom(z => Math.min(150, z + 10))} className="p-0.5 hover:text-indigo-700">
-                    <Plus className="w-3 h-3" />
-                  </button>
-                  <button className="p-0.5 hover:text-indigo-700">
-                    <Maximize2 className="w-3 h-3" />
-                  </button>
-                </div>
-              </div>
-              <div className="flex-1 bg-white border border-slate-200 rounded overflow-hidden p-1.5" style={{ fontSize: `${zoom / 100 * 6}px` }}>
-                <p className="font-bold text-slate-900 leading-tight">AMIT KUMAR VERMA</p>
-                <p className="text-slate-500 leading-tight mb-1">Sales Manager</p>
-                <p className="font-bold text-indigo-900 leading-tight">PROFESSIONAL SUMMARY</p>
-                <p className="text-slate-600 leading-snug">Results-driven Sales Manager with proven track record...</p>
-                <p className="font-bold text-indigo-900 leading-tight mt-1">EXPERIENCE</p>
-                <p className="text-slate-600 leading-snug">ABC Pvt. Ltd. — Sales Manager, 2019–Present</p>
-              </div>
-            </div>
+  <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 flex flex-col overflow-hidden h-[380px] sm:col-span-2 lg:col-span-1 lg:h-full">
+  <div className="flex items-center justify-between mb-1.5">
+    <span className="text-[10px] uppercase font-bold text-indigo-950">Resume Preview</span>
+    <div className="flex items-center gap-0.5 text-slate-500">
+      <button onClick={() => setZoom(z => Math.max(50, z - 10))} className="p-0.5 hover:text-indigo-700">
+        <Minus className="w-3 h-3" />
+      </button>
+      <span className="text-[8px] font-mono w-7 text-center">{zoom}%</span>
+      <button onClick={() => setZoom(z => Math.min(150, z + 10))} className="p-0.5 hover:text-indigo-700">
+        <Plus className="w-3 h-3" />
+      </button>
+      <button onClick={handlePreviewCV} className="p-0.5 hover:text-indigo-700">
+        <Maximize2 className="w-3 h-3" />
+      </button>
+    </div>
+  </div>
+  <div className="flex-1 bg-white border border-slate-200 rounded overflow-hidden relative">
+    <iframe
+      src={candidate.resumeUrl}
+      title="Resume Preview"
+      className="absolute top-0 left-0 border-0"
+      style={{
+        width: `${100 / (zoom / 100)}%`,
+        height: `${100 / (zoom / 100)}%`,
+        transform: `scale(${zoom / 100})`,
+        transformOrigin: 'top left'
+      }}
+    />
+  </div>
+</div>
 
           </div>
 
@@ -551,7 +580,10 @@ export default function EvaluationPage({
       </div>
 
       {/* AI Recommendation full-width footer bar */}
-      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 flex items-center justify-between gap-2 shrink-0" id="eval-recommendation-footer">
+      <div
+        className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 flex flex-col sm:flex-row sm:items-center items-start justify-between gap-2 shrink-0"
+        id="eval-recommendation-footer"
+      >
         <div className="flex items-center gap-2 min-w-0">
           <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0" />
           <div className="min-w-0">
@@ -564,7 +596,7 @@ export default function EvaluationPage({
           </div>
         </div>
 
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1 flex-wrap w-full sm:w-auto shrink-0">
            <button
             onClick={() => {
               alert("Moving application to HOD Review Stage!");
@@ -596,8 +628,8 @@ export default function EvaluationPage({
 
       </div>
 
-      {/* Right Column: Application Summary, Timeline & Recruiter Notes (32% width) */}
-      <div className="w-[32%] h-full flex flex-col gap-2 overflow-hidden" id="evaluation-right-column">
+      {/* Right Column: Application Summary, Timeline & Recruiter Notes (32% width on desktop) */}
+      <div className="w-full lg:w-[32%] h-auto lg:h-full flex flex-col gap-2 overflow-visible lg:overflow-hidden" id="evaluation-right-column">
 
         {/* 1. Application Summary */}
         <div className="bg-white rounded-lg border border-slate-200 p-2 shadow-sm space-y-2 shrink-0">
@@ -634,7 +666,10 @@ export default function EvaluationPage({
         </div>
 
         {/* 2. Application Timeline */}
-        <div className="bg-white rounded-lg border border-slate-200 p-2 shadow-sm overflow-y-auto" id="application-timeline-panel">
+        <div
+          className="bg-white rounded-lg border border-slate-200 p-2 shadow-sm overflow-visible lg:overflow-y-auto shrink-0 lg:shrink"
+          id="application-timeline-panel"
+        >
           <span className="text-xs font-bold text-indigo-950 border-b border-slate-100 pb-1 mb-2 block">
             Application Timeline
           </span>
@@ -676,7 +711,10 @@ export default function EvaluationPage({
         </div>
 
         {/* 3. Recruiter Notes Block */}
-        <div className="flex-1 bg-white rounded-lg border border-slate-200 p-2 flex flex-col shadow-sm overflow-hidden" id="recruiter-notes-panel">
+        <div
+          className="lg:flex-1 bg-white rounded-lg border border-slate-200 p-2 flex flex-col shadow-sm overflow-visible lg:overflow-hidden min-h-[220px] lg:min-h-0"
+          id="recruiter-notes-panel"
+        >
           <div className="flex items-center justify-between border-b border-slate-100 pb-1 mb-1.5">
             <span className="text-xs font-bold text-indigo-950 block">
               Recruiter Notes
@@ -688,7 +726,7 @@ export default function EvaluationPage({
           </div>
 
           {/* Input form to add note */}
-          <div className="flex gap-1 mb-1.5">
+          <div className="flex flex-col sm:flex-row gap-1 mb-1.5">
             <input
               type="text"
               placeholder="Add recruiter feedback note..."
@@ -701,7 +739,7 @@ export default function EvaluationPage({
             />
             <button
               onClick={handleAddNote}
-              className="px-2 py-0.5 bg-indigo-600 text-white font-bold rounded text-xs hover:bg-indigo-700"
+              className="px-2 py-0.5 bg-indigo-600 text-white font-bold rounded text-xs hover:bg-indigo-700 shrink-0"
             >
               Save
             </button>
