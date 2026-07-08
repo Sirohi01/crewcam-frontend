@@ -216,17 +216,17 @@ export default function ReviewPage({
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto">
-          <div className="flex items-center gap-1 text-xs shrink-0">
+          <div className="flex flex-col items-center gap-1 text-xs shrink-0">
             <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-[9px] border border-emerald-300">✓</span>
             <span className="font-medium whitespace-nowrap">Upload CV</span>
           </div>
-          <div className="w-6 h-[1px] bg-slate-300 shrink-0"></div>
-          <div className="flex items-center gap-1 text-xs shrink-0">
+          <div className="w-6 h-[1px] bg-slate-300 shrink-0 self-start mt-2"></div>
+          <div className="flex flex-col items-center gap-1 text-xs shrink-0">
             <span className="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-[9px]">2</span>
             <span className="text-indigo-900 font-bold whitespace-nowrap">Review & Edit</span>
           </div>
-          <div className="w-6 h-[1px] bg-slate-200 shrink-0"></div>
-          <div className="flex items-center gap-1 text-xs shrink-0">
+          <div className="w-6 h-[1px] bg-slate-200 shrink-0 self-start mt-2"></div>
+          <div className="flex flex-col items-center gap-1 text-xs shrink-0">
             <span className="w-4 h-4 rounded-full bg-slate-100 flex items-center justify-center font-bold text-[9px] border border-slate-300">3</span>
             <span className="font-medium whitespace-nowrap">Submit Application</span>
           </div>
