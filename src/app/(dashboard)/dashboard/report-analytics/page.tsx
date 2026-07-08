@@ -175,7 +175,7 @@ const deptHires: DeptHireBar[] = [
 // ---------- Small building blocks ----------
 
 const Card: React.FC<{ className?: string; children: React.ReactNode }> = ({ className = '', children }) => (
-  <div className={`bg-white rounded-xl border border-slate-300 p-3 flex flex-col min-h-[90px] relative z-10 ${className}`}>{children}</div>
+  <div className={`bg-white rounded-xl border border-slate-300 p-2 flex flex-col min-h-[90px] relative z-10 ${className}`}>{children}</div>
 )
 
 const StatCardItem: React.FC<{ item: StatCard }> = ({ item }) => {
@@ -249,7 +249,7 @@ const Legend: React.FC<{ data: { name: string; color: string; sub?: string }[] }
 const ReportAnalytics: React.FC = () => {
   return (
     <PageLayout>
-    <div className="w-full min-h-screen lg:h-[calc(100vh-3rem)] flex flex-col gap-2 p-2 bg-slate-50 overflow-y-auto lg:overflow-hidden relative z-0">
+    <div className="w-full min-h-[650px] flex flex-col gap-2 p-2 bg-slate-50 relative z-0">
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 shrink-0">
@@ -317,20 +317,20 @@ const ReportAnalytics: React.FC = () => {
 
  <div className="mt-2 flex flex-1 gap-3 min-h-0">
   {/* Funnel */}
-  <div className="flex-1 flex flex-col items-center justify-center">
-    {funnelStages.map((f, i) => (
-      <div
-        key={i}
-        className="h-5 rounded-sm flex items-center justify-center text-[8px] font-semibold text-white"
-        style={{
-          width: f.width,
-          backgroundColor: f.color,
-          clipPath: "polygon(-8% 0%, 108% 0%, 92% 100%, 8% 100%);",
-        }}
-      >
-      </div>
-    ))}
-  </div>
+<div className="flex-1 flex flex-col items-center justify-center">
+  {funnelStages.map((f, i) => (
+    <div
+      key={i}
+      className="h-5 flex items-center justify-center text-[8px] font-semibold text-white"
+      style={{
+        width: f.width,
+        backgroundColor: f.color,
+        clipPath: "polygon(0% 0%, 100% 0%, 92% 100%, 8% 100%)", // <-- semicolon hataya
+      }}
+    >
+    </div>
+  ))}
+</div>
 
   {/* Labels & Values */}
   <div className="flex-1 flex flex-col justify-center">
