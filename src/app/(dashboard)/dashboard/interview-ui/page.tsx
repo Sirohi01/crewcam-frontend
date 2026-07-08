@@ -10,7 +10,7 @@ import {
 
 export default function InterviewUI() {
   return (
-    <div className="w-full max-w-[1600px] mx-auto p-0 font-sans text-zinc-900 bg-white min-h-screen">
+    <div className="w-full max-w-[1600px] mx-auto p-2 font-sans text-zinc-900 bg-white min-h-screen">
 
       {/* Header & Steps */}
       <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4  pb-4">
