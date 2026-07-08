@@ -241,7 +241,7 @@ export default function ReviewPage({
           </button>
           <button
             // onClick={() => setCurrentView('submitted')}
-            onClick={() => window.open('/dashboard/hiring/candidates/new/create/application-submitted')}
+            onClick={() => window.open('/dashboard/hiring/candidates/new/create/submit-application-preview')}
 
             className="flex-1 lg:flex-none justify-center px-2 py-1.5 lg:py-0.5 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center gap-1 font-medium transition-colors"
           >
