@@ -208,7 +208,7 @@ export default function SubmitApplicationPreview({
         <div className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto">
           {steps.map((step, idx) => (
             <React.Fragment key={step.id}>
-              <div className="flex items-center gap-1 text-xs shrink-0">
+              <div className="flex flex-col items-center gap-1 text-xs shrink-0">
                 <span
                   className={`w-4 h-4 rounded-full flex items-center justify-center font-bold text-[9px] border ${step.status === "done"
                       ? "bg-emerald-100 text-emerald-800 border-emerald-300"
@@ -226,7 +226,7 @@ export default function SubmitApplicationPreview({
 
                 <span
                   className={`whitespace-nowrap ${step.status === "active"
-                      ? "text-indigo-900 font-bold"
+                      ? "text-indigo-900 font-semibold"
                       : "font-medium text-slate-700"
                     }`}
                 >
@@ -236,7 +236,7 @@ export default function SubmitApplicationPreview({
 
               {idx < steps.length - 1 && (
                 <div
-                  className={`w-6 h-[1px] shrink-0 ${step.status === "done" ? "bg-emerald-300" : "bg-slate-200"
+                  className={`w-6 h-[1px] shrink-0 self-start mt-2 ${step.status === "done" ? "bg-emerald-300" : "bg-slate-200"
                     }`}
                 />
               )}

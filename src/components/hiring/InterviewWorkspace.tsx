@@ -190,12 +190,12 @@ export default function InterviewWorkspace({ view }: { view: View }) {
 
   return (
     <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-10">
-      
+
       {/* Header */}
       <div className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden">
         <div className="bg-slate-50 px-4 py-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div className="flex flex-col gap-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#0d3c68] border-b-2 border-[#0d3c68] pb-0.5 w-fit uppercase">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#0d3c68] border-b-2 border-[#0d3c68] pb-0.5 w-fit">
               {meta.title}
             </span>
             <p className="text-[11px] text-slate-500 mt-1">{meta.description}</p>
@@ -224,7 +224,7 @@ export default function InterviewWorkspace({ view }: { view: View }) {
 
       {view !== 'statistics' && (
         <section className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden mx-2">
-          
+
           {/* Filter Bar */}
           <div className="bg-slate-50 px-3 py-3 border-b border-slate-200 flex flex-wrap items-center gap-2">
             <div className="relative w-full sm:w-64">
