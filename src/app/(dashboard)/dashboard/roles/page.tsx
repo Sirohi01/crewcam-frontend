@@ -7,7 +7,7 @@ import { Edit2, Plus, Search, Trash2, X } from 'lucide-react';
 import api from '@/lib/axios';
 
 const ROLE_CATEGORIES = [
-  'employee', 'reporting_manager', 'hod', 'hr', 'hr_admin', 'finance', 'admin', 'company_admin', 'developer'
+  'employee', 'reporting_manager', 'hod', 'hr', 'hr_recruiter', 'hr_admin', 'finance', 'admin', 'company_admin', 'developer'
 ];
 
 type Role = { _id: string; name: string; description: string; category: string; permissions: string[]; createdAt: string; updatedAt: string; createdBy?: any; updatedBy?: any; };
@@ -52,9 +52,9 @@ export default function RolesPage() {
 
   const openEdit = (item: any) => {
     setError('');
-    setRoleData({ 
-      name: item.name || '', 
-      description: item.description || '', 
+    setRoleData({
+      name: item.name || '',
+      description: item.description || '',
       category: item.category || 'employee',
       permissions: Array.isArray(item.permissions) ? item.permissions.join(', ') : ''
     });
@@ -67,8 +67,8 @@ export default function RolesPage() {
     setSaving(true);
     setError('');
     try {
-      const payload = { 
-        ...roleData, 
+      const payload = {
+        ...roleData,
         permissions: roleData.permissions.split(',').map(p => p.trim()).filter(Boolean)
       };
       if (modalItem?._id) {
@@ -188,7 +188,7 @@ export default function RolesPage() {
         <Modal title={`${modalItem ? 'Edit' : 'Create'} Role`} onClose={() => setModal(false)} onSubmit={submit} busy={saving}>
           <div className="space-y-4">
             <Field label="Role Name" value={roleData.name} onChange={(val: string) => setRoleData(prev => ({ ...prev, name: val }))} placeholder="e.g. Finance Admin" required />
-            
+
             <div className="space-y-1.5">
               <label className="text-xs font-medium block text-zinc-700 dark:text-zinc-300">Category</label>
               <select

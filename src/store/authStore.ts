@@ -16,7 +16,7 @@ interface AuthState {
   token: string | null;
   tenantId: string | null;
   isAuthenticated: boolean;
-  setAuth: (user: User, tenantId?: string) => void;
+  setAuth: (user: User, tenantId?: string, token?: string) => void;
   logout: () => void;
   setTenantId: (tenantId: string) => void;
 }
@@ -28,12 +28,13 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       tenantId: null,
       isAuthenticated: false,
-      setAuth: (user, tenantId) => {
+      setAuth: (user, tenantId, token) => {
         if (typeof window !== 'undefined') {
           if (tenantId) localStorage.setItem('tenant_id', tenantId);
+          if (token) localStorage.setItem('token', token);
           document.cookie = "has_session=true; path=/; max-age=86400; samesite=lax";
         }
-        set({ user, tenantId: tenantId || null, isAuthenticated: true });
+        set({ user, tenantId: tenantId || null, isAuthenticated: true, token: token || null });
       },
       logout: () => {
         if (typeof window !== 'undefined') {

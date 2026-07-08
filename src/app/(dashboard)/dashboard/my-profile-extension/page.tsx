@@ -20,7 +20,6 @@ import { ExperienceTab } from './components/ExperienceTab';
 import { FamilyTab } from './components/FamilyTab';
 import { BankTab } from './components/BankTab';
 import { AssetsTab } from './components/AssetsTab';
-import Link from 'next/link';
 import { MoreInfoTab } from './components/MoreInfoTab';
 import { EmergencyTab } from './components/EmergencyTab';
 
@@ -580,26 +579,27 @@ export default function MyProfilePage() {
             </button>
           ) : (
             <>
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-              <Link href="/dashboard/view-public-profile" target="_blank"
-                className="text-xs font-medium bg-white hover:bg-zinc-50 text-zinc-700 px-2 py-1.5 rounded-lg inline-flex items-center gap-1.5 border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-800 transition-colors"
-              >
-                <Eye size={13} /> View Public Profile
-=======
-=======
->>>>>>> Stashed changes
               <Link href="/dashboard/view-public-profile">
                 <button
                   className="text-xs font-medium bg-white hover:bg-zinc-50 text-zinc-700 px-2 py-1.5 rounded-lg inline-flex items-center gap-1.5 border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-800 transition-colors"
                 >
                   <Eye size={13} /> View Public Profile
                 </button>
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+
               </Link>
+
+              {/* <Link href="/dashboard/view-public-profile" target="_blank"
+                className="text-xs font-medium bg-white hover:bg-zinc-50 text-zinc-700 px-2 py-1.5 rounded-lg inline-flex items-center gap-1.5 border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-800 transition-colors"
+              >
+                <Eye size={13} /> View Public Profile
+                <Link href="/dashboard/view-public-profile">
+              </Link> */}
+              <button
+                onClick={() => window.open('/dashboard/view-public-profile', '_blank')}
+                className="text-xs font-medium bg-white hover:bg-zinc-50 text-zinc-700 px-2 py-1.5 rounded-lg inline-flex items-center gap-1.5 border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-800 transition-colors"
+              >
+                <Eye size={13} /> View Public Profile
+              </button>
               <button
                 onClick={comingSoon('Profile editing')}
                 className="text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1.5 rounded-lg inline-flex items-center gap-1.5 shadow-sm shadow-indigo-600/20 transition-colors"
@@ -609,20 +609,22 @@ export default function MyProfilePage() {
             </>
           )}
         </div>
-      </header>
+      </header >
 
       {/* Tab bar */}
-      <div className="flex items-center gap-1 overflow-x-auto border-b border-zinc-200/70 dark:border-zinc-800 pb-1 mb-0 scrollbar-none">
-        {TABS.map(t => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all ${tab === t.key ? 'bg-white dark:bg-zinc-900 text-indigo-600 shadow-sm border border-zinc-200' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-100/50'}`}
-          >
-            <t.icon size={13} /> {t.label}
-          </button>
-        ))}
-      </div>
+      < div className="flex items-center gap-1 overflow-x-auto border-b border-zinc-200/70 dark:border-zinc-800 pb-1 mb-0 scrollbar-none" >
+        {
+          TABS.map(t => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all ${tab === t.key ? 'bg-white dark:bg-zinc-900 text-indigo-600 shadow-sm border border-zinc-200' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-100/50'}`}
+            >
+              <t.icon size={13} /> {t.label}
+            </button>
+          ))
+        }
+      </div >
 
       {tab === 'personal' && (
         <div className="flex flex-col gap-1">
@@ -1158,380 +1160,399 @@ export default function MyProfilePage() {
             </Card>
           </div>
         </div>
-      )}
+      )
+      }
 
-      {tab === 'family' && (
-        <FamilyTab profileCard={profileCardContent} />
-      )}
+      {
+        tab === 'family' && (
+          <FamilyTab profileCard={profileCardContent} />
+        )
+      }
 
-      {tab === 'bank' && (
-        <BankTab profileCard={profileCardContent} />
-      )}
+      {
+        tab === 'bank' && (
+          <BankTab profileCard={profileCardContent} />
+        )
+      }
 
-      {tab === 'education' && (
-        <EducationTab
-          comingSoon={comingSoon}
-          profileCard={profileCardContent}
-        />
-      )}
+      {
+        tab === 'education' && (
+          <EducationTab
+            comingSoon={comingSoon}
+            profileCard={profileCardContent}
+          />
+        )
+      }
 
-      {tab === 'experience' && (
-        <ExperienceTab comingSoon={comingSoon} profileCard={profileCardContent} />
-      )}
+      {
+        tab === 'experience' && (
+          <ExperienceTab comingSoon={comingSoon} profileCard={profileCardContent} />
+        )
+      }
 
-      {tab === 'documents' && (
-        <div className="flex flex-col gap-1">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-            <div>
-              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">My Documents</h2>
-              <p className="text-[13px] text-zinc-500 mt-0.5">Upload, manage and access all your official documents in one place.</p>
+      {
+        tab === 'documents' && (
+          <div className="flex flex-col gap-1">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <div>
+                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">My Documents</h2>
+                <p className="text-[13px] text-zinc-500 mt-0.5">Upload, manage and access all your official documents in one place.</p>
+              </div>
+              <button onClick={comingSoon('Document upload')} className="text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-lg inline-flex items-center gap-1.5 shadow-sm shadow-indigo-600/20 transition-colors shrink-0">
+                <UploadCloud size={11} /> Upload Document
+              </button>
             </div>
-            <button onClick={comingSoon('Document upload')} className="text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-lg inline-flex items-center gap-1.5 shadow-sm shadow-indigo-600/20 transition-colors shrink-0">
-              <UploadCloud size={11} /> Upload Document
-            </button>
-          </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-1">
-            <StatTile icon={FileText} bg="bg-blue-50 dark:bg-blue-900/20" color="text-blue-600" label="Total Documents" value={String(DOC_STATS.total)} sub="Across all categories" />
-            <StatTile icon={ShieldCheck} bg="bg-emerald-50 dark:bg-emerald-900/20" color="text-emerald-600" label="Verified Documents" value={String(DOC_STATS.verified)} sub="Verified & Approved" />
-            <StatTile icon={Clock} bg="bg-amber-50 dark:bg-amber-900/20" color="text-amber-600" label="Pending Verification" value={String(DOC_STATS.pending)} sub="Awaiting Approval" />
-            <StatTile icon={AlertTriangle} bg="bg-rose-50 dark:bg-rose-900/20" color="text-rose-600" label="Expiring Soon" value={String(DOC_STATS.expiring)} sub="Within next 60 days" />
-          </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-1">
+              <StatTile icon={FileText} bg="bg-blue-50 dark:bg-blue-900/20" color="text-blue-600" label="Total Documents" value={String(DOC_STATS.total)} sub="Across all categories" />
+              <StatTile icon={ShieldCheck} bg="bg-emerald-50 dark:bg-emerald-900/20" color="text-emerald-600" label="Verified Documents" value={String(DOC_STATS.verified)} sub="Verified & Approved" />
+              <StatTile icon={Clock} bg="bg-amber-50 dark:bg-amber-900/20" color="text-amber-600" label="Pending Verification" value={String(DOC_STATS.pending)} sub="Awaiting Approval" />
+              <StatTile icon={AlertTriangle} bg="bg-rose-50 dark:bg-rose-900/20" color="text-rose-600" label="Expiring Soon" value={String(DOC_STATS.expiring)} sub="Within next 60 days" />
+            </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-1">
-            <Card className="lg:col-span-9 border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
-              <CardContent className="p-0">
-                <div className="flex flex-col gap-1 p-1.5 border-b border-zinc-100 dark:border-zinc-800">
-                  <div className="flex items-center gap-1 text-xs font-medium">
-                    {(['all', 'mine', 'shared'] as const).map(k => (
-                      <button
-                        key={k}
-                        onClick={() => setDocSubTab(k)}
-                        className={`pb-1 border-b-2 -mb-px transition-colors ${docSubTab === k ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
-                      >
-                        {k === 'all' ? 'All Documents' : k === 'mine' ? 'Uploaded By Me' : 'Shared With Me'}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-1">
+              <Card className="lg:col-span-9 border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="flex flex-col gap-1 p-1.5 border-b border-zinc-100 dark:border-zinc-800">
+                    <div className="flex items-center gap-1 text-xs font-medium">
+                      {(['all', 'mine', 'shared'] as const).map(k => (
+                        <button
+                          key={k}
+                          onClick={() => setDocSubTab(k)}
+                          className={`pb-1 border-b-2 -mb-px transition-colors ${docSubTab === k ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+                        >
+                          {k === 'all' ? 'All Documents' : k === 'mine' ? 'Uploaded By Me' : 'Shared With Me'}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-1">
+                      <button onClick={comingSoon('Category filter')} className="flex items-center justify-between gap-1 text-xs px-2 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                        All Categories <ChevronDown size={13} className="text-zinc-400" />
                       </button>
-                    ))}
-                  </div>
-                  <div className="flex flex-col sm:flex-row gap-1">
-                    <button onClick={comingSoon('Category filter')} className="flex items-center justify-between gap-1 text-xs px-2 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800">
-                      All Categories <ChevronDown size={13} className="text-zinc-400" />
-                    </button>
-                    <button onClick={comingSoon('Status filter')} className="flex items-center justify-between gap-1 text-xs px-2 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800">
-                      All Status <ChevronDown size={13} className="text-zinc-400" />
-                    </button>
-                    <div className="relative flex-1 sm:max-w-[220px]">
-                      <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                      <input
-                        readOnly
-                        onFocus={comingSoon('Document search')}
-                        placeholder="Search documents..."
-                        className="w-full text-xs pl-8 pr-2 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-700 bg-transparent text-zinc-600 dark:text-zinc-300 placeholder:text-zinc-400 focus:outline-none"
-                      />
+                      <button onClick={comingSoon('Status filter')} className="flex items-center justify-between gap-1 text-xs px-2 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                        All Status <ChevronDown size={13} className="text-zinc-400" />
+                      </button>
+                      <div className="relative flex-1 sm:max-w-[220px]">
+                        <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                        <input
+                          readOnly
+                          onFocus={comingSoon('Document search')}
+                          placeholder="Search documents..."
+                          className="w-full text-xs pl-8 pr-2 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-700 bg-transparent text-zinc-600 dark:text-zinc-300 placeholder:text-zinc-400 focus:outline-none"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/40">
-                        <th className="h-7 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Document Name</th>
-                        <th className="h-7 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Category</th>
-                        <th className="h-7 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Uploaded On</th>
-                        <th className="h-7 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Uploaded By</th>
-                        <th className="h-7 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Expiry Date</th>
-                        <th className="h-7 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Status</th>
-                        <th className="h-7 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="capitalize">
-                      {DOC_LIST.map(d => (
-                        <tr key={d.name} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30">
-                          <td className="px-2 py-1.5">
-                            <div className="flex items-center gap-1">
-                              <div className="h-7 w-7 rounded bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center shrink-0">
-                                <FileText size={13} className="text-rose-500" />
-                              </div>
-                              <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200 whitespace-nowrap">{d.name}</span>
-                            </div>
-                          </td>
-                          <td className="px-2 py-1.5">
-                            <span className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${DOC_CATEGORY_STYLE[d.category]}`}>{d.category}</span>
-                          </td>
-                          <td className="px-2 py-1.5 text-xs text-zinc-600 dark:text-zinc-400 whitespace-nowrap">{d.uploadedOn}</td>
-                          <td className="px-2 py-1.5 text-xs text-zinc-600 dark:text-zinc-400 whitespace-nowrap">{employee?.firstName || DUMMY.firstName} {employee?.lastName || DUMMY.lastName}</td>
-                          <td className="px-2 py-1.5 text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{d.expiry}</td>
-                          <td className="px-2 py-1.5">
-                            <span className={`inline-flex items-center gap-1 text-[10.5px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${d.status === 'Verified' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
-                              {d.status === 'Verified' ? <ShieldCheck size={11} /> : <Clock size={11} />} {d.status}
-                            </span>
-                          </td>
-                          <td className="px-2 py-1.5">
-                            <div className="flex items-center gap-1">
-                              <button onClick={comingSoon('Document preview')} className="h-6 w-6 rounded text-zinc-400 hover:text-indigo-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center"><Eye size={13} /></button>
-                              <button onClick={comingSoon('Document download')} className="h-6 w-6 rounded text-zinc-400 hover:text-indigo-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center"><Download size={13} /></button>
-                              <button onClick={comingSoon('More actions')} className="h-6 w-6 rounded text-zinc-400 hover:text-indigo-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center"><MoreVertical size={13} /></button>
-                            </div>
-                          </td>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/40">
+                          <th className="h-7 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Document Name</th>
+                          <th className="h-7 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Category</th>
+                          <th className="h-7 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Uploaded On</th>
+                          <th className="h-7 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Uploaded By</th>
+                          <th className="h-7 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Expiry Date</th>
+                          <th className="h-7 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Status</th>
+                          <th className="h-7 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="flex items-center justify-between px-2 py-1.5 border-t border-zinc-100 dark:border-zinc-800">
-                  <span className="text-xs text-zinc-500">Showing 1 to {DOC_LIST.length} of {DOC_STATS.total} documents</span>
-                  <div className="flex items-center gap-1">
-                    <button onClick={comingSoon('Previous page')} className="h-7 w-7 rounded-md border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800"><ChevronLeft size={13} /></button>
-                    <button className="h-7 w-7 rounded-md bg-indigo-600 text-white text-xs font-medium flex items-center justify-center">1</button>
-                    <button onClick={comingSoon('Page 2')} className="h-7 w-7 rounded-md border border-zinc-200 dark:border-zinc-700 text-xs font-medium text-zinc-600 dark:text-zinc-300 flex items-center justify-center hover:bg-zinc-50 dark:hover:bg-zinc-800">2</button>
-                    <button onClick={comingSoon('Page 3')} className="h-7 w-7 rounded-md border border-zinc-200 dark:border-zinc-700 text-xs font-medium text-zinc-600 dark:text-zinc-300 flex items-center justify-center hover:bg-zinc-50 dark:hover:bg-zinc-800">3</button>
-                    <button onClick={comingSoon('Next page')} className="h-7 w-7 rounded-md border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800"><ChevronRight size={13} /></button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="lg:col-span-3 flex flex-col gap-1">
-              <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
-                <CardContent className="p-2">
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-1.5">Document Categories</p>
-                  <div className="flex flex-col gap-1">
-                    {DOC_CATEGORIES.map(c => (
-                      <div key={c.name} className="flex items-center justify-between gap-1 text-xs">
-                        <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400"><FileText size={12} className="text-zinc-400" /> {c.name}</span>
-                        <span className={`text-[10.5px] font-semibold px-1.5 py-0.5 rounded ${DOC_CATEGORY_STYLE[c.name]}`}>{c.count}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <button onClick={comingSoon('View all categories')} className="mt-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">View All Categories <ChevronRight size={12} /></button>
-                </CardContent>
-              </Card>
-
-              <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
-                <CardContent className="p-2">
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-1">Document Guidelines</p>
-                  <ul className="flex flex-col gap-1">
-                    {DOC_GUIDELINES.map(g => (
-                      <li key={g} className="flex items-start gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400">
-                        <Info size={12} className="text-indigo-400 shrink-0 mt-0.5" /> {g}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-
-              <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 bg-indigo-50/40 dark:bg-indigo-900/10">
-                <CardContent className="p-2">
-                  <div className="flex items-center gap-1 mb-1.5">
-                    <Headset size={13} className="text-indigo-600" />
-                    <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Need Help?</p>
-                  </div>
-                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-1.5">For any document related queries, please contact HR Department.</p>
-                  <button onClick={comingSoon('Contact HR')} className="w-full text-xs font-medium bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 py-1.5 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800">Contact HR</button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {tab === 'skills' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-1">
-          <div className="lg:col-span-2">
-            {profileCardContent}
-          </div>
-
-          <div className="lg:col-span-7 flex flex-col gap-1">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1">
-              <StatTile icon={GraduationCap} bg="bg-blue-50 dark:bg-blue-900/20" color="text-blue-600" label="Total Skills" value={String(SKILL_STATS.total)} sub="All Skills Added" />
-              <StatTile icon={Star} bg="bg-emerald-50 dark:bg-emerald-900/20" color="text-emerald-600" label="Core Skills" value={String(SKILL_STATS.core)} sub="Key Expertise Areas" />
-              <StatTile icon={BarChart3} bg="bg-amber-50 dark:bg-amber-900/20" color="text-amber-600" label="Average Proficiency" value={`${SKILL_STATS.avgProficiency}%`} sub="Across All Skills" />
-              <StatTile icon={Award} bg="bg-violet-50 dark:bg-violet-900/20" color="text-violet-600" label="Certifications" value={String(SKILL_STATS.certifications)} sub="Related to Skills" />
-            </div>
-
-            <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
-              <CardHeader className="px-2 py-2 border-b border-zinc-100 dark:border-zinc-800">
-                <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">My Skills</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/40">
-                        <th className="h-8 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Skill Name</th>
-                        <th className="h-8 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Category</th>
-                        <th className="h-8 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Proficiency</th>
-                        <th className="h-8 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Last Updated</th>
-                        <th className="h-8 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="capitalize">
-                      {SKILL_LIST.map(s => {
-                        const style = SKILL_CATEGORY_STYLE[s.category];
-                        return (
-                          <tr key={s.name} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30">
+                      </thead>
+                      <tbody className="capitalize">
+                        {DOC_LIST.map(d => (
+                          <tr key={d.name} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30">
                             <td className="px-2 py-1.5">
                               <div className="flex items-center gap-1">
-                                <div className="h-6 w-6 rounded-full flex items-center justify-center shrink-0" style={{ background: `${style.color}1A` }}>
-                                  <Sparkles size={11} style={{ color: style.color }} />
+                                <div className="h-7 w-7 rounded bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center shrink-0">
+                                  <FileText size={13} className="text-rose-500" />
                                 </div>
-                                <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200 whitespace-nowrap">{s.name}</span>
+                                <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200 whitespace-nowrap">{d.name}</span>
                               </div>
                             </td>
                             <td className="px-2 py-1.5">
-                              <span className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${style.badge}`}>{s.category}</span>
+                              <span className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${DOC_CATEGORY_STYLE[d.category]}`}>{d.category}</span>
                             </td>
+                            <td className="px-2 py-1.5 text-xs text-zinc-600 dark:text-zinc-400 whitespace-nowrap">{d.uploadedOn}</td>
+                            <td className="px-2 py-1.5 text-xs text-zinc-600 dark:text-zinc-400 whitespace-nowrap">{employee?.firstName || DUMMY.firstName} {employee?.lastName || DUMMY.lastName}</td>
+                            <td className="px-2 py-1.5 text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{d.expiry}</td>
                             <td className="px-2 py-1.5">
-                              <div className="flex items-center gap-1 min-w-[130px]">
-                                <div className="h-1.5 flex-1 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
-                                  <div className="h-full rounded-full" style={{ width: `${s.pct}%`, background: style.color }} />
-                                </div>
-                                <span className="text-[10.5px] text-zinc-500 dark:text-zinc-400 w-8 text-right">{s.pct}%</span>
-                              </div>
+                              <span className={`inline-flex items-center gap-1 text-[10.5px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${d.status === 'Verified' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
+                                {d.status === 'Verified' ? <ShieldCheck size={11} /> : <Clock size={11} />} {d.status}
+                              </span>
                             </td>
-                            <td className="px-2 py-1.5 text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{s.updated}</td>
                             <td className="px-2 py-1.5">
                               <div className="flex items-center gap-1">
-                                <button onClick={comingSoon('Editing skill')} className="h-6 w-6 rounded text-zinc-400 hover:text-indigo-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center"><Pencil size={12} /></button>
-                                <button onClick={comingSoon('Deleting skill')} className="h-6 w-6 rounded text-zinc-400 hover:text-rose-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center"><Trash2 size={12} /></button>
+                                <button onClick={comingSoon('Document preview')} className="h-6 w-6 rounded text-zinc-400 hover:text-indigo-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center"><Eye size={13} /></button>
+                                <button onClick={comingSoon('Document download')} className="h-6 w-6 rounded text-zinc-400 hover:text-indigo-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center"><Download size={13} /></button>
+                                <button onClick={comingSoon('More actions')} className="h-6 w-6 rounded text-zinc-400 hover:text-indigo-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center"><MoreVertical size={13} /></button>
                               </div>
                             </td>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-                <div className="flex flex-col items-center gap-1 px-2 py-1.5 border-t border-zinc-100 dark:border-zinc-800">
-                  <span className="text-xs text-zinc-500">Showing 1 to {SKILL_LIST.length} of {SKILL_STATS.total} skills</span>
-                  <button onClick={comingSoon('Viewing all skills')} className="text-xs font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">View All Skills <ChevronDown size={12} /></button>
-                </div>
-              </CardContent>
-            </Card>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
 
-            <Card className="border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/50 dark:bg-indigo-900/10 shadow-sm">
-              <CardContent className="p-2">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
-                  <div className="flex items-center gap-1">
-                    <Rocket size={13} className="text-indigo-600 shrink-0" />
-                    <div>
-                      <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Add &amp; Improve Your Skills</p>
-                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Keep your skills up to date to help us understand your strengths better and recommend relevant opportunities.</p>
+                  <div className="flex items-center justify-between px-2 py-1.5 border-t border-zinc-100 dark:border-zinc-800">
+                    <span className="text-xs text-zinc-500">Showing 1 to {DOC_LIST.length} of {DOC_STATS.total} documents</span>
+                    <div className="flex items-center gap-1">
+                      <button onClick={comingSoon('Previous page')} className="h-7 w-7 rounded-md border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800"><ChevronLeft size={13} /></button>
+                      <button className="h-7 w-7 rounded-md bg-indigo-600 text-white text-xs font-medium flex items-center justify-center">1</button>
+                      <button onClick={comingSoon('Page 2')} className="h-7 w-7 rounded-md border border-zinc-200 dark:border-zinc-700 text-xs font-medium text-zinc-600 dark:text-zinc-300 flex items-center justify-center hover:bg-zinc-50 dark:hover:bg-zinc-800">2</button>
+                      <button onClick={comingSoon('Page 3')} className="h-7 w-7 rounded-md border border-zinc-200 dark:border-zinc-700 text-xs font-medium text-zinc-600 dark:text-zinc-300 flex items-center justify-center hover:bg-zinc-50 dark:hover:bg-zinc-800">3</button>
+                      <button onClick={comingSoon('Next page')} className="h-7 w-7 rounded-md border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800"><ChevronRight size={13} /></button>
                     </div>
                   </div>
-                  <button onClick={comingSoon('Adding a new skill')} className="text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-2 rounded-lg inline-flex items-center gap-1.5 shadow-sm shadow-indigo-600/20 transition-colors shrink-0">
-                    <Plus size={13} /> Add New Skill
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 pt-1.5 border-t border-indigo-100 dark:border-indigo-900/40">
-                  <div className="flex items-center gap-1">
-                    <div className="h-6 w-6 rounded-lg bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-center shrink-0"><Plus size={11} className="text-indigo-600" /></div>
-                    <div>
-                      <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200">Add new skills</p>
-                      <p className="text-[10.5px] text-zinc-400">Keep your profile complete</p>
+                </CardContent>
+              </Card>
+
+              <div className="lg:col-span-3 flex flex-col gap-1">
+                <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
+                  <CardContent className="p-2">
+                    <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-1.5">Document Categories</p>
+                    <div className="flex flex-col gap-1">
+                      {DOC_CATEGORIES.map(c => (
+                        <div key={c.name} className="flex items-center justify-between gap-1 text-xs">
+                          <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400"><FileText size={12} className="text-zinc-400" /> {c.name}</span>
+                          <span className={`text-[10.5px] font-semibold px-1.5 py-0.5 rounded ${DOC_CATEGORY_STYLE[c.name]}`}>{c.count}</span>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="h-6 w-6 rounded-lg bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-center shrink-0"><BarChart3 size={11} className="text-indigo-600" /></div>
-                    <div>
-                      <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200">Track proficiency</p>
-                      <p className="text-[10.5px] text-zinc-400">Update your skill levels</p>
+                    <button onClick={comingSoon('View all categories')} className="mt-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">View All Categories <ChevronRight size={12} /></button>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
+                  <CardContent className="p-2">
+                    <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-1">Document Guidelines</p>
+                    <ul className="flex flex-col gap-1">
+                      {DOC_GUIDELINES.map(g => (
+                        <li key={g} className="flex items-start gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400">
+                          <Info size={12} className="text-indigo-400 shrink-0 mt-0.5" /> {g}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 bg-indigo-50/40 dark:bg-indigo-900/10">
+                  <CardContent className="p-2">
+                    <div className="flex items-center gap-1 mb-1.5">
+                      <Headset size={13} className="text-indigo-600" />
+                      <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Need Help?</p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="h-6 w-6 rounded-lg bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-center shrink-0"><Target size={11} className="text-indigo-600" /></div>
-                    <div>
-                      <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200">Get best opportunities</p>
-                      <p className="text-[10.5px] text-zinc-400">Based on your expertise</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-1.5">For any document related queries, please contact HR Department.</p>
+                    <button onClick={comingSoon('Contact HR')} className="w-full text-xs font-medium bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 py-1.5 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800">Contact HR</button>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </div>
+        )
+      }
 
-          <div className="lg:col-span-3 flex flex-col gap-1">
-            <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
-              <CardContent className="p-4">
-                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-1.5">Skill Categories</p>
-                <div className="flex items-center gap-1">
-                  <div className="h-[100px] w-[100px] relative shrink-0">
-                    <ResponsiveContainer>
-                      <PieChart>
-                        <Pie data={SKILL_CATEGORY_BREAKDOWN} dataKey="count" nameKey="name" innerRadius={32} outerRadius={48} paddingAngle={2} stroke="none">
-                          {SKILL_CATEGORY_BREAKDOWN.map(c => <Cell key={c.name} fill={c.color} />)}
-                        </Pie>
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      <span className="text-base font-bold text-zinc-900 dark:text-zinc-50">{SKILL_STATS.total}</span>
-                      <span className="text-[9px] text-zinc-500">Total Skills</span>
+      {
+        tab === 'skills' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-1">
+            <div className="lg:col-span-2">
+              {profileCardContent}
+            </div>
+
+            <div className="lg:col-span-7 flex flex-col gap-1">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1">
+                <StatTile icon={GraduationCap} bg="bg-blue-50 dark:bg-blue-900/20" color="text-blue-600" label="Total Skills" value={String(SKILL_STATS.total)} sub="All Skills Added" />
+                <StatTile icon={Star} bg="bg-emerald-50 dark:bg-emerald-900/20" color="text-emerald-600" label="Core Skills" value={String(SKILL_STATS.core)} sub="Key Expertise Areas" />
+                <StatTile icon={BarChart3} bg="bg-amber-50 dark:bg-amber-900/20" color="text-amber-600" label="Average Proficiency" value={`${SKILL_STATS.avgProficiency}%`} sub="Across All Skills" />
+                <StatTile icon={Award} bg="bg-violet-50 dark:bg-violet-900/20" color="text-violet-600" label="Certifications" value={String(SKILL_STATS.certifications)} sub="Related to Skills" />
+              </div>
+
+              <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
+                <CardHeader className="px-2 py-2 border-b border-zinc-100 dark:border-zinc-800">
+                  <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">My Skills</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/40">
+                          <th className="h-8 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Skill Name</th>
+                          <th className="h-8 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Category</th>
+                          <th className="h-8 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Proficiency</th>
+                          <th className="h-8 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Last Updated</th>
+                          <th className="h-8 px-2 text-left text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="capitalize">
+                        {SKILL_LIST.map(s => {
+                          const style = SKILL_CATEGORY_STYLE[s.category];
+                          return (
+                            <tr key={s.name} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30">
+                              <td className="px-2 py-1.5">
+                                <div className="flex items-center gap-1">
+                                  <div className="h-6 w-6 rounded-full flex items-center justify-center shrink-0" style={{ background: `${style.color}1A` }}>
+                                    <Sparkles size={11} style={{ color: style.color }} />
+                                  </div>
+                                  <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200 whitespace-nowrap">{s.name}</span>
+                                </div>
+                              </td>
+                              <td className="px-2 py-1.5">
+                                <span className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${style.badge}`}>{s.category}</span>
+                              </td>
+                              <td className="px-2 py-1.5">
+                                <div className="flex items-center gap-1 min-w-[130px]">
+                                  <div className="h-1.5 flex-1 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                                    <div className="h-full rounded-full" style={{ width: `${s.pct}%`, background: style.color }} />
+                                  </div>
+                                  <span className="text-[10.5px] text-zinc-500 dark:text-zinc-400 w-8 text-right">{s.pct}%</span>
+                                </div>
+                              </td>
+                              <td className="px-2 py-1.5 text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{s.updated}</td>
+                              <td className="px-2 py-1.5">
+                                <div className="flex items-center gap-1">
+                                  <button onClick={comingSoon('Editing skill')} className="h-6 w-6 rounded text-zinc-400 hover:text-indigo-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center"><Pencil size={12} /></button>
+                                  <button onClick={comingSoon('Deleting skill')} className="h-6 w-6 rounded text-zinc-400 hover:text-rose-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center"><Trash2 size={12} /></button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 px-2 py-1.5 border-t border-zinc-100 dark:border-zinc-800">
+                    <span className="text-xs text-zinc-500">Showing 1 to {SKILL_LIST.length} of {SKILL_STATS.total} skills</span>
+                    <button onClick={comingSoon('Viewing all skills')} className="text-xs font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">View All Skills <ChevronDown size={12} /></button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/50 dark:bg-indigo-900/10 shadow-sm">
+                <CardContent className="p-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
+                    <div className="flex items-center gap-1">
+                      <Rocket size={13} className="text-indigo-600 shrink-0" />
+                      <div>
+                        <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Add &amp; Improve Your Skills</p>
+                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Keep your skills up to date to help us understand your strengths better and recommend relevant opportunities.</p>
+                      </div>
+                    </div>
+                    <button onClick={comingSoon('Adding a new skill')} className="text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-2 rounded-lg inline-flex items-center gap-1.5 shadow-sm shadow-indigo-600/20 transition-colors shrink-0">
+                      <Plus size={13} /> Add New Skill
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 pt-1.5 border-t border-indigo-100 dark:border-indigo-900/40">
+                    <div className="flex items-center gap-1">
+                      <div className="h-6 w-6 rounded-lg bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-center shrink-0"><Plus size={11} className="text-indigo-600" /></div>
+                      <div>
+                        <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200">Add new skills</p>
+                        <p className="text-[10.5px] text-zinc-400">Keep your profile complete</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="h-6 w-6 rounded-lg bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-center shrink-0"><BarChart3 size={11} className="text-indigo-600" /></div>
+                      <div>
+                        <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200">Track proficiency</p>
+                        <p className="text-[10.5px] text-zinc-400">Update your skill levels</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="h-6 w-6 rounded-lg bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-center shrink-0"><Target size={11} className="text-indigo-600" /></div>
+                      <div>
+                        <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200">Get best opportunities</p>
+                        <p className="text-[10.5px] text-zinc-400">Based on your expertise</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-1.5 text-xs flex-1">
-                    {SKILL_CATEGORY_BREAKDOWN.map(c => (
-                      <div key={c.name} className="flex items-center justify-between gap-1">
-                        <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400"><span className="h-2 w-2 rounded-full shrink-0" style={{ background: c.color }} />{c.name}</span>
-                        <span className="font-medium text-zinc-800 dark:text-zinc-200 whitespace-nowrap">{c.count} ({c.pct}%)</span>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="lg:col-span-3 flex flex-col gap-1">
+              <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
+                <CardContent className="p-4">
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-1.5">Skill Categories</p>
+                  <div className="flex items-center gap-1">
+                    <div className="h-[100px] w-[100px] relative shrink-0">
+                      <ResponsiveContainer>
+                        <PieChart>
+                          <Pie data={SKILL_CATEGORY_BREAKDOWN} dataKey="count" nameKey="name" innerRadius={32} outerRadius={48} paddingAngle={2} stroke="none">
+                            {SKILL_CATEGORY_BREAKDOWN.map(c => <Cell key={c.name} fill={c.color} />)}
+                          </Pie>
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span className="text-base font-bold text-zinc-900 dark:text-zinc-50">{SKILL_STATS.total}</span>
+                        <span className="text-[9px] text-zinc-500">Total Skills</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1.5 text-xs flex-1">
+                      {SKILL_CATEGORY_BREAKDOWN.map(c => (
+                        <div key={c.name} className="flex items-center justify-between gap-1">
+                          <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400"><span className="h-2 w-2 rounded-full shrink-0" style={{ background: c.color }} />{c.name}</span>
+                          <span className="font-medium text-zinc-800 dark:text-zinc-200 whitespace-nowrap">{c.count} ({c.pct}%)</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
+                <CardContent className="p-2">
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-1.5 flex items-center gap-1.5"><Target size={11} className="text-indigo-600" /> Top Skills</p>
+                  <div className="flex flex-col gap-1">
+                    {TOP_SKILLS.map(s => (
+                      <div key={s.name} className="flex items-center justify-between gap-1 text-xs">
+                        <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400 min-w-0"><Star size={11} className="text-amber-400 shrink-0" /> <span className="truncate">{s.name}</span></span>
+                        <span className="text-[10.5px] font-semibold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 shrink-0">{s.pct}%</span>
                       </div>
                     ))}
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <button onClick={comingSoon('Viewing all skills')} className="mt-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">View All Skills <ChevronRight size={12} /></button>
+                </CardContent>
+              </Card>
 
-            <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
-              <CardContent className="p-2">
-                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-1.5 flex items-center gap-1.5"><Target size={11} className="text-indigo-600" /> Top Skills</p>
-                <div className="flex flex-col gap-1">
-                  {TOP_SKILLS.map(s => (
-                    <div key={s.name} className="flex items-center justify-between gap-1 text-xs">
-                      <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400 min-w-0"><Star size={11} className="text-amber-400 shrink-0" /> <span className="truncate">{s.name}</span></span>
-                      <span className="text-[10.5px] font-semibold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 shrink-0">{s.pct}%</span>
-                    </div>
-                  ))}
-                </div>
-                <button onClick={comingSoon('Viewing all skills')} className="mt-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">View All Skills <ChevronRight size={12} /></button>
-              </CardContent>
-            </Card>
-
-            <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
-              <CardContent className="p-2">
-                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-1.5 flex items-center gap-1.5"><BadgeCheck size={11} className="text-indigo-600" /> Certifications Related to Skills</p>
-                <div className="flex flex-col gap-1">
-                  {SKILL_CERTIFICATIONS.map(c => (
-                    <div key={c.name} className="flex items-start justify-between gap-1">
-                      <div className="flex items-start gap-1 min-w-0">
-                        <div className="h-7 w-7 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center shrink-0 mt-0.5"><Award size={13} className="text-indigo-600" /></div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200">{c.name}</p>
-                          <p className="text-[10.5px] text-zinc-400">Issued on {c.issued}</p>
+              <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800">
+                <CardContent className="p-2">
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-1.5 flex items-center gap-1.5"><BadgeCheck size={11} className="text-indigo-600" /> Certifications Related to Skills</p>
+                  <div className="flex flex-col gap-1">
+                    {SKILL_CERTIFICATIONS.map(c => (
+                      <div key={c.name} className="flex items-start justify-between gap-1">
+                        <div className="flex items-start gap-1 min-w-0">
+                          <div className="h-7 w-7 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center shrink-0 mt-0.5"><Award size={13} className="text-indigo-600" /></div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200">{c.name}</p>
+                            <p className="text-[10.5px] text-zinc-400">Issued on {c.issued}</p>
+                          </div>
                         </div>
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 shrink-0">Verified</span>
                       </div>
-                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 shrink-0">Verified</span>
-                    </div>
-                  ))}
-                </div>
-                <button onClick={comingSoon('Viewing all certifications')} className="mt-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">View All Certifications <ChevronRight size={12} /></button>
-              </CardContent>
-            </Card>
+                    ))}
+                  </div>
+                  <button onClick={comingSoon('Viewing all certifications')} className="mt-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">View All Certifications <ChevronRight size={12} /></button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-      {tab === 'assets' && (
-        <AssetsTab />
-      )}
+      {
+        tab === 'assets' && (
+          <AssetsTab />
+        )
+      }
 
-      {tab === 'emergency' && (
-        <EmergencyTab profileCard={profileCardContent} />
-      )}
+      {
+        tab === 'emergency' && (
+          <EmergencyTab profileCard={profileCardContent} />
+        )
+      }
 
-      {tab === 'more' && (
-        <MoreInfoTab />
-      )}
-    </div>
+      {
+        tab === 'more' && (
+          <MoreInfoTab />
+        )
+      }
+    </div >
   );
 }
