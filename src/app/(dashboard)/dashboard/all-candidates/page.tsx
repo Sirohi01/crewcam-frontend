@@ -197,7 +197,7 @@ export default function CandidateRegisterUI() {
           <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
             <Upload size={13} /> Import
           </button>
-          <button className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors">
+          <button onClick={() => window.open("/dashboard/hiring/candidates/new/create", '_blank')} className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors">
             <Plus size={14} /> Add Candidate
           </button>
         </div>

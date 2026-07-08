@@ -1,26 +1,26 @@
 "use client"
 import React, { useState, useMemo } from 'react';
-import { 
-  Star, 
-  Search, 
-  Filter, 
-  X, 
-  ChevronDown, 
-  Calendar, 
-  CheckCircle2, 
-  AlertTriangle, 
-  Eye, 
-  MoreHorizontal, 
-  Sparkles, 
-  Download, 
-  Settings, 
-  Plus, 
-  Check, 
-  Columns, 
-  ChevronLeft, 
-  ChevronRight, 
-  Info, 
-  ShieldAlert, 
+import {
+  Star,
+  Search,
+  Filter,
+  X,
+  ChevronDown,
+  Calendar,
+  CheckCircle2,
+  AlertTriangle,
+  Eye,
+  MoreHorizontal,
+  Sparkles,
+  Download,
+  Settings,
+  Plus,
+  Check,
+  Columns,
+  ChevronLeft,
+  ChevronRight,
+  Info,
+  ShieldAlert,
   RefreshCw,
   SlidersHorizontal,
   Mail,
@@ -29,24 +29,24 @@ import {
   Award
 } from 'lucide-react';
 import { Candidate, FilterState, MetricCardData, ScreeningFactors } from './data';
-import { 
-  INITIAL_CANDIDATES, 
-  INITIAL_METRIC_CARDS, 
-  UNIQUE_JOBS, 
-  UNIQUE_DEPARTMENTS, 
-  UNIQUE_EXPERIENCES, 
-  UNIQUE_SCORES, 
-  UNIQUE_STATUSES 
+import {
+  INITIAL_CANDIDATES,
+  INITIAL_METRIC_CARDS,
+  UNIQUE_JOBS,
+  UNIQUE_DEPARTMENTS,
+  UNIQUE_EXPERIENCES,
+  UNIQUE_SCORES,
+  UNIQUE_STATUSES
 } from './data';
 
 export default function AiScreening() {
   // --- Core States ---
   const [candidates, setCandidates] = useState<Candidate[]>(INITIAL_CANDIDATES);
   const [activeTab, setActiveTab] = useState<string>('All');
-  
+
   // Dynamic metrics updated in real-time as candidates are added
   const [metrics, setMetrics] = useState<MetricCardData[]>(INITIAL_METRIC_CARDS);
-  
+
   // Custom interactive model factors and confidence score from Settings
   const [confidenceScore, setConfidenceScore] = useState<number>(92);
   const [matchingFactors, setMatchingFactors] = useState<ScreeningFactors>({
@@ -109,7 +109,7 @@ export default function AiScreening() {
   const filteredCandidates = useMemo(() => {
     return candidates.filter(candidate => {
       // 1. Search Query (name, email, phone, job title, skills)
-      const matchesSearch = 
+      const matchesSearch =
         candidate.name.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
         candidate.email.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
         candidate.phone.includes(filters.searchQuery) ||
@@ -206,7 +206,7 @@ export default function AiScreening() {
   const handleCheckboxToggleAll = () => {
     const allCheckedOnPage = paginatedCandidates.every(c => selectedCandidates[c.id]);
     const nextSelected = { ...selectedCandidates };
-    
+
     paginatedCandidates.forEach(c => {
       if (allCheckedOnPage) {
         delete nextSelected[c.id];
@@ -231,7 +231,7 @@ export default function AiScreening() {
 
   const handleAddCandidateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Resolve screening status based on score & flagged toggle
     let status: 'High Match' | 'Medium Match' | 'Low Match' | 'Needs Review' = 'Medium Match';
     if (newCandidateForm.isFlagged) {
@@ -262,7 +262,7 @@ export default function AiScreening() {
 
     const updatedList = [newCandidate, ...candidates];
     setCandidates(updatedList);
-    
+
     // Dynamically update main dashboard Metric Counts to reflect the manual entries
     const highCount = updatedList.filter(c => c.screeningStatus === 'High Match').length;
     const medCount = updatedList.filter(c => c.screeningStatus === 'Medium Match').length;
@@ -304,7 +304,7 @@ export default function AiScreening() {
     setTimeout(() => {
       // Build dummy CSV contents
       const headers = "ID,Name,Email,Phone,Job Title,Job Code,Experience,Match Score,Screening Status\n";
-      const rows = filteredCandidates.map(c => 
+      const rows = filteredCandidates.map(c =>
         `"${c.id}","${c.name}","${c.email}","${c.phone}","${c.jobAppliedFor.title}","${c.jobAppliedFor.code}",${c.experienceYears},${c.aiMatchScore},"${c.screeningStatus}"`
       ).join("\n");
 
@@ -312,7 +312,7 @@ export default function AiScreening() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `ai-screening-candidates-${new Date().toISOString().slice(0,10)}.csv`);
+      link.setAttribute('download', `ai-screening-candidates-${new Date().toISOString().slice(0, 10)}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -336,7 +336,7 @@ export default function AiScreening() {
 
   return (
     <div className="h-[calc(100vh-48px)] w-full flex flex-col overflow-hidden bg-slate-50/50 p-2 gap-1.5 select-none text-indigo-950">
-      
+
       {/* Toast Notice */}
       {exportNotice && (
         <div className="fixed top-3 right-3 z-50 flex items-center gap-1.5 bg-indigo-950 text-white text-xs py-1.5 px-3 rounded-lg shadow-lg border border-indigo-800 transition-all">
@@ -362,7 +362,7 @@ export default function AiScreening() {
 
         <div className="flex items-center gap-1.5">
           {/* Export Action */}
-          <button 
+          <button
             onClick={triggerExport}
             disabled={isExporting}
             className="flex items-center gap-1 text-[11px] font-semibold text-indigo-950 bg-white border border-indigo-200/80 hover:bg-indigo-50/50 transition px-2.5 py-1.5 rounded-md shadow-2xs active:scale-95 cursor-pointer disabled:opacity-50"
@@ -372,7 +372,7 @@ export default function AiScreening() {
           </button>
 
           {/* Settings Action */}
-          <button 
+          <button
             onClick={() => setSettingsModalOpen(true)}
             className="flex items-center gap-1 text-[11px] font-semibold text-indigo-950 bg-white border border-indigo-200/80 hover:bg-indigo-50/50 transition px-2.5 py-1.5 rounded-md shadow-2xs active:scale-95 cursor-pointer"
           >
@@ -381,7 +381,7 @@ export default function AiScreening() {
           </button>
 
           {/* Add Candidate Action */}
-          <button 
+          <button
             onClick={() => setAddModalOpen(true)}
             className="flex items-center gap-1 text-[11px] font-bold text-white bg-violet-700 hover:bg-violet-800 transition px-3 py-1.5 rounded-md shadow-xs active:scale-95 cursor-pointer"
           >
@@ -401,7 +401,7 @@ export default function AiScreening() {
             (card.id === 'review' && activeTab === 'Needs Review');
 
           return (
-            <div 
+            <div
               key={card.id}
               onClick={() => {
                 if (card.id === 'resumes') setActiveTab('All');
@@ -453,15 +453,15 @@ export default function AiScreening() {
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 justify-between">
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-indigo-900/60" />
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Search by name, email, phone, job title or skills..."
               value={filters.searchQuery}
               onChange={(e) => handleFilterChange('searchQuery', e.target.value)}
               className="w-full pl-8 pr-2.5 py-1 text-xs text-indigo-950 placeholder-indigo-300 bg-slate-50/50 hover:bg-slate-50 border border-indigo-100 rounded-md focus:outline-hidden focus:ring-1 focus:ring-violet-500 focus:bg-white"
             />
             {filters.searchQuery && (
-              <button 
+              <button
                 onClick={() => handleFilterChange('searchQuery', '')}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-indigo-400 hover:text-indigo-900"
               >
@@ -483,7 +483,7 @@ export default function AiScreening() {
             </div>
 
             {/* Clear All Trigger */}
-            <button 
+            <button
               onClick={clearAllFilters}
               className="flex items-center gap-0.5 text-[10px] font-bold text-violet-700 hover:text-violet-900 px-2 py-1 rounded-md bg-slate-50 border border-indigo-50 hover:bg-indigo-50/50 transition cursor-pointer"
             >
@@ -499,7 +499,7 @@ export default function AiScreening() {
           <div className="flex flex-col">
             <span className="text-[8px] font-extrabold text-indigo-900/70 tracking-wider mb-0.5 uppercase">Job Opening</span>
             <div className="relative">
-              <select 
+              <select
                 value={filters.jobOpening}
                 onChange={(e) => handleFilterChange('jobOpening', e.target.value)}
                 className="w-full h-6 pl-1.5 pr-5 text-[10px] font-semibold text-indigo-950 bg-white border border-indigo-100/80 rounded-md appearance-none focus:outline-hidden focus:ring-1 focus:ring-violet-500 cursor-pointer"
@@ -516,7 +516,7 @@ export default function AiScreening() {
           <div className="flex flex-col">
             <span className="text-[8px] font-extrabold text-indigo-900/70 tracking-wider mb-0.5 uppercase">Department</span>
             <div className="relative">
-              <select 
+              <select
                 value={filters.department}
                 onChange={(e) => handleFilterChange('department', e.target.value)}
                 className="w-full h-6 pl-1.5 pr-5 text-[10px] font-semibold text-indigo-950 bg-white border border-indigo-100/80 rounded-md appearance-none focus:outline-hidden focus:ring-1 focus:ring-violet-500 cursor-pointer"
@@ -533,7 +533,7 @@ export default function AiScreening() {
           <div className="flex flex-col">
             <span className="text-[8px] font-extrabold text-indigo-900/70 tracking-wider mb-0.5 uppercase">Experience</span>
             <div className="relative">
-              <select 
+              <select
                 value={filters.experience}
                 onChange={(e) => handleFilterChange('experience', e.target.value)}
                 className="w-full h-6 pl-1.5 pr-5 text-[10px] font-semibold text-indigo-950 bg-white border border-indigo-100/80 rounded-md appearance-none focus:outline-hidden focus:ring-1 focus:ring-violet-500 cursor-pointer"
@@ -550,7 +550,7 @@ export default function AiScreening() {
           <div className="flex flex-col">
             <span className="text-[8px] font-extrabold text-indigo-900/70 tracking-wider mb-0.5 uppercase">AI Match Score</span>
             <div className="relative">
-              <select 
+              <select
                 value={filters.aiMatchScore}
                 onChange={(e) => handleFilterChange('aiMatchScore', e.target.value)}
                 className="w-full h-6 pl-1.5 pr-5 text-[10px] font-semibold text-indigo-950 bg-white border border-indigo-100/80 rounded-md appearance-none focus:outline-hidden focus:ring-1 focus:ring-violet-500 cursor-pointer"
@@ -567,7 +567,7 @@ export default function AiScreening() {
           <div className="flex flex-col">
             <span className="text-[8px] font-extrabold text-indigo-900/70 tracking-wider mb-0.5 uppercase">Screening Status</span>
             <div className="relative">
-              <select 
+              <select
                 value={filters.screeningStatus}
                 onChange={(e) => handleFilterChange('screeningStatus', e.target.value)}
                 className="w-full h-6 pl-1.5 pr-5 text-[10px] font-semibold text-indigo-950 bg-white border border-indigo-100/80 rounded-md appearance-none focus:outline-hidden focus:ring-1 focus:ring-violet-500 cursor-pointer"
@@ -634,7 +634,7 @@ export default function AiScreening() {
           <div className="relative w-9 h-9 flex items-center justify-center shrink-0">
             <svg className="w-full h-full transform -rotate-90">
               <circle cx="18" cy="18" r="15" className="stroke-indigo-100" strokeWidth="3" fill="transparent" />
-              <circle cx="18" cy="18" r="15" className="stroke-emerald-500" strokeWidth="3" strokeDasharray={`${2 * Math.PI * 15}`} strokeDashoffset={`${2 * Math.PI * 15 * (1 - confidenceScore/100)}`} strokeLinecap="round" fill="transparent" />
+              <circle cx="18" cy="18" r="15" className="stroke-emerald-500" strokeWidth="3" strokeDasharray={`${2 * Math.PI * 15}`} strokeDashoffset={`${2 * Math.PI * 15 * (1 - confidenceScore / 100)}`} strokeLinecap="round" fill="transparent" />
             </svg>
             <span className="absolute text-[9px] font-extrabold text-indigo-950 font-mono">{confidenceScore}%</span>
           </div>
@@ -664,36 +664,36 @@ export default function AiScreening() {
 
       {/* --- BOTTOM SECTION: INTERACTIVE CANDIDATE TABLE --- */}
       <section className="flex-1 bg-white border border-indigo-100/80 rounded-lg shadow-2xs overflow-hidden flex flex-col min-h-0">
-        
+
         {/* Table Tabs and Control Row */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between border-b border-indigo-50 px-2.5 py-1.5 shrink-0 gap-1.5">
           {/* Tabs */}
           <div className="flex flex-wrap items-center gap-1 text-[10px] font-extrabold">
-            <button 
+            <button
               onClick={() => { setActiveTab('All'); setCurrentPage(1); }}
               className={`px-2 py-1 rounded-md transition cursor-pointer ${activeTab === 'All' ? 'bg-violet-700 text-white shadow-xs' : 'text-indigo-900 hover:bg-slate-50 border border-transparent'}`}
             >
               AI Screened ({tabCounts.All})
             </button>
-            <button 
+            <button
               onClick={() => { setActiveTab('High Match'); setCurrentPage(1); }}
               className={`px-2 py-1 rounded-md transition cursor-pointer ${activeTab === 'High Match' ? 'bg-emerald-700 text-white shadow-xs' : 'text-emerald-950 hover:bg-slate-50 border border-transparent'}`}
             >
               High Match ({tabCounts['High Match']})
             </button>
-            <button 
+            <button
               onClick={() => { setActiveTab('Medium Match'); setCurrentPage(1); }}
               className={`px-2 py-1 rounded-md transition cursor-pointer ${activeTab === 'Medium Match' ? 'bg-blue-700 text-white shadow-xs' : 'text-blue-950 hover:bg-slate-50 border border-transparent'}`}
             >
               Medium Match ({tabCounts['Medium Match']})
             </button>
-            <button 
+            <button
               onClick={() => { setActiveTab('Low Match'); setCurrentPage(1); }}
               className={`px-2 py-1 rounded-md transition cursor-pointer ${activeTab === 'Low Match' ? 'bg-amber-700 text-white shadow-xs' : 'text-amber-950 hover:bg-slate-50 border border-transparent'}`}
             >
               Low Match ({tabCounts['Low Match']})
             </button>
-            <button 
+            <button
               onClick={() => { setActiveTab('Needs Review'); setCurrentPage(1); }}
               className={`px-2 py-1 rounded-md transition cursor-pointer ${activeTab === 'Needs Review' ? 'bg-rose-700 text-white shadow-xs' : 'text-rose-950 hover:bg-slate-50 border border-transparent'}`}
             >
@@ -705,14 +705,14 @@ export default function AiScreening() {
           <div className="flex items-center gap-1.5 self-end sm:self-auto shrink-0">
             {/* Columns Toggle Trigger */}
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setShowColumnsDropdown(!showColumnsDropdown)}
                 className="flex items-center gap-1 text-[10px] font-bold text-indigo-950 bg-white border border-indigo-200 px-2 py-1.5 rounded-md hover:bg-slate-50 cursor-pointer"
               >
                 <Columns className="h-3.5 w-3.5 text-violet-700" />
                 <span>Columns</span>
               </button>
-              
+
               {showColumnsDropdown && (
                 <div className="absolute right-0 mt-1 w-40 bg-white border border-indigo-100 rounded-lg shadow-lg z-30 p-2 text-xs flex flex-col gap-1.5">
                   <div className="font-extrabold text-indigo-950 pb-1 border-b border-indigo-50">Visible Columns</div>
@@ -732,7 +732,7 @@ export default function AiScreening() {
                     <input type="checkbox" defaultChecked className="accent-violet-700 rounded" />
                     <span>Skills Match</span>
                   </label>
-                  <button 
+                  <button
                     onClick={() => setShowColumnsDropdown(false)}
                     className="w-full text-center bg-violet-700 text-white text-[10px] py-1 rounded-md font-bold mt-1"
                   >
@@ -744,7 +744,7 @@ export default function AiScreening() {
 
             {/* Sort Dropdown */}
             <div className="flex items-center gap-1">
-              <select 
+              <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="h-7 text-[10px] font-bold text-indigo-950 bg-white border border-indigo-200 rounded-md px-1.5 appearance-none pr-6 relative focus:outline-hidden cursor-pointer"
@@ -764,11 +764,11 @@ export default function AiScreening() {
             <thead className="sticky top-0 bg-indigo-50/50 z-10 border-b border-indigo-100">
               <tr className="text-[9px] md:text-[10px] font-extrabold uppercase tracking-wider text-indigo-950/90 h-8">
                 <th className="w-8 pl-3 py-1.5">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={paginatedCandidates.length > 0 && paginatedCandidates.every(c => selectedCandidates[c.id])}
                     onChange={handleCheckboxToggleAll}
-                    className="accent-violet-700 rounded cursor-pointer h-3.5 w-3.5" 
+                    className="accent-violet-700 rounded cursor-pointer h-3.5 w-3.5"
                   />
                 </th>
                 <th className="w-1/4 px-2 py-1.5">Candidate</th>
@@ -781,7 +781,7 @@ export default function AiScreening() {
                 <th className="w-20 pr-3 py-1.5 text-center">Actions</th>
               </tr>
             </thead>
-            
+
             <tbody className="divide-y divide-indigo-50/70">
               {paginatedCandidates.length === 0 ? (
                 <tr>
@@ -793,7 +793,7 @@ export default function AiScreening() {
               ) : (
                 paginatedCandidates.map((candidate) => {
                   const isChecked = !!selectedCandidates[candidate.id];
-                  
+
                   // Score color logic
                   let scoreBadgeBg = 'bg-rose-50 border-rose-100 text-rose-900';
                   let scoreRingColor = 'stroke-rose-500';
@@ -829,17 +829,17 @@ export default function AiScreening() {
                   }
 
                   return (
-                    <tr 
+                    <tr
                       key={candidate.id}
                       className={`text-[11px] leading-tight hover:bg-slate-50/50 transition duration-150 ${isChecked ? 'bg-violet-50/20' : ''}`}
                     >
                       {/* Checkbox */}
                       <td className="pl-3 py-1.5 self-center align-middle">
-                        <input 
-                          type="checkbox" 
+                        <input
+                          type="checkbox"
                           checked={isChecked}
                           onChange={() => handleCheckboxToggleRow(candidate.id)}
-                          className="accent-violet-700 rounded cursor-pointer h-3.5 w-3.5" 
+                          className="accent-violet-700 rounded cursor-pointer h-3.5 w-3.5"
                         />
                       </td>
 
@@ -847,11 +847,11 @@ export default function AiScreening() {
                       <td className="px-2 py-1.5 align-middle">
                         <div className="flex items-center gap-1.5 min-w-0">
                           {candidate.avatarUrl ? (
-                            <img 
-                              src={candidate.avatarUrl} 
-                              alt={candidate.name} 
+                            <img
+                              src={candidate.avatarUrl}
+                              alt={candidate.name}
                               referrerPolicy="no-referrer"
-                              className="h-7 w-7 rounded-full object-cover border border-indigo-100 shadow-3xs shrink-0" 
+                              className="h-7 w-7 rounded-full object-cover border border-indigo-100 shadow-3xs shrink-0"
                             />
                           ) : (
                             <div className="h-7 w-7 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-900 shrink-0 border border-indigo-200">
@@ -885,7 +885,7 @@ export default function AiScreening() {
                           <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
                             <svg className="w-full h-full transform -rotate-90">
                               <circle cx="14" cy="14" r="11" className="stroke-indigo-50" strokeWidth="2.2" fill="transparent" />
-                              <circle cx="14" cy="14" r="11" className={scoreRingColor} strokeWidth="2.2" strokeDasharray={`${2 * Math.PI * 11}`} strokeDashoffset={`${2 * Math.PI * 11 * (1 - candidate.aiMatchScore/100)}`} strokeLinecap="round" fill="transparent" />
+                              <circle cx="14" cy="14" r="11" className={scoreRingColor} strokeWidth="2.2" strokeDasharray={`${2 * Math.PI * 11}`} strokeDashoffset={`${2 * Math.PI * 11 * (1 - candidate.aiMatchScore / 100)}`} strokeLinecap="round" fill="transparent" />
                             </svg>
                             <span className="absolute text-[8px] font-extrabold text-indigo-950 font-mono">{candidate.aiMatchScore}%</span>
                           </div>
@@ -900,8 +900,8 @@ export default function AiScreening() {
                       <td className="px-2 py-1.5 align-middle">
                         <div className="flex flex-wrap gap-0.5 max-w-full">
                           {candidate.topMatchedSkills.slice(0, 3).map((skill, index) => (
-                            <span 
-                              key={index} 
+                            <span
+                              key={index}
                               className="text-[8px] font-bold px-1.5 py-0.5 rounded-sm bg-indigo-50 text-indigo-950 border border-indigo-100"
                             >
                               {skill}
@@ -938,15 +938,15 @@ export default function AiScreening() {
                       <td className="px-2 py-1.5 align-middle text-center">
                         <div className="flex items-center justify-center gap-1">
                           {/* View detailed analysis card */}
-                          <button 
+                          <button
                             onClick={() => setSelectedCandidate(candidate)}
                             title="View AI Analysis"
                             className="p-1 rounded-md bg-indigo-50/50 hover:bg-indigo-100/80 hover:text-violet-900 text-indigo-950 transition cursor-pointer"
                           >
                             <Eye className="h-3 w-3" />
                           </button>
-                          
-                          <button 
+
+                          <button
                             onClick={() => {
                               setExportNotice(`Instant interview invitation sent to ${candidate.name}!`);
                               setTimeout(() => setExportNotice(null), 3000);
@@ -957,7 +957,7 @@ export default function AiScreening() {
                             <Mail className="h-3 w-3" />
                           </button>
 
-                          <button 
+                          <button
                             onClick={() => {
                               // delete option
                               if (confirm(`Remove ${candidate.name}?`)) {
@@ -998,8 +998,8 @@ export default function AiScreening() {
             <div className="flex items-center gap-1 shrink-0">
               <span>Show</span>
               <div className="relative">
-                <select 
-                  value={pageSize} 
+                <select
+                  value={pageSize}
                   onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
                   className="h-6 text-[10px] font-bold text-indigo-950 bg-white border border-indigo-200 rounded-md px-1.5 pr-5 appearance-none cursor-pointer"
                 >
@@ -1014,7 +1014,7 @@ export default function AiScreening() {
 
             {/* Pagination Controls */}
             <div className="flex items-center gap-1 shrink-0">
-              <button 
+              <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
                 className="p-1 rounded-md border border-indigo-200/80 bg-white hover:bg-slate-50 text-indigo-950 disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
@@ -1034,7 +1034,7 @@ export default function AiScreening() {
                 ))}
               </div>
 
-              <button 
+              <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
                 className="p-1 rounded-md border border-indigo-200/80 bg-white hover:bg-slate-50 text-indigo-950 disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
@@ -1064,8 +1064,8 @@ export default function AiScreening() {
               {/* Name */}
               <div className="flex flex-col">
                 <label className="text-[9px] font-extrabold text-indigo-900/80 uppercase tracking-wider mb-0.5">Candidate Name *</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   required
                   value={newCandidateForm.name}
                   onChange={(e) => setNewCandidateForm(prev => ({ ...prev, name: e.target.value }))}
@@ -1078,8 +1078,8 @@ export default function AiScreening() {
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col">
                   <label className="text-[9px] font-extrabold text-indigo-900/80 uppercase tracking-wider mb-0.5">Email Address *</label>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     required
                     value={newCandidateForm.email}
                     onChange={(e) => setNewCandidateForm(prev => ({ ...prev, email: e.target.value }))}
@@ -1089,8 +1089,8 @@ export default function AiScreening() {
                 </div>
                 <div className="flex flex-col">
                   <label className="text-[9px] font-extrabold text-indigo-900/80 uppercase tracking-wider mb-0.5">Phone Number *</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     required
                     value={newCandidateForm.phone}
                     onChange={(e) => setNewCandidateForm(prev => ({ ...prev, phone: e.target.value }))}
@@ -1104,7 +1104,7 @@ export default function AiScreening() {
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col">
                   <label className="text-[9px] font-extrabold text-indigo-900/80 uppercase tracking-wider mb-0.5">Job applied for</label>
-                  <select 
+                  <select
                     value={newCandidateForm.jobTitle}
                     onChange={(e) => setNewCandidateForm(prev => ({ ...prev, jobTitle: e.target.value }))}
                     className="h-8 px-2 text-xs text-indigo-950 bg-slate-50 border border-indigo-100 rounded-md focus:outline-hidden focus:ring-1 focus:ring-violet-500"
@@ -1116,8 +1116,8 @@ export default function AiScreening() {
                 </div>
                 <div className="flex flex-col">
                   <label className="text-[9px] font-extrabold text-indigo-900/80 uppercase tracking-wider mb-0.5">Years Experience</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     min="0"
                     max="40"
                     step="0.1"
@@ -1132,8 +1132,8 @@ export default function AiScreening() {
               <div className="grid grid-cols-2 gap-2 items-center bg-violet-50/50 p-2 border border-violet-100/50 rounded-lg">
                 <div className="flex flex-col">
                   <label className="text-[9px] font-extrabold text-indigo-900/80 uppercase tracking-wider mb-0.5">AI Match Score (%)</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     min="0"
                     max="100"
                     value={newCandidateForm.aiMatchScore}
@@ -1142,8 +1142,8 @@ export default function AiScreening() {
                   />
                 </div>
                 <div className="flex items-center gap-1.5 self-end pb-1">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     id="flagCheck"
                     checked={newCandidateForm.isFlagged}
                     onChange={(e) => setNewCandidateForm(prev => ({ ...prev, isFlagged: e.target.checked }))}
@@ -1159,8 +1159,8 @@ export default function AiScreening() {
               {/* Skills comma separated */}
               <div className="flex flex-col">
                 <label className="text-[9px] font-extrabold text-indigo-900/80 uppercase tracking-wider mb-0.5">Key Skills (comma separated)</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={newCandidateForm.topSkills}
                   onChange={(e) => setNewCandidateForm(prev => ({ ...prev, topSkills: e.target.value }))}
                   placeholder="Java, Spring, Hibernate"
@@ -1171,7 +1171,7 @@ export default function AiScreening() {
               {/* Summary */}
               <div className="flex flex-col">
                 <label className="text-[9px] font-extrabold text-indigo-900/80 uppercase tracking-wider mb-0.5">AI Summary Statement</label>
-                <textarea 
+                <textarea
                   rows={2}
                   value={newCandidateForm.aiSummary}
                   onChange={(e) => setNewCandidateForm(prev => ({ ...prev, aiSummary: e.target.value }))}
@@ -1182,15 +1182,15 @@ export default function AiScreening() {
 
               {/* Submit triggers */}
               <div className="flex items-center gap-2 justify-end pt-1 border-t border-indigo-50 mt-1">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setAddModalOpen(false)}
                   className="px-3 py-1.5 text-xs font-semibold text-indigo-950 hover:bg-slate-100 rounded-md cursor-pointer"
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="px-3.5 py-1.5 text-xs font-bold text-white bg-violet-700 hover:bg-violet-800 rounded-md shadow-xs cursor-pointer"
                 >
                   Submit Profile
@@ -1222,13 +1222,13 @@ export default function AiScreening() {
                   <span className="text-[10px] font-extrabold text-indigo-950 uppercase">Model Accuracy Rating</span>
                   <span className="text-xs font-mono font-extrabold text-violet-700">{confidenceScore}%</span>
                 </div>
-                <input 
-                  type="range" 
-                  min="50" 
-                  max="99" 
-                  value={confidenceScore} 
+                <input
+                  type="range"
+                  min="50"
+                  max="99"
+                  value={confidenceScore}
                   onChange={(e) => setConfidenceScore(parseInt(e.target.value))}
-                  className="w-full accent-violet-700 cursor-pointer" 
+                  className="w-full accent-violet-700 cursor-pointer"
                 />
                 <span className="text-[9px] text-indigo-900/70">
                   Sets the threshold of accuracy calculations mapped across skills benchmarks.
@@ -1238,53 +1238,53 @@ export default function AiScreening() {
               {/* Matching Factors checkboxes */}
               <div className="flex flex-col gap-1.5 border-t border-indigo-50 pt-2">
                 <span className="text-[10px] font-extrabold text-indigo-950 uppercase mb-0.5">Enable Match Factors</span>
-                
+
                 <label className="flex items-center gap-2 text-xs font-medium text-indigo-900 cursor-pointer">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={matchingFactors.skillsMatch}
                     onChange={(e) => setMatchingFactors(prev => ({ ...prev, skillsMatch: e.target.checked }))}
-                    className="accent-violet-700 rounded h-3.5 w-3.5" 
+                    className="accent-violet-700 rounded h-3.5 w-3.5"
                   />
                   <span>Compare Candidate Core Skills</span>
                 </label>
 
                 <label className="flex items-center gap-2 text-xs font-medium text-indigo-900 cursor-pointer">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={matchingFactors.experience}
                     onChange={(e) => setMatchingFactors(prev => ({ ...prev, experience: e.target.checked }))}
-                    className="accent-violet-700 rounded h-3.5 w-3.5" 
+                    className="accent-violet-700 rounded h-3.5 w-3.5"
                   />
                   <span>Benchmark Career Experience Duration</span>
                 </label>
 
                 <label className="flex items-center gap-2 text-xs font-medium text-indigo-900 cursor-pointer">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={matchingFactors.education}
                     onChange={(e) => setMatchingFactors(prev => ({ ...prev, education: e.target.checked }))}
-                    className="accent-violet-700 rounded h-3.5 w-3.5" 
+                    className="accent-violet-700 rounded h-3.5 w-3.5"
                   />
                   <span>Validate Academic Profile Criteria</span>
                 </label>
 
                 <label className="flex items-center gap-2 text-xs font-medium text-indigo-900 cursor-pointer">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={matchingFactors.jobTitleRelevance}
                     onChange={(e) => setMatchingFactors(prev => ({ ...prev, jobTitleRelevance: e.target.checked }))}
-                    className="accent-violet-700 rounded h-3.5 w-3.5" 
+                    className="accent-violet-700 rounded h-3.5 w-3.5"
                   />
                   <span>Verify Historical Job Title Relevance</span>
                 </label>
 
                 <label className="flex items-center gap-2 text-xs font-medium text-indigo-900 cursor-pointer">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={matchingFactors.keywords}
                     onChange={(e) => setMatchingFactors(prev => ({ ...prev, keywords: e.target.checked }))}
-                    className="accent-violet-700 rounded h-3.5 w-3.5" 
+                    className="accent-violet-700 rounded h-3.5 w-3.5"
                   />
                   <span>Scan Resume Semantic Keywords</span>
                 </label>
@@ -1292,7 +1292,7 @@ export default function AiScreening() {
 
               {/* Actions */}
               <div className="flex items-center gap-2 justify-end pt-2 border-t border-indigo-50 mt-1">
-                <button 
+                <button
                   onClick={() => setSettingsModalOpen(false)}
                   className="w-full bg-violet-700 hover:bg-violet-800 text-white text-xs py-1.5 rounded-md font-bold"
                 >
@@ -1322,11 +1322,11 @@ export default function AiScreening() {
               {/* Header Profile Info */}
               <div className="flex items-center gap-3 bg-violet-50/50 p-2.5 rounded-lg border border-violet-100/30">
                 {selectedCandidate.avatarUrl ? (
-                  <img 
-                    src={selectedCandidate.avatarUrl} 
-                    alt={selectedCandidate.name} 
+                  <img
+                    src={selectedCandidate.avatarUrl}
+                    alt={selectedCandidate.name}
                     referrerPolicy="no-referrer"
-                    className="h-11 w-11 rounded-full object-cover border-2 border-violet-200" 
+                    className="h-11 w-11 rounded-full object-cover border-2 border-violet-200"
                   />
                 ) : (
                   <div className="h-11 w-11 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-900 border-2 border-indigo-200">
@@ -1383,13 +1383,13 @@ export default function AiScreening() {
                   <span className="text-[10px] font-extrabold text-violet-950">{selectedCandidate.screeningStatus}</span>
                 </div>
                 <div className="flex gap-1.5">
-                  <button 
+                  <button
                     onClick={() => setSelectedCandidate(null)}
                     className="px-3 py-1.5 text-xs font-semibold text-indigo-950 bg-slate-50 hover:bg-slate-100 border border-indigo-200/50 rounded-md cursor-pointer"
                   >
                     Close
                   </button>
-                  <button 
+                  <button
                     onClick={() => {
                       setExportNotice(`Invitation sent to ${selectedCandidate.name}!`);
                       setSelectedCandidate(null);
