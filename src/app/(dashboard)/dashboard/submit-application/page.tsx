@@ -410,14 +410,14 @@ export default function SubmittedPage({
                     <p className="text-[9px] text-slate-800 leading-normal mt-0.5">
                       If you have any queries regarding your application, feel free to reach out to our HR team.
                     </p>
-                  </div>
-                </div>
                 <button
                   onClick={() => alert("Connecting to HR Talent Team...\nHotline: hr-support@portal.com")}
                   className="px-2 py-1 bg-white border border-indigo-300 text-indigo-700 rounded text-[10px] font-bold hover:bg-indigo-100 transition-colors mt-2 self-start"
                 >
                   Contact HR Team
                 </button>
+                  </div>
+                </div>
               </div>
 
             </div>

@@ -762,7 +762,7 @@ export default function AiScreening() {
         <div className="flex-1 overflow-y-auto min-h-0 bg-white">
           <table className="w-full text-left border-collapse table-fixed">
             <thead className="sticky top-0 bg-indigo-50/50 z-10 border-b border-indigo-100">
-              <tr className="text-[9px] md:text-[10px] font-extrabold uppercase tracking-wider text-indigo-950/90 h-8">
+              <tr className="text-[9px] md:text-[10px] font-extrabold uppercase tracking-wider text-indigo-950/90 h-8 bg-indigo-100">
                 <th className="w-8 pl-3 py-1.5">
                   <input 
                     type="checkbox" 
