@@ -28,9 +28,10 @@ interface SidebarItem {
   icon: string;
   order: number;
   parent?: string;
+  subParent?: string;
 }
 
-type GroupedItem = SidebarItem | { isGroup: true; label: string; children: SidebarItem[] };
+type GroupedItem = SidebarItem | { isGroup: true; label: string; children: GroupedItem[] };
 
 const STATIC_PEOPLE_ITEMS: SidebarItem[] = [
   { _id: 'e1', section: 'WORKSPACE', label: 'Dashboard', href: '/dashboard/employee', icon: 'LayoutDashboard', order: 1 },
@@ -51,6 +52,29 @@ const STATIC_PEOPLE_ITEMS: SidebarItem[] = [
   { _id: 'e16', section: 'WORKSPACE', label: 'Settings', href: '/dashboard/settings', icon: 'Settings', order: 16 },
 ];
 
+const STATIC_RECRUITMENT_ITEMS: SidebarItem[] = [
+  { _id: 'r1', section: 'WORKSPACE', label: 'Overview', href: '/dashboard/hr-dashboard', icon: 'LayoutDashboard', order: 2.01, parent: 'Requirement' },
+  { _id: 'r2', section: 'WORKSPACE', label: 'Job Requisition', href: '/dashboard/hiring/manpower', icon: 'Briefcase', order: 2.02, parent: 'Requirement' },
+  { _id: 'r3', section: 'WORKSPACE', label: 'Job Opening', href: '/dashboard/hiring/job-opening', icon: 'ListTree', order: 2.03, parent: 'Requirement' },
+  { _id: 'r3b', section: 'WORKSPACE', label: 'Post New Job', href: '/dashboard/hiring/jobs/new', icon: 'PlusSquare', order: 2.04, parent: 'Requirement' },
+  { _id: 'r4', section: 'WORKSPACE', label: 'Submit Application', href: '/dashboard/submit-application', icon: 'UserPlus', order: 2.05, parent: 'Requirement', subParent: 'Job Application' },
+  { _id: 'r4a', section: 'WORKSPACE', label: 'Job Applications', href: '/dashboard/hiring/applications', icon: 'FileText', order: 2.06, parent: 'Requirement', subParent: 'Job Application' },
+  { _id: 'r5', section: 'WORKSPACE', label: 'Application Submitted', href: '/dashboard/application-submitted-ui', icon: 'FileSignature', order: 2.07, parent: 'Requirement', subParent: 'Job Application' },
+  { _id: 'r6', section: 'WORKSPACE', label: 'All candidates', href: '/dashboard/candidates-ui', icon: 'Users', order: 2.08, parent: 'Requirement', subParent: 'Candidates' },
+  { _id: 'r7', section: 'WORKSPACE', label: 'New Application', href: '/dashboard/new-applications-ui', icon: 'User', order: 2.09, parent: 'Requirement', subParent: 'Candidates' },
+  { _id: 'r8', section: 'WORKSPACE', label: 'Shortlist candidates', href: '/dashboard/shortlisted-candidates-ui', icon: 'ShieldCheck', order: 2.10, parent: 'Requirement', subParent: 'Candidates' },
+  { _id: 'r9', section: 'WORKSPACE', label: 'Hold Candidates', href: '/dashboard/hiring/candidates/hold', icon: 'Clock', order: 2.11, parent: 'Requirement', subParent: 'Candidates' },
+  { _id: 'r10', section: 'WORKSPACE', label: 'Rejected candidates', href: '/dashboard/rejected-candidates', icon: 'Circle', order: 2.12, parent: 'Requirement', subParent: 'Candidates' },
+  { _id: 'r11', section: 'WORKSPACE', label: 'Ai screening', href: '/dashboard/ai-screening', icon: 'Sparkles', order: 2.13, parent: 'Requirement', subParent: 'Candidates' },
+  { _id: 'r11a', section: 'WORKSPACE', label: 'AI Screening Evaluation', href: '/dashboard/ai-screening-application-evaluation', icon: 'Sparkles', order: 2.14, parent: 'Requirement', subParent: 'Candidates' },
+  { _id: 'r12', section: 'WORKSPACE', label: 'Assessments', href: '/dashboard/assessments', icon: 'ClipboardList', order: 2.15, parent: 'Requirement', subParent: 'Candidates' },
+  { _id: 'r12a', section: 'WORKSPACE', label: 'Review and Edit', href: '/dashboard/review-and-edit', icon: 'FileSignature', order: 2.16, parent: 'Requirement', subParent: 'Candidates' },
+  { _id: 'r13', section: 'WORKSPACE', label: 'Interviews', href: '/dashboard/interviews', icon: 'MessageSquare', order: 2.17, parent: 'Requirement' },
+  { _id: 'r14', section: 'WORKSPACE', label: 'Offers', href: '/dashboard/offers', icon: 'FileSignature', order: 2.18, parent: 'Requirement' },
+  { _id: 'r15', section: 'WORKSPACE', label: 'Onboarding', href: '/dashboard/onboarding', icon: 'UserPlus', order: 2.19, parent: 'Requirement' },
+  { _id: 'r16', section: 'WORKSPACE', label: 'Reports Analytics', href: '/dashboard/report-analytics', icon: 'TrendingUp', order: 2.20, parent: 'Requirement' },
+];
+
 export default function DynamicSidebar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -69,7 +93,8 @@ export default function DynamicSidebar() {
     queryFn: async () => (await api.get('/permissions/sidebar-config/mine')).data,
     staleTime: 5 * 60 * 1000,
   });
-  const items = data?.items;
+  // The API returns an array directly, but previously the code expected { items, roleCategory }
+  const items = Array.isArray(data) ? data : data?.items;
   const roleCategory = data?.roleCategory;
 
   const sections: { section: string; items: GroupedItem[] }[] = [];
@@ -83,10 +108,28 @@ export default function DynamicSidebar() {
   // didn't have the specific permissions gating those particular sections.
   const allItems = React.useMemo(() => {
     if (isLoading) return [];
-    if (!items || items.length === 0 || roleCategory === 'employee') {
-      return [...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
+
+    const safeItems = items || [];
+
+    const isSuperAdminOrCompanyAdmin = ['company_admin', 'super_admin'].includes(roleCategory || '');
+
+    const isHrRecruiter = ['hr_recruiter', 'hr', 'hr_admin', 'company_admin', 'hod'].includes(roleCategory || '') || safeItems.some(item =>
+      ['Hiring Process', 'Requirement', 'Recruitment'].includes(item.section)
+    );
+
+    let merged = [...STATIC_PEOPLE_ITEMS];
+
+    // Only show API sidebar data for super_admin and company_admin
+    if (isSuperAdminOrCompanyAdmin) {
+      merged = [...merged, ...safeItems];
     }
-    return [...items, ...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
+
+    if (isHrRecruiter) {
+      merged = [...merged, ...STATIC_RECRUITMENT_ITEMS];
+    }
+
+    return merged.sort((a, b) => a.order - b.order);
+    // return [...safeItems, ...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
   }, [items, isLoading, roleCategory]);
 
   allItems.forEach((item) => {
@@ -96,12 +139,22 @@ export default function DynamicSidebar() {
       sections.push(group);
     }
     if (item.parent) {
-      let parentGroup = group.items.find((i) => 'isGroup' in i && i.label === item.parent) as { isGroup: true; label: string; children: SidebarItem[] } | undefined;
+      let parentGroup = group.items.find((i) => 'isGroup' in i && i.label === item.parent) as { isGroup: true; label: string; children: GroupedItem[] } | undefined;
       if (!parentGroup) {
         parentGroup = { isGroup: true, label: item.parent, children: [] };
         group.items.push(parentGroup);
       }
-      parentGroup.children.push(item);
+      
+      if (item.subParent) {
+        let subParentGroup = parentGroup.children.find((i) => 'isGroup' in i && i.label === item.subParent) as { isGroup: true; label: string; children: GroupedItem[] } | undefined;
+        if (!subParentGroup) {
+          subParentGroup = { isGroup: true, label: item.subParent, children: [] };
+          parentGroup.children.push(subParentGroup);
+        }
+        subParentGroup.children.push(item);
+      } else {
+        parentGroup.children.push(item);
+      }
     } else {
       group.items.push(item);
     }
@@ -156,15 +209,14 @@ export default function DynamicSidebar() {
         <div className="sidebar-scroll flex-1 overflow-y-auto py-2">
           <div className="px-2 space-y-4">
 
-            {/* ── Dynamic sections from API + Static WORKSPACE ── */}
             {sections.map((group) => (
               <nav key={group.section} className="space-y-0.5">
                 {group.section !== 'WORKSPACE' && <SectionLabel>{group.section}</SectionLabel>}
-                {group.items.map((item) => {
-                  if ('isGroup' in item) {
-                    return <NavGroup key={item.label} label={item.label} items={item.children} pathname={pathname} />;
-                  }
-                  return (
+                  {group.items.map((item) => {
+                    if ('isGroup' in item) {
+                      return <NavGroup key={item.label} label={item.label} items={item.children} pathname={pathname} level={0} />;
+                    }
+                    return (
                     <NavItem
                       key={item._id}
                       href={item.href}
@@ -252,8 +304,14 @@ function NavItem({
   );
 }
 
-function NavGroup({ label, items, pathname }: { label: string; items: SidebarItem[]; pathname: string }) {
-  const isAnyChildActive = items.some(item => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)));
+function NavGroup({ label, items, pathname, level = 0 }: { label: string; items: GroupedItem[]; pathname: string, level?: number }) {
+  const isAnyChildActive = items.some(item => {
+    if ('isGroup' in item) {
+      // Very naive check for nested active states, could be expanded
+      return item.children.some(child => !('isGroup' in child) && (pathname === child.href || (child.href !== '/dashboard' && pathname.startsWith(child.href))));
+    }
+    return pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+  });
   const [expanded, setExpanded] = React.useState(isAnyChildActive);
 
   return (
@@ -263,8 +321,8 @@ function NavGroup({ label, items, pathname }: { label: string; items: SidebarIte
         className="w-full flex items-center justify-between px-2 py-1.5 text-xs font-medium rounded-md transition-colors"
         style={
           isAnyChildActive
-            ? { color: '#c7d2fe', backgroundColor: 'rgba(99,102,241,0.15)' } // was #a5b4fc
-            : { color: '#e2e8f0' } // was #cbd5e1
+            ? { color: '#c7d2fe', backgroundColor: 'rgba(99,102,241,0.15)' }
+            : { color: '#e2e8f0' }
         }
         onMouseEnter={(e) => {
           if (!isAnyChildActive) {
@@ -279,7 +337,7 @@ function NavGroup({ label, items, pathname }: { label: string; items: SidebarIte
           }
         }}
       >
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2 min-w-0" style={{ paddingLeft: `${level * 12}px` }}>
           <Briefcase size={14} className="flex-shrink-0" />
           <span className="truncate">{label}</span>
         </div>
@@ -297,6 +355,10 @@ function NavGroup({ label, items, pathname }: { label: string; items: SidebarIte
           style={{ borderLeft: '1px solid rgba(99,102,241,0.35)' }}
         >
           {items.map((item) => {
+            if ('isGroup' in item) {
+              return <NavGroup key={item.label} label={item.label} items={item.children} pathname={pathname} level={level + 1} />;
+            }
+            
             const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
             return (
               <Link
