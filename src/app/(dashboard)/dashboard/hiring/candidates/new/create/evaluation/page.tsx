@@ -67,7 +67,7 @@ export default function HODEvaluationPage() {
   const concerns = ['Advanced Data Analytics', 'PPC / Google Ads'];
 
   return (
-    <div className="min-h-screen bg-white p-2 lg:p-4 pb-10 font-sans">
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
 
       {/* HEADER & HORIZONTAL STEP INDICATOR */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-3">
@@ -82,11 +82,11 @@ export default function HODEvaluationPage() {
         <div className="flex-1 max-w-[600px] w-full flex items-center justify-between relative px-1 lg:px-2 mx-auto">
           <div className="absolute left-4 right-4 top-[11px] h-[2px] bg-zinc-200 -z-0"></div>
           {steps.map((step, idx) => (
-            <div key={idx} className="relative z-10 flex flex-col items-center gap-1 bg-white px-1">
+            <div key={idx} className="relative z-10 flex flex-col items-center gap-1 px-1">
               <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-colors
                 ${step.status === 'completed' ? 'border-indigo-100 text-indigo-600 bg-indigo-50' :
                   step.status === 'active' ? 'border-indigo-600 bg-indigo-600 text-white shadow-[0_0_0_3px_rgba(79,70,229,0.15)]' :
-                    'border-zinc-200 text-zinc-400 bg-white'}`}>
+                    'border-zinc-200 text-zinc-400'}`}>
                 {step.num}
               </div>
               <span className={`text-[8.5px] lg:text-[9px] whitespace-nowrap font-bold ${step.status === 'active' ? 'text-indigo-900' : step.status === 'completed' ? 'text-indigo-600' : 'text-zinc-400'}`}>
@@ -380,9 +380,9 @@ export default function HODEvaluationPage() {
               </Card>
 
               {/* Missing / To Improve */}
-              <Card className="border-rose-100/60 shadow-sm rounded-xl bg-rose-50/10">
-                <CardHeader className="px-4 py-3 border-b border-rose-100 bg-rose-50/50 rounded-t-xl">
-                  <CardTitle className="text-[13px] font-bold text-rose-900">Missing / To Improve</CardTitle>
+              <Card className="border-zinc-200/80 shadow-sm rounded-xl">
+                <CardHeader className="px-4 py-3 border-b border-zinc-100 bg-zinc-50/50 rounded-t-xl">
+                  <CardTitle className="text-[13px] font-bold text-zinc-900">Missing / To Improve</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 flex flex-col gap-3.5">
                   {[

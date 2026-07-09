@@ -7,7 +7,6 @@ import {
   CheckCircle2, Clock, Users, XCircle, Video, User as UserIcon,
   Eye, Pencil, MoreHorizontal, LayoutGrid, ChevronLeft, ChevronRight, ChevronDown,
 } from 'lucide-react'
-import PageLayout from '@/components/ui/pageLayout'
 
 // ---------- Types ----------
 
@@ -210,7 +209,7 @@ const Interviews: React.FC = () => {
   }
 
   return (
-   <PageLayout> 
+   <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen"> 
     <div className="w-full h-[calc(100vh-3rem)] min-h-[650px] flex flex-col gap-2 p-2 bg-gray-50 overflow-hidden">
       <Toaster position="top-right" toastOptions={{ style: { fontSize: '11px' } }} />
 
@@ -497,7 +496,6 @@ const Interviews: React.FC = () => {
         </div>
       )}
     </div>
-    </PageLayout>
   )
 }
 

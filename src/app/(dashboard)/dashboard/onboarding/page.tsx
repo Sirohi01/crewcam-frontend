@@ -28,7 +28,6 @@ import {
   ListChecks,
   X,
 } from 'lucide-react'
-import PageLayout from '@/components/ui/pageLayout'
 
 // ---------- Types ----------
 
@@ -430,7 +429,7 @@ const OnboardingPage: React.FC = () => {
       id: 'total',
       icon: UserPlus,
       iconBg: 'bg-violet-100',
-      iconColor: 'text-violet-600',
+      iconColor: 'text-indigo-700',
       cardBg: 'bg-violet-50/50',
       cardBorder: 'border-violet-200',
       value: String(candidates.length),
@@ -491,7 +490,7 @@ const OnboardingPage: React.FC = () => {
   const QUICK_ACTIONS: QuickActionData[] = [
     { id: 'upload', icon: FileUp, iconBg: 'bg-blue-50', iconColor: 'text-blue-600', label: 'Upload Document' },
     { id: 'email', icon: Send, iconBg: 'bg-emerald-50', iconColor: 'text-emerald-600', label: 'Send Welcome Email' },
-    { id: 'checklist', icon: ListChecks, iconBg: 'bg-violet-50', iconColor: 'text-violet-600', label: 'View Onboarding Checklist' },
+    { id: 'checklist', icon: ListChecks, iconBg: 'bg-violet-50', iconColor: 'text-indigo-700', label: 'View Onboarding Checklist' },
   ]
 
   const handleClearAll = () => {
@@ -584,9 +583,7 @@ const OnboardingPage: React.FC = () => {
   }
 
   return (
-    <PageLayout>
-
-    <div className="flex flex-col gap-2 min-h-screen overflow-visible lg:h-[calc(100vh-48px)] lg:overflow-y-auto">
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       <Toaster position="top-right" toastOptions={{ style: { fontSize: '12px' } }} />
       <input
         type="file"
@@ -600,7 +597,7 @@ const OnboardingPage: React.FC = () => {
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-1.5">
             <h1 className="text-lg font-bold text-slate-900 leading-none">Onboarding</h1>
-            <UserPlus className="h-4 w-4 text-violet-600" />
+            <UserPlus className="h-4 w-4 text-indigo-700" />
           </div>
           <p className="text-[11px] font-medium text-slate-500">
             Track and manage onboarding process of new hires
@@ -610,7 +607,7 @@ const OnboardingPage: React.FC = () => {
           <button
             type="button"
             onClick={handleExport}
-            className="flex items-center gap-1 rounded-md border border-slate-300 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+            className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm"
           >
             <Download className="h-3.5 w-3.5" />
             Export
@@ -625,7 +622,7 @@ const OnboardingPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsAddHireOpen(true)}
-            className="flex items-center gap-1 rounded-md bg-violet-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-violet-700"
+            className="flex items-center gap-1 rounded-md bg-indigo-700 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800"
           >
             <Plus className="h-3.5 w-3.5" />
             Add New Hire
@@ -668,7 +665,7 @@ const OnboardingPage: React.FC = () => {
                 <Filter className="h-3.5 w-3.5" />
                 Filters
                 {activeFilterCount > 0 ? (
-                  <span className="rounded-full bg-violet-600 text-white text-[9px] font-bold h-4 w-4 flex items-center justify-center">
+                  <span className="rounded-full bg-indigo-700 text-white text-[9px] font-bold h-4 w-4 flex items-center justify-center">
                     {activeFilterCount}
                   </span>
                 ) : null}
@@ -676,7 +673,7 @@ const OnboardingPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleClearAll}
-                className="flex items-center gap-1 rounded-md border border-slate-300 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 whitespace-nowrap shrink-0 hover:bg-slate-50"
+                className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 Clear All
@@ -778,7 +775,7 @@ const OnboardingPage: React.FC = () => {
                   }}
                   className={`pb-2 text-[11px] font-semibold whitespace-nowrap ${
                     activeTab === tab.key
-                      ? 'text-violet-600 border-b-2 border-violet-600'
+                      ? 'text-indigo-700 border-b-2 border-violet-600'
                       : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
@@ -970,7 +967,7 @@ const OnboardingPage: React.FC = () => {
                   type="button"
                   onClick={() => setCurrentPage(page)}
                   className={`h-6 w-6 rounded-md text-[11px] font-semibold flex items-center justify-center ${
-                    page === pageSafe ? 'bg-violet-600 text-white' : 'border border-slate-300 text-slate-700'
+                    page === pageSafe ? 'bg-indigo-700 text-white' : 'border border-slate-300 text-slate-700'
                   }`}
                 >
                   {page}
@@ -1160,7 +1157,7 @@ const OnboardingPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleAddHire}
-                className="rounded-md bg-violet-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-violet-700"
+                className="rounded-md bg-indigo-700 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800"
               >
                 Add Hire
               </button>
@@ -1169,7 +1166,6 @@ const OnboardingPage: React.FC = () => {
         </Dialog.Portal>
       </Dialog.Root>
     </div>
-    </PageLayout>
 
   )
 }

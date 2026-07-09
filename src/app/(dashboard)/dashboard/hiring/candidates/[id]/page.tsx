@@ -131,7 +131,7 @@ export default function CandidateDetailsPage() {
   const [tab, setTab] = useState('Overview');
 
   return (
-    <div className="bg-[#fafbfc] font-sans">
+    <div className="font-sans">
       <div className="mx-auto max-w-[1500px] space-y-2 p-1">
         {/* Header */}
         <div className="flex flex-wrap items-start justify-between gap-2">
@@ -247,11 +247,10 @@ export default function CandidateDetailsPage() {
                   {stageSteps.map((s) => (
                     <div key={s.label} className="flex flex-1 flex-col items-center text-center">
                       <span
-                        className={`grid h-7 w-7 place-items-center rounded-[2px] ${
-                          s.state === 'done' ? 'bg-emerald-500 text-white'
+                        className={`grid h-7 w-7 place-items-center rounded-[2px] ${s.state === 'done' ? 'bg-emerald-500 text-white'
                             : s.state === 'current' ? 'bg-indigo-600 text-white'
                               : 'border border-zinc-200 bg-white text-zinc-300'
-                        }`}
+                          }`}
                       >
                         {s.state === 'done' ? <CheckCircle2 size={13} /> : s.state === 'current' ? <Circle size={11} className="fill-current" /> : <Circle size={10} />}
                       </span>

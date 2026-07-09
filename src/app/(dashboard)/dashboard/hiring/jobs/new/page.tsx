@@ -18,14 +18,14 @@ const KPIS = [
   { label: 'Avg. Time to Hire', value: '18 Days', icon: Clock3, accent: 'bg-amber-50 text-amber-600', trend: '2 days from last month', up: false },
   { label: 'Offer Acceptance Rate', value: '87%', icon: Percent, accent: 'bg-pink-50 text-pink-600', trend: '7% from last month', up: true },
   { label: 'Positions Filled', value: '24', icon: UserCheck, accent: 'bg-teal-50 text-teal-600', trend: '10% from last month', up: true },
-  { label: 'Cost Per Hire', value: '₹ 8,750', icon: Wallet, accent: 'bg-violet-50 text-violet-600', trend: '5% from last month', up: true },
+  { label: 'Cost Per Hire', value: '₹ 8,750', icon: Wallet, accent: 'bg-violet-50 text-indigo-700', trend: '5% from last month', up: true },
 ];
 
 const aiActions = [
   { title: 'Generate Job Description (JD)', detail: 'Create JD using AI based on job title & role', icon: FileText, accent: 'bg-blue-50 text-blue-600' },
   { title: 'Generate Key Responsibilities', detail: 'AI generated role based responsibilities', icon: ListChecks, accent: 'bg-emerald-50 text-emerald-600' },
   { title: 'Suggest Skills', detail: 'Industry and role based skills', icon: Target, accent: 'bg-teal-50 text-teal-600' },
-  { title: 'Suggest KPIs', detail: 'Get suitable KPIs for this role', icon: BarChart3, accent: 'bg-violet-50 text-violet-600' },
+  { title: 'Suggest KPIs', detail: 'Get suitable KPIs for this role', icon: BarChart3, accent: 'bg-violet-50 text-indigo-700' },
   { title: 'Smart Justification', detail: 'AI suggested business justification', icon: Lightbulb, accent: 'bg-amber-50 text-amber-600' },
   { title: 'Salary Benchmark', detail: 'Get market salary range for this role', icon: TrendingUp, accent: 'bg-pink-50 text-pink-600' },
 ];
@@ -103,7 +103,7 @@ function RichTextBox({
       <div className="mb-1 flex items-center justify-between">
         <span className={labelCls}>{title}<b className="text-rose-500"> *</b></span>
         {aiLabel && (
-          <button type="button" className="flex items-center gap-1 text-[10px] font-semibold text-indigo-600 hover:text-indigo-700">
+          <button type="button" className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors">
             <Sparkles size={11} /> {aiLabel}
           </button>
         )}
@@ -156,7 +156,7 @@ export default function PostNewJobPage() {
   const [priority, setPriority] = useState('High');
 
   return (
-    <div className="bg-[#fafbfc] font-sans">
+    <div className="font-sans">
       <div className="mx-auto max-w-[1500px] p-1">
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-[3fr_1fr]">
           <div className="space-y-2">
@@ -272,7 +272,7 @@ export default function PostNewJobPage() {
                   <div className="space-y-1.5">
                     <RichTextBox title="Key Responsibilities" aiLabel="AI Generate Responsibilities" placeholder="List the key responsibilities for this role..." hint="0 / 2000" />
                     <div className="text-right">
-                      <button type="button" className="flex w-full items-center justify-end gap-1 text-[10.5px] font-semibold text-indigo-600 hover:text-indigo-700">
+                      <button type="button" className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors">
                         <Plus size={11} /> Add More
                       </button>
                     </div>
