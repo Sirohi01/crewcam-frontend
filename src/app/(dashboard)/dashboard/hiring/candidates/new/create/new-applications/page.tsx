@@ -140,7 +140,7 @@ const STATS = [
 
 export default function NewApplicationsUI() {
   return (
-    <div className="w-full max-w-[1600px] mx-auto p-0 space-y-4 font-sans text-zinc-900 bg-[#fbfbfe] min-h-screen">
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

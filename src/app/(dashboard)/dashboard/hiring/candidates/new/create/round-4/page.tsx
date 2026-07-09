@@ -15,8 +15,8 @@ export default function InterviewUI() {
       {/* Header & Steps */}
       <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4  pb-4">
         <div>
-          <h1 className="text-xl font-bold text-zinc-900">Interview – Round 2</h1>
-          <p className="text-[11px] text-zinc-500 mt-0.5">Technical Interview – AI Powered</p>
+          <h1 className="text-xl font-bold text-zinc-900">Interview – Round 4</h1>
+          <p className="text-[11px] text-zinc-500 mt-0.5">Written Assessment – AI Powered</p>
         </div>
 
         {/* Stepper */}
@@ -74,7 +74,7 @@ export default function InterviewUI() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-[15px] font-bold text-zinc-900">Amit Kumar Verma</h2>
-                    <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">Round 2 In Progress</span>
+                    <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">Round 4 In Progress</span>
                   </div>
                   <p className="text-[11px] text-zinc-500 font-medium">Sales Manager</p>
                 </div>
@@ -106,7 +106,7 @@ export default function InterviewUI() {
               <div className="flex flex-col justify-between border-l border-zinc-200 pl-4">
                 <div>
                   <p className="text-[10px] text-zinc-500 font-medium mb-0.5">Current Round</p>
-                  <p className="text-[11px] font-bold text-zinc-900">Round 2 – Technical Interview</p>
+                  <p className="text-[11px] font-bold text-zinc-900">Round 4 – Written Assessment</p>
                 </div>
                 <div className="mt-3">
                   <p className="text-[10px] text-zinc-500 font-medium mb-1">Interviewer</p>
@@ -140,7 +140,7 @@ export default function InterviewUI() {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-zinc-600 flex items-center gap-1.5"><HelpCircle size={12} className="text-indigo-600" /> Current Stage</span>
-              <span className="font-bold text-zinc-900">Interview - Round 2</span>
+              <span className="font-bold text-zinc-900">Interview - Round 4</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-zinc-600 flex items-center gap-1.5"><Sparkles size={12} className="text-indigo-600" /> AI Screening Score</span>
@@ -169,12 +169,12 @@ export default function InterviewUI() {
         <div className="lg:col-span-3 flex flex-col gap-4 h-full">
           <div className="p-5 rounded-xl border border-zinc-100 bg-white shadow-sm flex flex-col h-full">
             <h3 className="text-[12px] font-bold text-zinc-900 mb-1">Round Progress</h3>
-            <p className="text-[10px] text-zinc-500 font-medium mb-6">Round 2 of 5<br />Technical Interview</p>
+            <p className="text-[10px] text-zinc-500 font-medium mb-6">Round 4 of 5<br />Written Assessment</p>
 
             <div className="flex items-center justify-center mb-6 relative">
               <div className="h-28 w-28 rounded-full border-[6px] border-emerald-600 border-t-zinc-100 border-l-zinc-100 flex flex-col items-center justify-center bg-white shadow-sm">
                 <span className="text-[9px] text-zinc-500 font-medium mb-0.5">Time Remaining</span>
-                <span className="text-2xl font-bold text-emerald-600 leading-none mb-1">32:45</span>
+                <span className="text-2xl font-bold text-emerald-600 leading-none mb-1">05:10</span>
                 <span className="text-[9px] text-zinc-400">of 40:00</span>
               </div>
             </div>
@@ -200,7 +200,7 @@ export default function InterviewUI() {
           <div className="p-5 rounded-xl border border-zinc-100 bg-white shadow-sm flex flex-col h-full">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <h2 className="text-[15px] font-bold text-zinc-900">Question 3 of 10</h2>
+                <h2 className="text-[15px] font-bold text-zinc-900">Question 8 of 10</h2>
                 <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">Technical – Data Analysis</span>
               </div>
               <button className="flex items-center gap-1.5 text-[10px] font-semibold text-rose-600 bg-white border border-rose-200 px-2 py-1 rounded hover:bg-rose-50 transition-colors shadow-sm">
@@ -308,8 +308,8 @@ export default function InterviewUI() {
               <div className="relative z-10 flex items-start gap-3 bg-[#f8f7ff] p-3 -mx-3 rounded-lg">
                 <div className="h-5 w-5 rounded-full bg-white border-2 border-indigo-600 flex items-center justify-center shrink-0 mt-0.5"><div className="h-2 w-2 rounded-full bg-indigo-600" /></div>
                 <div className="flex flex-col flex-1">
-                  <span className="text-[10px] font-bold text-indigo-700">Round 2</span>
-                  <span className="text-[9px] font-semibold text-indigo-700">Technical Interview</span>
+                  <span className="text-[10px] font-bold text-indigo-700">Round 4</span>
+                  <span className="text-[9px] font-semibold text-indigo-700">Written Assessment</span>
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <span className="text-[9px] font-bold text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded">In Progress</span>
@@ -416,6 +416,7 @@ export default function InterviewUI() {
           </button>
         </div>
       </div>
+    </div>
 
     </div>
   );

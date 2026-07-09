@@ -11,7 +11,6 @@ import {
   Clock, IndianRupee, CheckCircle2, TrendingUp, Award,
   CalendarDays, SlidersHorizontal, Download,
 } from 'lucide-react'
-import PageLayout from '@/components/ui/pageLayout'
 
 // ---------- Types ----------
 
@@ -248,7 +247,7 @@ const Legend: React.FC<{ data: { name: string; color: string; sub?: string }[] }
 
 const ReportAnalytics: React.FC = () => {
   return (
-    <PageLayout>
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
     <div className="w-full min-h-[650px] flex flex-col gap-2 p-2 bg-slate-50 relative z-0">
 
       {/* Header */}
@@ -264,7 +263,7 @@ const ReportAnalytics: React.FC = () => {
           <button className="flex items-center gap-1 text-[10px] font-medium text-gray-800 border border-slate-300 bg-white rounded-lg px-2 py-1">
             <SlidersHorizontal className="w-3 h-3" /> Filters
           </button>
-          <button className="flex items-center gap-1 text-[10px] font-medium text-white bg-indigo-600 rounded-lg px-2 py-1">
+          <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
             <Download className="w-3 h-3" /> Export Report
           </button>
         </div>
@@ -496,7 +495,6 @@ const ReportAnalytics: React.FC = () => {
         </Card>
       </div>
     </div>
-    </PageLayout>
   )
 }
 

@@ -10,7 +10,6 @@ import {
   Clock3,
   Timer,
 } from 'lucide-react'
-import PageLayout from '@/components/ui/pageLayout'
 
 // ---------- TYPES & INTERFACES ----------
 
@@ -61,7 +60,7 @@ const initialStats: StatMetric[] = [
     isTrend: true,
     trendText: "↑ 18.4% from last week",
     bgIcon: "bg-violet-50",
-    iconColor: "text-violet-600",
+    iconColor: "text-indigo-700",
     borderColor: "border-violet-200",
     icon: ClipboardCheck,
   },
@@ -178,9 +177,7 @@ const AssessmentsPage: React.FC = () => {
   }
 
   return (
-    <PageLayout>
-
-    <div className="w-full h-[calc(100vh-48px)] min-h-[650px] flex flex-col gap-1.5 p-2 bg-slate-50 overflow-hidden text-slate-900 font-sans">
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       
       {/* ---------- HEADER SECTION ---------- */}
       <div className="w-full flex items-center justify-between gap-2 shrink-0 h-[6%]">
@@ -268,7 +265,7 @@ const AssessmentsPage: React.FC = () => {
           </div>
           {/* Right Action buttons */}
           <div className="flex items-center gap-1.5">
-            <button className="flex items-center gap-1 text-[11px] font-semibold text-slate-700 bg-white border border-slate-300 rounded px-2 py-1 hover:bg-slate-50">
+            <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
               <Filter className="w-3 h-3 text-slate-700" /> Filters <span className="bg-indigo-600 text-white w-3.5 h-3.5 rounded-full flex items-center justify-center text-[8px]">1</span>
             </button>
             <button onClick={() => { setSearch(''); setSelectedOpening('All Openings'); setSelectedType('All Types'); }} className="flex items-center gap-1 text-[11px] font-semibold text-slate-700 bg-white border border-slate-300 rounded px-2 py-1 hover:bg-slate-50">
@@ -522,7 +519,6 @@ const AssessmentsPage: React.FC = () => {
         </div>
       </div>
     </div>
-    </PageLayout>
 
   )
 }

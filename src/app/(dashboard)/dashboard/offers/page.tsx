@@ -20,7 +20,6 @@ import {
   XCircle,
   Ticket,
 } from 'lucide-react'
-import PageLayout from '@/components/ui/pageLayout'
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -470,7 +469,7 @@ const OffersPage = () => {
   }
 
   return (
-    <PageLayout>
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
 
     <div className="flex h-full w-full flex-col gap-2 overflow-hidden bg-white p-2 text-slate-900" style={{ height: 'calc(100% - 3rem)' }}>
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
@@ -568,7 +567,7 @@ const OffersPage = () => {
             className="w-full min-w-0 bg-transparent text-xs text-slate-900 placeholder:text-slate-500 focus:outline-none"
           />
         </div>
-        <button className="flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">
+        <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
           <Filter className="h-3.5 w-3.5 text-indigo-600" /> Filters
           <span className="rounded-full bg-indigo-600 px-1.5 text-[10px] font-semibold text-white">1</span>
         </button>
@@ -817,7 +816,6 @@ const OffersPage = () => {
         </div>
       </div>
     </div>
-    </PageLayout>
   )
 }
 
