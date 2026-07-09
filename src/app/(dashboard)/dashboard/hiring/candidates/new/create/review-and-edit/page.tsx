@@ -237,13 +237,13 @@ export default function ReviewPage({
             onClick={handleDiscard}
             className="flex-1 lg:flex-none justify-center px-2 py-1.5 lg:py-0.5 text-xs border border-slate-300  rounded hover:bg-slate-50 font-medium flex items-center"
           >
-            Reset
+            Back
           </button>
           <button
             onClick={() => setCurrentView('submitted')}
             className="flex-1 lg:flex-none justify-center px-2 py-1.5 lg:py-0.5 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center gap-1 font-medium transition-colors"
           >
-            <span>Submit Form</span>
+            <span>Next Submit Application</span>
             <ChevronRight className="w-3 h-3" />
           </button>
         </div>
@@ -261,7 +261,7 @@ export default function ReviewPage({
           <div className="w-full lg:w-[68%] h-auto lg:h-full flex flex-col bg-white rounded-lg border border-slate-200 overflow-visible lg:overflow-hidden shadow-sm" id="candidate-form-card">
 
             {/* Candidate Overview Header Card */}
-            <div className="bg-indigo-50/60 p-2 border-b border-indigo-100 flex flex-col sm:flex-row  items-start justify-between gap-2" id="form-header-summary">
+            <div className="bg-indigo-50/60 p-2 w-full border-b border-indigo-100 flex flex-col sm:flex-row  items-start justify-between gap-2" id="form-header-summary">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="relative shrink-0">
                   <div className="w-16 h-16 border-2 border-indigo-500 overflow-hidden bg-indigo-100 flex items-center justify-center">
@@ -290,7 +290,7 @@ export default function ReviewPage({
 
 
                   </div>
-                  <div className="flex flex-col gap-x-2 gap-y-0.5 mt-0.5 text-[10px] ">
+                  <div className="flex flex-row justify-between gap-x-2 gap-y-0.5 mt-0.5 text-[10px] ">
                     <div className="flex flex-col gap-x-3 gap-y-1 text-[10px] text-slate-700 gap-1">
 
                       <div className='flex gap-1'>
@@ -307,36 +307,37 @@ export default function ReviewPage({
                       </div>
 
                       <div>
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-indigo-700 shrink-0" />
-                        {candidate.currentLocation}
-                      </span>
-                      {candidate.linkedin && (
                         <span className="flex items-center gap-1">
-                          <FaLinkedinIn className="w-3 h-3 text-[#0A66C2] shrink-0" />
-                          {candidate.linkedin}
+                          <MapPin className="w-3 h-3 text-indigo-700 shrink-0" />
+                          {candidate.currentLocation}
                         </span>
-                      )}
+                        {candidate.linkedin && (
+                          <span className="flex items-center gap-1">
+                            <FaLinkedinIn className="w-3 h-3 text-[#0A66C2] shrink-0" />
+                            {candidate.linkedin}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="hidden lg:flex items-center gap-1 text-[10px] shrink-0 border-l pl-2 border-l-gray-300">
+                      <div className="p-1 rounded min-w-[60px]">
+                        <div className="text-[8px] uppercase font-bold text-indigo-900">Applied For</div>
+                        <div className="font-bold  truncate text-[9px]">{candidate.appliedFor}</div>
+                      </div>
+                      <div className="p-1 rounded min-w-[65px]">
+                        <div className="text-[8px] uppercase font-bold text-indigo-900">Department</div>
+                        <div className="font-bold  truncate text-[9px]">{candidate.department}</div>
+                      </div>
+                      <div className="p-1 rounded min-w-[55px]">
+                        <div className="text-[8px] uppercase font-bold text-indigo-900">Notice Period</div>
+                        <div className="font-bold  text-[9px]">{candidate.noticePeriod}</div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="hidden lg:flex items-center gap-1 text-[10px] shrink-0">
-                <div className="p-1 rounded border border-slate-200 min-w-[60px]">
-                  <div className="text-[8px] uppercase font-bold text-indigo-900">Applied For</div>
-                  <div className="font-bold  truncate text-[9px]">{candidate.appliedFor}</div>
-                </div>
-                <div className="p-1 rounded border border-slate-200 min-w-[65px]">
-                  <div className="text-[8px] uppercase font-bold text-indigo-900">Department</div>
-                  <div className="font-bold  truncate text-[9px]">{candidate.department}</div>
-                </div>
-                <div className="p-1 rounded border border-slate-200 min-w-[55px]">
-                  <div className="text-[8px] uppercase font-bold text-indigo-900">Notice Period</div>
-                  <div className="font-bold  text-[9px]">{candidate.noticePeriod}</div>
-                </div>
-              </div>
+
             </div>
 
             {/* Re-extract action row (tabs removed, all sections shown stacked below) */}
@@ -359,13 +360,11 @@ export default function ReviewPage({
               <div className="space-y-1.5" id="personal-info-block">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-0.5">
                   <h3 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
-                    <User className="w-3.5 h-3.5 text-indigo-700" />
                     Personal Information
                   </h3>
-                  <span className="text-[9px]  font-mono hidden sm:inline">Fields extracted by AI</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   <div className="space-y-0.5">
                     <label className="text-[10px] font-bold text-indigo-950">Full Name <span className="text-rose-500">*</span></label>
                     <input
@@ -424,7 +423,6 @@ export default function ReviewPage({
                         onChange={(e) => handleInputChange('linkedin', e.target.value)}
                         className="w-full pl-6 pr-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none  truncate"
                       />
-                      <FaLinkedin className="w-3.5 h-3.5 text-indigo-700 absolute left-1.5 top-1/2 -translate-y-1/2" />
                     </div>
                   </div>
                 </div>
@@ -434,13 +432,11 @@ export default function ReviewPage({
               <div className="space-y-1.5" id="application-info-block">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-0.5">
                   <h3 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
-                    <Briefcase className="w-3.5 h-3.5 text-indigo-700" />
                     Application Details
                   </h3>
-                  <span className="text-[9px]  font-mono hidden sm:inline">Job & role parameters</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   <div className="space-y-0.5">
                     <label className="text-[10px] font-bold text-indigo-950">Position Applied For <span className="text-rose-500">*</span></label>
                     <select
@@ -549,13 +545,11 @@ export default function ReviewPage({
               <div className="space-y-1.5" id="education-info-block">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-0.5">
                   <h3 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
-                    <GraduationCap className="w-3.5 h-3.5 text-indigo-700" />
                     Education Details
                   </h3>
-                  <span className="text-[9px]  font-mono hidden sm:inline">Academic achievements</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   <div className="space-y-0.5">
                     <label className="text-[10px] font-bold text-indigo-950">Highest Qualification <span className="text-rose-500">*</span></label>
                     <input
@@ -607,7 +601,6 @@ export default function ReviewPage({
               <div className="space-y-1.5" id="experience-info-block">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-0.5 gap-2">
                   <h3 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
-                    <Briefcase className="w-3.5 h-3.5 text-indigo-700" />
                     Experience Timeline
                   </h3>
                   <button
@@ -635,7 +628,7 @@ export default function ReviewPage({
                         </button>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="space-y-0.5">
                           <label className="text-[10px] font-bold text-indigo-950">Role / Designation</label>
                           <input
@@ -666,7 +659,7 @@ export default function ReviewPage({
                             <option value="Internship">Internship</option>
                           </select>
                         </div>
-                        <div className="grid grid-cols-2 gap-1.5">
+                        <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-0.5">
                             <label className="text-[10px] font-bold text-indigo-950">Start Date</label>
                             <input
@@ -739,7 +732,7 @@ export default function ReviewPage({
                   <span className="text-[9px]  font-mono hidden sm:inline">Preferences</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   <div className="space-y-0.5">
                     <label className="text-[10px] font-bold text-indigo-950">Available From</label>
                     <input
@@ -780,7 +773,7 @@ export default function ReviewPage({
 
             {/* Bottom Save & Discard Action Row */}
             <div className="p-2 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center items-stretch justify-between gap-2" id="form-action-footer">
-              <div className="flex items-center gap-1.5 text-xs">
+              <div className="flex items-center gap-3 text-xs">
                 {hasUnsavedChanges ? (
                   <span className="text-amber-700 font-bold flex items-center gap-1 animate-pulse">
                     <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
@@ -827,12 +820,12 @@ export default function ReviewPage({
             <div className="h-[360px] sm:h-[420px] lg:h-auto lg:flex-[3] bg-white rounded-lg border border-slate-200 overflow-hidden flex flex-col shadow-sm shrink-0 lg:shrink" id="cv-pdf-viewer">
               {/* Toolbar */}
               <div className="bg-slate-900 px-2 py-1.5 border-b border-[#1e2021] flex items-center justify-between gap-1 shrink-0 text-white">
-                <div className="flex items-center gap-1.5 min-w-0">
+                <div className="flex items-center gap-3 min-w-0">
                   <FileText className="w-3.5 h-3.5  shrink-0" />
                   <span className="text-[10px] font-bold tracking-tight select-none truncate">Original_CV.pdf</span>
                 </div>
 
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-3 shrink-0">
                   <a
                     href="https://drive.google.com/file/d/1v9E-G1x-oau8y8te_QeluAIW7z5NHBpN/view?usp=sharing"
                     target="_blank"
@@ -972,7 +965,7 @@ export default function ReviewPage({
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-end gap-1.5 pt-1.5 border-t border-slate-100">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 pt-1.5 border-t border-slate-100">
               <button
                 onClick={handleAcceptSuggestions}
                 className="px-2.5 py-1.5 sm:py-1 text-[10px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded animate-pulse"
