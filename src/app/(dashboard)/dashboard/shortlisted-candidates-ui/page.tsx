@@ -152,7 +152,7 @@ const STATS = [
 
 export default function ShortlistedCandidatesUI() {
   return (
-    <div className="w-full max-w-[1600px] mx-auto p-2 space-y-4 font-sans text-zinc-900 bg-[#fbfbfe] min-h-screen">
+    <div className="w-full max-w-[1600px] mx-auto px-1 py-0.5 lg:px-2 lg:py-1 space-y-4 font-sans text-zinc-900 min-h-screen">
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
