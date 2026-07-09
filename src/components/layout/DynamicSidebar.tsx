@@ -76,6 +76,7 @@ const STATIC_RECRUITMENT_ITEMS: SidebarItem[] = [
   { _id: 'r8', section: 'WORKSPACE', label: 'Shortlist candidates', href: '/dashboard/shortlisted-candidates-ui', icon: 'ShieldCheck', order: 2.14, parent: 'Requirement', subParent: 'Candidates' },
   { _id: 'r9', section: 'WORKSPACE', label: 'Hold Candidates', href: '/dashboard/hiring/candidates/hold', icon: 'Clock', order: 2.15, parent: 'Requirement', subParent: 'Candidates' },
   { _id: 'r10', section: 'WORKSPACE', label: 'Rejected candidates', href: '/dashboard/rejected-candidates', icon: 'Circle', order: 2.16, parent: 'Requirement', subParent: 'Candidates' },
+  { _id: 'r10', section: 'WORKSPACE', label: 'Selected candidates', href: '/dashboard/hiring/candidates/selected', icon: 'Circle', order: 2.16, parent: 'Requirement', subParent: 'Candidates' },
   { _id: 'r11', section: 'WORKSPACE', label: 'Ai screening', href: '/dashboard/ai-screening', icon: 'Sparkles', order: 2.17, parent: 'Requirement', subParent: 'Candidates' },
   { _id: 'r12', section: 'WORKSPACE', label: 'Assessments', href: '/dashboard/assessments', icon: 'ClipboardList', order: 2.19, parent: 'Requirement', subParent: 'Candidates' },
   { _id: 'r13', section: 'WORKSPACE', label: 'Interviews', href: '/dashboard/interviews', icon: 'MessageSquare', order: 2.20, parent: 'Requirement' },
