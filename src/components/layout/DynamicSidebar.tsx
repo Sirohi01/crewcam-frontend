@@ -53,7 +53,7 @@ const STATIC_PEOPLE_ITEMS: SidebarItem[] = [
 ];
 
 const STATIC_RECRUITMENT_ITEMS: SidebarItem[] = [
-  { _id: 'r1', section: 'WORKSPACE', label: 'Overview', href: '/dashboard/hr-dashboard', icon: 'LayoutDashboard', order: 2.01, parent: 'Requirement' },
+  { _id: 'r1', section: 'WORKSPACE', label: 'HR Dashboard', href: '/dashboard/hr-dashboard', icon: 'LayoutDashboard', order: 2.01, parent: 'Requirement' },
   { _id: 'r2', section: 'WORKSPACE', label: 'Job Requisition', href: '/dashboard/hiring/manpower', icon: 'Briefcase', order: 2.02, parent: 'Requirement' },
   { _id: 'r3', section: 'WORKSPACE', label: 'Job Opening', href: '/dashboard/hiring/job-opening', icon: 'ListTree', order: 2.03, parent: 'Requirement' },
   { _id: 'r3b', section: 'WORKSPACE', label: 'Post New Job', href: '/dashboard/hiring/jobs/new', icon: 'PlusSquare', order: 2.04, parent: 'Requirement' },
@@ -347,8 +347,10 @@ function NavGroup({ label, items, pathname, level = 0 }: { label: string; items:
           }
         }}
       >
-        <div className="flex items-center gap-2 min-w-0" style={{ paddingLeft: `${level * 12}px` }}>
-          <Briefcase size={14} className="flex-shrink-0" />
+        <div className="flex items-center gap-2 min-w-0">
+          {/* {label !== 'Job Application' && label !== 'Candidates' && (
+            <Briefcase size={14} className="flex-shrink-0" />
+          )} */}
           <span className="truncate">{label}</span>
         </div>
         <span className="flex-shrink-0 ml-1">
@@ -361,7 +363,7 @@ function NavGroup({ label, items, pathname, level = 0 }: { label: string; items:
 
       {expanded && (
         <div
-          className="pl-5 space-y-0.5 ml-3 py-1"
+          className="pl-2 space-y-0.5 ml-3 py-1"
           style={{ borderLeft: '1px solid rgba(99,102,241,0.35)' }}
         >
           {items.map((item) => {
