@@ -69,16 +69,16 @@ const STATUS_STYLES: Record<Status, string> = {
 function FilterSelect({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (v: string) => void; }) {
   return (
     <div className="flex flex-col gap-1 min-w-0">
-      <label className="text-[11px] font-medium text-zinc-500">{label}</label>
+      <label className="text-[10.5px] font-medium text-zinc-500">{label}</label>
       <div className="relative">
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full appearance-none rounded-lg border border-zinc-200 bg-white px-3 py-1.5 pr-7 text-[12px] font-medium text-zinc-700 shadow-sm hover:border-violet-300 focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors cursor-pointer"
+          className="w-full appearance-none rounded-lg border border-zinc-200 bg-white px-2.5 py-1 pr-6 text-[11.5px] font-medium text-zinc-700 hover:border-violet-300 focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors cursor-pointer"
         >
           {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
         </select>
-        <ChevronDown size={13} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400" />
+        <ChevronDown size={12} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400" />
       </div>
     </div>
   );
@@ -105,7 +105,7 @@ function SummaryCards() {
   return (
     <section className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
       {SUMMARY.map((item) => (
-        <Card key={item.key} className="border-zinc-200/80 shadow-sm">
+        <Card key={item.key} className="rounded-2xl border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
           <CardContent className="flex items-center gap-3 p-3.5">
             <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${item.bg} ${item.color}`}>
               {item.icon}
@@ -138,42 +138,42 @@ function FiltersBar({
   activeCount: number; onClear: () => void;
 }) {
   return (
-    <Card className="border-zinc-200/80 shadow-sm">
-      <CardContent className="p-3.5 space-y-3">
+    <Card className="rounded-2xl border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+      <CardContent className="p-2 space-y-2">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
             <input
               value={search}
               onChange={(e) => onSearch(e.target.value)}
               placeholder="Search by requisition ID, job title, department or requested by..."
-              className="w-full rounded-lg border border-zinc-200 bg-white pl-9 pr-3 py-2 text-[12px] text-zinc-700 placeholder:text-zinc-400 shadow-sm focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors"
+              className="w-1/2 rounded-lg border border-zinc-200 bg-white pl-8 pr-3 py-1.5 text-[12px] text-zinc-700 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors"
             />
           </div>
-          <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:border-violet-300 transition-colors shrink-0">
+          <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-700 hover:border-violet-300 transition-colors shrink-0">
             <SlidersHorizontal size={13} className="text-violet-600" />
             Filters
             {activeCount > 0 && (
               <span className="ml-0.5 grid h-4 w-4 place-items-center rounded-full bg-violet-600 text-white text-[9px] font-bold">{activeCount}</span>
             )}
           </button>
-          <button onClick={onClear} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-500 shadow-sm hover:border-rose-300 hover:text-rose-600 transition-colors shrink-0">
+          <button onClick={onClear} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-500 hover:border-rose-300 hover:text-rose-600 transition-colors shrink-0">
             <RotateCcw size={13} />
             Clear All
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-7">
           <FilterSelect label="Department" value={department} options={DEPARTMENTS} onChange={setDepartment} />
           <FilterSelect label="Job Category" value={category} options={JOB_CATEGORIES} onChange={setCategory} />
           <FilterSelect label="Status" value={status} options={STATUSES} onChange={setStatus} />
           <FilterSelect label="Requested By" value={requester} options={REQUESTERS} onChange={setRequester} />
           <FilterSelect label="Priority" value={priority} options={PRIORITIES} onChange={setPriority} />
-          <div className="flex flex-col gap-1 min-w-0">
-            <label className="text-[11px] font-medium text-zinc-500">Date Range</label>
-            <div className="relative flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-zinc-700 shadow-sm hover:border-violet-300 transition-colors cursor-pointer">
+          <div className="flex flex-col gap-1 min-w-0 lg:col-span-2">
+            <label className="text-[10.5px] font-medium text-zinc-500">Date Range</label>
+            <div className="relative flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[11.5px] font-medium text-zinc-700 hover:border-violet-300 transition-colors cursor-pointer">
               <CalendarDays size={13} className="text-zinc-400 shrink-0" />
-              <span className="truncate">{dateRange}</span>
+              <span className="whitespace-nowrap">{dateRange}</span>
               <ChevronDown size={13} className="ml-auto text-zinc-400 shrink-0" />
             </div>
           </div>
@@ -186,59 +186,57 @@ function FiltersBar({
 // ─── Table ──────────────────────────────────────────────────────────────────
 function RequisitionsTable({ rows, onToggleStar }: { rows: Requisition[]; onToggleStar: (id: string) => void; }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="w-full overflow-x-auto">
       <table className="w-full min-w-[980px] border-collapse">
         <thead>
-          <tr className="border-b border-zinc-100 text-left text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
-            <th className="w-8 py-2.5 pl-1"></th>
-            <th className="py-2.5 pr-3">
-              <span className="inline-flex items-center gap-1">Requisition ID <ArrowUpDown size={10} /></span>
-            </th>
-            <th className="py-2.5 pr-3">Job Title</th>
-            <th className="py-2.5 pr-3">Department</th>
-            <th className="py-2.5 pr-3">Location</th>
-            <th className="py-2.5 pr-3">Requested By</th>
-            <th className="py-2.5 pr-3 text-center">Positions</th>
-            <th className="py-2.5 pr-3">Priority</th>
-            <th className="py-2.5 pr-3">Status</th>
-            <th className="py-2.5 pr-3">Requested On</th>
-            <th className="py-2.5 pr-1 text-right">Actions</th>
+          <tr className="border-b border-zinc-200 bg-[#f8fafc] text-center text-[11px] font-normal tracking-wide text-purple-900">
+            <th className="w-4 py-1 pl-1"></th>
+            <th className="py-1.5 px-3 text-center whitespace-nowrap">Requisition ID</th>
+            <th className="py-1.5 px-3 text-center whitespace-nowrap">Job Title</th>
+            <th className="py-1.5 px-3 text-center whitespace-nowrap">Department</th>
+            <th className="py-1.5 px-3 text-center whitespace-nowrap">Location</th>
+            <th className="py-1.5 px-3 text-center whitespace-nowrap">Requested By</th>
+            <th className="py-1.5 px-3 text-center whitespace-nowrap">Positions</th>
+            <th className="py-1.5 px-3 text-center whitespace-nowrap">Priority</th>
+            <th className="py-1.5 px-3 text-center whitespace-nowrap">Status</th>
+            <th className="py-1.5 px-3 text-center whitespace-nowrap">Requested On</th>
+            <th className="py-1.5 pr-3 text-center whitespace-nowrap">Actions</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.id} className="border-b border-zinc-50 hover:bg-zinc-50/70 transition-colors">
-              <td className="py-2.5 pl-1">
+            <tr key={r.id} className="border-b border-zinc-200 last:border-b-0 hover:bg-zinc-50/70 transition-colors">
+              <td className="py-1.5 pl-1 text-center">
                 <button onClick={() => onToggleStar(r.id)} className="text-zinc-300 hover:text-amber-400 transition-colors">
                   <Star size={14} fill={r.starred ? 'currentColor' : 'none'} className={r.starred ? 'text-amber-400' : ''} />
                 </button>
               </td>
-              <td className="py-2.5 pr-3 text-[12px] font-semibold text-violet-700 whitespace-nowrap">{r.id}</td>
-              <td className="py-2.5 pr-3">
-                <p className="text-[12px] font-semibold text-zinc-800 leading-tight">{r.jobTitle}</p>
+              <td className="py-1.5 px-3 text-center text-[10px] font-semibold text-violet-700 whitespace-nowrap">{r.id}</td>
+              <td className="py-1.5 px-3 text-center whitespace-nowrap">
+                <p className="text-[10px] font-semibold text-zinc-900 leading-tight">{r.jobTitle}</p>
                 <p className="text-[10px] text-zinc-400 leading-tight">{r.employmentType}</p>
               </td>
-              <td className="py-2.5 pr-3 text-[12px] text-zinc-600 whitespace-nowrap">{r.department}</td>
-              <td className="py-2.5 pr-3 text-[12px] text-zinc-600 whitespace-nowrap">{r.location}</td>
-              <td className="py-2.5 pr-3">
-                <div className="flex items-center gap-2 min-w-0">
+              <td className="py-1.5 px-3 text-center text-[10px] text-zinc-600 whitespace-nowrap">{r.department}</td>
+              <td className="py-1.5 px-3 text-center text-[10px] text-zinc-600 whitespace-nowrap">{r.location}</td>
+              <td className="py-1.5 px-3">
+                <div className="flex items-center justify-center gap-2">
                   <img
                     src={`https://i.pravatar.cc/150?u=${r.requestedBy.avatar}`}
                     alt={r.requestedBy.name}
-                    className="w-7 h-7 rounded-full object-cover border border-zinc-100 shadow-sm shrink-0"
+                    className="w-7 h-7 rounded-full object-cover border border-zinc-100 shrink-0"
                   />
-                  <div className="min-w-0">
-                    <p className="text-[11.5px] font-semibold text-zinc-800 leading-tight truncate">{r.requestedBy.name}</p>
-                    <p className="text-[10px] text-zinc-400 leading-tight truncate">{r.requestedBy.role}</p>
+                  <div className="text-left whitespace-nowrap">
+                    <p className="text-[10px] font-semibold text-zinc-900 leading-tight">{r.requestedBy.name}</p>
+                    <p className="text-[10px] text-zinc-400 leading-tight">{r.requestedBy.role}</p>
                   </div>
                 </div>
               </td>
-              <td className="py-2.5 pr-3 text-center text-[12px] font-semibold text-zinc-800">{r.positions}</td>
-              <td className="py-2.5 pr-3"><PriorityBadge priority={r.priority} /></td>
-              <td className="py-2.5 pr-3"><StatusBadge status={r.status} /></td>
-              <td className="py-2.5 pr-3 text-[12px] text-zinc-500 whitespace-nowrap">{r.requestedOn}</td>
-              <td className="py-2.5 pr-1">
-                <div className="flex items-center justify-end gap-1">
+              <td className="py-1.5 px-3 text-center text-[10px] font-semibold text-zinc-800">{r.positions}</td>
+              <td className="py-1.5 px-3 text-center"><PriorityBadge priority={r.priority} /></td>
+              <td className="py-1.5 px-3 text-center"><StatusBadge status={r.status} /></td>
+              <td className="py-1.5 px-3 text-center text-[10px] text-zinc-500 whitespace-nowrap">{r.requestedOn}</td>
+              <td className="py-1.5 pr-1">
+                <div className="flex items-center justify-center gap-1">
                   <Link href={`/dashboard/hiring/requisitions/${r.id}`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 transition-colors">
                     <Eye size={13} />
                   </Link>
@@ -275,7 +273,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
           <select
             value={pageSize}
             onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
-            className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-6 py-1 text-[12px] font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer"
+            className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-6 py-1 text-[12px] font-medium text-zinc-700 focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer"
           >
             {[10, 25, 50].map((n) => <option key={n} value={n}>{n}</option>)}
           </select>
@@ -325,15 +323,15 @@ function PageHeader() {
         <p className="text-[13px] text-zinc-500 mt-1">Create, track and manage all job requisitions</p>
       </div>
       <div className="flex items-center gap-2">
-        <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:border-violet-300 transition-colors">
+        <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-[12px] font-semibold text-violet-600 hover:border-violet-300 transition-colors">
           <Download size={14} />
           Export
         </button>
-        <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:border-violet-300 transition-colors">
+        <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-[12px] font-semibold text-violet-600 hover:border-violet-300 transition-colors">
           <BarChart3 size={14} />
           Analytics
         </button>
-        <Link href="/dashboard/hiring/requisitions/new" className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3.5 py-2 text-[12px] font-semibold text-white shadow-sm hover:bg-violet-700 transition-colors">
+        <Link href="/dashboard/hiring/requisitions/new" className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-2 py-1.5 text-[12px] font-semibold text-white hover:bg-violet-700 transition-colors">
           <Plus size={14} />
           New Requisition
         </Link>
@@ -399,20 +397,20 @@ export default function JobRequisitionsPage() {
         status={status} setStatus={setStatus}
         requester={requester} setRequester={setRequester}
         priority={priority} setPriority={setPriority}
-        dateRange={dateRange} setDateRange={() => {}}
+        dateRange={dateRange} setDateRange={() => { }}
         activeCount={activeCount} onClear={handleClear}
       />
 
-      <Card className="border-zinc-200/80 shadow-sm">
-        <CardContent className="p-3.5">
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <h3 className="text-[13px] font-semibold text-zinc-900">{filtered.length} Requisitions Found</h3>
+      <Card className="rounded-2xl border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <CardContent className="p-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-zinc-200 pb-2">
+            <h3 className="text-[11px] font-semibold text-zinc-900">{filtered.length} Requisitions Found</h3>
             <div className="flex items-center gap-2">
-              <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-violet-300 transition-colors">
+              <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 hover:border-violet-300 transition-colors">
                 <Columns3 size={13} />
                 Columns
               </button>
-              <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-violet-300 transition-colors">
+              <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 hover:border-violet-300 transition-colors">
                 <ArrowUpDown size={13} />
                 Latest First
               </button>
