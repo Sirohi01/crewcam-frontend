@@ -152,7 +152,7 @@ const STATS = [
 
 export default function ShortlistedCandidatesUI() {
   return (
-    <div className="w-full max-w-[1600px] mx-auto p-0 space-y-4 font-sans text-zinc-900 bg-[#fbfbfe] min-h-screen">
+    <div className="w-full max-w-[1600px] mx-auto p-2 space-y-4 font-sans text-zinc-900 bg-[#fbfbfe] min-h-screen">
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -199,7 +199,7 @@ export default function ShortlistedCandidatesUI() {
             <input
               type="text"
               placeholder="Search by name, email, phone, skills or job title..."
-              className="w-1/2 text-[11px] pl-8 pr-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:border-indigo-500 transition-colors bg-zinc-50/50"
+              className="w-1/2 text-[11px] pl-8 pr-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:border-indigo-500 transition-colors bg-zinc-50/50 placeholder:text-slate-400"
             />
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
@@ -223,7 +223,7 @@ export default function ShortlistedCandidatesUI() {
             <div key={i} className="flex flex-col gap-1">
               <label className="text-[10px] font-semibold text-zinc-700">{filter.label}</label>
               <div className="relative">
-                <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm">
+                <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm font-medium">
                   <option>{filter.value}</option>
                 </select>
                 <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
@@ -289,24 +289,24 @@ export default function ShortlistedCandidatesUI() {
           <table className="w-full text-left text-[10px] whitespace-nowrap">
             <thead>
               <tr className="bg-zinc-50/50 text-zinc-600 border-b border-zinc-100">
-                <th className="px-3 py-3 font-bold w-10 text-center"><input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" /></th>
-                <th className="px-3 py-3 font-bold">Candidate</th>
-                <th className="px-3 py-3 font-bold">Job Opening</th>
-                <th className="px-3 py-3 font-bold">Department</th>
-                <th className="px-3 py-3 font-bold">Experience</th>
-                <th className="px-3 py-3 font-bold">Overall Rating</th>
-                <th className="px-3 py-3 font-bold">Shortlisted On</th>
-                <th className="px-3 py-3 font-bold">Next Step</th>
-                <th className="px-3 py-3 font-bold text-center">Actions</th>
+                <th className="px-3 py-2 font-bold w-10 text-center"><input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" /></th>
+                <th className="px-3 py-2 font-bold">Candidate</th>
+                <th className="px-3 py-2 font-bold">Job Opening</th>
+                <th className="px-3 py-2 font-bold">Department</th>
+                <th className="px-3 py-2 font-bold">Experience</th>
+                <th className="px-3 py-2 font-bold">Overall Rating</th>
+                <th className="px-3 py-2 font-bold">Shortlisted On</th>
+                <th className="px-3 py-2 font-bold">Next Step</th>
+                <th className="px-3 py-2 font-bold text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-50">
               {CANDIDATES.map((app) => (
                 <tr key={app.id} className="hover:bg-zinc-50/50 transition-colors">
-                  <td className="px-3 py-3 text-center">
+                  <td className="px-3 py-2 text-center">
                     <input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" />
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-2">
                     <div className="flex items-center gap-2.5">
                       <img src={app.avatar} alt={app.name} className="h-8 w-8 rounded-full border border-zinc-200 shadow-sm object-cover" />
                       <div className="flex flex-col gap-0.5">
@@ -316,15 +316,15 @@ export default function ShortlistedCandidatesUI() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-2">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-zinc-900 font-bold">{app.jobRole}</span>
                       <span className="text-zinc-500 text-[9px]">{app.jobId}</span>
                     </div>
                   </td>
-                  <td className="px-3 py-3 text-zinc-700 font-medium">{app.department}</td>
-                  <td className="px-3 py-3 font-medium text-zinc-700">{app.experience}</td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-2 text-zinc-700 font-medium">{app.department}</td>
+                  <td className="px-3 py-2 font-medium text-zinc-700">{app.experience}</td>
+                  <td className="px-3 py-2">
                     <div className="flex flex-col gap-1">
                       <span className="text-zinc-900 font-bold">{app.rating}/5</span>
                       <div className="flex items-center gap-0.5">
@@ -335,13 +335,13 @@ export default function ShortlistedCandidatesUI() {
                       <span className={`text-[9px] font-bold ${app.matchColor}`}>{app.matchLevel}</span>
                     </div>
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-2">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-zinc-900 font-medium">{app.shortlistedDate}</span>
                       <span className="text-zinc-500 text-[9px]">{app.shortlistedTime}</span>
                     </div>
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-2">
                     <div className="flex flex-col gap-1 items-start">
                       <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold ${app.statusBg}`}>
                         {app.nextStepStatus}
@@ -349,7 +349,7 @@ export default function ShortlistedCandidatesUI() {
                       <span className="text-zinc-700 font-medium">{app.nextStepDesc}</span>
                     </div>
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-2">
                     <div className="flex items-center justify-center gap-1.5">
                       <button className="h-6 w-6 flex items-center justify-center rounded border border-indigo-100 text-indigo-700 hover:bg-indigo-50 bg-white shadow-sm transition-colors">
                         <Eye size={12} />

@@ -227,7 +227,7 @@ export default function CandidateRegisterUI() {
             <input
               type="text"
               placeholder="Search by name, email, phone, skills or job title..."
-              className="w-1/2 text-[11px] pl-8 pr-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:border-indigo-500 transition-colors bg-zinc-50/50"
+              className="w-1/2 text-[11px] pl-8 pr-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:border-indigo-500 transition-colors bg-zinc-50/50 placeholder:text-slate-400"
             />
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
@@ -253,7 +253,7 @@ export default function CandidateRegisterUI() {
             <div key={i} className="flex flex-col gap-1">
               <label className="text-[10px] font-semibold text-zinc-700">{filter.label}</label>
               <div className="relative">
-                <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm">
+                <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-gray-800 focus:outline-none focus:border-indigo-500 shadow-sm font-medium">
                   <option>{filter.value}</option>
                 </select>
                 <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
@@ -264,7 +264,7 @@ export default function CandidateRegisterUI() {
           <div className="flex flex-col gap-1">
             <label className="text-[10px] font-semibold text-zinc-700">Date Added</label>
             <div className="relative">
-              <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-7 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm">
+              <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-7 pr-6 py-1.5 text-[10px] text-gray-800 font-medium focus:outline-none focus:border-indigo-500 shadow-sm">
                 <option>01 May 2026 - 15 Jun 2026</option>
               </select>
               <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center h-[14px] w-[14px] border border-zinc-400 rounded-[3px] pointer-events-none">
@@ -299,27 +299,27 @@ export default function CandidateRegisterUI() {
           <table className="w-full text-left text-[10px] whitespace-nowrap">
             <thead>
               <tr className="bg-indigo-50/30 text-zinc-600 border-b border-zinc-100">
-                <th className="px-3 py-2.5 font-bold w-10 text-center"><input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" /></th>
-                <th className="px-3 py-2.5 font-bold">Candidate</th>
-                <th className="px-3 py-2.5 font-bold">Contact</th>
-                <th className="px-3 py-2.5 font-bold">Current Role</th>
-                <th className="px-3 py-2.5 font-bold">Experience</th>
-                <th className="px-3 py-2.5 font-bold">Skills</th>
-                <th className="px-3 py-2.5 font-bold">Job Applied For</th>
-                <th className="px-3 py-2.5 font-bold">Source</th>
-                <th className="px-3 py-2.5 font-bold">Status</th>
-                <th className="px-3 py-2.5 font-bold">Stage</th>
-                <th className="px-3 py-2.5 font-bold">Added On</th>
-                <th className="px-3 py-2.5 font-bold text-center">Actions</th>
+                <th className="px-2 py-2 font-bold w-10 text-center"><input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" /></th>
+                <th className="px-2 py-2 font-bold">Candidate</th>
+                <th className="px-6 py-2 font-bold">Contact</th>
+                <th className="px-2 py-2 font-bold">Current Role</th>
+                <th className="px-2 py-2 font-bold">Experience</th>
+                <th className="px-2 py-2 font-bold">Skills</th>
+                <th className="px-2 py-2 font-bold">Job Applied For</th>
+                <th className="px-2 py-2 font-bold">Source</th>
+                <th className="px-2 py-2 font-bold">Status</th>
+                <th className="px-2 py-2 font-bold">Stage</th>
+                <th className="px-2 py-2 font-bold">Added On</th>
+                <th className="px-2 py-2 font-bold text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-50">
               {CANDIDATES.map((c) => (
                 <tr key={c.id} className="hover:bg-zinc-50/50 transition-colors">
-                  <td className="px-3 py-3 text-center">
+                  <td className="px-2 py-2 text-center">
                     <input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" />
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-2">
                     <div className="flex items-center gap-2.5">
                       <img src={c.avatar} alt={c.name} className="h-8 w-8 rounded-full border border-zinc-200 shadow-sm object-cover" />
                       <div className="flex flex-col">
@@ -333,20 +333,20 @@ export default function CandidateRegisterUI() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-6 py-2">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-zinc-800 font-medium">{c.email}</span>
                       <span className="text-zinc-500">{c.phone}</span>
                     </div>
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-2 py-2">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-zinc-800 font-medium">{c.currentRole}</span>
                       <span className="text-zinc-500">{c.company}</span>
                     </div>
                   </td>
-                  <td className="px-3 py-3 font-medium text-zinc-700">{c.experience}</td>
-                  <td className="px-3 py-3">
+                  <td className="px-2 py-2 font-medium text-zinc-700">{c.experience}</td>
+                  <td className="px-2 py-2">
                     <div className="flex flex-wrap gap-1 w-40 whitespace-normal">
                       {c.skills.map((skill, idx) => (
                         <span key={idx} className="bg-indigo-50/80 border border-indigo-100 text-indigo-700 text-[9px] font-semibold px-1.5 py-0.5 rounded">
@@ -355,26 +355,26 @@ export default function CandidateRegisterUI() {
                       ))}
                     </div>
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-2 py-2">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-zinc-800 font-medium">{c.jobAppliedFor}</span>
                       <span className="text-zinc-400 text-[9px]">{c.jobId}</span>
                     </div>
                   </td>
-                  <td className="px-3 py-3 text-zinc-700">{c.source}</td>
-                  <td className="px-3 py-3">
+                  <td className="px-2 py-2 text-zinc-700">{c.source}</td>
+                  <td className="px-2 py-2">
                     <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${STATUS_STYLE[c.status] || 'bg-zinc-100 text-zinc-700'}`}>
                       {c.status}
                     </span>
                   </td>
-                  <td className="px-3 py-3 text-zinc-800 font-medium">{c.stage}</td>
-                  <td className="px-3 py-3">
+                  <td className="px-2 py-2 text-zinc-800 font-medium">{c.stage}</td>
+                  <td className="px-2 py-2">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-zinc-800">{c.addedOn}</span>
                       <span className="text-zinc-400 text-[9px]">{c.addedDaysAgo}</span>
                     </div>
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-2 py-2">
                     <div className="flex items-center justify-center gap-1.5">
                       <button className="h-6 w-6 flex items-center justify-center rounded border border-indigo-100 text-indigo-700 hover:bg-indigo-50 bg-white shadow-sm transition-colors">
                         <Eye size={12} />
