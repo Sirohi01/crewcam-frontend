@@ -19,8 +19,10 @@ import {
   Sparkles,
   CheckCircle2,
   ChevronRight,
+  Minus,
+  Plus,
 } from "lucide-react";
-import { FaLinkedin } from "react-icons/fa";
+import { FaLinkedin, FaLinkedinIn } from "react-icons/fa";
 
 /* --------------------------------------------------------------------- */
 /* Types                                                                 */
@@ -173,7 +175,7 @@ export default function SubmitApplicationPreview({
   const [declared, setDeclared] = useState<boolean>(true);
   const [showSuggestion, setShowSuggestion] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
-
+  const [cvZoom, setCvZoom] = React.useState<number>(100);
   const handleEdit = (id: string) => {
     if (onEditSection) onEditSection(id);
   };
@@ -307,7 +309,7 @@ export default function SubmitApplicationPreview({
                     rel="noopener noreferrer"
                     className="flex items-center gap-0.5 hover:text-indigo-700 truncate"
                   >
-                    <FaLinkedin className="w-2.5 h-2.5" /> {candidate.linkedin}
+                    <FaLinkedinIn className="w-2.5 h-2.5" /> {candidate.linkedin}
                   </a>
                 </div>
               </div>
@@ -468,40 +470,138 @@ export default function SubmitApplicationPreview({
         {/* ---------- Right column ---------- */}
         <div className="w-full lg:w-[36%] flex flex-col gap-2 lg:h-full lg:min-h-0 lg:overflow-hidden">
           {/* CV Preview */}
-          <div className="h-[560px] lg:h-auto lg:flex-[4] lg:min-h-0 bg-white border border-slate-200 rounded-lg flex flex-col overflow-hidden shrink-0 lg:shrink">
-            <div className="px-2 py-1.5 border-b border-slate-100 flex items-center justify-between gap-1 shrink-0">
-              <span className="text-[11px] font-bold truncate">Original CV Preview</span>
-              <div className="flex items-center gap-1 shrink-0">
-                <a
-                  href={cvDriveViewUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-1.5 h-5 flex items-center justify-center rounded border border-slate-200 hover:bg-slate-50 text-[8px] font-bold  gap-0.5"
-                  aria-label="Open CV in Google Drive"
+        <div className="h-[360px] sm:h-[420px] lg:h-auto lg:flex-[3] bg-white rounded-lg border border-slate-200 overflow-hidden flex flex-col shadow-sm shrink-0 lg:shrink" id="cv-pdf-viewer">
+              {/* Toolbar */}
+              <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between shrink-0">
+                <span className="text-xs font-semibold text-indigo-950">Original CV Preview</span>
+                <div className="flex items-center gap-1 ">
+                  <button
+                    onClick={() => setCvZoom(z => Math.max(60, z - 10))}
+                    className="p-0.5 hover:text-indigo-700"
+                    title="Zoom out"
+                  >
+                    <Minus className="w-3 h-3" />
+                  </button>
+                  <span className="text-[10px] font-mono w-8 text-center ">{cvZoom}%</span>
+                  <button
+                    onClick={() => setCvZoom(z => Math.min(150, z + 10))}
+                    className="p-0.5 hover:text-indigo-700"
+                    title="Zoom in"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </button>
+                  <a
+                    href="https://drive.google.com/uc?export=download&id=1v9E-G1x-oau8y8te_QeluAIW7z5NHBpN"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-0.5 hover:text-indigo-700 ml-1"
+                    title="Download PDF"
+                  >
+                    <Download className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Rendered resume content */}
+              <div className="flex-1 overflow-auto">
+                <div
+                  className="p-3 text-slate-800"
+                  style={{ transform: `scale(${cvZoom / 100})`, transformOrigin: 'top left', width: `${10000 / cvZoom}%` }}
                 >
-                  <ExternalLink className="w-2.5 h-2.5" />
-                  Open
-                </a>
-                <a
-                  href={cvDriveDownloadUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-5 h-5 flex items-center justify-center rounded border border-slate-200 hover:bg-slate-50"
-                  aria-label="Download CV"
-                >
-                  <Download className="w-2.5 h-2.5 " />
-                </a>
+                  <div className="flex items-start gap-2 pb-2 mb-2 border-b border-slate-200">
+                    <img
+                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
+                      alt="Amit"
+                      className="w-16 h-16 rounded object-cover shrink-0"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="min-w-0">
+                      <h2 className="text-xs font-bold text-slate-900 leading-tight">AMIT KUMAR VERMA</h2>
+                      <p className="text-[8.5px] font-semibold  tracking-wide">SALES MANAGER</p>
+                      <div className="flex items-center gap-2 mt-1 text-[8px] ">
+                        <span className="flex items-center gap-0.5"><Phone className="w-2.5 h-2.5" />+91 98765 43210</span>
+                        <span className="flex items-center gap-0.5"><Mail className="w-2.5 h-2.5" />amit.verma@email.com</span>
+                      <span className="flex items-center gap-0.5 mt-0.5 text-[8px] ">
+                        <MapPin className="w-2.5 h-2.5" />{candidate.preferredLocation}
+                      </span>
+                      </div>
+                    {candidate.linkedin && (
+        <div className="flex items-center gap-1 min-w-0 text-[8px] ">
+          <FaLinkedinIn className="" />
+          <span className="truncate">{candidate.linkedin}</span>
+        </div>
+      )}
+                    </div>
+                  </div>
+
+                  <div className="mb-2">
+                    <h3 className="text-[9px] font-bold text-slate-900 tracking-wide mb-1">PROFESSIONAL SUMMARY</h3>
+                    <p className="text-[8px]  leading-relaxed">
+                      Results-driven Sales Manager with 7+ years of experience in B2B sales, team leadership, and business development. Proven track record in achieving revenue targets, building strong client relationships and driving growth.
+                    </p>
+                  </div>
+
+                  <div className="mb-2">
+                    <h3 className="text-[9px] font-bold text-slate-900 tracking-wide mb-1">EXPERIENCE</h3>
+                    <div className="space-y-1.5">
+                      <div>
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-[8.5px] font-semibold text-slate-800">Sales Manager</span>
+                          <span className="text-[7.5px]  whitespace-nowrap">Jun 2021 – Present</span>
+                        </div>
+                        <p className="text-[8px] ">ABC Pvt. Ltd.</p>
+                        <ul className="list-disc list-inside text-[8px]  leading-relaxed">
+                          <li>Leading a team of 10 sales executives and managing key enterprise accounts.</li>
+                          <li>Achieved 125% of annual sales target for 2 consecutive years.</li>
+                          <li>Developed strategic sales plans and increased market share by 16%.</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-[8.5px] font-semibold text-slate-800">Senior Sales Executive</span>
+                          <span className="text-[7.5px]  whitespace-nowrap">May 2019 – May 2021</span>
+                        </div>
+                        <p className="text-[8px] ">XYZ Solutions Pvt. Ltd.</p>
+                        <ul className="list-disc list-inside text-[8px]  leading-relaxed">
+                          <li>Managed client acquisition and retention.</li>
+                          <li>Consistently met quarterly sales targets.</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-[8.5px] font-semibold text-slate-800">Sales Executive</span>
+                          <span className="text-[7.5px]  whitespace-nowrap">Aug 2017 – Apr 2019</span>
+                        </div>
+                        <p className="text-[8px] ">Techno Sales Pvt. Ltd.</p>
+                        <ul className="list-disc list-inside text-[8px]  leading-relaxed">
+                          <li>Generated leads and converted them into long-term clients.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-[9px] font-bold text-slate-900 tracking-wide mb-1">EDUCATION</h3>
+                    <div className="space-y-1">
+                      <div>
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-[8.5px] font-semibold text-slate-800">MBA - Marketing</span>
+                          <span className="text-[7.5px]  whitespace-nowrap">2017 – 2019</span>
+                        </div>
+                        <p className="text-[8px] ">Amity University, Noida</p>
+                      </div>
+                      <div>
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-[8.5px] font-semibold text-slate-800">BBA</span>
+                          <span className="text-[7.5px]  whitespace-nowrap">2014 – 2017</span>
+                        </div>
+                        <p className="text-[8px] ">Delhi University</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="flex-1 min-h-0 bg-slate-100">
-              <iframe
-                src={cvDrivePreviewUrl}
-                className="w-full h-full border-0"
-                allow="autoplay"
-                title="Original_CV.pdf"
-              />
-            </div>
-          </div>
 
           {/* AI Extraction Summary + Suggestion */}
           <div className="lg:flex-[1.3] lg:min-h-0 flex flex-col sm:flex-row gap-2 shrink-0">
