@@ -11,6 +11,16 @@ import {
 export default function InterviewUI() {
   return (
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
+<<<<<<< Updated upstream
+
+
+      {/* Header & Steps */}
+      <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4  pb-4">
+        <div>
+          <h1 className="text-xl font-bold text-zinc-900">Interview – Round 2</h1>
+          <p className="text-[11px] text-zinc-500 mt-0.5">Technical Interview – AI Powered</p>
+        </div>
+=======
       <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
 
         {/* HEADER & HORIZONTAL STEP INDICATOR */}
@@ -20,6 +30,7 @@ export default function InterviewUI() {
             <h1 className="text-[17px] font-bold text-zinc-900 tracking-tight leading-tight">Interview &ndash; Round 2</h1>
             <p className="text-[11px] font-medium text-zinc-500 mt-0.5">Technical Interview – AI Powered</p>
           </div>
+>>>>>>> Stashed changes
 
           {/* Steps */}
           <div className="flex-1 max-w-[550px] xl:max-w-[600px] w-full flex items-center justify-center relative mx-auto">
@@ -417,6 +428,7 @@ export default function InterviewUI() {
           </div>
         </div>
       </div>
+
 
     </div>
   );

@@ -319,8 +319,8 @@ function Dropdown({ field, onChange }: DropdownProps) {
                 setOpen(false)
               }}
               className={`block w-full truncate rounded-md px-2 py-1.5 text-left text-xs hover:bg-slate-50 ${opt === field.value
-                ? "bg-indigo-50 text-indigo-700"
-                : "text-slate-700"
+                  ? "bg-indigo-50 text-indigo-700"
+                  : "text-slate-700"
                 }`}
             >
               {opt}

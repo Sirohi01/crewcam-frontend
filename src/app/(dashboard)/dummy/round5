@@ -588,15 +588,6 @@ function BottomActionBar() {
 }
 
 // ─── Page ───────────────────────────────────────────────────────────────────
-// Layout notes (per requested changes):
-// 1. CandidateInfoCard now sits in the SAME grid row as ApplicationSummaryCard,
-//    with items-stretch, so both cards always match height exactly.
-// 2. The "View Candidate Profile" action is now a bordered button placed
-//    directly under the Interviewer block inside CandidateInfoCard.
-// 3. Round Progress / Question / AI Assistant / Interview Rounds Overview are
-//    combined into a single 4-column row.
-// 4. Your Previous Answer / HR Competency Areas / HR Interview Guidelines are
-//    combined into a single 3-column row.
 export default function InterviewRoundPage() {
   const [activeTab, setActiveTab] = useState<TabKey>('Interview');
   const [questionIndex, setQuestionIndex] = useState(1);
