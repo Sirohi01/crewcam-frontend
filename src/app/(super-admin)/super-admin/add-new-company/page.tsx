@@ -23,7 +23,7 @@ export default function AddNewCompany() {
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen bg-zinc-50/50">
 
       {/* Breadcrumbs */}
-      <div className="flex items-center text-[10px] text-zinc-500 font-medium mb-1">
+      <div className="flex items-center text-[10px] text-zinc-500 font-medium ">
         <span>Home</span>
         <ChevronRight size={12} className="mx-1" />
         <span>Companies</span>
