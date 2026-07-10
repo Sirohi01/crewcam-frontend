@@ -234,14 +234,14 @@ const handleDownloadCV = () => {
 
             {/* 2. "What Happens Next?" Pipeline Milestones */}
             <div className="space-y-1" id="pipeline-milestones">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between my-4">
                 <div>
                   <h3 className="text-xs font-bold text-indigo-950">What Happens Next?</h3>
                   <p className="text-xs text-slate-600 mt-0.5">We follow a systematic process to review every application fairly.</p>
                 </div>
               </div>
 
- <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-1.5 mb-4">
+ <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-1.5 my-4">
   {pipelineSteps.map((step, idx) => {
     const Icon = step.icon;
 
