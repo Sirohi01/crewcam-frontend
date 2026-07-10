@@ -164,7 +164,7 @@ const handleDownloadCV = () => {
           id="submitted-step-container"
         >
           {/* Left Column: Success Details, Timeline & Docs (68% width) */}
-          <div className="w-full lg:w-[68%] h-auto lg:h-full flex flex-col gap-2 overflow-visible lg:overflow-y-auto lg:pr-1" id="submitted-left-column">
+          <div className="w-full lg:w-[70%] h-auto lg:h-full flex flex-col gap-2 overflow-visible lg:overflow-y-auto lg:pr-1" id="submitted-left-column">
    {/* =========================================================================
           2. FULL 8-STEP JOURNEY STEPPER
           ========================================================================= */}
@@ -439,7 +439,7 @@ const handleDownloadCV = () => {
           </div>
 
           {/* Right Column: Application Summary Card & Vertical Activity Logs (32% width) */}
-          <div className="w-full lg:w-[32%] h-auto lg:h-full flex flex-col gap-2 overflow-visible lg:overflow-hidden" id="submitted-right-column">
+          <div className="w-full lg:w-[30%] h-auto lg:h-full flex flex-col gap-2 overflow-visible lg:overflow-hidden" id="submitted-right-column">
 
             {/* 1. Candidate Application Summary Badge */}
             <div className="bg-white rounded-lg border border-slate-200 p-2 flex flex-col items-center text-center shadow-sm shrink-0" id="submitted-summary-badge">
