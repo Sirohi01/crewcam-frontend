@@ -78,7 +78,7 @@ const roundStatusStyle: Record<string, string> = {
 
 export default function InterviewRoundPage() {
   return (
-    <div className="bg-[#fafbfc] font-sans">
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       <div className="mx-auto max-w-[1600px] space-y-2 p-1">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3">

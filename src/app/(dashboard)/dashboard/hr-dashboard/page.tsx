@@ -558,7 +558,7 @@ function SourcePerformance() {
 export default function RecruiterDashboard() {
   return (
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
-      <div className="mx-auto max-w-[1500px] space-y-2 p-3">
+      <div className="mx-auto max-w-[1500px] space-y-2">
         <Header />
         <StatsStrip />
 
