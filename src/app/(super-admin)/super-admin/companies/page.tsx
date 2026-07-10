@@ -405,7 +405,7 @@ function SuperAdminCompaniesPageInner() {
             Quick Add
           </Button>
           <Button asChild className="h-8 text-xs bg-indigo-600 hover:bg-indigo-700 text-white">
-            <Link href="/super-admin/add-new-company"><Plus size={14} className="mr-1" /> New Company (Wizard)</Link>
+            <Link href="/super-admin/companies/new/step-1"><Plus size={14} className="mr-1" /> New Company (Wizard)</Link>
           </Button>
         </div>
       </div>
