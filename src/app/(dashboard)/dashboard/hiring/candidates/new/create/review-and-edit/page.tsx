@@ -108,6 +108,12 @@ export default function ReviewPage({
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState<boolean>(false);
   const [experiences, setExperiences] = React.useState<ExperienceEntry[]>(defaultExperiences);
 
+  const steps = [
+    { num: 1, label: 'Upload CV', status: 'completed' },
+    { num: 2, label: 'Review & Edit', status: 'active' },
+    { num: 3, label: 'Submit Application', status: 'pending' },
+  ];
+
   // Interactive UI states
   const [showSuggestions, setShowSuggestions] = React.useState<boolean>(false);
   const [isReextracting, setIsReextracting] = React.useState<boolean>(false);
@@ -211,49 +217,54 @@ export default function ReviewPage({
   };
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-slate-50 font-sans  select-none" id="review-page-root">
-      <section className="min-h-[70px] lg:h-[6%] lg:min-h-[38px] bg-white border-b border-slate-100 px-3 py-2 lg:py-1 flex flex-col lg:flex-row lg:items-center items-start justify-between gap-2 shrink-0">
-        <div className="flex flex-col">
-          <span className="text-base font-semibold ">Review & Edit Candidate</span>
-          <span className="text-[10px] font-medium">Review AI extracted details and edit if required before submitting</span>
-        </div>
+    <div className="w-full bg-slate-50 flex flex-col font-sans min-h-[650px] lg:h-[calc(100%-48px)] lg:overflow-hidden select-none" id="review-page-root">
+      <div className="w-full mx-auto max-w-[1600px] px-2 pt-2">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-3">
+          {/* Title */}
+          <div className="shrink-0 w-full lg:w-[380px]">
+            <h1 className="text-[17px] font-bold text-zinc-900 tracking-tight leading-tight">Review &amp; Edit Candidate</h1>
+            <p className="mt-0.5 text-[11px] font-medium text-zinc-500 whitespace-nowrap">Review AI extracted details and edit if required before submitting</p>
+          </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto">
-          <div className="flex flex-col items-center gap-1 text-xs shrink-0">
-            <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-semibold text-[9px] border border-emerald-300">✓</span>
-            <span className="font-medium whitespace-nowrap">Upload CV</span>
+          {/* Steps */}
+          <div className="flex-1 max-w-[320px] w-full flex items-center justify-center relative mx-auto">
+            <div className="absolute left-[30px] right-[30px] top-[11px] h-[2px] bg-zinc-200 -z-0"></div>
+            <div className="flex w-full justify-between z-10">
+              {steps.map((step, idx) => (
+                <div key={idx} className="relative z-10 flex flex-col items-center gap-1 px-1 bg-slate-50 lg:bg-transparent">
+                  <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-colors
+                    ${step.status === 'completed' ? 'border-indigo-100 text-indigo-600 bg-indigo-50' :
+                      step.status === 'active' ? 'border-indigo-600 bg-indigo-600 text-white shadow-[0_0_0_3px_rgba(79,70,229,0.15)]' :
+                        'border-zinc-200 text-zinc-400 bg-white'}`}>
+                    {step.status === 'completed' ? <Check className="w-3 h-3" strokeWidth={3} /> : step.num}
+                  </div>
+                  <span className={`text-[8.5px] lg:text-[9px] whitespace-nowrap font-bold ${step.status === 'active' ? 'text-indigo-900' : step.status === 'completed' ? 'text-indigo-600' : 'text-zinc-400'}`}>
+                    {step.label}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="w-6 h-[1px] bg-slate-300 shrink-0 self-start mt-2"></div>
-          <div className="flex flex-col items-center gap-1 text-xs shrink-0">
-            <span className="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center font-semibold text-[9px]">2</span>
-            <span className="text-indigo-900 font-semibold whitespace-nowrap">Review & Edit</span>
-          </div>
-          <div className="w-6 h-[1px] bg-slate-200 shrink-0 self-start mt-2"></div>
-          <div className="flex flex-col items-center gap-1 text-xs shrink-0">
-            <span className="w-4 h-4 rounded-full bg-slate-100 flex items-center justify-center font-semibold text-[9px] border border-slate-300">3</span>
-            <span className="font-medium whitespace-nowrap">Submit Application</span>
-          </div>
-        </div>
 
-        <div className="flex items-center gap-1 w-full lg:w-auto">
-          <button
-            onClick={handleDiscard}
-            className="flex-1 lg:flex-none justify-center px-2 py-1.5 lg:py-0.5 text-xs border border-slate-300  rounded hover:bg-slate-50 font-medium flex items-center"
-          >
-            Back
-          </button>
-          <button
-            onClick={() => {
-              // setCurrentView('submitted')
-              window.open('/dashboard/hiring/candidates/new/create/submit-application-preview', '_blank');
-            }}
-            className="flex-1 lg:flex-none justify-center px-2 py-1.5 lg:py-0.5 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center gap-1 font-medium transition-colors"
-          >
-            <span>Next Submit Application</span>
-            <ChevronRight className="w-3 h-3" />
-          </button>
+          {/* Buttons */}
+          <div className="flex items-center justify-end gap-2 shrink-0 w-full lg:w-[380px]">
+            <button
+              onClick={handleDiscard}
+              className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors"
+            >
+              Back
+            </button>
+            <button
+              onClick={() => {
+                window.open('/dashboard/hiring/candidates/new/create/submit-application-preview', '_blank');
+              }}
+              className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors"
+            >
+              Next: Submit Application &rarr;
+            </button>
+          </div>
         </div>
-      </section>
+      </div>
 
       {/* =========================================================================
           MAIN CONTAINER

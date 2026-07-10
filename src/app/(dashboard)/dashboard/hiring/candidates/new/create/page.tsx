@@ -11,7 +11,11 @@ import {
 // backend-wired candidate form still lives at
 // /dashboard/hiring/candidates/new/create/classic.
 
-const steps = ['Upload CV', 'Review & Edit', 'Submit Application'];
+const steps = [
+  { num: 1, label: 'Upload CV', status: 'active' },
+  { num: 2, label: 'Review & Edit', status: 'pending' },
+  { num: 3, label: 'Submit Application', status: 'pending' },
+];
 
 const extractionChecklist = [
   'Reading CV content',
@@ -88,35 +92,43 @@ function Card({
 
 export default function CreateCandidatePage() {
   return (
-    <div className="font-sans">
-      <div className="mx-auto max-w-[1600px] space-y-2 p-1">
+    <div className="w-full bg-slate-50 flex flex-col font-sans min-h-[650px] lg:h-[calc(100%-48px)] lg:overflow-hidden" id="create-page-root">
+      <div className="w-full mx-auto max-w-[1600px] px-2 pt-2">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-bold text-zinc-900">Add New Candidate</h1>
-            <p className="mt-0.5 text-[10.5px] text-zinc-500">Upload CV and let AI extract details automatically</p>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-3">
+          {/* Title */}
+          <div className="shrink-0 w-full lg:w-[380px]">
+            <h1 className="text-[17px] font-bold text-zinc-900 tracking-tight leading-tight">Add New Candidate</h1>
+            <p className="mt-0.5 text-[11px] font-medium text-zinc-500 whitespace-nowrap">Upload CV and let AI extract details automatically</p>
           </div>
 
-          <div className="flex items-center gap-2">
-            {steps.map((s, i) => (
-              <React.Fragment key={s}>
-                {i > 0 && <span className="h-px w-8 bg-zinc-200" />}
-                <div className="flex flex-col items-center gap-1">
-                  <span className={`grid h-6 w-6 place-items-center rounded-none text-[10.5px] font-bold ${i === 0 ? 'bg-indigo-600 text-white' : 'border border-zinc-200 bg-white text-zinc-400'}`}>
-                    {i + 1}
+          {/* Steps */}
+          <div className="flex-1 max-w-[320px] w-full flex items-center justify-center relative mx-auto">
+            <div className="absolute left-[30px] right-[30px] top-[11px] h-[2px] bg-zinc-200 -z-0"></div>
+            <div className="flex w-full justify-between z-10">
+              {steps.map((step, idx) => (
+                <div key={idx} className="flex flex-col items-center gap-1 px-2">
+                  <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-colors z-10
+                    ${step.status === 'completed' ? 'border-indigo-100 text-indigo-600 bg-indigo-50' :
+                      step.status === 'active' ? 'border-indigo-600 bg-indigo-600 text-white shadow-[0_0_0_3px_rgba(79,70,229,0.15)]' :
+                        'border-zinc-200 text-zinc-400 bg-white'}`}>
+                    {step.status === 'completed' ? <CheckCircle2 className="w-3 h-3" strokeWidth={3} /> : step.num}
+                  </div>
+                  <span className={`text-[8.5px] lg:text-[9px] whitespace-nowrap font-bold ${step.status === 'active' ? 'text-indigo-900' : step.status === 'completed' ? 'text-indigo-600' : 'text-zinc-400'}`}>
+                    {step.label}
                   </span>
-                  <span className={`whitespace-nowrap text-[9.5px] font-semibold ${i === 0 ? 'text-zinc-800' : 'text-zinc-400'}`}>{s}</span>
                 </div>
-              </React.Fragment>
-            ))}
+              ))}
+            </div>
           </div>
 
-          <div className="flex gap-2">
-            <Link href="/dashboard/hiring/candidates" className="flex items-center rounded-none border border-zinc-200 bg-white px-3 py-2 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
+          {/* Buttons */}
+          <div className="flex items-center justify-end gap-2 shrink-0 w-full lg:w-[380px]">
+            <Link href="/dashboard/hiring/candidates" className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
               Cancel
             </Link>
-            <button type="button" onClick={() => window.open('/dashboard/hiring/candidates/new/create/review-and-edit', '_blank')} className="flex items-center gap-1.5 rounded-none bg-indigo-600 px-3 py-2 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700">
-              Next: Review &amp; Edit <ArrowRight size={13} />
+            <button type="button" onClick={() => window.open('/dashboard/hiring/candidates/new/create/review-and-edit', '_blank')} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
+              Next: Review &amp; Edit &rarr;
             </button>
           </div>
         </div>
