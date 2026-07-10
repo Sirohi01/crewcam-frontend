@@ -79,14 +79,14 @@ export default function HODEvaluationPage() {
         </div>
 
         {/* Steps */}
-        <div className="flex-1 max-w-[600px] w-full flex items-center justify-between relative px-1 lg:px-2 mx-auto">
-          <div className="absolute left-4 right-4 top-[11px] h-[2px] bg-zinc-200 -z-0"></div>
+        <div className="flex-1 max-w-[600px] w-full flex items-start justify-between relative px-1 lg:px-2 mx-auto">
+          <div className="absolute left-[20px] lg:left-[24px] right-[20px] lg:right-[24px] top-[11px] h-[2px] bg-zinc-200 -z-0"></div>
           {steps.map((step, idx) => (
             <div key={idx} className="relative z-10 flex flex-col items-center gap-1 px-1">
               <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-colors
                 ${step.status === 'completed' ? 'border-indigo-100 text-indigo-600 bg-indigo-50' :
                   step.status === 'active' ? 'border-indigo-600 bg-indigo-600 text-white shadow-[0_0_0_3px_rgba(79,70,229,0.15)]' :
-                    'border-zinc-200 text-zinc-400'}`}>
+                    'border-zinc-200 text-zinc-400 bg-white'}`}>
                 {step.num}
               </div>
               <span className={`text-[8.5px] lg:text-[9px] whitespace-nowrap font-bold ${step.status === 'active' ? 'text-indigo-900' : step.status === 'completed' ? 'text-indigo-600' : 'text-zinc-400'}`}>
@@ -458,6 +458,8 @@ export default function HODEvaluationPage() {
                   { title: 'AI Screening Completed', date: '15 June 2026, 12:05 PM', sub: 'Score: 87%', status: 'completed' },
                   { title: 'HOD Review', date: '16 June 2026, 10:15 AM', sub: 'Currently in progress', status: 'active' },
                   { title: 'Interview', sub: 'Pending', status: 'pending' },
+                  { title: 'Offer', sub: 'Pending', status: 'pending' },
+                  { title: 'Onboarding', sub: 'Pending', status: 'pending' },
                 ].map((step, i) => (
                   <div key={i} className="flex gap-3">
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 border-2 bg-white mt-0.5
