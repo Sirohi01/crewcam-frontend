@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   Briefcase, FileText, Loader2, CalendarCheck, XCircle, Rocket,
   Search, SlidersHorizontal, X, ChevronDown, Eye, MessageSquare,
@@ -38,7 +39,7 @@ interface Application {
 const APPLICATIONS: Application[] = [
   { id: 'APP-1051', candidateName: 'Rahul Sharma', initials: 'RS', avatarBg: 'bg-blue-100', avatarColor: 'text-blue-600', email: 'rahul.sharma@email.com', phone: '+91 98765 43210', jobTitle: 'Sales Manager', jobId: 'JOB-2026-051', department: 'Sales & Marketing', experience: '7 Years', source: 'Naukri.com', appliedOn: '15 Jun 2026', appliedAgo: '2 days ago', status: 'Under Review', currentStage: 'Resume Screening', currentStageBy: 'Amit Verma', tab: 'underreview' },
   { id: 'APP-1050', candidateName: 'Priya Singh', initials: 'PS', avatarBg: 'bg-rose-100', avatarColor: 'text-rose-600', email: 'priya.singh@email.com', phone: '+91 91234 56789', jobTitle: 'HR Executive', jobId: 'JOB-2026-050', department: 'Human Resources', experience: '6 Years', source: 'LinkedIn', appliedOn: '14 Jun 2026', appliedAgo: '3 days ago', status: 'Shortlisted', currentStage: 'HR Interview', currentStageBy: 'Pooja Sharma', tab: 'shortlisted' },
-  { id: 'APP-1049', candidateName: 'Amit Patel', initials: 'AP', avatarBg: 'bg-violet-100', avatarColor: 'text-violet-600', email: 'amit.patel@email.com', phone: '+91 99887 66554', jobTitle: 'Software Developer', jobId: 'JOB-2026-049', department: 'IT Department', experience: '5 Years', source: 'Company Website', appliedOn: '13 Jun 2026', appliedAgo: '4 days ago', status: 'Under Review', currentStage: 'Technical Assessment', currentStageBy: 'Rishav Singh', tab: 'underreview' },
+  { id: 'APP-1049', candidateName: 'Amit Patel', initials: 'AP', avatarBg: 'bg-violet-100', avatarColor: 'text-indigo-700', email: 'amit.patel@email.com', phone: '+91 99887 66554', jobTitle: 'Software Developer', jobId: 'JOB-2026-049', department: 'IT Department', experience: '5 Years', source: 'Company Website', appliedOn: '13 Jun 2026', appliedAgo: '4 days ago', status: 'Under Review', currentStage: 'Technical Assessment', currentStageBy: 'Rishav Singh', tab: 'underreview' },
   { id: 'APP-1048', candidateName: 'Neha Gupta', initials: 'NG', avatarBg: 'bg-amber-100', avatarColor: 'text-amber-600', email: 'neha.gupta@email.com', phone: '+91 90123 45678', jobTitle: 'Digital Marketing Executive', jobId: 'JOB-2026-048', department: 'Marketing', experience: '4 Years', source: 'Indeed', appliedOn: '12 Jun 2026', appliedAgo: '5 days ago', status: 'Shortlisted', currentStage: 'Managerial Interview', currentStageBy: 'Nistha Arora', tab: 'shortlisted' },
 ];
 
@@ -52,7 +53,7 @@ const TABS: { key: TabKey; label: string; count: number }[] = [
 ];
 
 const SUMMARY = [
-  { key: 'total', label: 'Total Applications', value: 156, sub: 'All time', icon: <Briefcase size={20} />, color: 'text-violet-600', bg: 'bg-violet-50' },
+  { key: 'total', label: 'Total Applications', value: 156, sub: 'All time', icon: <Briefcase size={20} />, color: 'text-indigo-700', bg: 'bg-indigo-50' },
   { key: 'new', label: 'New Applications', value: 24, sub: 'This Week', icon: <FileText size={20} />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
   { key: 'underReview', label: 'Under Review', value: 48, sub: '30.77% of total', icon: <Loader2 size={20} />, color: 'text-amber-600', bg: 'bg-amber-50' },
   { key: 'shortlisted', label: 'Shortlisted', value: 32, sub: '20.51% of total', icon: <CalendarCheck size={20} />, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -83,7 +84,7 @@ function FilterSelect({ label, value, options, onChange }: { label: string; valu
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full appearance-none rounded-lg border border-zinc-200 bg-white px-3 py-1.5 pr-7 text-[12px] font-medium text-zinc-700 shadow-sm hover:border-violet-300 focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors cursor-pointer"
+          className="w-full appearance-none rounded-lg border border-zinc-200 bg-white px-3 py-1.5 pr-7 text-[12px] font-medium text-zinc-700 shadow-sm hover:border-indigo-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors cursor-pointer"
         >
           {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
         </select>
@@ -146,17 +147,17 @@ function FiltersBar({
               value={search}
               onChange={(e) => onSearch(e.target.value)}
               placeholder="Search by candidate name, email, phone or job title..."
-              className="w-full rounded-lg border border-zinc-200 bg-white pl-3.5 pr-9 py-2 text-[12px] text-zinc-700 placeholder:text-zinc-400 shadow-sm focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors"
+              className="w-full rounded-lg border border-zinc-200 bg-white pl-3.5 pr-9 py-2 text-[12px] text-zinc-700 placeholder:text-zinc-400 shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
             />
             <Search size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
           </div>
-          <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:border-violet-300 transition-colors shrink-0">
-            <SlidersHorizontal size={13} className="text-violet-600" />
+          <button className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors">
+            <SlidersHorizontal size={13} className="text-indigo-700" />
             Filters
           </button>
           <button
             onClick={onClear}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:border-violet-300 transition-colors shrink-0"
+            className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm"
           >
             <X size={13} className="text-zinc-400" />
             Clear
@@ -171,7 +172,7 @@ function FiltersBar({
           <FilterSelect label="Application Status" value={status} options={STATUSES} onChange={setStatus} />
           <div className="flex flex-col gap-1 min-w-[180px] flex-1 basis-[180px]">
             <label className="text-[11px] font-medium text-zinc-500">Date Range</label>
-            <button className="flex items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-medium text-zinc-700 shadow-sm hover:border-violet-300 transition-colors">
+            <button className="flex items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-medium text-zinc-700 shadow-sm hover:border-indigo-200 transition-colors">
               <span className="flex items-center gap-1.5 truncate">
                 <Calendar size={13} className="text-zinc-400 shrink-0" />
                 {dateRange}
@@ -198,7 +199,7 @@ function TabsBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) =
           }`}
         >
           {tab.label} <span className={active === tab.key ? 'text-violet-400' : 'text-zinc-400'}>({tab.count})</span>
-          {active === tab.key && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-violet-600 rounded-full" />}
+          {active === tab.key && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-indigo-700 rounded-full" />}
         </button>
       ))}
     </div>
@@ -267,13 +268,13 @@ function ApplicationsTable({ rows }: { rows: Application[] }) {
               </td>
               <td className="py-2.5 pr-1">
                 <div className="flex items-center justify-end gap-1">
-                  <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 transition-colors">
+                  <Link href={`/dashboard/hiring/candidates/${a.id}`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
                     <Eye size={13} />
-                  </button>
-                  <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 transition-colors">
+                  </Link>
+                  <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
                     <MessageSquare size={13} />
                   </button>
-                  <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 transition-colors">
+                  <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
                     <MoreHorizontal size={13} />
                   </button>
                 </div>
@@ -308,7 +309,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
             <select
               value={pageSize}
               onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
-              className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-6 py-1 text-[12px] font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer"
+              className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-6 py-1 text-[12px] font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
             >
               {[10, 25, 50].map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
@@ -320,7 +321,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
           <button
             onClick={() => setPage(Math.max(1, page - 1))}
             disabled={page === 1}
-            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors"
+            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors"
           >
             <ChevronLeft size={13} />
           </button>
@@ -328,7 +329,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
             <button
               key={p}
               onClick={() => setPage(p)}
-              className={`h-7 w-7 rounded-md text-[12px] font-semibold transition-colors ${p === page ? 'bg-violet-600 text-white' : 'border border-zinc-200 text-zinc-600 hover:border-violet-300 hover:text-violet-600'}`}
+              className={`h-7 w-7 rounded-md text-[12px] font-semibold transition-colors ${p === page ? 'bg-indigo-700 text-white' : 'border border-zinc-200 text-zinc-600 hover:border-indigo-200 hover:text-indigo-700'}`}
             >
               {p}
             </button>
@@ -337,7 +338,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
           <button
             onClick={() => setPage(Math.min(totalPages, page + 1))}
             disabled={page === totalPages}
-            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors"
+            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors"
           >
             <ChevronRight size={13} />
           </button>
@@ -356,15 +357,15 @@ function PageHeader() {
         <p className="text-[13px] text-zinc-500 mt-1">View and manage all job applications</p>
       </div>
       <div className="flex items-center gap-2">
-        <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:border-violet-300 transition-colors">
+        <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
           <Download size={14} />
           Export
         </button>
-        <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:border-violet-300 transition-colors">
+        <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:border-indigo-200 transition-colors">
           <BarChart3 size={14} />
           Analytics
         </button>
-        <button className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3.5 py-2 text-[12px] font-semibold text-white shadow-sm hover:bg-violet-700 transition-colors">
+        <button className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-800 transition-colors">
           <Plus size={14} />
           Add Application
         </button>
@@ -412,7 +413,7 @@ export default function JobApplicationsPage() {
   }, [activeTab, search, jobOpening, department, source, experience, status]);
 
   return (
-    <main className="mx-auto max-w-[1600px] w-full space-y-3 overflow-x-hidden pb-6 px-2 sm:px-3">
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       <PageHeader />
       <SummaryCards />
       <FiltersBar
@@ -436,14 +437,14 @@ export default function JobApplicationsPage() {
                 {TABS.find((t) => t.key === activeTab)?.label} ({tabCount})
               </h3>
               <div className="flex items-center gap-2">
-                <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-violet-300 transition-colors">
+                <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-indigo-200 transition-colors">
                   <Columns3 size={13} />
                   Columns
                 </button>
                 <div className="relative">
                   <select
                     defaultValue="Applied Date (Newest)"
-                    className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-7 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-violet-300 focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors cursor-pointer"
+                    className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-7 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-indigo-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors cursor-pointer"
                   >
                     <option>Applied Date (Newest)</option>
                     <option>Applied Date (Oldest)</option>
@@ -465,6 +466,6 @@ export default function JobApplicationsPage() {
           </div>
         </CardContent>
       </Card>
-    </main>
+    </div>
   );
 }

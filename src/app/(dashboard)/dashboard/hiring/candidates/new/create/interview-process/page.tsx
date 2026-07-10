@@ -26,8 +26,8 @@ const applicationSummary = [
 const rounds = [
   { name: 'Round 1', title: 'AI Screening Interview', badge: 'Current Round', duration: '30 Mins', questionsLabel: 'AI Generated Questions', status: 'In Progress', href: '/dashboard/hiring/candidates/new/create/interview-process' },
   { name: 'Round 2', title: 'Technical Interview', badge: 'UPCOMING', duration: '40 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending', href: '/dashboard/hiring/candidates/new/create/round-2' },
-  { name: 'Round 3', title: 'Managerial Interview', badge: 'UPCOMING', duration: '30 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending', href: '/dashboard/hiring/candidates/new/create/interview' },
-  { name: 'Round 4', title: 'Written Assessment', badge: 'UPCOMING', duration: '45 Mins', questionsLabel: 'AI Generated Test', status: 'Pending', href: '/dashboard/hiring/candidates/new/create/assessment' },
+  { name: 'Round 3', title: 'Managerial Interview', badge: 'UPCOMING', duration: '30 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending', href: '/dashboard/hiring/candidates/new/create/round-3' },
+  { name: 'Round 4', title: 'Written Assessment', badge: 'UPCOMING', duration: '45 Mins', questionsLabel: 'AI Generated Test', status: 'Pending', href: '/dashboard/hiring/candidates/new/create/round-4' },
   { name: 'Round 5', title: 'HR Interview', badge: 'UPCOMING', duration: '25 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending', href: '/dashboard/hiring/candidates/new/create/round-5' },
 ];
 
@@ -90,7 +90,7 @@ export default function InterviewProcessPage() {
   const [openQ, setOpenQ] = useState<number>(1);
 
   return (
-    <div className="bg-[#fafbfc] font-sans">
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       <div className="mx-auto max-w-[1600px] space-y-2 p-1">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -307,8 +307,8 @@ export default function InterviewProcessPage() {
                   <div key={t.title} className="relative flex gap-2 pb-2 last:pb-0">
                     {i < timeline.length - 1 && <span className="absolute left-[7px] top-4 h-full w-px bg-zinc-200" />}
                     <span className={`relative z-10 mt-0.5 grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full ${t.state === 'done' ? 'bg-emerald-500 text-white'
-                        : t.state === 'current' ? 'border-2 border-indigo-600 bg-white'
-                          : 'border border-zinc-200 bg-white'
+                      : t.state === 'current' ? 'border-2 border-indigo-600 bg-white'
+                        : 'border border-zinc-200 bg-white'
                       }`}
                     >
                       {t.state === 'done' && <CheckCircle2 size={11} />}

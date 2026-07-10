@@ -11,7 +11,7 @@ import {
 // Dummy data / static mockup — matches the approved design 1:1.
 
 const KPIS = [
-  { label: 'Total Selected', value: '52', sub: 'This Month', icon: Users, accent: 'bg-violet-50 text-violet-600' },
+  { label: 'Total Selected', value: '52', sub: 'This Month', icon: Users, accent: 'bg-indigo-50 text-indigo-700' },
   { label: 'Ready for Offer', value: '18', sub: '34.61%', icon: Clock3, accent: 'bg-blue-50 text-blue-600' },
   { label: 'Offer Released', value: '12', sub: '23.08%', icon: FileText, accent: 'bg-amber-50 text-amber-600' },
   { label: 'Offer Accepted', value: '9', sub: '17.31%', icon: CheckCircle2, accent: 'bg-emerald-50 text-emerald-600' },
@@ -52,7 +52,7 @@ const statusStyle: Record<string, string> = {
   'Ready for Offer': 'bg-emerald-50 text-emerald-600',
   'Offer Released': 'bg-blue-50 text-blue-600',
   'Offer Accepted': 'bg-emerald-50 text-emerald-600',
-  Joined: 'bg-violet-50 text-violet-600',
+  Joined: 'bg-indigo-50 text-indigo-700',
   'On Hold': 'bg-zinc-100 text-zinc-500',
   'Offer Declined': 'bg-rose-50 text-rose-600',
 };
@@ -106,7 +106,7 @@ export default function SelectedCandidatesPage() {
   const active = candidates[0];
 
   return (
-    <div className="bg-[#fafbfc] font-sans">
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       <div className="mx-auto max-w-[1500px] space-y-2 p-1">
         {/* Header */}
         <div className="flex flex-wrap items-start justify-between gap-2">
@@ -118,7 +118,7 @@ export default function SelectedCandidatesPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <button type="button" className="flex items-center gap-1.5 rounded-[2px] border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
+            <button type="button" className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
               <Download size={13} /> Export
             </button>
             <button type="button" className="flex items-center gap-1.5 rounded-[2px] border border-indigo-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-indigo-600 shadow-sm hover:bg-indigo-50">
@@ -170,7 +170,7 @@ export default function SelectedCandidatesPage() {
               <div className="w-36"><SelectBox placeholder="Select Job Opening" /></div>
               <div className="w-36"><SelectBox placeholder="Select Department" /></div>
               <div className="w-32"><SelectBox placeholder="Select Status" /></div>
-              <button type="button" className="flex h-8 items-center gap-1.5 rounded-[2px] border border-zinc-200 bg-white px-2.5 text-[11px] font-semibold text-zinc-700 hover:bg-zinc-50">
+              <button type="button" className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
                 <Filter size={12} /> More Filters
               </button>
               <button type="button" className="h-8 rounded-[2px] px-2.5 text-[11px] font-semibold text-zinc-500 hover:bg-zinc-50">Clear</button>

@@ -19,7 +19,6 @@ import {
   FileSearch,
   Filter
 } from 'lucide-react';
-import PageLayout from '@/components/ui/pageLayout';
 
 // --- TypeScript Types ---
 interface StatCardProps {
@@ -210,8 +209,7 @@ export default function RejectedCandidatesPage() {
   };
 
   return (
-     <PageLayout>
-    <div className="w-full h-[calc(100vh-48px)] bg-[#f8fafc] text-slate-900 p-2 font-sans flex flex-col justify-between overflow-hidden gap-2">
+     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       
       {/* HEADER SECTION */}
       <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-200/80 shadow-sm h-[10%]">
@@ -223,13 +221,13 @@ export default function RejectedCandidatesPage() {
           <p className="text-xs text-slate-500 font-medium">Candidates who were not selected for the current openings</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => handleAction('All', 'Export')} className="flex items-center gap-1 border border-slate-200 hover:bg-slate-50 text-slate-700 px-2.5 py-1.5 rounded-md text-xs font-semibold transition">
+          <button onClick={() => handleAction('All', 'Export')} className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
             <Download size={14} className="text-slate-600" /> Export
           </button>
-          <button onClick={() => handleAction('All', 'Email')} className="flex items-center gap-1 border border-slate-200 hover:bg-slate-50 text-slate-700 px-2.5 py-1.5 rounded-md text-xs font-semibold transition">
+          <button onClick={() => handleAction('All', 'Email')} className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
             <Mail size={14} className="text-slate-600" /> Email
           </button>
-          <button onClick={() => handleAction('All', 'Add Candidate')} className="flex items-center gap-1 bg-[#4f46e5] hover:bg-[#4338ca] text-white px-2.5 py-1.5 rounded-md text-xs font-semibold shadow-sm transition">
+          <button onClick={() => handleAction('All', 'Add Candidate')} className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors">
             <UserPlus size={14} /> Add Candidate
           </button>
         </div>
@@ -305,7 +303,7 @@ export default function RejectedCandidatesPage() {
             </select>
           </div>
           <div className="flex gap-1.5 h-full items-end">
-            <button className="flex-1 bg-slate-50 border border-slate-200 hover:bg-slate-100 px-2 py-1 rounded text-xs font-semibold text-slate-700 flex items-center justify-center gap-1 h-[28px]">
+            <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
               <Filter size={12}/> Filters <span className="bg-indigo-600 text-white text-[9px] px-1 rounded-full">0</span>
             </button>
             <button onClick={clearFilters} className="border border-slate-200 hover:bg-slate-50 text-slate-600 p-1.5 rounded text-xs font-semibold flex items-center justify-center h-[28px]" title="Clear All">
@@ -447,7 +445,6 @@ export default function RejectedCandidatesPage() {
 
       </div>
     </div>
-    </PageLayout>
   );
 }
 

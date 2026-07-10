@@ -11,7 +11,6 @@ import {
   Clock, IndianRupee, CheckCircle2, TrendingUp, Award,
   CalendarDays, SlidersHorizontal, Download,
 } from 'lucide-react'
-import PageLayout from '@/components/ui/pageLayout'
 
 // ---------- Types ----------
 
@@ -189,7 +188,7 @@ const StatCardItem: React.FC<{ item: StatCard }> = ({ item }) => {
         <div className="min-w-0">
           <div className="text-xl font-bold text-gray-900 leading-none truncate">{item.value}</div>
           <div className="text-[11px] font-semibold text-gray-700 truncate mt-1">{item.label}</div>
-      <div className="text-[10px] font-semibold text-emerald-700 mt-1">↑ {item.change}</div>
+          <div className="text-[10px] font-semibold text-emerald-700 mt-1">↑ {item.change}</div>
         </div>
       </div>
     </Card>
@@ -248,256 +247,256 @@ const Legend: React.FC<{ data: { name: string; color: string; sub?: string }[] }
 
 const ReportAnalytics: React.FC = () => {
   return (
-    <PageLayout>
-    <div className="w-full min-h-[650px] flex flex-col gap-2 p-2 bg-slate-50 relative z-0">
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
+      <div className="w-full min-h-[650px] flex flex-col gap-2 p-2 bg-slate-50 relative z-0">
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 shrink-0">
-        <div>
-          <h1 className="text-base font-bold text-gray-900 flex items-center gap-1">Reports &amp; Analytics</h1>
-          <p className="text-[10px] text-gray-600">Comprehensive insights of recruitment pipeline and hiring performance</p>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 shrink-0">
+          <div>
+            <h1 className="text-base font-bold text-gray-900 flex items-center gap-1">Reports &amp; Analytics</h1>
+            <p className="text-[10px] text-gray-600">Comprehensive insights of recruitment pipeline and hiring performance</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button className="flex items-center gap-1 text-[10px] font-medium text-gray-800 border border-slate-300 bg-white rounded-lg px-2 py-1">
+              <CalendarDays className="w-3 h-3" /> 01 Jun 2026 - 15 Jun 2026
+            </button>
+            <button className="flex items-center gap-1 text-[10px] font-medium text-gray-800 border border-slate-300 bg-white rounded-lg px-2 py-1">
+              <SlidersHorizontal className="w-3 h-3" /> Filters
+            </button>
+            <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
+              <Download className="w-3 h-3" /> Export Report
+            </button>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button className="flex items-center gap-1 text-[10px] font-medium text-gray-800 border border-slate-300 bg-white rounded-lg px-2 py-1">
-            <CalendarDays className="w-3 h-3" /> 01 Jun 2026 - 15 Jun 2026
-          </button>
-          <button className="flex items-center gap-1 text-[10px] font-medium text-gray-800 border border-slate-300 bg-white rounded-lg px-2 py-1">
-            <SlidersHorizontal className="w-3 h-3" /> Filters
-          </button>
-          <button className="flex items-center gap-1 text-[10px] font-medium text-white bg-indigo-600 rounded-lg px-2 py-1">
-            <Download className="w-3 h-3" /> Export Report
-          </button>
+
+        {/* Row: 5 stat cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 shrink-0 lg:h-[13%]">
+          {statCards.map((s, i) => <StatCardItem key={i} item={s} />)}
+        </div>
+
+        {/* Row: Source donut / Trend line / Funnel */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 lg:h-[27%]">
+          <Card className="h-full">
+            <span className="text-[11px] font-semibold text-gray-900">Applications by Source</span>
+            <div className="flex-1 flex items-center gap-2 min-h-0">
+              <div className="w-1/2 h-full"><DonutChart data={sourceData} centerLabel="Total" centerValue={642} /></div>
+              <Legend data={sourceData.map(s => ({ name: s.name, color: s.color, sub: s.percent }))} />
+            </div>
+          </Card>
+
+          <Card className="h-full overflow-hidden">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-gray-900">Applications Trend</span>
+              <span className="text-[9px] text-gray-600 border border-slate-300 rounded px-1">Daily</span>
+            </div>
+            <div className="flex-1 min-h-[140px] mt-1 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trendData} margin={{ top: 10, right: 15, left: -10, bottom: 5 }}>
+                  <XAxis dataKey="date" tick={{ fontSize: 8, fill: '#1e293b' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 8, fill: '#1e293b' }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ fontSize: 10 }} />
+                  <Line
+                    type="monotone"
+                    dataKey="applications"
+                    stroke="#6366f1"
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          {/* Pyramid/Funnel Kept as is */}
+          <Card className="h-full">
+            <span className="text-[11px] font-semibold text-gray-900">
+              Pipeline Conversion Funnel
+            </span>
+
+            <div className="mt-2 flex flex-1 gap-3 min-h-0">
+              {/* Funnel */}
+              <div className="flex-1 flex flex-col items-center justify-center">
+                {funnelStages.map((f, i) => (
+                  <div
+                    key={i}
+                    className="h-5 flex items-center justify-center text-[8px] font-semibold text-white"
+                    style={{
+                      width: f.width,
+                      backgroundColor: f.color,
+                      clipPath: "polygon(0% 0%, 100% 0%, 92% 100%, 8% 100%)", // <-- semicolon hataya
+                    }}
+                  >
+                  </div>
+                ))}
+              </div>
+
+              {/* Labels & Values */}
+              <div className="flex-1 flex flex-col justify-center">
+                {funnelStages.map((f, i) => (
+                  <div
+                    key={i}
+                    className="h-5 flex items-center justify-between text-[9px]"
+                  >
+                    <span className="font-medium text-gray-700 truncate">
+                      {f.label}
+                    </span>
+
+                    <span className="font-semibold text-gray-900 tabular-nums">
+                      {f.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Row: 5 mini metrics */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 shrink-0 lg:h-[13%]">
+          {miniMetrics.map((m, i) => <MiniMetricItem key={i} item={m} />)}
+        </div>
+
+        {/* Row: 2 tables */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 lg:h-[20%]">
+          <Card className="h-full">
+            <span className="text-[11px] font-semibold text-gray-900">Recruitment Summary by Department</span>
+            <div className="flex-1 overflow-auto mt-1">
+              <table className="w-full text-[9px] min-w-[520px]">
+                <thead>
+                  <tr className="text-gray-600 text-left">
+                    <th className="font-medium pb-1">Department</th>
+                    <th className="font-medium pb-1">Openings</th>
+                    <th className="font-medium pb-1">Applications</th>
+                    <th className="font-medium pb-1">Shortlisted</th>
+                    <th className="font-medium pb-1">Interviews</th>
+                    <th className="font-medium pb-1">Offers</th>
+                    <th className="font-medium pb-1">Hires</th>
+                    <th className="font-medium pb-1">Time to Hire</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {deptRows.map((r, i) => (
+                    <tr key={i} className="text-gray-800 border-t border-slate-200">
+                      <td className="py-1">{r.department}</td>
+                      <td className="py-1">{r.openings}</td>
+                      <td className="py-1">{r.applications}</td>
+                      <td className="py-1">{r.shortlisted}</td>
+                      <td className="py-1">{r.interviews}</td>
+                      <td className="py-1">{r.offers}</td>
+                      <td className="py-1">{r.hires}</td>
+                      <td className="py-1">{r.timeToHire}</td>
+                    </tr>
+                  ))}
+                  <tr className="font-semibold text-gray-900 border-t border-slate-300">
+                    <td className="py-1">{deptTotals.department}</td>
+                    <td className="py-1">{deptTotals.openings}</td>
+                    <td className="py-1">{deptTotals.applications}</td>
+                    <td className="py-1">{deptTotals.shortlisted}</td>
+                    <td className="py-1">{deptTotals.interviews}</td>
+                    <td className="py-1">{deptTotals.offers}</td>
+                    <td className="py-1">{deptTotals.hires}</td>
+                    <td className="py-1">{deptTotals.timeToHire}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          <Card className="h-full">
+            <span className="text-[11px] font-semibold text-gray-900">Job Openings Performance</span>
+            <div className="flex-1 overflow-auto mt-1">
+              <table className="w-full text-[9px] min-w-[460px]">
+                <thead>
+                  <tr className="text-gray-600 text-left">
+                    <th className="font-medium pb-1">Job Opening</th>
+                    <th className="font-medium pb-1">Applications</th>
+                    <th className="font-medium pb-1">Shortlisted</th>
+                    <th className="font-medium pb-1">Interviews</th>
+                    <th className="font-medium pb-1">Offers</th>
+                    <th className="font-medium pb-1">Hires</th>
+                    <th className="font-medium pb-1">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {jobRows.map((r, i) => (
+                    <tr key={i} className="text-gray-800 border-t border-slate-200">
+                      <td className="py-1 truncate max-w-[110px]">{r.title}</td>
+                      <td className="py-1">{r.applications}</td>
+                      <td className="py-1">{r.shortlisted}</td>
+                      <td className="py-1">{r.interviews}</td>
+                      <td className="py-1">{r.offers}</td>
+                      <td className="py-1">{r.hires}</td>
+                      <td className="py-1">
+                        <span className="bg-emerald-100 text-emerald-700 text-[8px] font-medium px-1.5 py-0.5 rounded-full">{r.status}</span>
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="font-semibold text-gray-900 border-t border-slate-300">
+                    <td className="py-1">Total</td>
+                    <td className="py-1">{jobTotals.applications}</td>
+                    <td className="py-1">{jobTotals.shortlisted}</td>
+                    <td className="py-1">{jobTotals.interviews}</td>
+                    <td className="py-1">{jobTotals.offers}</td>
+                    <td className="py-1">{jobTotals.hires}</td>
+                    <td className="py-1">—</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+
+        {/* Row: 4 bottom charts */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 lg:h-[20%]">
+          <Card className="h-full">
+            <span className="text-[11px] font-semibold text-gray-900">Hiring Trend (Hires)</span>
+            <div className="flex-1 min-h-[120px] mt-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={hiringTrend} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                  <XAxis dataKey="month" tick={{ fontSize: 8, fill: '#1e293b' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 8, fill: '#1e293b' }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ fontSize: 10 }} />
+                  <Bar dataKey="hires" fill="#6366f1" radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          <Card className="h-full">
+            <span className="text-[11px] font-semibold text-gray-900">Offer Status</span>
+            <div className="flex-1 flex items-center gap-2 min-h-0">
+              <div className="w-1/2 h-full"><DonutChart data={offerStatus} centerLabel="Total" centerValue={22} /></div>
+              <Legend data={offerStatus.map(o => ({ name: o.name, color: o.color, sub: `${o.value} (${((o.value / 22) * 100).toFixed(1)}%)` }))} />
+            </div>
+          </Card>
+
+          <Card className="h-full">
+            <span className="text-[11px] font-semibold text-gray-900">Candidate Gender Diversity</span>
+            <div className="flex-1 flex items-center gap-2 min-h-0">
+              <div className="w-1/2 h-full"><DonutChart data={genderData} centerLabel="Hires" centerValue={14} /></div>
+              <Legend data={genderData.map(g => ({ name: g.name, color: g.color, sub: `${g.value} (${((g.value / 14) * 100).toFixed(1)}%)` }))} />
+            </div>
+          </Card>
+
+          {/* Compact & Fixed Dimension New Hires by Dept */}
+          <Card className="h-full max-w-full mx-auto w-full overflow-hidden">
+            <span className="text-[11px] font-semibold text-gray-900">New Hires by Department</span>
+            <div className="flex-1 min-h-[120px] mt-1 w-full px-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={deptHires} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                  <XAxis dataKey="department" tick={{ fontSize: 8, fill: '#1e293b' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 8, fill: '#1e293b' }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ fontSize: 10 }} />
+                  <Bar dataKey="hires" fill="#818cf8" radius={[3, 3, 0, 0]} maxBarSize={24} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
         </div>
       </div>
-
-      {/* Row: 5 stat cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 shrink-0 lg:h-[13%]">
-        {statCards.map((s, i) => <StatCardItem key={i} item={s} />)}
-      </div>
-
-      {/* Row: Source donut / Trend line / Funnel */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 lg:h-[27%]">
-        <Card className="h-full">
-          <span className="text-[11px] font-semibold text-gray-900">Applications by Source</span>
-          <div className="flex-1 flex items-center gap-2 min-h-0">
-            <div className="w-1/2 h-full"><DonutChart data={sourceData} centerLabel="Total" centerValue={642} /></div>
-            <Legend data={sourceData.map(s => ({ name: s.name, color: s.color, sub: s.percent }))} />
-          </div>
-        </Card>
-
-        <Card className="h-full overflow-hidden">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-gray-900">Applications Trend</span>
-            <span className="text-[9px] text-gray-600 border border-slate-300 rounded px-1">Daily</span>
-          </div>
-          <div className="flex-1 min-h-[140px] mt-1 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trendData} margin={{ top: 10, right: 15, left: -10, bottom: 5 }}>
-                <XAxis dataKey="date" tick={{ fontSize: 8, fill: '#1e293b' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 8, fill: '#1e293b' }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ fontSize: 10 }} />
-                <Line 
-                  type="monotone" 
-                  dataKey="applications" 
-                  stroke="#6366f1" 
-                  strokeWidth={2} 
-                  dot={false}
-                  activeDot={{ r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-
-        {/* Pyramid/Funnel Kept as is */}
-      <Card className="h-full">
-  <span className="text-[11px] font-semibold text-gray-900">
-    Pipeline Conversion Funnel
-  </span>
-
- <div className="mt-2 flex flex-1 gap-3 min-h-0">
-  {/* Funnel */}
-<div className="flex-1 flex flex-col items-center justify-center">
-  {funnelStages.map((f, i) => (
-    <div
-      key={i}
-      className="h-5 flex items-center justify-center text-[8px] font-semibold text-white"
-      style={{
-        width: f.width,
-        backgroundColor: f.color,
-        clipPath: "polygon(0% 0%, 100% 0%, 92% 100%, 8% 100%)", // <-- semicolon hataya
-      }}
-    >
     </div>
-  ))}
-</div>
-
-  {/* Labels & Values */}
-  <div className="flex-1 flex flex-col justify-center">
-    {funnelStages.map((f, i) => (
-      <div
-        key={i}
-        className="h-5 flex items-center justify-between text-[9px]"
-      >
-        <span className="font-medium text-gray-700 truncate">
-          {f.label}
-        </span>
-
-        <span className="font-semibold text-gray-900 tabular-nums">
-          {f.value}
-        </span>
-      </div>
-    ))}
-  </div>
-</div>
-</Card>
-      </div>
-
-      {/* Row: 5 mini metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 shrink-0 lg:h-[13%]">
-        {miniMetrics.map((m, i) => <MiniMetricItem key={i} item={m} />)}
-      </div>
-
-      {/* Row: 2 tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 lg:h-[20%]">
-        <Card className="h-full">
-          <span className="text-[11px] font-semibold text-gray-900">Recruitment Summary by Department</span>
-          <div className="flex-1 overflow-auto mt-1">
-            <table className="w-full text-[9px] min-w-[520px]">
-              <thead>
-                <tr className="text-gray-600 text-left">
-                  <th className="font-medium pb-1">Department</th>
-                  <th className="font-medium pb-1">Openings</th>
-                  <th className="font-medium pb-1">Applications</th>
-                  <th className="font-medium pb-1">Shortlisted</th>
-                  <th className="font-medium pb-1">Interviews</th>
-                  <th className="font-medium pb-1">Offers</th>
-                  <th className="font-medium pb-1">Hires</th>
-                  <th className="font-medium pb-1">Time to Hire</th>
-                </tr>
-              </thead>
-              <tbody>
-                {deptRows.map((r, i) => (
-                  <tr key={i} className="text-gray-800 border-t border-slate-200">
-                    <td className="py-1">{r.department}</td>
-                    <td className="py-1">{r.openings}</td>
-                    <td className="py-1">{r.applications}</td>
-                    <td className="py-1">{r.shortlisted}</td>
-                    <td className="py-1">{r.interviews}</td>
-                    <td className="py-1">{r.offers}</td>
-                    <td className="py-1">{r.hires}</td>
-                    <td className="py-1">{r.timeToHire}</td>
-                  </tr>
-                ))}
-                <tr className="font-semibold text-gray-900 border-t border-slate-300">
-                  <td className="py-1">{deptTotals.department}</td>
-                  <td className="py-1">{deptTotals.openings}</td>
-                  <td className="py-1">{deptTotals.applications}</td>
-                  <td className="py-1">{deptTotals.shortlisted}</td>
-                  <td className="py-1">{deptTotals.interviews}</td>
-                  <td className="py-1">{deptTotals.offers}</td>
-                  <td className="py-1">{deptTotals.hires}</td>
-                  <td className="py-1">{deptTotals.timeToHire}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </Card>
-
-        <Card className="h-full">
-          <span className="text-[11px] font-semibold text-gray-900">Job Openings Performance</span>
-          <div className="flex-1 overflow-auto mt-1">
-            <table className="w-full text-[9px] min-w-[460px]">
-              <thead>
-                <tr className="text-gray-600 text-left">
-                  <th className="font-medium pb-1">Job Opening</th>
-                  <th className="font-medium pb-1">Applications</th>
-                  <th className="font-medium pb-1">Shortlisted</th>
-                  <th className="font-medium pb-1">Interviews</th>
-                  <th className="font-medium pb-1">Offers</th>
-                  <th className="font-medium pb-1">Hires</th>
-                  <th className="font-medium pb-1">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {jobRows.map((r, i) => (
-                  <tr key={i} className="text-gray-800 border-t border-slate-200">
-                    <td className="py-1 truncate max-w-[110px]">{r.title}</td>
-                    <td className="py-1">{r.applications}</td>
-                    <td className="py-1">{r.shortlisted}</td>
-                    <td className="py-1">{r.interviews}</td>
-                    <td className="py-1">{r.offers}</td>
-                    <td className="py-1">{r.hires}</td>
-                    <td className="py-1">
-                      <span className="bg-emerald-100 text-emerald-700 text-[8px] font-medium px-1.5 py-0.5 rounded-full">{r.status}</span>
-                    </td>
-                  </tr>
-                ))}
-                <tr className="font-semibold text-gray-900 border-t border-slate-300">
-                  <td className="py-1">Total</td>
-                  <td className="py-1">{jobTotals.applications}</td>
-                  <td className="py-1">{jobTotals.shortlisted}</td>
-                  <td className="py-1">{jobTotals.interviews}</td>
-                  <td className="py-1">{jobTotals.offers}</td>
-                  <td className="py-1">{jobTotals.hires}</td>
-                  <td className="py-1">—</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      </div>
-
-      {/* Row: 4 bottom charts */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 lg:h-[20%]">
-        <Card className="h-full">
-          <span className="text-[11px] font-semibold text-gray-900">Hiring Trend (Hires)</span>
-          <div className="flex-1 min-h-[120px] mt-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={hiringTrend} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <XAxis dataKey="month" tick={{ fontSize: 8, fill: '#1e293b' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 8, fill: '#1e293b' }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ fontSize: 10 }} />
-                <Bar dataKey="hires" fill="#6366f1" radius={[3, 3, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-
-        <Card className="h-full">
-          <span className="text-[11px] font-semibold text-gray-900">Offer Status</span>
-          <div className="flex-1 flex items-center gap-2 min-h-0">
-            <div className="w-1/2 h-full"><DonutChart data={offerStatus} centerLabel="Total" centerValue={22} /></div>
-            <Legend data={offerStatus.map(o => ({ name: o.name, color: o.color, sub: `${o.value} (${((o.value / 22) * 100).toFixed(1)}%)` }))} />
-          </div>
-        </Card>
-
-        <Card className="h-full">
-          <span className="text-[11px] font-semibold text-gray-900">Candidate Gender Diversity</span>
-          <div className="flex-1 flex items-center gap-2 min-h-0">
-            <div className="w-1/2 h-full"><DonutChart data={genderData} centerLabel="Hires" centerValue={14} /></div>
-            <Legend data={genderData.map(g => ({ name: g.name, color: g.color, sub: `${g.value} (${((g.value / 14) * 100).toFixed(1)}%)` }))} />
-          </div>
-        </Card>
-
-        {/* Compact & Fixed Dimension New Hires by Dept */}
-        <Card className="h-full max-w-full mx-auto w-full overflow-hidden">
-          <span className="text-[11px] font-semibold text-gray-900">New Hires by Department</span>
-          <div className="flex-1 min-h-[120px] mt-1 w-full px-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={deptHires} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                <XAxis dataKey="department" tick={{ fontSize: 8, fill: '#1e293b' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 8, fill: '#1e293b' }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ fontSize: 10 }} />
-                <Bar dataKey="hires" fill="#818cf8" radius={[3, 3, 0, 0]} maxBarSize={24} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-      </div>
-    </div>
-    </PageLayout>
   )
 }
 
-export default ReportAnalytics
+export default ReportAnalytics;

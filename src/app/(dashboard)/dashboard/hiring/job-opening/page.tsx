@@ -36,8 +36,9 @@ interface Opening {
 
 // ─── Mock data (Active Openings tab, matches the reference screenshot) ─────
 const OPENINGS: Opening[] = [
-  { id: 'JOB-2026-051', jobTitle: 'Sales Manager', initials: 'SM', avatarBg: 'bg-violet-100', avatarColor: 'text-violet-600', department: 'Sales & Marketing', location: 'Noida, UP', positions: 3, openPositions: 2, experience: '5 - 8 Years', jobType: 'Full Time', status: 'Active', applications: 24, isNew: true, postedOn: '15 Jun 2026', postedAgo: '2 days ago', tab: 'active' },
+  { id: 'JOB-2026-051', jobTitle: 'Sales Manager', initials: 'SM', avatarBg: 'bg-violet-100', avatarColor: 'text-indigo-700', department: 'Sales & Marketing', location: 'Noida, UP', positions: 3, openPositions: 2, experience: '5 - 8 Years', jobType: 'Full Time', status: 'Active', applications: 24, isNew: true, postedOn: '15 Jun 2026', postedAgo: '2 days ago', tab: 'active' },
   { id: 'JOB-2026-050', jobTitle: 'HR Executive', initials: 'HR', avatarBg: 'bg-amber-100', avatarColor: 'text-amber-600', department: 'Human Resources', location: 'Noida, UP', positions: 2, openPositions: 1, experience: '2 - 5 Years', jobType: 'Full Time', status: 'Active', applications: 18, isNew: true, postedOn: '14 Jun 2026', postedAgo: '3 days ago', tab: 'active' },
+  { id: 'JOB-2026-049', jobTitle: 'Software Developer', initials: 'SD', avatarBg: 'bg-blue-100', avatarColor: 'text-blue-600', department: 'IT Department', location: 'Noida, UP (WFH)', positions: 5, openPositions: 3, experience: '3 - 6 Years', jobType: 'Full Time', status: 'Active', applications: 32, isNew: true, postedOn: '13 Jun 2026', postedAgo: '4 days ago', tab: 'active' },
   { id: 'JOB-2026-048', jobTitle: 'Digital Marketing Executive', initials: 'DM', avatarBg: 'bg-indigo-100', avatarColor: 'text-indigo-600', department: 'Marketing', location: 'Noida, UP', positions: 2, openPositions: 2, experience: '1 - 3 Years', jobType: 'Full Time', status: 'Active', applications: 15, isNew: true, postedOn: '12 Jun 2026', postedAgo: '5 days ago', tab: 'active' },
   { id: 'JOB-2026-047', jobTitle: 'Accounts Executive', initials: 'AE', avatarBg: 'bg-emerald-100', avatarColor: 'text-emerald-600', department: 'Finance & Accounts', location: 'Ghaziabad, UP', positions: 2, openPositions: 1, experience: '2 - 4 Years', jobType: 'Full Time', status: 'Active', applications: 11, postedOn: '10 Jun 2026', postedAgo: '7 days ago', tab: 'active' },
 ];
@@ -52,7 +53,7 @@ const TABS: { key: TabKey; label: string; count: number }[] = [
 ];
 
 const SUMMARY = [
-  { key: 'total', label: 'Total Openings', value: 23, sub: 'All Departments', icon: <Briefcase size={20} />, color: 'text-violet-600', bg: 'bg-violet-50' },
+  { key: 'total', label: 'Total Openings', value: 23, sub: 'All Departments', icon: <Briefcase size={20} />, color: 'text-indigo-700', bg: 'bg-violet-50' },
   { key: 'activeOpenings', label: 'Active Openings', value: 17, sub: '73.91% of total', icon: <Send size={20} />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
   { key: 'positions', label: 'Total Positions', value: 42, sub: 'All Departments', icon: <UsersRound size={20} />, color: 'text-blue-600', bg: 'bg-blue-50' },
   { key: 'applications', label: 'Applications', value: 156, sub: 'Total received', icon: <EyeIcon size={20} />, color: 'text-amber-600', bg: 'bg-amber-50' },
@@ -79,12 +80,12 @@ const STATUS_STYLES: Record<OpeningStatus, string> = {
 function FilterSelect({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (v: string) => void; }) {
   return (
     <div className="flex flex-col gap-1 min-w-[140px] flex-1 basis-[140px]">
-      <label className="text-[10px] font-medium text-zinc-500">{label}</label>
+      <label className="text-[11px] font-medium text-zinc-500">{label}</label>
       <div className="relative">
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full appearance-none rounded-sm border border-zinc-200 bg-white px-2 py-1 pr-7 text-[11px] font-medium text-zinc-700 shadow-none hover:border-violet-300 focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors cursor-pointer"
+          className="w-full appearance-none rounded-lg border border-zinc-200 bg-white px-3 py-1.5 pr-7 text-[12px] font-medium text-zinc-700 shadow-sm hover:border-indigo-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors cursor-pointer"
         >
           {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
         </select>
@@ -107,8 +108,8 @@ function SummaryCards() {
   return (
     <section className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
       {SUMMARY.map((item) => (
-        <Card key={item.key} className="border-zinc-200/80 shadow-none rounded-md">
-          <CardContent className="flex items-center gap-3 p-3">
+        <Card key={item.key} className="border-zinc-200/80 shadow-sm">
+          <CardContent className="flex items-center gap-3 p-3.5">
             <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${item.bg} ${item.color}`}>
               {item.icon}
             </span>
@@ -139,20 +140,20 @@ function FiltersBar({
   status: string; setStatus: (v: string) => void;
 }) {
   return (
-    <Card className="border-zinc-200/80 shadow-none rounded-sm">
-      <CardContent className="p-2 space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <div className="relative w-1/2">
+    <Card className="border-zinc-200/80 shadow-sm">
+      <CardContent className="p-3.5 space-y-3">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
             <input
               value={search}
               onChange={(e) => onSearch(e.target.value)}
               placeholder="Search by job title, department or location..."
-              className="w-full rounded-sm border border-zinc-200 bg-white pl-3 pr-8 py-1.5 text-[11px] text-zinc-700 placeholder:text-zinc-400 shadow-none focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors"
+              className="w-full rounded-lg border border-zinc-200 bg-white pl-3.5 pr-9 py-2 text-[12px] text-zinc-700 placeholder:text-zinc-400 shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
             />
-            <Search size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+            <Search size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
           </div>
-          <button className="inline-flex items-center gap-1.5 rounded-sm border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-none hover:border-violet-300 transition-colors shrink-0">
-            <SlidersHorizontal size={13} className="text-violet-600" />
+          <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
+            <SlidersHorizontal size={13} className="text-indigo-700" />
             More Filters
           </button>
         </div>
@@ -171,28 +172,21 @@ function FiltersBar({
 }
 
 // ─── Tabs ───────────────────────────────────────────────────────────────────
-function TabsBar({ active, onChange, actions }: { active: TabKey; onChange: (t: TabKey) => void; actions?: React.ReactNode }) {
+function TabsBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) => void; }) {
   return (
-    <div className="flex flex-wrap items-center justify-between border-b border-zinc-100 px-1">
-      <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => onChange(tab.key)}
-            className={`relative px-3 py-2.5 text-[12.5px] font-semibold whitespace-nowrap transition-colors ${
-              active === tab.key ? 'text-violet-700' : 'text-zinc-500 hover:text-zinc-700'
-            }`}
-          >
-            {tab.label} <span className={active === tab.key ? 'text-violet-400' : 'text-zinc-400'}>({tab.count})</span>
-            {active === tab.key && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-violet-600 rounded-full" />}
-          </button>
-        ))}
-      </div>
-      {actions && (
-        <div className="flex items-center gap-2 pr-2 py-1 shrink-0">
-          {actions}
-        </div>
-      )}
+    <div className="flex flex-wrap items-center gap-1 border-b border-zinc-100 px-1">
+      {TABS.map((tab) => (
+        <button
+          key={tab.key}
+          onClick={() => onChange(tab.key)}
+          className={`relative px-3 py-2.5 text-[12.5px] font-semibold whitespace-nowrap transition-colors ${
+            active === tab.key ? 'text-violet-700' : 'text-zinc-500 hover:text-zinc-700'
+          }`}
+        >
+          {tab.label} <span className={active === tab.key ? 'text-violet-400' : 'text-zinc-400'}>({tab.count})</span>
+          {active === tab.key && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-indigo-700 rounded-full" />}
+        </button>
+      ))}
     </div>
   );
 }
@@ -215,45 +209,45 @@ function OpeningsTable({ rows }: { rows: Opening[] }) {
           <col className="w-[84px]" />
         </colgroup>
         <thead>
-          <tr className="border-b border-zinc-200 bg-[#f8fafc] text-left text-[11px] font-normal tracking-wide text-purple-900">
-            <th className="py-1.5 px-3">Job Title</th>
-            <th className="hidden md:table-cell py-1.5 px-3">Department</th>
-            <th className="hidden lg:table-cell py-1.5 px-3">Location</th>
-            <th className="py-1.5 px-3">Positions</th>
-            <th className="hidden sm:table-cell py-1.5 px-3">Experience</th>
-            <th className="hidden md:table-cell py-1.5 px-3">Job Type</th>
-            <th className="py-1.5 px-3">Status</th>
-            <th className="py-1.5 px-3">Applications</th>
-            <th className="hidden sm:table-cell py-1.5 px-3">Posted On</th>
-            <th className="py-1.5 px-3 text-right">Actions</th>
+          <tr className="border-b border-zinc-100 text-left text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
+            <th className="py-2.5 pr-3">Job Title</th>
+            <th className="hidden md:table-cell py-2.5 pr-3">Department</th>
+            <th className="hidden lg:table-cell py-2.5 pr-3">Location</th>
+            <th className="py-2.5 pr-3">Positions</th>
+            <th className="hidden sm:table-cell py-2.5 pr-3">Experience</th>
+            <th className="hidden md:table-cell py-2.5 pr-3">Job Type</th>
+            <th className="py-2.5 pr-3">Status</th>
+            <th className="py-2.5 pr-3">Applications</th>
+            <th className="hidden sm:table-cell py-2.5 pr-3">Posted On</th>
+            <th className="py-2.5 pr-1 text-right">Actions</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((o) => (
-            <tr key={o.id} className="border-b border-zinc-200 last:border-b-0 hover:bg-zinc-50/70 transition-colors">
-              <td className="py-1.5 px-3">
+            <tr key={o.id} className="border-b border-zinc-50 hover:bg-zinc-50/70 transition-colors">
+              <td className="py-2.5 pr-3">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[10px] font-semibold ${o.avatarBg} ${o.avatarColor}`}>
+                  <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-[11px] font-bold ${o.avatarBg} ${o.avatarColor}`}>
                     {o.initials}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-[10px] font-semibold text-zinc-800 leading-tight truncate">{o.jobTitle}</p>
+                    <p className="text-[12.5px] font-semibold text-zinc-800 leading-tight truncate">{o.jobTitle}</p>
                     <p className="text-[10px] text-zinc-400 leading-tight truncate">{o.id}</p>
                   </div>
                 </div>
               </td>
-              <td className="hidden md:table-cell py-1.5 px-3 text-[11px] text-zinc-600 truncate">{o.department}</td>
-              <td className="hidden lg:table-cell py-1.5 px-3 text-[11px] text-zinc-600 truncate">{o.location}</td>
-              <td className="py-1.5 px-3">
-                <p className="text-[11px] font-bold text-zinc-900 leading-tight">{o.positions}</p>
-                <p className="text-[9px] text-emerald-600 font-medium leading-tight">{o.openPositions} Open</p>
+              <td className="hidden md:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 truncate">{o.department}</td>
+              <td className="hidden lg:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 truncate">{o.location}</td>
+              <td className="py-2.5 pr-3">
+                <p className="text-[12.5px] font-bold text-zinc-900 leading-tight">{o.positions}</p>
+                <p className="text-[10px] text-emerald-600 font-medium leading-tight">{o.openPositions} Open</p>
               </td>
-              <td className="hidden sm:table-cell py-1.5 px-3 text-[11px] text-zinc-600 whitespace-nowrap">{o.experience}</td>
-              <td className="hidden md:table-cell py-1.5 px-3 text-[11px] text-zinc-600 truncate">{o.jobType}</td>
-              <td className="py-1.5 px-3"><StatusBadge status={o.status} /></td>
-              <td className="py-1.5 px-3">
+              <td className="hidden sm:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 whitespace-nowrap">{o.experience}</td>
+              <td className="hidden md:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 truncate">{o.jobType}</td>
+              <td className="py-2.5 pr-3"><StatusBadge status={o.status} /></td>
+              <td className="py-2.5 pr-3">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] font-semibold text-zinc-800">{o.applications}</span>
+                  <span className="text-[12.5px] font-semibold text-zinc-800">{o.applications}</span>
                   {o.isNew && (
                     <span className="inline-flex items-center rounded-full bg-rose-50 text-rose-600 border border-rose-100 px-1.5 py-0.5 text-[9px] font-bold">
                       New
@@ -261,20 +255,20 @@ function OpeningsTable({ rows }: { rows: Opening[] }) {
                   )}
                 </div>
               </td>
-              <td className="hidden sm:table-cell py-1.5 px-3">
-                <p className="text-[11px] text-zinc-700 leading-tight whitespace-nowrap">{o.postedOn}</p>
-                <p className="text-[9px] text-zinc-400 leading-tight">{o.postedAgo}</p>
+              <td className="hidden sm:table-cell py-2.5 pr-3">
+                <p className="text-[12px] text-zinc-700 leading-tight whitespace-nowrap">{o.postedOn}</p>
+                <p className="text-[10px] text-zinc-400 leading-tight">{o.postedAgo}</p>
               </td>
-              <td className="py-1.5 px-3">
+              <td className="py-2.5 pr-1">
                 <div className="flex items-center justify-end gap-1">
-                  <Link href={`/dashboard/hiring/openings/${o.id}`} className="grid h-6 w-6 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 transition-colors">
-                    <EyeIcon size={11} />
+                  <Link href={`/dashboard/hiring/openings/${o.id}`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
+                    <EyeIcon size={13} />
                   </Link>
-                  <Link href={`/dashboard/hiring/openings/${o.id}/edit`} className="grid h-6 w-6 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 transition-colors">
-                    <Pencil size={11} />
+                  <Link href={`/dashboard/hiring/openings/${o.id}/edit`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
+                    <Pencil size={13} />
                   </Link>
-                  <button className="grid h-6 w-6 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 transition-colors">
-                    <MoreHorizontal size={11} />
+                  <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
+                    <MoreHorizontal size={13} />
                   </button>
                 </div>
               </td>
@@ -301,7 +295,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
           <select
             value={pageSize}
             onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
-            className="appearance-none rounded-sm border border-zinc-200 bg-white pl-2.5 pr-6 py-1 text-[12px] font-medium text-zinc-700 shadow-none focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer"
+            className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-6 py-1 text-[12px] font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
           >
             {[10, 25, 50].map((n) => <option key={n} value={n}>{n}</option>)}
           </select>
@@ -314,7 +308,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
         <button
           onClick={() => setPage(Math.max(1, page - 1))}
           disabled={page === 1}
-          className="grid h-7 w-7 place-items-center rounded-sm border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors"
+          className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors"
         >
           <ChevronLeft size={13} />
         </button>
@@ -322,7 +316,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
           <button
             key={p}
             onClick={() => setPage(p)}
-            className={`h-7 w-7 rounded-sm text-[12px] font-semibold transition-colors ${p === page ? 'bg-violet-600 text-white' : 'border border-zinc-200 text-zinc-600 hover:border-violet-300 hover:text-violet-600'}`}
+            className={`h-7 w-7 rounded-md text-[12px] font-semibold transition-colors ${p === page ? 'bg-indigo-700 text-white' : 'border border-zinc-200 text-zinc-600 hover:border-indigo-200 hover:text-indigo-700'}`}
           >
             {p}
           </button>
@@ -331,7 +325,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
         <button
           onClick={() => setPage(Math.min(totalPages, page + 1))}
           disabled={page === totalPages}
-          className="grid h-7 w-7 place-items-center rounded-sm border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors"
+          className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors"
         >
           <ChevronRight size={13} />
         </button>
@@ -349,15 +343,15 @@ function PageHeader() {
         <p className="text-[13px] text-zinc-500 mt-1">View and manage all active job openings</p>
       </div>
       <div className="flex items-center gap-2">
-        <button className="inline-flex items-center gap-1.5 rounded-sm border border-zinc-200 bg-white px-2 py-1.5 text-[12px] font-semibold text-violet-600 hover:border-violet-300 transition-colors shadow-none">
+        <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:border-indigo-200 transition-colors">
           <Globe2 size={14} />
           Career Page
         </button>
-        <button className="inline-flex items-center gap-1.5 rounded-sm border border-zinc-200 bg-white px-2 py-1.5 text-[12px] font-semibold text-violet-600 hover:border-violet-300 transition-colors shadow-none">
+        <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
           <Download size={14} />
           Export
         </button>
-        <Link href="/dashboard/hiring/openings/new" className="inline-flex items-center gap-1.5 rounded-sm bg-violet-600 px-2 py-1.5 text-[12px] font-semibold text-white shadow-none hover:bg-violet-700 transition-colors">
+        <Link href="/dashboard/hiring/openings/new" className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-800 transition-colors">
           <Plus size={14} />
           Create New Opening
         </Link>
@@ -396,7 +390,7 @@ export default function JobOpeningsPage() {
   }, [activeTab, search, department, location, jobType, experience, status]);
 
   return (
-    <main className="mx-auto max-w-[1600px] w-full space-y-3 overflow-x-hidden pb-6 px-2 sm:px-3">
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       <PageHeader />
       <SummaryCards />
       <FiltersBar
@@ -409,34 +403,35 @@ export default function JobOpeningsPage() {
         status={status} setStatus={setStatus}
       />
 
-      <Card className="border-zinc-200/80 shadow-none rounded-sm">
+      <Card className="border-zinc-200/80 shadow-sm">
         <CardContent className="p-0">
-          <TabsBar
-            active={activeTab}
-            onChange={(t) => { setActiveTab(t); setPage(1); }}
-            actions={
-              <>
-                <button className="inline-flex items-center gap-1.5 rounded-sm border border-zinc-200 bg-white px-2 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-none hover:border-violet-300 transition-colors">
-                  <Columns3 size={11} />
+          <TabsBar active={activeTab} onChange={(t) => { setActiveTab(t); setPage(1); }} />
+
+          <div className="p-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <h3 className="text-[13px] font-semibold text-zinc-900">
+                {TABS.find((t) => t.key === activeTab)?.label} ({tabCount})
+              </h3>
+              <div className="flex items-center gap-2">
+                <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-indigo-200 transition-colors">
+                  <Columns3 size={13} />
                   Columns
                 </button>
                 <div className="relative">
                   <select
                     defaultValue="Posted Date (Newest)"
-                    className="appearance-none rounded-sm border border-zinc-200 bg-white pl-2.5 pr-7 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-none hover:border-violet-300 focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors cursor-pointer"
+                    className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-7 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-indigo-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors cursor-pointer"
                   >
                     <option>Posted Date (Newest)</option>
                     <option>Posted Date (Oldest)</option>
                     <option>Applications (High to Low)</option>
                     <option>Job Title (A-Z)</option>
                   </select>
-                  <ChevronDown size={11} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400" />
+                  <ChevronDown size={12} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400" />
                 </div>
-              </>
-            }
-          />
+              </div>
+            </div>
 
-          <div className="p-3 pt-4">
             <OpeningsTable rows={filtered.slice((page - 1) * pageSize, page * pageSize)} />
 
             <TableFooter
@@ -447,6 +442,6 @@ export default function JobOpeningsPage() {
           </div>
         </CardContent>
       </Card>
-    </main>
+    </div>
   );
 }

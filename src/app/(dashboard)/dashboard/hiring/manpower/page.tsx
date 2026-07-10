@@ -39,7 +39,7 @@ const REQUISITIONS: Requisition[] = [
 const TOTAL_REQUISITIONS = 58;
 
 const SUMMARY = [
-  { key: 'total', label: 'Total Requisitions', value: TOTAL_REQUISITIONS, sub: 'All time', icon: <Briefcase size={18} />, color: 'text-violet-600', bg: 'bg-violet-50' },
+  { key: 'total', label: 'Total Requisitions', value: TOTAL_REQUISITIONS, sub: 'All time', icon: <Briefcase size={18} />, color: 'text-indigo-700', bg: 'bg-violet-50' },
   { key: 'open', label: 'Open Requisitions', value: 23, sub: '39.66% of total', icon: <FileText size={18} />, color: 'text-blue-600', bg: 'bg-blue-50' },
   { key: 'pending', label: 'Pending Approval', value: 8, sub: '13.79% of total', icon: <Send size={18} />, color: 'text-amber-600', bg: 'bg-amber-50' },
   { key: 'approved', label: 'Approved', value: 19, sub: '32.76% of total', icon: <CheckCircle2 size={18} />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
@@ -74,7 +74,7 @@ function FilterSelect({ label, value, options, onChange }: { label: string; valu
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full appearance-none rounded-lg border border-zinc-200 bg-white px-2.5 py-1 pr-6 text-[11.5px] font-medium text-zinc-700 hover:border-violet-300 focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors cursor-pointer"
+          className="w-full appearance-none rounded-lg border border-zinc-200 bg-white px-2.5 py-1 pr-6 text-[11.5px] font-medium text-zinc-700 hover:border-indigo-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors cursor-pointer"
         >
           {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
         </select>
@@ -147,17 +147,17 @@ function FiltersBar({
               value={search}
               onChange={(e) => onSearch(e.target.value)}
               placeholder="Search by requisition ID, job title, department or requested by..."
-              className="w-1/2 rounded-lg border border-zinc-200 bg-white pl-8 pr-3 py-1.5 text-[12px] text-zinc-700 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors"
+              className="w-1/2 rounded-lg border border-zinc-200 bg-white pl-8 pr-3 py-1.5 text-[12px] text-zinc-700 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
             />
           </div>
-          <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-700 hover:border-violet-300 transition-colors shrink-0">
-            <SlidersHorizontal size={13} className="text-violet-600" />
+          <button className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors">
+            <SlidersHorizontal size={13} className="text-indigo-700" />
             Filters
             {activeCount > 0 && (
-              <span className="ml-0.5 grid h-4 w-4 place-items-center rounded-full bg-violet-600 text-white text-[9px] font-bold">{activeCount}</span>
+              <span className="ml-0.5 grid h-4 w-4 place-items-center rounded-full bg-indigo-700 text-white text-[9px] font-bold">{activeCount}</span>
             )}
           </button>
-          <button onClick={onClear} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-500 hover:border-rose-300 hover:text-rose-600 transition-colors shrink-0">
+          <button onClick={onClear} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-500 shadow-sm hover:border-rose-300 hover:text-rose-600 transition-colors shrink-0">
             <RotateCcw size={13} />
             Clear All
           </button>
@@ -171,7 +171,7 @@ function FiltersBar({
           <FilterSelect label="Priority" value={priority} options={PRIORITIES} onChange={setPriority} />
           <div className="flex flex-col gap-1 min-w-0 lg:col-span-2">
             <label className="text-[10.5px] font-medium text-zinc-500">Date Range</label>
-            <div className="relative flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[11.5px] font-medium text-zinc-700 hover:border-violet-300 transition-colors cursor-pointer">
+            <div className="relative flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[11.5px] font-medium text-zinc-700 hover:border-indigo-200 transition-colors cursor-pointer">
               <CalendarDays size={13} className="text-zinc-400 shrink-0" />
               <span className="whitespace-nowrap">{dateRange}</span>
               <ChevronDown size={13} className="ml-auto text-zinc-400 shrink-0" />
@@ -237,13 +237,13 @@ function RequisitionsTable({ rows, onToggleStar }: { rows: Requisition[]; onTogg
               <td className="py-1.5 px-3 text-center text-[10px] text-zinc-500 whitespace-nowrap">{r.requestedOn}</td>
               <td className="py-1.5 pr-1">
                 <div className="flex items-center justify-center gap-1">
-                  <Link href={`/dashboard/hiring/requisitions/${r.id}`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 transition-colors">
+                  <Link href={`/dashboard/hiring/requisitions/${r.id}`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
                     <Eye size={13} />
                   </Link>
-                  <Link href={`/dashboard/hiring/requisitions/${r.id}/edit`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 transition-colors">
+                  <Link href={`/dashboard/hiring/requisitions/${r.id}/edit`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
                     <Pencil size={13} />
                   </Link>
-                  <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 transition-colors">
+                  <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
                     <MoreHorizontal size={13} />
                   </button>
                 </div>
@@ -273,7 +273,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
           <select
             value={pageSize}
             onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
-            className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-6 py-1 text-[12px] font-medium text-zinc-700 focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer"
+            className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-6 py-1 text-[12px] font-medium text-zinc-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
           >
             {[10, 25, 50].map((n) => <option key={n} value={n}>{n}</option>)}
           </select>
@@ -288,7 +288,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
         <button
           onClick={() => setPage(Math.max(1, page - 1))}
           disabled={page === 1}
-          className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors"
+          className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors"
         >
           <ChevronLeft size={13} />
         </button>
@@ -296,7 +296,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
           <button
             key={p}
             onClick={() => setPage(p)}
-            className={`h-7 w-7 rounded-md text-[12px] font-semibold transition-colors ${p === page ? 'bg-violet-600 text-white' : 'border border-zinc-200 text-zinc-600 hover:border-violet-300 hover:text-violet-600'}`}
+            className={`h-7 w-7 rounded-md text-[12px] font-semibold transition-colors ${p === page ? 'bg-indigo-700 text-white' : 'border border-zinc-200 text-zinc-600 hover:border-indigo-200 hover:text-indigo-700'}`}
           >
             {p}
           </button>
@@ -305,7 +305,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
         <button
           onClick={() => setPage(Math.min(totalPages, page + 1))}
           disabled={page === totalPages}
-          className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors"
+          className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors"
         >
           <ChevronRight size={13} />
         </button>
@@ -323,15 +323,15 @@ function PageHeader() {
         <p className="text-[13px] text-zinc-500 mt-1">Create, track and manage all job requisitions</p>
       </div>
       <div className="flex items-center gap-2">
-        <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-[12px] font-semibold text-violet-600 hover:border-violet-300 transition-colors">
+        <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
           <Download size={14} />
           Export
         </button>
-        <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-[12px] font-semibold text-violet-600 hover:border-violet-300 transition-colors">
+        <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:border-indigo-200 transition-colors">
           <BarChart3 size={14} />
           Analytics
         </button>
-        <Link href="/dashboard/hiring/requisitions/new" className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-2 py-1.5 text-[12px] font-semibold text-white hover:bg-violet-700 transition-colors">
+        <Link href="/dashboard/hiring/requisitions/new" className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-800 transition-colors">
           <Plus size={14} />
           New Requisition
         </Link>
@@ -387,7 +387,7 @@ export default function JobRequisitionsPage() {
   };
 
   return (
-    <main className="mx-auto max-w-[1600px] space-y-3 pb-6 px-2 sm:px-3">
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       <PageHeader />
       <SummaryCards />
       <FiltersBar
@@ -406,11 +406,11 @@ export default function JobRequisitionsPage() {
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-zinc-200 pb-2">
             <h3 className="text-[11px] font-semibold text-zinc-900">{filtered.length} Requisitions Found</h3>
             <div className="flex items-center gap-2">
-              <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 hover:border-violet-300 transition-colors">
+              <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 hover:border-indigo-200 transition-colors">
                 <Columns3 size={13} />
                 Columns
               </button>
-              <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 hover:border-violet-300 transition-colors">
+              <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 hover:border-indigo-200 transition-colors">
                 <ArrowUpDown size={13} />
                 Latest First
               </button>
@@ -426,6 +426,6 @@ export default function JobRequisitionsPage() {
           />
         </CardContent>
       </Card>
-    </main>
+    </div>
   );
 }
