@@ -21,7 +21,6 @@ import {
   Star
 } from 'lucide-react';
 import { CandidateInfo, Note, Skill, PortalView } from './types';
-import PageLayout from '@/components/ui/pageLayout';
 import { FaLinkedin } from 'react-icons/fa';
 
 const defaultCandidate: CandidateInfo = {
@@ -158,7 +157,7 @@ export default function EvaluationPage({
     link.click();
   };
   return (
-    <PageLayout>
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
 
       <div
         className="w-full min-h-screen lg:h-screen lg:min-h-[650px] overflow-y-auto lg:overflow-hidden flex flex-col bg-slate-50 font-sans text-slate-900 select-none"
@@ -768,6 +767,6 @@ export default function EvaluationPage({
           </div>
         </div>
       </div>
-    </PageLayout>
+    </div>
   );
 }

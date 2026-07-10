@@ -7,6 +7,7 @@ import {
   MoreHorizontal, Mail, Plus, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import PageLayout from '@/components/ui/pageLayout';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 type NoticePeriod = 'Immediate' | '1 Month' | '1 - 2 Months' | '2 Months' | '2 - 3 Months' | '3 Months';
@@ -470,7 +471,8 @@ export default function HoldCandidatesPage() {
   };
 
   return (
-    <main className="mx-auto max-w-[1600px] w-full space-y-3 overflow-x-hidden pb-6 px-2 sm:px-3">
+    <PageLayout>
+    <main className="mx-auto max-w-[1600px] w-full space-y-3 overflow-x-hidden pb-6 px-2 sm:px-3 min-h-[calc(100vh-48px)]">
       <PageHeader />
       <SummaryCards />
       <FiltersBar
@@ -524,5 +526,6 @@ export default function HoldCandidatesPage() {
         </CardContent>
       </Card>
     </main>
+    </PageLayout>
   );
 }

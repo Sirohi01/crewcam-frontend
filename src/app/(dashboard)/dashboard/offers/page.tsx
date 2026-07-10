@@ -20,7 +20,6 @@ import {
   XCircle,
   Ticket,
 } from 'lucide-react'
-import PageLayout from '@/components/ui/pageLayout'
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -319,11 +318,10 @@ function Dropdown({ field, onChange }: DropdownProps) {
                 onChange(field.key, opt)
                 setOpen(false)
               }}
-              className={`block w-full truncate rounded-md px-2 py-1.5 text-left text-xs hover:bg-slate-50 ${
-                opt === field.value
+              className={`block w-full truncate rounded-md px-2 py-1.5 text-left text-xs hover:bg-slate-50 ${opt === field.value
                   ? "bg-indigo-50 text-indigo-700"
                   : "text-slate-700"
-              }`}
+                }`}
             >
               {opt}
             </button>
@@ -470,354 +468,351 @@ const OffersPage = () => {
   }
 
   return (
-    <PageLayout>
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
 
-    <div className="flex h-full w-full flex-col gap-2 overflow-hidden bg-white p-2 text-slate-900" style={{ height: 'calc(100% - 3rem)' }}>
-      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
+      <div className="flex h-full w-full flex-col gap-2 overflow-hidden bg-white p-2 text-slate-900" style={{ height: 'calc(100% - 3rem)' }}>
+        {toast && <Toast message={toast} onClose={() => setToast(null)} />}
 
-      {actionMenu && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setActionMenu(null)} />
-          <div
-            className="fixed z-50 w-44 rounded-lg border border-slate-200 bg-white p-1 shadow-lg"
-            style={{ top: actionMenu.top, left: actionMenu.left }}
-          >
-            {[
-              { label: 'View details', tone: 'text-slate-700' },
-              { label: 'Download offer letter', tone: 'text-slate-700' },
-              { label: 'Resend offer', tone: 'text-slate-700' },
-              { label: 'Edit offer', tone: 'text-slate-700' },
-              { label: 'Withdraw offer', tone: 'text-rose-600' },
-            ].map((item) => {
-              const row = pageRows.find((r) => r.id === actionMenu.id)
-              return (
-                <button
-                  key={item.label}
-                  onClick={() => {
-                    notify(`${item.label}: ${row?.candidateName ?? ''}`)
-                    setActionMenu(null)
-                  }}
-                  className={`block w-full rounded-md px-2.5 py-1.5 text-left text-xs font-medium hover:bg-slate-50 ${item.tone}`}
-                >
-                  {item.label}
-                </button>
-              )
-            })}
-          </div>
-        </>
-      )}
-
-      {/* Header */}
-      <div className="flex shrink-0 flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg font-semibold text-slate-900">Offers</h1>
-            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-50 text-indigo-600">
-              <Ticket className="h-3.5 w-3.5" />
-            </span>
-          </div>
-          <p className="mt-0.5 truncate text-xs text-slate-700">Manage and track job offers extended to candidates</p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <button
-            onClick={() => notify('Offers exported')}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
-          >
-            <Download className="h-3.5 w-3.5 text-indigo-600" /> Export
-          </button>
-          <button
-            onClick={() => notify('Email sent')}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
-          >
-            <Mail className="h-3.5 w-3.5 text-indigo-600" /> Email
-          </button>
-          <button
-            onClick={() => notify('Create Offer flow started')}
-            className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700"
-          >
-            <Plus className="h-3.5 w-3.5" /> Create Offer
-          </button>
-        </div>
-      </div>
-
-      {/* Stat cards */}
-      <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-        {stats.map((s) => (
-          <div key={s.key} className="flex items-center gap-2 rounded-xl border border-slate-200 p-2">
-            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${toneClasses[s.tone]}`}>{s.icon}</span>
-            <div className="min-w-0">
-              <div className="text-base font-semibold leading-none text-slate-900">{s.value}</div>
-              <div className="mt-1 truncate text-[11px] font-semibold text-slate-700">{s.label}</div>
-              <div className={`mt-0.5 truncate text-[11px] font-medium ${s.tone === 'purple' ? 'text-emerald-600' : 'text-slate-600'}`}>{s.note}</div>
+        {actionMenu && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setActionMenu(null)} />
+            <div
+              className="fixed z-50 w-44 rounded-lg border border-slate-200 bg-white p-1 shadow-lg"
+              style={{ top: actionMenu.top, left: actionMenu.left }}
+            >
+              {[
+                { label: 'View details', tone: 'text-slate-700' },
+                { label: 'Download offer letter', tone: 'text-slate-700' },
+                { label: 'Resend offer', tone: 'text-slate-700' },
+                { label: 'Edit offer', tone: 'text-slate-700' },
+                { label: 'Withdraw offer', tone: 'text-rose-600' },
+              ].map((item) => {
+                const row = pageRows.find((r) => r.id === actionMenu.id)
+                return (
+                  <button
+                    key={item.label}
+                    onClick={() => {
+                      notify(`${item.label}: ${row?.candidateName ?? ''}`)
+                      setActionMenu(null)
+                    }}
+                    className={`block w-full rounded-md px-2.5 py-1.5 text-left text-xs font-medium hover:bg-slate-50 ${item.tone}`}
+                  >
+                    {item.label}
+                  </button>
+                )
+              })}
             </div>
+          </>
+        )}
+
+        {/* Header */}
+        <div className="flex shrink-0 flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-semibold text-slate-900">Offers</h1>
+              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-50 text-indigo-600">
+                <Ticket className="h-3.5 w-3.5" />
+              </span>
+            </div>
+            <p className="mt-0.5 truncate text-xs text-slate-700">Manage and track job offers extended to candidates</p>
           </div>
-        ))}
-      </div>
-
-      {/* Search + filter toggle */}
-      <div className="flex shrink-0 items-center gap-2">
-        <div className="flex min-w-0 flex-[3] items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2">
-          <Search className="h-4 w-4 shrink-0 text-indigo-600" strokeWidth={2.5} />
-          <input
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value)
-              setPage(1)
-            }}
-            placeholder="Search by candidate name, job title or offer ID..."
-            className="w-full min-w-0 bg-transparent text-xs text-slate-900 placeholder:text-slate-500 focus:outline-none"
-          />
-        </div>
-        <button className="flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">
-          <Filter className="h-3.5 w-3.5 text-indigo-600" /> Filters
-          <span className="rounded-full bg-indigo-600 px-1.5 text-[10px] font-semibold text-white">1</span>
-        </button>
-        <button
-          onClick={clearAll}
-          className="flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
-        >
-          <RotateCcw className="h-3.5 w-3.5" /> Clear All
-        </button>
-      </div>
-
-      {/* Filter fields */}
-      <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-        {FILTER_DEFS.map((f) => (
-          <div key={f.key} className="flex flex-col gap-0.5">
-            <span className="truncate text-[11px] font-medium text-slate-700">{f.label}</span>
-            <Dropdown field={{ ...f, value: filters[f.key] }} onChange={handleFilterChange} />
-          </div>
-        ))}
-      </div>
-
-      {/* Tabs + table controls */}
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-slate-200">
-        <div className="flex gap-6 overflow-x-auto">
-          {TABS.map((t) => (
+          <div className="flex shrink-0 items-center gap-2">
             <button
-              key={t.key}
-              onClick={() => {
-                setActiveTab(t.key)
+              onClick={() => notify('Offers exported')}
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+            >
+              <Download className="h-3.5 w-3.5 text-indigo-600" /> Export
+            </button>
+            <button
+              onClick={() => notify('Email sent')}
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+            >
+              <Mail className="h-3.5 w-3.5 text-indigo-600" /> Email
+            </button>
+            <button
+              onClick={() => notify('Create Offer flow started')}
+              className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700"
+            >
+              <Plus className="h-3.5 w-3.5" /> Create Offer
+            </button>
+          </div>
+        </div>
+
+        {/* Stat cards */}
+        <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+          {stats.map((s) => (
+            <div key={s.key} className="flex items-center gap-2 rounded-xl border border-slate-200 p-2">
+              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${toneClasses[s.tone]}`}>{s.icon}</span>
+              <div className="min-w-0">
+                <div className="text-base font-semibold leading-none text-slate-900">{s.value}</div>
+                <div className="mt-1 truncate text-[11px] font-semibold text-slate-700">{s.label}</div>
+                <div className={`mt-0.5 truncate text-[11px] font-medium ${s.tone === 'purple' ? 'text-emerald-600' : 'text-slate-600'}`}>{s.note}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Search + filter toggle */}
+        <div className="flex shrink-0 items-center gap-2">
+          <div className="flex min-w-0 flex-[3] items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2">
+            <Search className="h-4 w-4 shrink-0 text-indigo-600" strokeWidth={2.5} />
+            <input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value)
                 setPage(1)
               }}
-              className={`whitespace-nowrap border-b-2 px-1 pb-2 text-xs font-medium ${
-                activeTab === t.key ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              {t.label} ({counts[t.key]})
-            </button>
+              placeholder="Search by candidate name, job title or offer ID..."
+              className="w-full min-w-0 bg-transparent text-xs text-slate-900 placeholder:text-slate-500 focus:outline-none"
+            />
+          </div>
+          <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
+            <Filter className="h-3.5 w-3.5 text-indigo-600" /> Filters
+            <span className="rounded-full bg-indigo-600 px-1.5 text-[10px] font-semibold text-white">1</span>
+          </button>
+          <button
+            onClick={clearAll}
+            className="flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+          >
+            <RotateCcw className="h-3.5 w-3.5" /> Clear All
+          </button>
+        </div>
+
+        {/* Filter fields */}
+        <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+          {FILTER_DEFS.map((f) => (
+            <div key={f.key} className="flex flex-col gap-0.5">
+              <span className="truncate text-[11px] font-medium text-slate-700">{f.label}</span>
+              <Dropdown field={{ ...f, value: filters[f.key] }} onChange={handleFilterChange} />
+            </div>
           ))}
         </div>
-        <div className="flex shrink-0 items-center gap-2 pb-2">
-          <button
-            onClick={() => notify('Column settings opened')}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-indigo-600 hover:bg-slate-50"
-          >
-            <Columns3 className="h-3.5 w-3.5" /> Columns
-          </button>
-          <div className="relative">
+
+        {/* Tabs + table controls */}
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-slate-200">
+          <div className="flex gap-6 overflow-x-auto">
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => {
+                  setActiveTab(t.key)
+                  setPage(1)
+                }}
+                className={`whitespace-nowrap border-b-2 px-1 pb-2 text-xs font-medium ${activeTab === t.key ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-600 hover:text-slate-900'
+                  }`}
+              >
+                {t.label} ({counts[t.key]})
+              </button>
+            ))}
+          </div>
+          <div className="flex shrink-0 items-center gap-2 pb-2">
             <button
-              onClick={() => setSortOpen((v) => !v)}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+              onClick={() => notify('Column settings opened')}
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-indigo-600 hover:bg-slate-50"
             >
-              {sortNewestFirst ? 'Newest First' : 'Oldest First'} <ChevronDown className="h-3.5 w-3.5" />
+              <Columns3 className="h-3.5 w-3.5" /> Columns
             </button>
-            {sortOpen && (
-              <div className="absolute right-0 top-full z-20 mt-1 w-32 rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
-                {['Newest First', 'Oldest First'].map((opt) => (
-                  <button
-                    key={opt}
-                    onClick={() => {
-                      setSortNewestFirst(opt === 'Newest First')
-                      setSortOpen(false)
-                    }}
-                    className="block w-full rounded-md px-2 py-1.5 text-left text-xs text-slate-700 hover:bg-slate-50"
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="relative">
+              <button
+                onClick={() => setSortOpen((v) => !v)}
+                className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+              >
+                {sortNewestFirst ? 'Newest First' : 'Oldest First'} <ChevronDown className="h-3.5 w-3.5" />
+              </button>
+              {sortOpen && (
+                <div className="absolute right-0 top-full z-20 mt-1 w-32 rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
+                  {['Newest First', 'Oldest First'].map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() => {
+                        setSortNewestFirst(opt === 'Newest First')
+                        setSortOpen(false)
+                      }}
+                      className="block w-full rounded-md px-2 py-1.5 text-left text-xs text-slate-700 hover:bg-slate-50"
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Table */}
-      <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-slate-200">
-        <table className="w-full min-w-[860px] border-collapse text-left text-xs">
-          <thead className="sticky top-0 bg-slate-50">
-            <tr className="text-slate-700">
-              <th className="w-8 px-2 py-2">
-                <input
-                  type="checkbox"
-                  checked={pageRows.length > 0 && selected.size === pageRows.length}
-                  onChange={toggleSelectAll}
-                  className="h-3.5 w-3.5 accent-indigo-600"
-                />
-              </th>
-              <th className="px-2 py-2 font-medium">Candidate</th>
-              <th className="px-2 py-2 font-medium">Job Opening</th>
-              <th className="px-2 py-2 font-medium">Offered CTC</th>
-              <th className="px-2 py-2 font-medium">Offer Type</th>
-              <th className="px-2 py-2 font-medium">Offer Date</th>
-              <th className="px-2 py-2 font-medium">Offer Expiry</th>
-              <th className="px-2 py-2 font-medium">Offered By</th>
-              <th className="px-2 py-2 font-medium">Status</th>
-              <th className="px-2 py-2 font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pageRows.map((o) => (
-              <tr key={o.id} className="border-t border-slate-100 hover:bg-slate-50/60">
-                <td className="px-2 py-2 align-middle">
+        {/* Table */}
+        <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-slate-200">
+          <table className="w-full min-w-[860px] border-collapse text-left text-xs">
+            <thead className="sticky top-0 bg-slate-50">
+              <tr className="text-slate-700">
+                <th className="w-8 px-2 py-2">
                   <input
                     type="checkbox"
-                    checked={selected.has(o.id)}
-                    onChange={() => toggleSelectOne(o.id)}
+                    checked={pageRows.length > 0 && selected.size === pageRows.length}
+                    onChange={toggleSelectAll}
                     className="h-3.5 w-3.5 accent-indigo-600"
                   />
-                </td>
-                <td className="px-2 py-2 align-top">
-                  <div className="flex items-start gap-2">
-                    <img src={o.avatarUrl} alt={o.candidateName} className="h-7 w-7 shrink-0 rounded-full object-cover" />
-                    <div className="min-w-0">
-                      <div className="truncate font-medium text-slate-900">{o.candidateName}</div>
-                      <div className="truncate text-[11px] text-slate-700">{o.email}</div>
-                      <div className="truncate text-[11px] text-slate-700">{o.phone}</div>
+                </th>
+                <th className="px-2 py-2 font-medium">Candidate</th>
+                <th className="px-2 py-2 font-medium">Job Opening</th>
+                <th className="px-2 py-2 font-medium">Offered CTC</th>
+                <th className="px-2 py-2 font-medium">Offer Type</th>
+                <th className="px-2 py-2 font-medium">Offer Date</th>
+                <th className="px-2 py-2 font-medium">Offer Expiry</th>
+                <th className="px-2 py-2 font-medium">Offered By</th>
+                <th className="px-2 py-2 font-medium">Status</th>
+                <th className="px-2 py-2 font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.map((o) => (
+                <tr key={o.id} className="border-t border-slate-100 hover:bg-slate-50/60">
+                  <td className="px-2 py-2 align-middle">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(o.id)}
+                      onChange={() => toggleSelectOne(o.id)}
+                      className="h-3.5 w-3.5 accent-indigo-600"
+                    />
+                  </td>
+                  <td className="px-2 py-2 align-top">
+                    <div className="flex items-start gap-2">
+                      <img src={o.avatarUrl} alt={o.candidateName} className="h-7 w-7 shrink-0 rounded-full object-cover" />
+                      <div className="min-w-0">
+                        <div className="truncate font-medium text-slate-900">{o.candidateName}</div>
+                        <div className="truncate text-[11px] text-slate-700">{o.email}</div>
+                        <div className="truncate text-[11px] text-slate-700">{o.phone}</div>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td className="px-2 py-2 align-top">
-                  <div className="truncate font-medium text-slate-900">{o.jobTitle}</div>
-                  <div className="truncate text-[11px] text-slate-700">{o.jobId}</div>
-                </td>
-                <td className="px-2 py-2 align-top">
-                  <div className="font-medium text-slate-900">{o.ctc}</div>
-                  <div className="text-[11px] text-slate-700">CTC per annum</div>
-                </td>
-                <td className="px-2 py-2 align-top">
-                  <span className="mb-0.5 inline-block rounded-md bg-indigo-50 px-1.5 py-0.5 text-[11px] font-medium text-indigo-600">
-                    {o.offerType}
-                  </span>
-                  <div className="text-[11px] text-slate-700">{o.location}</div>
-                </td>
-                <td className="px-2 py-2 align-top text-slate-700">{o.offerDate}</td>
-                <td className="px-2 py-2 align-top">
-                  <div className="text-slate-700">{o.expiryDate}</div>
-                  <div className={`text-[11px] font-medium ${EXPIRY_STYLE[o.expiryTone]}`}>{o.expiryNote}</div>
-                </td>
-                <td className="px-2 py-2 align-top">
-                  <div className="truncate font-medium text-slate-900">{o.offeredByName}</div>
-                  <div className="truncate text-[11px] text-slate-700">{o.offeredByRole}</div>
-                </td>
-                <td className="px-2 py-2 align-top">
-                  <span className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLE[o.status]}`}>
-                    {o.status}
-                  </span>
-                  {o.status === 'Accepted' && <div className="mt-0.5 text-[11px] text-slate-600">15 Jun 2026</div>}
-                </td>
-                <td className="px-2 py-2 align-top">
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => notify(`Viewing offer for ${o.candidateName}`)}
-                      className="flex h-6 w-6 items-center justify-center rounded-md text-indigo-600 hover:bg-indigo-50"
-                      aria-label="View offer"
-                    >
-                      <Eye className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => notify(`Downloading offer letter for ${o.candidateName}`)}
-                      className="flex h-6 w-6 items-center justify-center rounded-md text-indigo-600 hover:bg-indigo-50"
-                      aria-label="Download offer"
-                    >
-                      <Download className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={(e) => openActionMenu(o.id, e)}
-                      className={`flex h-6 w-6 items-center justify-center rounded-md hover:bg-slate-100 ${
-                        actionMenu?.id === o.id ? 'bg-slate-100 text-slate-900' : 'text-slate-600'
-                      }`}
-                      aria-label="More actions"
-                    >
-                      <MoreHorizontal className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {pageRows.length === 0 && (
-              <tr>
-                <td colSpan={10} className="px-2 py-8 text-center text-slate-600">
-                  No offers match your filters.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                  </td>
+                  <td className="px-2 py-2 align-top">
+                    <div className="truncate font-medium text-slate-900">{o.jobTitle}</div>
+                    <div className="truncate text-[11px] text-slate-700">{o.jobId}</div>
+                  </td>
+                  <td className="px-2 py-2 align-top">
+                    <div className="font-medium text-slate-900">{o.ctc}</div>
+                    <div className="text-[11px] text-slate-700">CTC per annum</div>
+                  </td>
+                  <td className="px-2 py-2 align-top">
+                    <span className="mb-0.5 inline-block rounded-md bg-indigo-50 px-1.5 py-0.5 text-[11px] font-medium text-indigo-600">
+                      {o.offerType}
+                    </span>
+                    <div className="text-[11px] text-slate-700">{o.location}</div>
+                  </td>
+                  <td className="px-2 py-2 align-top text-slate-700">{o.offerDate}</td>
+                  <td className="px-2 py-2 align-top">
+                    <div className="text-slate-700">{o.expiryDate}</div>
+                    <div className={`text-[11px] font-medium ${EXPIRY_STYLE[o.expiryTone]}`}>{o.expiryNote}</div>
+                  </td>
+                  <td className="px-2 py-2 align-top">
+                    <div className="truncate font-medium text-slate-900">{o.offeredByName}</div>
+                    <div className="truncate text-[11px] text-slate-700">{o.offeredByRole}</div>
+                  </td>
+                  <td className="px-2 py-2 align-top">
+                    <span className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLE[o.status]}`}>
+                      {o.status}
+                    </span>
+                    {o.status === 'Accepted' && <div className="mt-0.5 text-[11px] text-slate-600">15 Jun 2026</div>}
+                  </td>
+                  <td className="px-2 py-2 align-top">
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => notify(`Viewing offer for ${o.candidateName}`)}
+                        className="flex h-6 w-6 items-center justify-center rounded-md text-indigo-600 hover:bg-indigo-50"
+                        aria-label="View offer"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => notify(`Downloading offer letter for ${o.candidateName}`)}
+                        className="flex h-6 w-6 items-center justify-center rounded-md text-indigo-600 hover:bg-indigo-50"
+                        aria-label="Download offer"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={(e) => openActionMenu(o.id, e)}
+                        className={`flex h-6 w-6 items-center justify-center rounded-md hover:bg-slate-100 ${actionMenu?.id === o.id ? 'bg-slate-100 text-slate-900' : 'text-slate-600'
+                          }`}
+                        aria-label="More actions"
+                      >
+                        <MoreHorizontal className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {pageRows.length === 0 && (
+                <tr>
+                  <td colSpan={10} className="px-2 py-8 text-center text-slate-600">
+                    No offers match your filters.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
 
-      {/* Footer / pagination */}
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 text-xs text-slate-700">
-        <span>
-          Showing {filtered.length === 0 ? 0 : (page - 1) * pageSize + 1} to {Math.min(page * pageSize, filtered.length)} of {filtered.length} entries
-        </span>
-        <div className="flex items-center gap-2">
-          <span>Show</span>
-          <div className="relative">
+        {/* Footer / pagination */}
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 text-xs text-slate-700">
+          <span>
+            Showing {filtered.length === 0 ? 0 : (page - 1) * pageSize + 1} to {Math.min(page * pageSize, filtered.length)} of {filtered.length} entries
+          </span>
+          <div className="flex items-center gap-2">
+            <span>Show</span>
+            <div className="relative">
+              <button
+                onClick={() => setPageSizeOpen((v) => !v)}
+                className="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 font-medium text-slate-700"
+              >
+                {pageSize} <ChevronDown className="h-3 w-3" />
+              </button>
+              {pageSizeOpen && (
+                <div className="absolute bottom-full right-0 z-20 mb-1 w-16 rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
+                  {[10, 20, 50].map((n) => (
+                    <button
+                      key={n}
+                      onClick={() => {
+                        setPageSize(n)
+                        setPage(1)
+                        setPageSizeOpen(false)
+                      }}
+                      className="block w-full rounded-md px-2 py-1 text-left hover:bg-slate-50"
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <span>entries</span>
             <button
-              onClick={() => setPageSizeOpen((v) => !v)}
-              className="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 font-medium text-slate-700"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 text-slate-700 disabled:opacity-40"
             >
-              {pageSize} <ChevronDown className="h-3 w-3" />
+              <ChevronLeft className="h-3.5 w-3.5" />
             </button>
-            {pageSizeOpen && (
-              <div className="absolute bottom-full right-0 z-20 mb-1 w-16 rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
-                {[10, 20, 50].map((n) => (
-                  <button
-                    key={n}
-                    onClick={() => {
-                      setPageSize(n)
-                      setPage(1)
-                      setPageSizeOpen(false)
-                    }}
-                    className="block w-full rounded-md px-2 py-1 text-left hover:bg-slate-50"
-                  >
-                    {n}
-                  </button>
-                ))}
-              </div>
-            )}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+              <button
+                key={n}
+                onClick={() => setPage(n)}
+                className={`flex h-6 w-6 items-center justify-center rounded-md font-medium ${n === page ? 'bg-indigo-600 text-white' : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+              >
+                {n}
+              </button>
+            ))}
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 text-slate-700 disabled:opacity-40"
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
           </div>
-          <span>entries</span>
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 text-slate-700 disabled:opacity-40"
-          >
-            <ChevronLeft className="h-3.5 w-3.5" />
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-            <button
-              key={n}
-              onClick={() => setPage(n)}
-              className={`flex h-6 w-6 items-center justify-center rounded-md font-medium ${
-                n === page ? 'bg-indigo-600 text-white' : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              {n}
-            </button>
-          ))}
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 text-slate-700 disabled:opacity-40"
-          >
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
         </div>
       </div>
     </div>
-    </PageLayout>
   )
 }
 

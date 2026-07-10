@@ -99,9 +99,9 @@ function Stepper() {
           <div className="flex flex-col items-center gap-0.5 shrink-0 w-[34px] sm:w-[42px]">
             <div
               className={`grid h-4 w-4 sm:h-5 sm:w-5 place-items-center rounded-full border-2 text-[7px] sm:text-[8px] font-bold shrink-0 ${s.status === 'done'
-                ? 'bg-violet-600 border-violet-600 text-white'
+                ? 'bg-indigo-700 border-violet-600 text-white'
                 : s.status === 'active'
-                  ? 'bg-violet-600 border-violet-600 text-white ring-2 ring-violet-100'
+                  ? 'bg-indigo-700 border-violet-600 text-white ring-2 ring-violet-100'
                   : 'bg-white border-zinc-200 text-zinc-400'
                 }`}
             >
@@ -116,7 +116,7 @@ function Stepper() {
           </div>
           {i < STEPS.length - 1 && (
             <div
-              className={`h-[2px] w-1.5 sm:w-3 shrink-0 mt-[7px] sm:mt-[9px] ${s.status === 'done' ? 'bg-violet-600' : 'bg-zinc-200'
+              className={`h-[2px] w-1.5 sm:w-3 shrink-0 mt-[7px] sm:mt-[9px] ${s.status === 'done' ? 'bg-indigo-700' : 'bg-zinc-200'
                 }`}
             />
           )}
@@ -138,11 +138,11 @@ function PageHeader() {
         <Stepper />
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:border-violet-300 transition-colors whitespace-nowrap">
+        <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:border-indigo-200 transition-colors whitespace-nowrap">
           <ArrowLeft size={14} />
           Back to Applications
         </button>
-        <button className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3.5 py-2 text-[12px] font-semibold text-white shadow-sm hover:bg-violet-700 transition-colors whitespace-nowrap">
+        <button className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-800 transition-colors whitespace-nowrap">
           End Interview
           <LogOut size={14} />
         </button>
@@ -176,7 +176,7 @@ function CandidateInfoCard() {
                 <p className="flex items-center gap-1.5 text-[12px] text-zinc-600"><Phone size={12} className="text-zinc-400" /> +91 98765 43210</p>
                 <p className="flex items-center gap-1.5 text-[12px] text-zinc-600"><Mail size={12} className="text-zinc-400" /> amit.verma@email.com</p>
                 <p className="flex items-center gap-1.5 text-[12px] text-zinc-600"><MapPin size={12} className="text-zinc-400" /> Noida, Uttar Pradesh</p>
-                <p className="flex items-center gap-1.5 text-[12px] text-violet-600"><Link2 size={12} /> linkedin.com/in/amitverma</p>
+                <p className="flex items-center gap-1.5 text-[12px] text-indigo-700"><Link2 size={12} /> linkedin.com/in/amitverma</p>
               </div>
             </div>
           </div>
@@ -203,7 +203,7 @@ function CandidateInfoCard() {
                 <p className="text-[10px] text-zinc-400 leading-tight">HR Manager</p>
               </div>
             </div>
-            <button className="mt-3 inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-violet-600 shadow-sm hover:border-violet-300 hover:bg-violet-50 transition-colors w-full lg:w-auto">
+            <button className="mt-3 inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 shadow-sm hover:border-indigo-200 hover:bg-violet-50 transition-colors w-full lg:w-auto">
               View Candidate Profile
               <ArrowRight size={12} />
             </button>
@@ -271,7 +271,7 @@ function TabsBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) =
         >
           {icons[tab]}
           {tab}
-          {active === tab && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-violet-600 rounded-full" />}
+          {active === tab && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-indigo-700 rounded-full" />}
         </button>
       ))}
     </div>
@@ -359,11 +359,11 @@ function QuestionPanel({
         <div className="flex flex-nowrap items-center justify-between gap-2 mb-1">
           <div className="flex items-center gap-2 min-w-0">
             <h3 className="text-[12px] font-bold text-zinc-900 whitespace-nowrap">Question {index + 1} of {total}</h3>
-            <span className="inline-flex items-center rounded-full bg-violet-50 text-violet-600 border border-violet-100 px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap">
+            <span className="inline-flex items-center rounded-full bg-violet-50 text-indigo-700 border border-violet-100 px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap">
               {question.tag}
             </span>
           </div>
-          <button className="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-0.5 py-1 text-[10px] font-semibold text-zinc-500 hover:border-violet-300 hover:text-violet-600 transition-colors shrink-0 ml-2">
+          <button className="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-0.5 py-1 text-[10px] font-semibold text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors shrink-0 ml-2">
             <Flag size={12} className="text-zinc-400" />
             Flag Question
           </button>
@@ -409,7 +409,7 @@ function QuestionPanel({
           <button
             onClick={onPrev}
             disabled={index === 0}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:border-violet-300 disabled:opacity-40 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:border-indigo-200 disabled:opacity-40 transition-colors"
           >
             <ArrowLeft size={11} />
             Previous Question
@@ -417,7 +417,7 @@ function QuestionPanel({
           <button
             onClick={onNext}
             disabled={index === total - 1}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-2 py-2 text-[12px] font-semibold text-white shadow-sm hover:bg-violet-700 disabled:opacity-40 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-700 px-2 py-2 text-[12px] font-semibold text-white shadow-sm hover:bg-indigo-800 disabled:opacity-40 transition-colors"
           >
             Next Question
             <ArrowRight size={11} />
@@ -434,9 +434,9 @@ function AIAssistantPanel() {
     <Card className="border-zinc-200/80 shadow-sm h-full">
       <CardContent className="p-1 flex flex-col h-full">
         <div className="flex items-center gap-2 mb-2">
-          <Sparkles size={12} className="text-violet-600" />
+          <Sparkles size={12} className="text-indigo-700" />
           <h3 className="text-[12px] font-bold text-zinc-900">AI Interview Assistant</h3>
-          <span className="inline-flex items-center rounded-full bg-violet-600 text-white px-1.5 py-0.5 text-[9px] font-bold">BETA</span>
+          <span className="inline-flex items-center rounded-full bg-indigo-700 text-white px-1.5 py-0.5 text-[9px] font-bold">BETA</span>
         </div>
         <ul className="space-y-2">
           {AI_INSIGHTS.map((insight, i) => (
@@ -463,7 +463,7 @@ function PreviousAnswerCard() {
         </div>
         <div className="rounded-lg bg-emerald-50/60 border border-emerald-100 p-2">
           <p className="text-[11px] text-zinc-700 leading-snug line-clamp-2">{PREVIOUS_ANSWER}</p>
-          <button className="mt-1 text-[10.5px] font-semibold text-violet-600 hover:text-violet-700 transition-colors">
+          <button className="mt-1 text-[10.5px] font-semibold text-indigo-700 hover:text-violet-700 transition-colors">
             View Full Answer
           </button>
         </div>
@@ -510,7 +510,7 @@ function RoundsOverviewCard() {
                 className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${r.status === 'Completed'
                   ? 'bg-emerald-500 text-white'
                   : r.status === 'In Progress'
-                    ? 'bg-white border-2 border-violet-500 text-violet-600'
+                    ? 'bg-white border-2 border-violet-500 text-indigo-700'
                     : 'bg-zinc-100 text-zinc-400'
                   }`}
               >
@@ -524,7 +524,7 @@ function RoundsOverviewCard() {
                 <span
                   className={`inline-flex items-center justify-center w-full rounded-full border px-1.5 py-0.5 text-[9px] font-semibold whitespace-nowrap ${r.status === 'Completed'
                     ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                    : 'bg-violet-50 text-violet-600 border-violet-100'
+                    : 'bg-violet-50 text-indigo-700 border-violet-100'
                     }`}
                 >
                   {r.status}
@@ -553,7 +553,7 @@ function GuidelinesCard() {
             </li>
           ))}
         </ul>
-        <button className="mt-3 inline-flex items-center gap-1 text-[12px] font-semibold text-violet-600 hover:text-violet-700 transition-colors">
+        <button className="mt-3 inline-flex items-center gap-1 text-[12px] font-semibold text-indigo-700 hover:text-violet-700 transition-colors">
           Need Help? View Guidelines <ExternalLink size={12} />
         </button>
       </CardContent>
@@ -565,15 +565,15 @@ function GuidelinesCard() {
 function BottomActionBar() {
   return (
     <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-      <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3.5 py-2 text-[12.5px] font-semibold text-zinc-700 shadow-sm hover:border-violet-300 transition-colors">
+      <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3.5 py-2 text-[12.5px] font-semibold text-zinc-700 shadow-sm hover:border-indigo-200 transition-colors">
         <Save size={14} />
         Save Notes
       </button>
-      <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3.5 py-2 text-[12.5px] font-semibold text-zinc-700 shadow-sm hover:border-violet-300 transition-colors">
+      <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3.5 py-2 text-[12.5px] font-semibold text-zinc-700 shadow-sm hover:border-indigo-200 transition-colors">
         <CalendarPlus size={14} />
         Schedule Next Round
       </button>
-      <button className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3.5 py-2 text-[12.5px] font-semibold text-white shadow-sm hover:bg-violet-700 transition-colors">
+      <button className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-700 px-3.5 py-2 text-[12.5px] font-semibold text-white shadow-sm hover:bg-indigo-800 transition-colors">
         <CheckCircle2 size={14} />
         End Interview & Submit Evaluation
       </button>
@@ -616,74 +616,74 @@ export default function InterviewRoundPage() {
   };
 
   return (
-    <main className="mx-auto max-w-[1600px] w-full space-y-3 overflow-x-hidden pb-6 px-2 sm:px-3">
-      <PageHeader />
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
+        <PageHeader />
 
-      {/* Row 1: Candidate Info + Application Summary — same height */}
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-3 items-stretch">
-        <CandidateInfoCard />
-        <ApplicationSummaryCard />
-      </div>
+        {/* Row 1: Candidate Info + Application Summary — same height */}
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-3 items-stretch">
+          <CandidateInfoCard />
+          <ApplicationSummaryCard />
+        </div>
 
-      {/* Row 2 onward: main tabbed card on the left, Rounds Overview + Guidelines
+        {/* Row 2 onward: main tabbed card on the left, Rounds Overview + Guidelines
           stacked in the sidebar on the right — outside the tabbed card, matching
           the reference layout. */}
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_240px] gap-3 items-start">
-        <Card className="border-zinc-200/80 shadow-sm">
-          <CardContent className="p-0">
-            <div className="px-3.5 pt-1">
-              <TabsBar active={activeTab} onChange={setActiveTab} />
-            </div>
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_240px] gap-3 items-start">
+          <Card className="border-zinc-200/80 shadow-sm">
+            <CardContent className="p-0">
+              <div className="px-3.5 pt-1">
+                <TabsBar active={activeTab} onChange={setActiveTab} />
+              </div>
 
-            {activeTab === 'Interview' ? (
-              <div className="p-2 space-y-2">
-                {/* Round Progress / Question / AI Assistant */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 items-stretch">
-                  <div className="lg:col-span-3 min-w-0 overflow-hidden">
-                    <RoundProgressPanel
-                      remainingSeconds={remainingSeconds}
-                      totalSeconds={totalSeconds}
-                      answered={answeredCount}
-                      total={QUESTIONS.length + 4}
-                    />
-                  </div>
-                  <div className="lg:col-span-6 min-w-0 overflow-hidden">
-                    <QuestionPanel
-                      index={questionIndex}
-                      total={QUESTIONS.length + 4}
-                      question={QUESTIONS[questionIndex] ?? QUESTIONS[QUESTIONS.length - 1]}
-                      answer={answers[questionIndex] ?? ''}
-                      onAnswerChange={handleAnswerChange}
-                      onPrev={() => setQuestionIndex((i) => Math.max(0, i - 1))}
-                      onNext={() => setQuestionIndex((i) => Math.min(QUESTIONS.length - 1, i + 1))}
-                    />
-                  </div>
-                  <div className="lg:col-span-3 min-w-0 overflow-hidden">
-                    <AIAssistantPanel />
+              {activeTab === 'Interview' ? (
+                <div className="p-2 space-y-2">
+                  {/* Round Progress / Question / AI Assistant */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 items-stretch">
+                    <div className="lg:col-span-3 min-w-0 overflow-hidden">
+                      <RoundProgressPanel
+                        remainingSeconds={remainingSeconds}
+                        totalSeconds={totalSeconds}
+                        answered={answeredCount}
+                        total={QUESTIONS.length + 4}
+                      />
+                    </div>
+                    <div className="lg:col-span-6 min-w-0 overflow-hidden">
+                      <QuestionPanel
+                        index={questionIndex}
+                        total={QUESTIONS.length + 4}
+                        question={QUESTIONS[questionIndex] ?? QUESTIONS[QUESTIONS.length - 1]}
+                        answer={answers[questionIndex] ?? ''}
+                        onAnswerChange={handleAnswerChange}
+                        onPrev={() => setQuestionIndex((i) => Math.max(0, i - 1))}
+                        onNext={() => setQuestionIndex((i) => Math.min(QUESTIONS.length - 1, i + 1))}
+                      />
+                    </div>
+                    <div className="lg:col-span-3 min-w-0 overflow-hidden">
+                      <AIAssistantPanel />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="p-8 text-center text-[13px] text-zinc-400">
-                {activeTab} content will appear here.
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              ) : (
+                <div className="p-8 text-center text-[13px] text-zinc-400">
+                  {activeTab} content will appear here.
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        <div className="space-y-3">
-          <RoundsOverviewCard />
+          <div className="space-y-3">
+            <RoundsOverviewCard />
+          </div>
         </div>
-      </div>
 
-      {/* Previous Answer / Competency Areas / Guidelines — outside the tabbed card, full width */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-stretch">
-        <PreviousAnswerCard />
-        <CompetencyAreasCard />
-        <GuidelinesCard />
-      </div>
+        {/* Previous Answer / Competency Areas / Guidelines — outside the tabbed card, full width */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-stretch">
+          <PreviousAnswerCard />
+          <CompetencyAreasCard />
+          <GuidelinesCard />
+        </div>
 
-      <BottomActionBar />
-    </main>
+        <BottomActionBar />
+      </div>
   );
 }

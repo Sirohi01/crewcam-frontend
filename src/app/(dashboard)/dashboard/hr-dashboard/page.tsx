@@ -18,7 +18,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 const KPIS = [
   { label: 'Open Positions', value: '42', icon: Briefcase, accent: 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400', trend: '8 from last month', up: true },
   { label: 'Active Candidates', value: '368', icon: Users, accent: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400', trend: '15% from last month', up: true },
-  { label: 'Interviews Scheduled', value: '57', icon: CalendarCheck, accent: 'bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400', trend: '12% from last month', up: true },
+  { label: 'Interviews Scheduled', value: '57', icon: CalendarCheck, accent: 'bg-violet-50 text-indigo-700 dark:bg-violet-500/10 dark:text-violet-400', trend: '12% from last month', up: true },
   { label: 'Offers Released', value: '18', icon: FileCheck2, accent: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400', trend: '5 from last month', up: true },
   { label: 'Positions Filled', value: '24', icon: UserCheck, accent: 'bg-teal-50 text-teal-600 dark:bg-teal-500/10 dark:text-teal-400', trend: '10 from last month', up: true },
   { label: 'Time to Hire (Avg)', value: '18 Days', icon: Clock3, accent: 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400', trend: '2 Days from last month', up: false },
@@ -47,7 +47,7 @@ const TOTAL_OPEN_POSITIONS = HIRING_OVERVIEW.reduce((sum, d) => sum + d.value, 0
 const ACTIONS = [
   { label: 'Create Job Requisition', href: '/dashboard/hiring/manpower/new', icon: ClipboardList, accent: 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400' },
   { label: 'Post New Job', href: '/dashboard/hiring/manpower', icon: Send, accent: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' },
-  { label: 'Add Candidate', href: '/dashboard/hiring/candidates/new', icon: UserPlus, accent: 'bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400' },
+  { label: 'Add Candidate', href: '/dashboard/hiring/candidates/new', icon: UserPlus, accent: 'bg-violet-50 text-indigo-700 dark:bg-violet-500/10 dark:text-violet-400' },
   { label: 'Schedule Interview', href: '/dashboard/hiring/interviews/list', icon: CalendarCheck, accent: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400' },
   { label: 'Release Offer', href: '/dashboard/hiring/loi', icon: FileCheck2, accent: 'bg-pink-50 text-pink-600 dark:bg-pink-500/10 dark:text-pink-400' },
   { label: 'Start Onboarding', href: '/dashboard/hiring/joining-confirmation', icon: Rocket, accent: 'bg-teal-50 text-teal-600 dark:bg-teal-500/10 dark:text-teal-400' },
@@ -147,7 +147,7 @@ function Card({
 
 function ViewAllLink({ href, label = 'View All' }: { href: string; label?: string }) {
   return (
-    <Link href={href} className="shrink-0 text-[10px] font-semibold text-violet-600 hover:text-violet-700 dark:text-violet-400">{label}</Link>
+    <Link href={href} className="shrink-0 text-[10px] font-semibold text-indigo-700 hover:text-violet-700 dark:text-violet-400">{label}</Link>
   );
 }
 
@@ -384,7 +384,7 @@ function AIInsights() {
           </div>
         ))}
       </div>
-      <Link href="/dashboard/coming-soon" className="mt-2 block border-t border-zinc-50 dark:border-zinc-800 pt-1.5 text-[10px] font-semibold text-violet-600 dark:text-violet-400">
+      <Link href="/dashboard/coming-soon" className="mt-2 block border-t border-zinc-50 dark:border-zinc-800 pt-1.5 text-[10px] font-semibold text-indigo-700 dark:text-violet-400">
         View All Insights
       </Link>
     </Card>
@@ -557,7 +557,7 @@ function SourcePerformance() {
 
 export default function RecruiterDashboard() {
   return (
-    <div className="min-h-screen">
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       <div className="mx-auto max-w-[1500px] space-y-2 p-3">
         <Header />
         <StatsStrip />

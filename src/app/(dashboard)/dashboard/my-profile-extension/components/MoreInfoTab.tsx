@@ -124,7 +124,7 @@ export function MoreInfoTab({ profileCard }: { profileCard?: React.ReactNode }) 
               </div>
               <div className="flex justify-between items-start">
                 <span className="text-zinc-500 w-1/3 flex items-center gap-1"><IndianRupee size={10} className="text-zinc-400 shrink-0" /> Variable Pay (Annual)</span>
-                <span className="font-medium text-zinc-900 w-2/3 text-right">₹ 2,40,000</span>
+                <span className="font-medium text-zinc-900 w-2/3 text-right">₹ 2,40,000</span> 
               </div>
               <div className="flex justify-between items-start">
                 <span className="text-zinc-500 w-1/3 flex items-center gap-1"><CalendarCheck size={10} className="text-zinc-400 shrink-0" /> Pay Frequency</span>

@@ -38,7 +38,6 @@ import {
   UNIQUE_SCORES,
   UNIQUE_STATUSES
 } from './data';
-import PageLayout from '@/components/ui/pageLayout';
 
 export default function AiScreening() {
   // --- Core States ---
@@ -336,8 +335,7 @@ export default function AiScreening() {
   }, [filters]);
 
   return (
-    <PageLayout>
-      <div className="h-[calc(100vh-48px)] min-h-[650px] w-full flex flex-col overflow-hidden bg-slate-50/50 p-2 gap-1.5 select-none text-indigo-950">
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
 
         {/* Toast Notice */}
         {exportNotice && (
@@ -355,7 +353,7 @@ export default function AiScreening() {
           <div className="flex flex-col gap-0.5">
             <div className="flex items-center gap-1">
               <h1 className="text-sm md:text-base font-semibold font-display tracking-tight text-indigo-950">AI Screening</h1>
-              <Star className="h-3.5 w-3.5 text-violet-600 fill-violet-200" />
+              <Star className="h-3.5 w-3.5 text-indigo-700 fill-violet-200" />
             </div>
             <p className="text-[10px] md:text-xs text-indigo-900/80 font-medium">
               AI-powered screening and candidate fit analysis
@@ -367,7 +365,7 @@ export default function AiScreening() {
             <button
               onClick={triggerExport}
               disabled={isExporting}
-              className="flex items-center gap-1 text-[11px] font-semibold text-indigo-950 bg-white border border-indigo-200/80 hover:bg-indigo-50/50 transition px-2.5 py-1.5 rounded-md shadow-2xs active:scale-95 cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm"
             >
               <Download className="h-3 w-3 text-violet-700" />
               <span>{isExporting ? 'Exporting...' : 'Export'}</span>
@@ -416,7 +414,7 @@ export default function AiScreening() {
                 className={`flex items-start gap-1.5 ${card.colorClass} border ${card.borderColorClass} p-1.5 rounded-lg shadow-2xs transition hover:shadow-xs active:scale-[0.98] cursor-pointer relative overflow-hidden ${isSelectedTab ? 'ring-2 ring-violet-600/80' : ''}`}
               >
                 {/* Highlight background strip */}
-                {/* <div className="absolute top-0 left-0 w-1 h-full bg-violet-600/20" /> */}
+                {/* <div className="absolute top-0 left-0 w-1 h-full bg-indigo-700/20" /> */}
 
                 {/* Icon Container */}
 
@@ -459,7 +457,7 @@ export default function AiScreening() {
                 placeholder="Search by name, email, phone, job title or skills..."
                 value={filters.searchQuery}
                 onChange={(e) => handleFilterChange('searchQuery', e.target.value)}
-                className="w-full pl-8 pr-2.5 py-1 text-xs text-indigo-950 placeholder-indigo-300 bg-slate-50/50 hover:bg-slate-50 border border-indigo-100 rounded-md focus:outline-hidden focus:ring-1 focus:ring-violet-500 focus:bg-white"
+                className="w-full pl-8 pr-2.5 py-1 text-xs text-indigo-950 placeholder-indigo-300 bg-slate-50/50 hover:bg-slate-50 border border-indigo-100 rounded-md focus:outline-hidden focus:ring-1 focus:ring-indigo-500 focus:bg-white"
               />
               {filters.searchQuery && (
                 <button
@@ -486,7 +484,7 @@ export default function AiScreening() {
               {/* Clear All Trigger */}
               <button
                 onClick={clearAllFilters}
-                className="flex items-center gap-0.5 text-[10px] font-semibold text-violet-700 hover:text-violet-900 px-2 py-1 rounded-md bg-slate-50 border border-indigo-50 hover:bg-indigo-50/50 transition cursor-pointer"
+                className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors"
               >
                 <RefreshCw className="h-2.5 w-2.5" />
                 <span>Clear All</span>
@@ -503,7 +501,7 @@ export default function AiScreening() {
                 <select
                   value={filters.jobOpening}
                   onChange={(e) => handleFilterChange('jobOpening', e.target.value)}
-                  className="w-full h-6 pl-1.5 pr-5 text-[10px] font-semibold text-indigo-950 bg-white border border-indigo-100/80 rounded-md appearance-none focus:outline-hidden focus:ring-1 focus:ring-violet-500 cursor-pointer"
+                  className="w-full h-6 pl-1.5 pr-5 text-[10px] font-semibold text-indigo-950 bg-white border border-indigo-100/80 rounded-md appearance-none focus:outline-hidden focus:ring-1 focus:ring-indigo-500 cursor-pointer"
                 >
                   {UNIQUE_JOBS.map(job => (
                     <option key={job} value={job}>{job}</option>
@@ -520,7 +518,7 @@ export default function AiScreening() {
                 <select
                   value={filters.department}
                   onChange={(e) => handleFilterChange('department', e.target.value)}
-                  className="w-full h-6 pl-1.5 pr-5 text-[10px] font-semibold text-indigo-950 bg-white border border-indigo-100/80 rounded-md appearance-none focus:outline-hidden focus:ring-1 focus:ring-violet-500 cursor-pointer"
+                  className="w-full h-6 pl-1.5 pr-5 text-[10px] font-semibold text-indigo-950 bg-white border border-indigo-100/80 rounded-md appearance-none focus:outline-hidden focus:ring-1 focus:ring-indigo-500 cursor-pointer"
                 >
                   {UNIQUE_DEPARTMENTS.map(dept => (
                     <option key={dept} value={dept}>{dept}</option>
@@ -537,7 +535,7 @@ export default function AiScreening() {
                 <select
                   value={filters.experience}
                   onChange={(e) => handleFilterChange('experience', e.target.value)}
-                  className="w-full h-6 pl-1.5 pr-5 text-[10px] font-semibold text-indigo-950 bg-white border border-indigo-100/80 rounded-md appearance-none focus:outline-hidden focus:ring-1 focus:ring-violet-500 cursor-pointer"
+                  className="w-full h-6 pl-1.5 pr-5 text-[10px] font-semibold text-indigo-950 bg-white border border-indigo-100/80 rounded-md appearance-none focus:outline-hidden focus:ring-1 focus:ring-indigo-500 cursor-pointer"
                 >
                   {UNIQUE_EXPERIENCES.map(exp => (
                     <option key={exp} value={exp}>{exp}</option>
@@ -554,7 +552,7 @@ export default function AiScreening() {
                 <select
                   value={filters.aiMatchScore}
                   onChange={(e) => handleFilterChange('aiMatchScore', e.target.value)}
-                  className="w-full h-6 pl-1.5 pr-5 text-[10px] font-semibold text-indigo-950 bg-white border border-indigo-100/80 rounded-md appearance-none focus:outline-hidden focus:ring-1 focus:ring-violet-500 cursor-pointer"
+                  className="w-full h-6 pl-1.5 pr-5 text-[10px] font-semibold text-indigo-950 bg-white border border-indigo-100/80 rounded-md appearance-none focus:outline-hidden focus:ring-1 focus:ring-indigo-500 cursor-pointer"
                 >
                   {UNIQUE_SCORES.map(score => (
                     <option key={score} value={score}>{score}</option>
@@ -571,7 +569,7 @@ export default function AiScreening() {
                 <select
                   value={filters.screeningStatus}
                   onChange={(e) => handleFilterChange('screeningStatus', e.target.value)}
-                  className="w-full h-6 pl-1.5 pr-5 text-[10px] font-semibold text-indigo-950 bg-white border border-indigo-100/80 rounded-md appearance-none focus:outline-hidden focus:ring-1 focus:ring-violet-500 cursor-pointer"
+                  className="w-full h-6 pl-1.5 pr-5 text-[10px] font-semibold text-indigo-950 bg-white border border-indigo-100/80 rounded-md appearance-none focus:outline-hidden focus:ring-1 focus:ring-indigo-500 cursor-pointer"
                 >
                   {UNIQUE_STATUSES.map(stat => (
                     <option key={stat} value={stat}>{stat}</option>
@@ -1076,7 +1074,7 @@ export default function AiScreening() {
                     value={newCandidateForm.name}
                     onChange={(e) => setNewCandidateForm(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="Ananya Verma"
-                    className="h-8 px-2.5 text-xs text-indigo-950 bg-slate-50 border border-indigo-100 rounded-md focus:outline-hidden focus:ring-1 focus:ring-violet-500"
+                    className="h-8 px-2.5 text-xs text-indigo-950 bg-slate-50 border border-indigo-100 rounded-md focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
                   />
                 </div>
 
@@ -1090,7 +1088,7 @@ export default function AiScreening() {
                       value={newCandidateForm.email}
                       onChange={(e) => setNewCandidateForm(prev => ({ ...prev, email: e.target.value }))}
                       placeholder="name@email.com"
-                      className="h-8 px-2.5 text-xs text-indigo-950 bg-slate-50 border border-indigo-100 rounded-md focus:outline-hidden focus:ring-1 focus:ring-violet-500"
+                      className="h-8 px-2.5 text-xs text-indigo-950 bg-slate-50 border border-indigo-100 rounded-md focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
                     />
                   </div>
                   <div className="flex flex-col">
@@ -1101,7 +1099,7 @@ export default function AiScreening() {
                       value={newCandidateForm.phone}
                       onChange={(e) => setNewCandidateForm(prev => ({ ...prev, phone: e.target.value }))}
                       placeholder="+91 98765 43210"
-                      className="h-8 px-2.5 text-xs text-indigo-950 bg-slate-50 border border-indigo-100 rounded-md focus:outline-hidden focus:ring-1 focus:ring-violet-500"
+                      className="h-8 px-2.5 text-xs text-indigo-950 bg-slate-50 border border-indigo-100 rounded-md focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
@@ -1113,7 +1111,7 @@ export default function AiScreening() {
                     <select
                       value={newCandidateForm.jobTitle}
                       onChange={(e) => setNewCandidateForm(prev => ({ ...prev, jobTitle: e.target.value }))}
-                      className="h-8 px-2 text-xs text-indigo-950 bg-slate-50 border border-indigo-100 rounded-md focus:outline-hidden focus:ring-1 focus:ring-violet-500"
+                      className="h-8 px-2 text-xs text-indigo-950 bg-slate-50 border border-indigo-100 rounded-md focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
                     >
                       {UNIQUE_JOBS.filter(j => j !== 'All Openings').map(job => (
                         <option key={job} value={job}>{job}</option>
@@ -1129,7 +1127,7 @@ export default function AiScreening() {
                       step="0.1"
                       value={newCandidateForm.experienceYears}
                       onChange={(e) => setNewCandidateForm(prev => ({ ...prev, experienceYears: parseFloat(e.target.value) || 0 }))}
-                      className="h-8 px-2.5 text-xs text-indigo-950 bg-slate-50 border border-indigo-100 rounded-md focus:outline-hidden focus:ring-1 focus:ring-violet-500"
+                      className="h-8 px-2.5 text-xs text-indigo-950 bg-slate-50 border border-indigo-100 rounded-md focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
@@ -1413,7 +1411,6 @@ export default function AiScreening() {
         )}
 
       </div>
-    </PageLayout>
 
   );
 }

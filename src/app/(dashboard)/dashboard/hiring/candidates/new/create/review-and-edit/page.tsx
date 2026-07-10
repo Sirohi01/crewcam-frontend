@@ -243,7 +243,10 @@ export default function ReviewPage({
             Back
           </button>
           <button
-            onClick={() => setCurrentView('submitted')}
+            onClick={() => {
+              // setCurrentView('submitted')
+              window.open('/dashboard/hiring/candidates/new/create/submit-application', '_blank');
+            }}
             className="flex-1 lg:flex-none justify-center px-2 py-1.5 lg:py-0.5 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center gap-1 font-medium transition-colors"
           >
             <span>Next Submit Application</span>
@@ -264,8 +267,8 @@ export default function ReviewPage({
           <div className="w-full lg:w-[68%] h-auto lg:h-full flex flex-col  overflow-visible lg:overflow-hidden shadow-sm" id="candidate-form-card">
 
             {/* Candidate Overview Header Card */}
-          <div className="bg-white rounded-lg mb-4 border-b border-indigo-100 p-2 w-full">
-  <div className="flex w-full items-start gap-2">
+            <div className="bg-white rounded-lg mb-4 border-b border-indigo-100 p-2 w-full">
+              <div className="flex w-full items-start gap-2">
                 <div className="relative shrink-0">
                   <div className="w-16 h-16 border-2 border-indigo-500 overflow-hidden bg-indigo-100 flex items-center justify-center">
                     <img
@@ -277,7 +280,7 @@ export default function ReviewPage({
                   </div>
                   <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
                 </div>
-            <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1 flex-wrap">
                     <h2 className="font-display font-bold text-sm text-indigo-950 leading-tight">
                       {candidate.fullName}
@@ -292,529 +295,529 @@ export default function ReviewPage({
 
 
                   </div>
-             <div className="flex w-full justify-between gap-2 mt-0.5 text-[10px]">
-  {/* Left Section */}
-  <div className="flex-1 min-w-0 flex flex-col gap-1 text-[10px] ">
-    {/* Email & Mobile */}
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-      <div className="flex items-center gap-1 shrink-0">
-        <Phone className="w-3 h-3 text-indigo-700 shrink-0" />
-        <span>{candidate.mobile}</span>
-      </div>
-      <div className="flex items-center gap-1 min-w-0">
-        <Mail className="w-3 h-3 text-indigo-700 shrink-0" />
-        <span className="truncate">{candidate.email}</span>
-      </div>
+                  <div className="flex w-full justify-between gap-2 mt-0.5 text-[10px]">
+                    {/* Left Section */}
+                    <div className="flex-1 min-w-0 flex flex-col gap-1 text-[10px] ">
+                      {/* Email & Mobile */}
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                        <div className="flex items-center gap-1 shrink-0">
+                          <Phone className="w-3 h-3 text-indigo-700 shrink-0" />
+                          <span>{candidate.mobile}</span>
+                        </div>
+                        <div className="flex items-center gap-1 min-w-0">
+                          <Mail className="w-3 h-3 text-indigo-700 shrink-0" />
+                          <span className="truncate">{candidate.email}</span>
+                        </div>
 
-    </div>
+                      </div>
 
-    {/* Location & LinkedIn */}
-    <div className="flex flex-col flex-wrap gap-x-4 gap-y-1">
-      <div className="flex items-center gap-1 min-w-0">
-        <MapPin className="w-3 h-3 text-indigo-700 shrink-0" />
-        <span className="truncate">{candidate.currentLocation}</span>
-      </div>
+                      {/* Location & LinkedIn */}
+                      <div className="flex flex-col flex-wrap gap-x-4 gap-y-1">
+                        <div className="flex items-center gap-1 min-w-0">
+                          <MapPin className="w-3 h-3 text-indigo-700 shrink-0" />
+                          <span className="truncate">{candidate.currentLocation}</span>
+                        </div>
 
-      {candidate.linkedin && (
-        <div className="flex items-center gap-1 min-w-0">
-          <FaLinkedinIn className="w-3 h-3 text-[#0A66C2] shrink-0" />
-          <span className="truncate">{candidate.linkedin}</span>
-        </div>
-      )}
-    </div>
-  </div>
+                        {candidate.linkedin && (
+                          <div className="flex items-center gap-1 min-w-0">
+                            <FaLinkedinIn className="w-3 h-3 text-[#0A66C2] shrink-0" />
+                            <span className="truncate">{candidate.linkedin}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
 
-  {/* Right Section */}
-  <div className="self-start flex items-center gap-2 md:gap-6 shrink-0 border-l border-gray-300 p-4 ml-auto">
-    <div className="">
-      <div className="text-[8px] uppercase font-semibold text-indigo-900">
-        Applied For
-      </div>
-      <div
-        className="font-bold text-[9px] truncate"
-        title={candidate.appliedFor}
-      >
-        {candidate.appliedFor}
-      </div>
-    </div>
+                    {/* Right Section */}
+                    <div className="self-start flex items-center gap-2 md:gap-6 shrink-0 border-l border-gray-300 p-4 ml-auto">
+                      <div className="">
+                        <div className="text-[8px] uppercase font-semibold text-indigo-900">
+                          Applied For
+                        </div>
+                        <div
+                          className="font-bold text-[9px] truncate"
+                          title={candidate.appliedFor}
+                        >
+                          {candidate.appliedFor}
+                        </div>
+                      </div>
 
-    <div className="">
-      <div className="text-[8px] uppercase font-semibold text-indigo-900">
-        Department
-      </div>
-      <div
-        className="font-bold text-[9px] truncate"
-        title={candidate.department}
-      >
-        {candidate.department}
-      </div>
-    </div>
-<div className="">
-      <div className="text-[8px] uppercase font-semibold text-indigo-900">
-        Employement Type
-      </div>
-      <div className="font-bold text-[9px]">
-        {candidate.employmentType}
-      </div>
-    </div>
-    <div className="">
-      <div className="text-[8px] uppercase font-semibold text-indigo-900">
-        Notice Period
-      </div>
-      <div className="font-bold text-[9px]">
-        {candidate.noticePeriod}
-      </div>
-    </div>
-  </div>
-</div>
+                      <div className="">
+                        <div className="text-[8px] uppercase font-semibold text-indigo-900">
+                          Department
+                        </div>
+                        <div
+                          className="font-bold text-[9px] truncate"
+                          title={candidate.department}
+                        >
+                          {candidate.department}
+                        </div>
+                      </div>
+                      <div className="">
+                        <div className="text-[8px] uppercase font-semibold text-indigo-900">
+                          Employement Type
+                        </div>
+                        <div className="font-bold text-[9px]">
+                          {candidate.employmentType}
+                        </div>
+                      </div>
+                      <div className="">
+                        <div className="text-[8px] uppercase font-semibold text-indigo-900">
+                          Notice Period
+                        </div>
+                        <div className="font-bold text-[9px]">
+                          {candidate.noticePeriod}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
             <div className="bg-white rounded-lg">
 
-            {/* Re-extract action row (tabs removed, all sections shown stacked below) */}
-            <div className="flex items-center justify-end  p-1.5" id="form-action-bar">
-              <button
-                onClick={triggerReextract}
-                disabled={isReextracting}
-                className="px-2 py-1 lg:py-0.5 text-[10px] text-indigo-700 bg-indigo-50 border border-indigo-200 rounded flex items-center gap-1 hover:bg-indigo-100 disabled:opacity-50 whitespace-nowrap shrink-0"
-                id="reextract-btn"
-              >
-                <RefreshCw className={`w-2.5 h-2.5 ${isReextracting ? 'animate-spin' : ''}`} />
-                <span>{isReextracting ? 'Extracting...' : 'Re-extract CV'}</span>
-              </button>
-            </div>
-
-            {/* All Form Sections Stacked (no tabs) */}
-            <div className="flex-1 overflow-visible lg:overflow-y-auto p-4 pt-0 space-y-4" id="form-scrollable-area">
-
-              {/* Category 1: Personal Information */}
-              <div className="space-y-1.5" id="personal-info-block">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
-                    Personal Information
-                  </h3>
-                  <button className='p-1 flex text-[10px] gap-1 text-indigo-800 items-center border border-gray-200 rounded-sm'><Pen size={10}/> Edit</button>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Full Name <span className="text-rose-500">*</span></label>
-                    <input
-                      type="text"
-                      value={candidate.fullName}
-                      onChange={(e) => handleInputChange('fullName', e.target.value)}
-                      className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    />
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Email Address <span className="text-rose-500">*</span></label>
-                    <input
-                      type="email"
-                      value={candidate.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    />
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Mobile Number <span className="text-rose-500">*</span></label>
-                    <input
-                      type="text"
-                      value={candidate.mobile}
-                      onChange={(e) => handleInputChange('mobile', e.target.value)}
-                      className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    />
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Current Location <span className="text-rose-500">*</span></label>
-                    <input
-                      type="text"
-                      value={candidate.currentLocation}
-                      onChange={(e) => handleInputChange('currentLocation', e.target.value)}
-                      className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    />
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Preferred Location</label>
-                    <select
-                      value={candidate.preferredLocation}
-                      onChange={(e) => handleInputChange('preferredLocation', e.target.value)}
-                      className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    >
-                      <option value="Noida, Delhi NCR">Noida, Delhi NCR</option>
-                      <option value="Bangalore, Karnataka">Bangalore, Karnataka</option>
-                      <option value="Mumbai, Maharashtra">Mumbai, Maharashtra</option>
-                      <option value="Remote">Remote</option>
-                    </select>
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">LinkedIn Profile (Optional)</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={candidate.linkedin}
-                        onChange={(e) => handleInputChange('linkedin', e.target.value)}
-                        className="w-full pl-1.5 pr-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none  truncate"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Category 2: Application Details */}
-              <div className="space-y-1.5" id="application-info-block">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
-                    Application Details
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Position Applied For <span className="text-rose-500">*</span></label>
-                    <select
-                      value={candidate.appliedFor}
-                      onChange={(e) => handleInputChange('appliedFor', e.target.value)}
-                      className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    >
-                      <option value="Sales Manager">Sales Manager</option>
-                      <option value="Senior Sales Executive">Senior Sales Executive</option>
-                      <option value="Marketing Director">Marketing Director</option>
-                    </select>
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Department <span className="text-rose-500">*</span></label>
-                    <select
-                      value={candidate.department}
-                      onChange={(e) => handleInputChange('department', e.target.value)}
-                      className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    >
-                      <option value="Sales & Marketing">Sales & Marketing</option>
-                      <option value="Engineering">Engineering</option>
-                      <option value="Product Development">Product Development</option>
-                    </select>
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Employment Type <span className="text-rose-500">*</span></label>
-                    <select
-                      value={candidate.employmentType}
-                      onChange={(e) => handleInputChange('employmentType', e.target.value)}
-                      className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    >
-                      <option value="Full Time">Full Time</option>
-                      <option value="Contract">Contract</option>
-                      <option value="Internship">Internship</option>
-                    </select>
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Total Experience (Years) <span className="text-rose-500">*</span></label>
-                    <input
-                      type="text"
-                      value={candidate.totalExperience}
-                      onChange={(e) => handleInputChange('totalExperience', e.target.value)}
-                      className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    />
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Relevant Experience (Years) <span className="text-rose-500">*</span></label>
-                    <input
-                      type="text"
-                      value={candidate.relevantExperience}
-                      onChange={(e) => handleInputChange('relevantExperience', e.target.value)}
-                      className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    />
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Current Company</label>
-                    <input
-                      type="text"
-                      value={candidate.currentCompany}
-                      onChange={(e) => handleInputChange('currentCompany', e.target.value)}
-                      className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    />
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Current CTC (INR) <span className="text-rose-500">*</span></label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={candidate.currentCTC}
-                        onChange={(e) => handleInputChange('currentCTC', e.target.value)}
-                        className="w-full pl-6 pr-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                      />
-                      <span className="text-[10px] font-semibold text-indigo-900 absolute left-2 top-1/2 -translate-y-1/2">₹</span>
-                    </div>
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Expected CTC (INR) <span className="text-rose-500">*</span></label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={candidate.expectedCTC}
-                        onChange={(e) => handleInputChange('expectedCTC', e.target.value)}
-                        className="w-full pl-6 pr-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                      />
-                      <span className="text-[10px] font-semibold text-indigo-900 absolute left-2 top-1/2 -translate-y-1/2">₹</span>
-                    </div>
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Notice Period <span className="text-rose-500">*</span></label>
-                    <select
-                      value={candidate.noticePeriod}
-                      onChange={(e) => handleInputChange('noticePeriod', e.target.value)}
-                      className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    >
-                      <option value="Immediate">Immediate</option>
-                      <option value="15 Days">15 Days</option>
-                      <option value="30 Days">30 Days</option>
-                      <option value="60 Days">60 Days</option>
-                      <option value="90 Days">90 Days</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Category 3: Education & Credentials */}
-              <div className="space-y-1.5" id="education-info-block">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
-                    Education Details
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Highest Qualification <span className="text-rose-500">*</span></label>
-                    <input
-                      type="text"
-                      value={candidate.highestQualification}
-                      onChange={(e) => handleInputChange('highestQualification', e.target.value)}
-                      className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    />
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">University / Board <span className="text-rose-500">*</span></label>
-                    <input
-                      type="text"
-                      value={candidate.university}
-                      onChange={(e) => handleInputChange('university', e.target.value)}
-                      className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    />
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Year of Passing <span className="text-rose-500">*</span></label>
-                    <input
-                      type="text"
-                      value={candidate.yearOfPassing}
-                      onChange={(e) => handleInputChange('yearOfPassing', e.target.value)}
-                      className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    />
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Percentage / CGPA <span className="text-rose-500">*</span></label>
-                    <input
-                      type="text"
-                      value={candidate.cgpa}
-                      onChange={(e) => handleInputChange('cgpa', e.target.value)}
-                      className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    />
-                  </div>
-                </div>
-
+              {/* Re-extract action row (tabs removed, all sections shown stacked below) */}
+              <div className="flex items-center justify-end  p-1.5" id="form-action-bar">
                 <button
-                  onClick={() => alert("Education qualification successfully saved!")}
-                  className="text-[10px] text-indigo-700 hover:text-indigo-950 font-semibold flex items-center gap-0.5 pt-1 focus:outline-none"
+                  onClick={triggerReextract}
+                  disabled={isReextracting}
+                  className="px-2 py-1 lg:py-0.5 text-[10px] text-indigo-700 bg-indigo-50 border border-indigo-200 rounded flex items-center gap-1 hover:bg-indigo-100 disabled:opacity-50 whitespace-nowrap shrink-0"
+                  id="reextract-btn"
                 >
-                  <Plus className="w-3 h-3" />
-                  <span>Add Another Education Qualification</span>
+                  <RefreshCw className={`w-2.5 h-2.5 ${isReextracting ? 'animate-spin' : ''}`} />
+                  <span>{isReextracting ? 'Extracting...' : 'Re-extract CV'}</span>
                 </button>
               </div>
 
-              {/* Category 4: Experience / Timeline (Editable) */}
-              <div className="space-y-1.5" id="experience-info-block">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
-                    Experience Timeline
-                  </h3>
+              {/* All Form Sections Stacked (no tabs) */}
+              <div className="flex-1 overflow-visible lg:overflow-y-auto p-4 pt-0 space-y-4" id="form-scrollable-area">
+
+                {/* Category 1: Personal Information */}
+                <div className="space-y-1.5" id="personal-info-block">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
+                      Personal Information
+                    </h3>
+                    <button className='p-1 flex text-[10px] gap-1 text-indigo-800 items-center border border-gray-200 rounded-sm'><Pen size={10} /> Edit</button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Full Name <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
+                        value={candidate.fullName}
+                        onChange={(e) => handleInputChange('fullName', e.target.value)}
+                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      />
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Email Address <span className="text-rose-500">*</span></label>
+                      <input
+                        type="email"
+                        value={candidate.email}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      />
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Mobile Number <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
+                        value={candidate.mobile}
+                        onChange={(e) => handleInputChange('mobile', e.target.value)}
+                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      />
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Current Location <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
+                        value={candidate.currentLocation}
+                        onChange={(e) => handleInputChange('currentLocation', e.target.value)}
+                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      />
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Preferred Location</label>
+                      <select
+                        value={candidate.preferredLocation}
+                        onChange={(e) => handleInputChange('preferredLocation', e.target.value)}
+                        className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      >
+                        <option value="Noida, Delhi NCR">Noida, Delhi NCR</option>
+                        <option value="Bangalore, Karnataka">Bangalore, Karnataka</option>
+                        <option value="Mumbai, Maharashtra">Mumbai, Maharashtra</option>
+                        <option value="Remote">Remote</option>
+                      </select>
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">LinkedIn Profile (Optional)</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={candidate.linkedin}
+                          onChange={(e) => handleInputChange('linkedin', e.target.value)}
+                          className="w-full pl-1.5 pr-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none  truncate"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Category 2: Application Details */}
+                <div className="space-y-1.5" id="application-info-block">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
+                      Application Details
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Position Applied For <span className="text-rose-500">*</span></label>
+                      <select
+                        value={candidate.appliedFor}
+                        onChange={(e) => handleInputChange('appliedFor', e.target.value)}
+                        className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      >
+                        <option value="Sales Manager">Sales Manager</option>
+                        <option value="Senior Sales Executive">Senior Sales Executive</option>
+                        <option value="Marketing Director">Marketing Director</option>
+                      </select>
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Department <span className="text-rose-500">*</span></label>
+                      <select
+                        value={candidate.department}
+                        onChange={(e) => handleInputChange('department', e.target.value)}
+                        className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      >
+                        <option value="Sales & Marketing">Sales & Marketing</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="Product Development">Product Development</option>
+                      </select>
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Employment Type <span className="text-rose-500">*</span></label>
+                      <select
+                        value={candidate.employmentType}
+                        onChange={(e) => handleInputChange('employmentType', e.target.value)}
+                        className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      >
+                        <option value="Full Time">Full Time</option>
+                        <option value="Contract">Contract</option>
+                        <option value="Internship">Internship</option>
+                      </select>
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Total Experience (Years) <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
+                        value={candidate.totalExperience}
+                        onChange={(e) => handleInputChange('totalExperience', e.target.value)}
+                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      />
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Relevant Experience (Years) <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
+                        value={candidate.relevantExperience}
+                        onChange={(e) => handleInputChange('relevantExperience', e.target.value)}
+                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      />
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Current Company</label>
+                      <input
+                        type="text"
+                        value={candidate.currentCompany}
+                        onChange={(e) => handleInputChange('currentCompany', e.target.value)}
+                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      />
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Current CTC (INR) <span className="text-rose-500">*</span></label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={candidate.currentCTC}
+                          onChange={(e) => handleInputChange('currentCTC', e.target.value)}
+                          className="w-full pl-6 pr-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        />
+                        <span className="text-[10px] font-semibold text-indigo-900 absolute left-2 top-1/2 -translate-y-1/2">₹</span>
+                      </div>
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Expected CTC (INR) <span className="text-rose-500">*</span></label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={candidate.expectedCTC}
+                          onChange={(e) => handleInputChange('expectedCTC', e.target.value)}
+                          className="w-full pl-6 pr-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        />
+                        <span className="text-[10px] font-semibold text-indigo-900 absolute left-2 top-1/2 -translate-y-1/2">₹</span>
+                      </div>
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Notice Period <span className="text-rose-500">*</span></label>
+                      <select
+                        value={candidate.noticePeriod}
+                        onChange={(e) => handleInputChange('noticePeriod', e.target.value)}
+                        className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      >
+                        <option value="Immediate">Immediate</option>
+                        <option value="15 Days">15 Days</option>
+                        <option value="30 Days">30 Days</option>
+                        <option value="60 Days">60 Days</option>
+                        <option value="90 Days">90 Days</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Category 3: Education & Credentials */}
+                <div className="space-y-1.5" id="education-info-block">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
+                      Education Details
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Highest Qualification <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
+                        value={candidate.highestQualification}
+                        onChange={(e) => handleInputChange('highestQualification', e.target.value)}
+                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      />
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">University / Board <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
+                        value={candidate.university}
+                        onChange={(e) => handleInputChange('university', e.target.value)}
+                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      />
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Year of Passing <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
+                        value={candidate.yearOfPassing}
+                        onChange={(e) => handleInputChange('yearOfPassing', e.target.value)}
+                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      />
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Percentage / CGPA <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
+                        value={candidate.cgpa}
+                        onChange={(e) => handleInputChange('cgpa', e.target.value)}
+                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      />
+                    </div>
+                  </div>
+
                   <button
-                    onClick={addExperience}
-                    className="text-[10px] text-indigo-700 hover:text-indigo-950 font-semibold flex items-center gap-0.5 focus:outline-none whitespace-nowrap"
+                    onClick={() => alert("Education qualification successfully saved!")}
+                    className="text-[10px] text-indigo-700 hover:text-indigo-950 font-semibold flex items-center gap-0.5 pt-1 focus:outline-none"
                   >
                     <Plus className="w-3 h-3" />
-                    <span>Add Experience</span>
+                    <span>Add Another Education Qualification</span>
                   </button>
                 </div>
 
-                <div className="space-y-2">
-                  {experiences.map((exp, expIdx) => (
-                    <div key={exp.id} className="bg-slate-50 p-2 rounded border border-slate-200 space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[9px] font-semibold text-indigo-900 uppercase tracking-wide">
-                          {expIdx === 0 ? "Current / Most Recent" : `Entry ${expIdx + 1}`}
-                        </span>
-                        <button
-                          onClick={() => removeExperience(exp.id)}
-                          className="p-1 sm:p-0.5 text-rose-600 hover:bg-rose-50 rounded"
-                          title="Remove this experience"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
+                {/* Category 4: Experience / Timeline (Editable) */}
+                <div className="space-y-1.5" id="experience-info-block">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
+                      Experience Timeline
+                    </h3>
+                    <button
+                      onClick={addExperience}
+                      className="text-[10px] text-indigo-700 hover:text-indigo-950 font-semibold flex items-center gap-0.5 focus:outline-none whitespace-nowrap"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>Add Experience</span>
+                    </button>
+                  </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
-                        <div className="space-y-0.5">
-                          <label className="text-[10px] font-semibold text-indigo-950">Role / Designation</label>
-                          <input
-                            type="text"
-                            value={exp.role}
-                            onChange={(e) => handleExperienceChange(exp.id, 'role', e.target.value)}
-                            className="w-full px-2 py-1.5 sm:py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
-                          />
-                        </div>
-                        <div className="space-y-0.5">
-                          <label className="text-[10px] font-semibold text-indigo-950">Company Name</label>
-                          <input
-                            type="text"
-                            value={exp.company}
-                            onChange={(e) => handleExperienceChange(exp.id, 'company', e.target.value)}
-                            className="w-full px-2 py-1.5 sm:py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
-                          />
-                        </div>
-                        <div className="space-y-0.5">
-                          <label className="text-[10px] font-semibold text-indigo-950">Employment Type</label>
-                          <select
-                            value={exp.employmentType}
-                            onChange={(e) => handleExperienceChange(exp.id, 'employmentType', e.target.value)}
-                            className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
+                  <div className="space-y-2">
+                    {experiences.map((exp, expIdx) => (
+                      <div key={exp.id} className="bg-slate-50 p-2 rounded border border-slate-200 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] font-semibold text-indigo-900 uppercase tracking-wide">
+                            {expIdx === 0 ? "Current / Most Recent" : `Entry ${expIdx + 1}`}
+                          </span>
+                          <button
+                            onClick={() => removeExperience(exp.id)}
+                            className="p-1 sm:p-0.5 text-rose-600 hover:bg-rose-50 rounded"
+                            title="Remove this experience"
                           >
-                            <option value="Full Time">Full Time</option>
-                            <option value="Contract">Contract</option>
-                            <option value="Internship">Internship</option>
-                          </select>
+                            <Trash2 className="w-3 h-3" />
+                          </button>
                         </div>
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                          <div className="space-y-0.5">
-                            <label className="text-[10px] font-semibold text-indigo-950">Start Date</label>
-                            <input
-                              type="text"
-                              value={exp.startDate}
-                              onChange={(e) => handleExperienceChange(exp.id, 'startDate', e.target.value)}
-                              placeholder="e.g. Jun 2021"
-                              className="w-full px-2 py-1.5 sm:py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
-                            />
-                          </div>
-                          <div className="space-y-0.5">
-                            <label className="text-[10px] font-semibold text-indigo-950">End Date</label>
-                            <input
-                              type="text"
-                              value={exp.endDate}
-                              onChange={(e) => handleExperienceChange(exp.id, 'endDate', e.target.value)}
-                              placeholder="Present"
-                              className="w-full px-2 py-1.5 sm:py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
-                            />
-                          </div>
-                        </div>
-                      </div>
 
-                      <div className="space-y-1 pt-0.5">
-                        <label className="text-[10px] font-semibold text-indigo-950">Key Responsibilities</label>
-                        {exp.bullets.map((bullet, bulletIdx) => (
-                          <div key={bulletIdx} className="flex items-start gap-1">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                          <div className="space-y-0.5">
+                            <label className="text-[10px] font-semibold text-indigo-950">Role / Designation</label>
                             <input
                               type="text"
-                              value={bullet}
-                              onChange={(e) => handleBulletChange(exp.id, bulletIdx, e.target.value)}
-                              className="flex-1 min-w-0 px-2 py-1.5 sm:py-1 text-[11px] bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
+                              value={exp.role}
+                              onChange={(e) => handleExperienceChange(exp.id, 'role', e.target.value)}
+                              className="w-full px-2 py-1.5 sm:py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
                             />
-                            <button
-                              onClick={() => removeBullet(exp.id, bulletIdx)}
-                              disabled={exp.bullets.length === 1}
-                              className="p-1 text-rose-600 hover:bg-rose-50 rounded disabled:opacity-30 shrink-0"
-                              title="Remove bullet"
+                          </div>
+                          <div className="space-y-0.5">
+                            <label className="text-[10px] font-semibold text-indigo-950">Company Name</label>
+                            <input
+                              type="text"
+                              value={exp.company}
+                              onChange={(e) => handleExperienceChange(exp.id, 'company', e.target.value)}
+                              className="w-full px-2 py-1.5 sm:py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
+                            />
+                          </div>
+                          <div className="space-y-0.5">
+                            <label className="text-[10px] font-semibold text-indigo-950">Employment Type</label>
+                            <select
+                              value={exp.employmentType}
+                              onChange={(e) => handleExperienceChange(exp.id, 'employmentType', e.target.value)}
+                              className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
                             >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
+                              <option value="Full Time">Full Time</option>
+                              <option value="Contract">Contract</option>
+                              <option value="Internship">Internship</option>
+                            </select>
                           </div>
-                        ))}
-                        <button
-                          onClick={() => addBullet(exp.id)}
-                          className="text-[10px] text-indigo-700 hover:text-indigo-950 font-semibold flex items-center gap-0.5 pt-0.5"
-                        >
-                          <Plus className="w-3 h-3" />
-                          <span>Add Bullet Point</span>
-                        </button>
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                            <div className="space-y-0.5">
+                              <label className="text-[10px] font-semibold text-indigo-950">Start Date</label>
+                              <input
+                                type="text"
+                                value={exp.startDate}
+                                onChange={(e) => handleExperienceChange(exp.id, 'startDate', e.target.value)}
+                                placeholder="e.g. Jun 2021"
+                                className="w-full px-2 py-1.5 sm:py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
+                              />
+                            </div>
+                            <div className="space-y-0.5">
+                              <label className="text-[10px] font-semibold text-indigo-950">End Date</label>
+                              <input
+                                type="text"
+                                value={exp.endDate}
+                                onChange={(e) => handleExperienceChange(exp.id, 'endDate', e.target.value)}
+                                placeholder="Present"
+                                className="w-full px-2 py-1.5 sm:py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1 pt-0.5">
+                          <label className="text-[10px] font-semibold text-indigo-950">Key Responsibilities</label>
+                          {exp.bullets.map((bullet, bulletIdx) => (
+                            <div key={bulletIdx} className="flex items-start gap-1">
+                              <input
+                                type="text"
+                                value={bullet}
+                                onChange={(e) => handleBulletChange(exp.id, bulletIdx, e.target.value)}
+                                className="flex-1 min-w-0 px-2 py-1.5 sm:py-1 text-[11px] bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
+                              />
+                              <button
+                                onClick={() => removeBullet(exp.id, bulletIdx)}
+                                disabled={exp.bullets.length === 1}
+                                className="p-1 text-rose-600 hover:bg-rose-50 rounded disabled:opacity-30 shrink-0"
+                                title="Remove bullet"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                          <button
+                            onClick={() => addBullet(exp.id)}
+                            className="text-[10px] text-indigo-700 hover:text-indigo-950 font-semibold flex items-center gap-0.5 pt-0.5"
+                          >
+                            <Plus className="w-3 h-3" />
+                            <span>Add Bullet Point</span>
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
 
-                  {experiences.length === 0 && (
-                    <div className="text-center text-[10px]  py-4 border border-dashed border-slate-300 rounded">
-                      No experience entries. Click "Add Experience" to create one.
-                    </div>
-                  )}
+                    {experiences.length === 0 && (
+                      <div className="text-center text-[10px]  py-4 border border-dashed border-slate-300 rounded">
+                        No experience entries. Click "Add Experience" to create one.
+                      </div>
+                    )}
+                  </div>
                 </div>
+
+                {/* Category 5: Other Information */}
+                <div className="space-y-1.5" id="other-info-block">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
+                      <Globe className="w-3.5 h-3.5 text-indigo-700" />
+                      Other Information
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Available From</label>
+                      <input
+                        type="text"
+                        value={candidate.availableFrom}
+                        onChange={(e) => handleInputChange('availableFrom', e.target.value)}
+                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      />
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Willingness to Relocate</label>
+                      <select
+                        value={candidate.relocation}
+                        onChange={(e) => handleInputChange('relocation', e.target.value)}
+                        className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      >
+                        <option value="Yes, I am open to relocate">Yes, open to relocate</option>
+                        <option value="No">No</option>
+                        <option value="Remote only">Remote only</option>
+                      </select>
+                    </div>
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Willing to Travel</label>
+                      <select
+                        value={candidate.willingToTravel}
+                        onChange={(e) => handleInputChange('willingToTravel', e.target.value)}
+                        className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      >
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                        <option value="Occasional">Occasional</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
               </div>
 
-              {/* Category 5: Other Information */}
-              <div className="space-y-1.5" id="other-info-block">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
-                    <Globe className="w-3.5 h-3.5 text-indigo-700" />
-                    Other Information
-                  </h3>
-                </div>
+              {/* Bottom Save & Discard Action Row */}
+              <div className="p-2 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center items-stretch justify-between gap-2" id="form-action-footer">
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Available From</label>
-                    <input
-                      type="text"
-                      value={candidate.availableFrom}
-                      onChange={(e) => handleInputChange('availableFrom', e.target.value)}
-                      className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    />
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Willingness to Relocate</label>
-                    <select
-                      value={candidate.relocation}
-                      onChange={(e) => handleInputChange('relocation', e.target.value)}
-                      className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    >
-                      <option value="Yes, I am open to relocate">Yes, open to relocate</option>
-                      <option value="No">No</option>
-                      <option value="Remote only">Remote only</option>
-                    </select>
-                  </div>
-                  <div className="space-y-0.5">
-                    <label className="text-[10px] font-semibold text-indigo-950">Willing to Travel</label>
-                    <select
-                      value={candidate.willingToTravel}
-                      onChange={(e) => handleInputChange('willingToTravel', e.target.value)}
-                      className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                    >
-                      <option value="Yes">Yes</option>
-                      <option value="No">No</option>
-                      <option value="Occasional">Occasional</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Bottom Save & Discard Action Row */}
-            <div className="p-2 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center items-stretch justify-between gap-2" id="form-action-footer">
-              
-              <div className="flex items-center gap-x-4 gap-y-2 text-xs">
+                <div className="flex items-center gap-x-4 gap-y-2 text-xs">
                   <button
-                  onClick={handleDiscard}
-                  disabled={!hasUnsavedChanges}
-                  className="flex-1 sm:flex-none justify-center px-3 py-1.5 sm:py-1 text-xs border border-slate-300  rounded font-medium hover:bg-slate-100 disabled:opacity-50 transition-colors flex items-center"
-                >
-                  Discard
-                </button>
-                {/* {hasUnsavedChanges ? (
+                    onClick={handleDiscard}
+                    disabled={!hasUnsavedChanges}
+                    className="flex-1 sm:flex-none justify-center px-3 py-1.5 sm:py-1 text-xs border border-slate-300  rounded font-medium hover:bg-slate-100 disabled:opacity-50 transition-colors flex items-center"
+                  >
+                    Discard
+                  </button>
+                  {/* {hasUnsavedChanges ? (
                   <span className="text-amber-700 font-semibold flex items-center gap-1 animate-pulse">
                     <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
                     Unsaved edits pending
@@ -825,23 +828,23 @@ export default function ReviewPage({
                     All changes saved locally
                   </span>
                 )} */}
-                      <span className="text-emerald-800 font-semibold flex items-center gap-1 bg-emerald-100/70 px-2 py-0.5 rounded border border-emerald-300">
+                  <span className="text-emerald-800 font-semibold flex items-center gap-1 bg-emerald-100/70 px-2 py-0.5 rounded border border-emerald-300">
                     <Check className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
                     All changes saved locally
                   </span>
-              </div>
+                </div>
 
-              <div className="flex items-center gap-1">
-              
-                <button
-                  onClick={handleSave}
-                  className="flex-1 sm:flex-none justify-center px-3 py-1.5 sm:py-1 text-xs bg-indigo-600 text-white rounded font-semibold hover:bg-indigo-700 shadow-xs hover:shadow-md transition-all flex items-center gap-1"
-                >
-                  Save Progress
-                </button>
-          
+                <div className="flex items-center gap-1">
+
+                  <button
+                    onClick={handleSave}
+                    className="flex-1 sm:flex-none justify-center px-3 py-1.5 sm:py-1 text-xs bg-indigo-600 text-white rounded font-semibold hover:bg-indigo-700 shadow-xs hover:shadow-md transition-all flex items-center gap-1"
+                  >
+                    Save Progress
+                  </button>
+
+                </div>
               </div>
-            </div>
             </div>
 
           </div>
@@ -901,16 +904,16 @@ export default function ReviewPage({
                       <div className="flex items-center gap-2 mt-1 text-[8px] ">
                         <span className="flex items-center gap-0.5"><Phone className="w-2.5 h-2.5" />+91 98765 43210</span>
                         <span className="flex items-center gap-0.5"><Mail className="w-2.5 h-2.5" />amit.verma@email.com</span>
-                      <span className="flex items-center gap-0.5 mt-0.5 text-[8px] ">
-                        <MapPin className="w-2.5 h-2.5" />{candidate.preferredLocation}
-                      </span>
+                        <span className="flex items-center gap-0.5 mt-0.5 text-[8px] ">
+                          <MapPin className="w-2.5 h-2.5" />{candidate.preferredLocation}
+                        </span>
                       </div>
-                    {candidate.linkedin && (
-        <div className="flex items-center gap-1 min-w-0 text-[8px] ">
-          <FaLinkedinIn className="" />
-          <span className="truncate">{candidate.linkedin}</span>
-        </div>
-      )}
+                      {candidate.linkedin && (
+                        <div className="flex items-center gap-1 min-w-0 text-[8px] ">
+                          <FaLinkedinIn className="" />
+                          <span className="truncate">{candidate.linkedin}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -982,48 +985,48 @@ export default function ReviewPage({
                 </div>
               </div>
             </div>
-<div className="flex gap-x-4 gap-y-2 flex-col md:flex-row">
-            {/* 2. AI Extraction Verification & Summary Checklist */}
-            <div className=" bg-white rounded-lg border border-slate-200 p-4 flex flex-col justify-between shadow-sm overflow-visible lg:overflow-hidden shrink-0" id="accuracy-checklist-card gap-x-4 gap-y-2 flex-1">
-              <div className=''>
-                <div className="flex items-center justify-between mb-1.5 pb-0.5 border-b border-slate-100">
-                  <h4 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
-                    AI Extraction Accuracy
-                  </h4>
-                  {/* <span className="bg-indigo-100 text-indigo-950 text-[9px] font-bold px-1.5 py-0.5 rounded font-mono">
+            <div className="flex gap-x-4 gap-y-2 flex-col md:flex-row">
+              {/* 2. AI Extraction Verification & Summary Checklist */}
+              <div className=" bg-white rounded-lg border border-slate-200 p-4 flex flex-col justify-between shadow-sm overflow-visible lg:overflow-hidden shrink-0" id="accuracy-checklist-card gap-x-4 gap-y-2 flex-1">
+                <div className=''>
+                  <div className="flex items-center justify-between mb-1.5 pb-0.5 border-b border-slate-100">
+                    <h4 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
+                      AI Extraction Accuracy
+                    </h4>
+                    {/* <span className="bg-indigo-100 text-indigo-950 text-[9px] font-bold px-1.5 py-0.5 rounded font-mono">
                     Avg: 92%
                   </span> */}
+                  </div>
+
+                  <div className="space-y-1 text-xs ">
+                    {[
+                      { label: "Personal Information", confidence: 95 },
+                      { label: "Application Details", confidence: 92 },
+                      { label: "Education Details", confidence: 92 },
+                      { label: "Experience Details", confidence: 91 },
+                      { label: "Skills Check", confidence: 88 }
+                    ].map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-1 rounded gap-2">
+                        <span className="flex items-center gap-1 text-[10px] font-medium ">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 fill-emerald-50 shrink-0" />
+                          {item.label}
+                        </span>
+                        <span className="text-[10px] font-semibold text-emerald-800 font-mono shrink-0">
+                          {item.confidence}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="space-y-1 text-xs ">
-                  {[
-                    { label: "Personal Information", confidence: 95 },
-                    { label: "Application Details", confidence: 92 },
-                    { label: "Education Details", confidence: 92 },
-                    { label: "Experience Details", confidence: 91 },
-                    { label: "Skills Check", confidence: 88 }
-                  ].map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-1 rounded gap-2">
-                      <span className="flex items-center gap-1 text-[10px] font-medium ">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 fill-emerald-50 shrink-0" />
-                        {item.label}
-                      </span>
-                      <span className="text-[10px] font-semibold text-emerald-800 font-mono shrink-0">
-                        {item.confidence}%
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                {/* AI Smart Suggestion panel */}
               </div>
-
-              {/* AI Smart Suggestion panel */}
-            </div>
               <div className="mt-1 bg-indigo-50 p-4 rounded border border-indigo-100 space-y-1 flex-1" id="ai-smart-suggestions ">
                 <div className="flex items-start gap-1">
                   <Sparkles className="w-3.5 h-3.5 text-indigo-700 mt-0.5 shrink-0" />
                   <div>
                     <span className="text-[10px] font-semibold text-indigo-950 block">AI Suggestion</span>
-                      <span className="text-[9px]  leadind-loose block">
+                    <span className="text-[9px]  leadind-loose block">
                       We found multipe possible matches for your experience
                     </span>
                     <span className="text-[9px] mt-2 leadind-loose block">
@@ -1039,7 +1042,7 @@ export default function ReviewPage({
                   Review Suggestions
                 </button>
               </div>
-</div>
+            </div>
           </div>
         </div>
       </div>

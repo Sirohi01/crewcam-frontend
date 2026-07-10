@@ -203,7 +203,7 @@ export default function ShortlistedCandidatesUI() {
             />
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
-            <button className="flex flex-1 md:flex-none items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
+            <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
               <Filter size={13} /> Filters
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-indigo-700 text-[9px] text-white ml-1">0</span>
             </button>
@@ -278,7 +278,7 @@ export default function ShortlistedCandidatesUI() {
             <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[10px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
               <LayoutGrid size={13} /> Columns
             </button>
-            <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[10px] font-semibold text-zinc-700 hover:bg-zinc-50 shadow-sm">
+            <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
               <Download size={13} /> Download List <ChevronDown size={12} className="ml-1 text-zinc-400" />
             </button>
           </div>

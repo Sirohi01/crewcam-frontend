@@ -352,21 +352,23 @@ export default function NewApplicationsUI() {
 
         {/* Footer Pagination */}
         <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-t border-zinc-100 bg-white">
-          <div className="text-[11px] text-zinc-500 font-medium">
-            Showing 1 to 10 of 24 entries
-          </div>
-
-          <div className="flex items-center gap-2 mt-2 sm:mt-0">
-            <span className="text-[11px] text-zinc-500 font-medium">Show</span>
-            <div className="relative">
-              <select className="appearance-none rounded border border-zinc-200 bg-white pl-2 pr-6 py-1 text-[11px] font-medium text-zinc-700 focus:outline-none shadow-sm">
-                <option>10</option>
-                <option>20</option>
-                <option>50</option>
-              </select>
-              <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+          <div className='flex items-center gap-32'>
+            <div className="text-[11px] text-zinc-500 font-medium">
+              Showing 1 to 10 of 24 entries
             </div>
-            <span className="text-[11px] text-zinc-500 font-medium">entries</span>
+
+            <div className="flex items-center gap-2 mt-2 sm:mt-0">
+              <span className="text-[11px] text-zinc-500 font-medium">Show</span>
+              <div className="relative">
+                <select className="appearance-none rounded border border-zinc-200 bg-white pl-2 pr-6 py-1 text-[11px] font-medium text-zinc-700 focus:outline-none shadow-sm">
+                  <option>10</option>
+                  <option>20</option>
+                  <option>50</option>
+                </select>
+                <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+              </div>
+              <span className="text-[11px] text-zinc-500 font-medium">entries</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-1 mt-2 sm:mt-0">
