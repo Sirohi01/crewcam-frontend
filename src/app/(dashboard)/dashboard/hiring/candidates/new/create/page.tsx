@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import {
   CheckCircle2, Loader2, Minus, Plus, Maximize2, Download, Mail, Phone,
@@ -11,7 +11,11 @@ import {
 // backend-wired candidate form still lives at
 // /dashboard/hiring/candidates/new/create/classic.
 
-const steps = ['Upload CV', 'Review & Edit', 'Submit Application'];
+const steps = [
+  { num: 1, label: 'Upload CV', status: 'active' },
+  { num: 2, label: 'Review & Edit', status: 'pending' },
+  { num: 3, label: 'Submit Application', status: 'pending' },
+];
 
 const extractionChecklist = [
   'Reading CV content',
@@ -87,53 +91,100 @@ function Card({
 }
 
 export default function CreateCandidatePage() {
+  const [file, setFile] = useState<{ name: string, size: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const selectedFile = e.target.files[0];
+      const sizeInKb = (selectedFile.size / 1024).toFixed(0);
+      setFile({
+        name: selectedFile.name,
+        size: `${sizeInKb} KB`
+      });
+    }
+  };
+
   return (
-    <div className="font-sans">
-      <div className="mx-auto max-w-[1600px] space-y-2 p-1">
+    <div className="w-full bg-slate-50 flex flex-col font-sans min-h-[650px] lg:h-[calc(100%-48px)] overflow-y-auto pb-6" id="create-page-root">
+      <div className="w-full mx-auto max-w-[1600px] px-2 pt-2">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-bold text-zinc-900">Add New Candidate</h1>
-            <p className="mt-0.5 text-[10.5px] text-zinc-500">Upload CV and let AI extract details automatically</p>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-3">
+          {/* Title */}
+          <div className="shrink-0 w-full lg:w-[380px]">
+            <h1 className="text-[17px] font-bold text-zinc-900 tracking-tight leading-tight">Add New Candidate</h1>
+            <p className="mt-0.5 text-[11px] font-medium text-zinc-500 whitespace-nowrap">Upload CV and let AI extract details automatically</p>
           </div>
 
-          <div className="flex items-center gap-2">
-            {steps.map((s, i) => (
-              <React.Fragment key={s}>
-                {i > 0 && <span className="h-px w-8 bg-zinc-200" />}
-                <div className="flex flex-col items-center gap-1">
-                  <span className={`grid h-6 w-6 place-items-center rounded-none text-[10.5px] font-bold ${i === 0 ? 'bg-indigo-600 text-white' : 'border border-zinc-200 bg-white text-zinc-400'}`}>
-                    {i + 1}
+          {/* Steps */}
+          <div className="flex-1 max-w-[320px] w-full flex items-center justify-center relative mx-auto">
+            <div className="absolute left-[30px] right-[30px] top-[11px] h-[2px] bg-zinc-200 -z-0"></div>
+            <div className="flex w-full justify-between z-10">
+              {steps.map((step, idx) => (
+                <div key={idx} className="flex flex-col items-center gap-1 px-2">
+                  <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-colors z-10
+                    ${step.status === 'completed' ? 'border-indigo-100 text-indigo-600 bg-indigo-50' :
+                      step.status === 'active' ? 'border-indigo-600 bg-indigo-600 text-white shadow-[0_0_0_3px_rgba(79,70,229,0.15)]' :
+                        'border-zinc-200 text-zinc-400 bg-white'}`}>
+                    {step.status === 'completed' ? <CheckCircle2 className="w-3 h-3" strokeWidth={3} /> : step.num}
+                  </div>
+                  <span className={`text-[8.5px] lg:text-[9px] whitespace-nowrap font-bold ${step.status === 'active' ? 'text-indigo-900' : step.status === 'completed' ? 'text-indigo-600' : 'text-zinc-400'}`}>
+                    {step.label}
                   </span>
-                  <span className={`whitespace-nowrap text-[9.5px] font-semibold ${i === 0 ? 'text-zinc-800' : 'text-zinc-400'}`}>{s}</span>
                 </div>
-              </React.Fragment>
-            ))}
+              ))}
+            </div>
           </div>
 
-          <div className="flex gap-2">
-            <Link href="/dashboard/hiring/candidates" className="flex items-center rounded-none border border-zinc-200 bg-white px-3 py-2 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
+          {/* Buttons */}
+          <div className="flex items-center justify-end gap-2 shrink-0 w-full lg:w-[380px]">
+            <Link href="/dashboard/hiring/candidates" className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
               Cancel
             </Link>
-            <button type="button" onClick={() => window.open('/dashboard/hiring/candidates/new/create/review-and-edit', '_blank')} className="flex items-center gap-1.5 rounded-none bg-indigo-600 px-3 py-2 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700">
-              Next: Review &amp; Edit <ArrowRight size={13} />
+            <button type="button" onClick={() => window.open('/dashboard/hiring/candidates/new/create/review-and-edit', '_blank')} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
+              Next: Review &amp; Edit &rarr;
             </button>
           </div>
         </div>
-
+        <div className="h-[1px] bg-zinc-200 w-full mb-2 shrink-0"></div>
         {/* Row 1: upload / status / confidence */}
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-[7fr_3fr]">
           <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-3">
-            <Card title="CV / Resume Uploaded">
-              <div className="flex items-center gap-2">
-                <span className="grid h-11 w-9 shrink-0 place-items-center rounded-none bg-rose-600 text-[9px] font-bold text-white">PDF</span>
-                <div className="min-w-0">
-                  <p className="truncate text-[11px] font-semibold text-zinc-800">Amit_Kumar_Verma_Resume.pdf</p>
-                  <p className="text-[9.5px] text-zinc-400">245 KB</p>
+            <div className="bg-white rounded-lg border border-slate-100 p-3.5 shadow-sm flex flex-col gap-3">
+              <h3 className="text-[12px] font-bold text-indigo-950">CV / Resume Uploaded</h3>
+
+              <div className="flex items-start gap-4">
+                {/* PDF Icon exactly like the image */}
+                <div className="relative w-11 h-14 shrink-0">
+                  <svg width="100%" height="100%" viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 1C2.34315 1 1 2.34315 1 4V48C1 49.6569 2.34315 51 4 51H36C37.6569 51 39 49.6569 39 48V14L26 1H4Z" fill="white" stroke="#E2E8F0" strokeWidth="2" />
+                    <path d="M25 1V10C25 12.2091 26.7909 14 29 14H39" fill="#E2E8F0" stroke="#E2E8F0" strokeWidth="2" />
+                    <path d="M26 1L39 14" fill="#E2E8F0" stroke="#E2E8F0" strokeWidth="2" />
+                    <path d="M26 1V10C26 11.1046 26.8954 12 28 12H39Z" fill="#E2E8F0" />
+                  </svg>
+                  <div className="absolute bottom-2.5 left-0 right-0 h-5 bg-[#e52e2e] rounded-sm flex items-center justify-center">
+                    <span className="text-[11px] font-bold text-white tracking-wide">PDF</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1 min-w-0 mt-0.5">
+                  <p className="truncate text-[11.5px] font-bold text-indigo-950">
+                    {file ? file.name : "Amit_Kumar_Verma_Resume.pdf"}
+                  </p>
+                  <p className="text-[10px] font-medium text-slate-400">
+                    {file ? file.size : "245 KB"}
+                  </p>
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="text-left mt-1.5 text-[10px] font-bold text-indigo-600 hover:text-indigo-700">Replace File</button>
                 </div>
               </div>
-              <button type="button" className="mt-0.5 text-[10.5px] font-semibold text-indigo-600 hover:text-indigo-700">Replace File</button>
-            </Card>
+            </div>
 
             <Card title="AI Extraction Status">
               <div className="space-y-0.5">
@@ -276,7 +327,7 @@ export default function CreateCandidatePage() {
             <div className="space-y-2">
               <div>
                 <p className="mb-1.5 text-[11px] font-bold text-zinc-700">Personal Information</p>
-                <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-4">
                   <Field title="Full Name" required><input className={inputCls} defaultValue="Amit Kumar Verma" /></Field>
                   <Field title="Email Address" required><input className={inputCls} defaultValue="amit.verma@email.com" /></Field>
                   <Field title="Mobile Number" required><input className={inputCls} defaultValue="+91 98765 43210" /></Field>
@@ -289,7 +340,7 @@ export default function CreateCandidatePage() {
 
               <div>
                 <p className="mb-1.5 text-[11px] font-bold text-zinc-700">Application Details</p>
-                <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-4">
                   <SelectField title="Position Applied For" required options={['Sales Manager', 'Sales Executive']} />
                   <SelectField title="Department" required options={['Sales & Marketing', 'IT', 'HR']} />
                   <SelectField title="Employment Type" required options={['Full Time', 'Contract']} />
@@ -315,7 +366,7 @@ export default function CreateCandidatePage() {
 
               <div>
                 <p className="mb-1.5 text-[11px] font-bold text-zinc-700">Education Details</p>
-                <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-4">
                   <Field title="Highest Qualification" required><input className={inputCls} defaultValue="MBA - Marketing" /></Field>
                   <Field title="University / Board" required><input className={inputCls} defaultValue="Amity University, Noida" /></Field>
                   <Field title="Year of Passing" required><input className={inputCls} defaultValue="2017" /></Field>

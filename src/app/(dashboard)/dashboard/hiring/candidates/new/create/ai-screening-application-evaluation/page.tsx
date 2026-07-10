@@ -3,6 +3,8 @@
 import React from 'react';
 import {
   CheckCircle,
+  Check,
+  CheckCircle2,
   Sparkles,
   AlertTriangle,
   ChevronRight,
@@ -67,17 +69,16 @@ const initialSkills: Skill[] = [
 ];
 
 // 8 step application journey shown in the top stepper
-const journeySteps: { label: string; key: string }[] = [
-  { label: "Upload CV", key: "upload" },
-  { label: "Review & Edit", key: "review" },
-  { label: "Submit Application", key: "submit" },
-  { label: "AI Screening", key: "screening" },
-  { label: "HOD Review", key: "hod" },
-  { label: "Interview", key: "interview" },
-  { label: "Offer", key: "offer" },
-  { label: "Onboarding", key: "onboarding" }
+const steps = [
+  { num: 1, label: 'Upload CV', status: 'completed' },
+  { num: 2, label: 'Review & Edit', status: 'completed' },
+  { num: 3, label: 'Submit Application', status: 'completed' },
+  { num: 4, label: 'AI Screening', status: 'active' },
+  { num: 5, label: 'HOD Review', status: 'pending' },
+  { num: 6, label: 'Interview', status: 'pending' },
+  { num: 7, label: 'Offer', status: 'pending' },
+  { num: 8, label: 'Onboarding', status: 'pending' },
 ];
-const CURRENT_STEP_INDEX = 3; // "AI Screening" is active, matches reference image
 
 // Vertical application timeline shown in the right column
 interface TimelineEvent {
@@ -159,87 +160,60 @@ export default function EvaluationPage({
   return (
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
 
+      {/* HEADER & HORIZONTAL STEP INDICATOR */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-2">
+        {/* Title */}
+        <div className="shrink-0 w-full lg:w-[380px]">
+          <h1 className="text-[17px] font-bold text-zinc-900 tracking-tight leading-tight">AI Screening &ndash; Application Evaluation</h1>
+          <p className="text-[11px] font-medium text-zinc-500 mt-0.5">Application ID: APP-2026-000124</p>
+        </div>
+
+        {/* Steps */}
+        <div className="flex-1 max-w-[650px] w-full flex items-center justify-center relative mx-auto">
+          <div className="absolute left-[30px] right-[30px] top-[11px] h-[2px] bg-zinc-200 -z-0"></div>
+          <div className="flex w-full justify-between z-10">
+            {steps.map((step, idx) => (
+              <div key={idx} className="relative z-10 flex flex-col items-center gap-1 px-1 bg-slate-50 lg:bg-transparent">
+                <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-colors
+                  ${step.status === 'completed' ? 'border-indigo-100 text-indigo-600 bg-indigo-50' :
+                    step.status === 'active' ? 'border-indigo-600 bg-indigo-600 text-white shadow-[0_0_0_3px_rgba(79,70,229,0.15)]' :
+                      'border-zinc-200 text-zinc-400 bg-white'}`}>
+                  {step.status === 'completed' ? <Check className="w-3 h-3" strokeWidth={3} /> : step.num}
+                </div>
+                <span className={`text-[8.5px] lg:text-[9px] whitespace-nowrap font-bold ${step.status === 'active' ? 'text-indigo-900' : step.status === 'completed' ? 'text-indigo-600' : 'text-zinc-400'}`}>
+                  {step.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setCurrentView('submitted')}
+            className="flex items-center justify-center h-8 px-3 rounded-md text-[11px] font-semibold text-indigo-700 border border-indigo-200 bg-white hover:bg-indigo-50 shadow-sm transition-colors"
+          >
+            <ChevronLeft className="w-3 h-3 mr-1" /> Back to Applications
+          </button>
+          <button
+            onClick={() => {
+              window.open('/dashboard/hiring/candidates/new/create/evaluation', '_blank')
+              setCurrentView('submitted');
+            }}
+            className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors"
+          >
+            Move to HOD Review &rarr;
+          </button>
+        </div>
+      </div>
+
+      <div className="h-[1px] bg-zinc-200 w-full mb-4 shrink-0"></div>
+
       <div
-        className="w-full min-h-screen lg:h-screen lg:min-h-[650px] overflow-y-auto lg:overflow-hidden flex flex-col bg-slate-50 font-sans text-slate-900 select-none"
+        className="w-full lg:h-[calc(100vh-120px)] lg:min-h-[650px] overflow-y-auto lg:overflow-hidden flex flex-col bg-slate-50 font-sans text-slate-900 select-none rounded-xl"
         id="evaluation-page-root"
       >
-        <header
-          className="min-h-[52px] lg:h-[7%] bg-white px-3 py-2 lg:py-0 flex flex-col sm:flex-row sm:items-center items-start justify-between gap-2 border-b border-slate-200 shadow-sm shrink-0"
-          id="eval-title-header"
-        >
-          <div>
-            <h1 className="font-display font-bold text-sm text-slate-900 leading-none">
-              AI Screening – Application Evaluation
-            </h1>
-            <p className="text-[10px] text-slate-500 leading-none mt-1 font-mono">
-              Application ID: APP-2026-000124
-            </p>
-          </div>
-
-          <div className="flex items-center gap-1.5 flex-wrap w-full sm:w-auto">
-            <button
-              onClick={() => setCurrentView('submitted')}
-              className="px-2.5 py-1 text-xs border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 font-medium flex items-center gap-1 transition-colors"
-            >
-              <ChevronLeft className="w-3.5 h-3.5" />
-              Back to Applications
-            </button>
-            <button
-              onClick={() => {
-                alert("Moving application to HOD Review Stage!");
-                window.open('/dashboard/hiring/candidates/new/create/evaluation', '_blank')
-                setCurrentView('submitted');
-              }}
-              className="px-2.5 py-1 text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-md flex items-center gap-1 shadow-xs transition-colors"
-            >
-              Move to HOD Review
-            </button>
-          </div>
-        </header>
-
-        {/* =========================================================================
-          2. STEPPER PROGRESS BAR (8 stage application journey)
-          ========================================================================= */}
-        <section
-          className="min-h-[46px] lg:h-[6%] bg-white border-b border-slate-100 px-3 py-1.5 overflow-x-auto shrink-0"
-          id="global-page-selector"
-        >
-          <div className="flex items-center gap-1.5 min-w-max mx-auto lg:justify-center lg:w-full">
-            {journeySteps.map((step, idx) => {
-              const isDone = idx < CURRENT_STEP_INDEX;
-              const isActive = idx === CURRENT_STEP_INDEX;
-              return (
-                <React.Fragment key={step.key}>
-                  <div className="flex flex-col items-center gap-0.5">
-                    <span
-                      className={
-                        "w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold border transition-colors " +
-                        (isDone
-                          ? "bg-emerald-100 text-emerald-800 border-emerald-300"
-                          : isActive
-                            ? "bg-indigo-600 text-white border-indigo-600"
-                            : "bg-white text-slate-400 border-slate-300")
-                      }
-                    >
-                      {isDone ? "✓" : idx + 1}
-                    </span>
-                    <span
-                      className={
-                        "text-[8.5px] font-medium whitespace-nowrap " +
-                        (isActive ? "text-indigo-700 font-bold" : isDone ? "text-emerald-800" : "text-slate-400")
-                      }
-                    >
-                      {step.label}
-                    </span>
-                  </div>
-                  {idx < journeySteps.length - 1 && (
-                    <div className={"w-5 h-[1px] mb-3 " + (idx < CURRENT_STEP_INDEX ? "bg-emerald-400" : "bg-slate-200")}></div>
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </div>
-        </section>
 
         {/* =========================================================================
           3. MAIN CONTAINER
