@@ -13,61 +13,60 @@ export default function InterviewUI() {
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
 
-        {/* Header & Steps */}
-        <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4  pb-4">
-          <div>
-            <h1 className="text-xl font-bold text-zinc-900">Interview – Round 4</h1>
-            <p className="text-[11px] text-zinc-500 mt-0.5">Written Assessment – AI Powered</p>
+        {/* HEADER & HORIZONTAL STEP INDICATOR */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-3">
+          {/* Title */}
+          <div className="shrink-0 w-full lg:w-[280px] xl:w-[340px]">
+            <h1 className="text-[17px] font-bold text-zinc-900 tracking-tight leading-tight">Interview &ndash; Round 4</h1>
+            <p className="text-[11px] font-medium text-zinc-500 mt-0.5">Written Assessment – AI Powered</p>
           </div>
 
-          {/* Stepper */}
-          <div className="flex-1 flex items-center justify-center overflow-x-hidden px-2">
-            <div className="flex items-center justify-center w-full">
+          {/* Steps */}
+          <div className="flex-1 max-w-[550px] xl:max-w-[600px] w-full flex items-center justify-center relative mx-auto">
+            <div className="absolute left-[30px] right-[30px] top-[11px] h-[2px] bg-zinc-200 -z-0"></div>
+            <div className="flex w-full justify-between z-10">
               {[
-                { num: 1, label: 'Upload CV', state: 'done' },
-                { num: 2, label: 'Review & Edit', state: 'done' },
-                { num: 3, label: 'Submit Application', state: 'done' },
-                { num: 4, label: 'AI Screening', state: 'done' },
-                { num: 5, label: 'HOD Review', state: 'done' },
-                { num: 6, label: 'Interview', state: 'active' },
-                { num: 7, label: 'Offer', state: 'pending' },
-                { num: 8, label: 'Onboarding', state: 'pending' },
-              ].map((step, i, arr) => (
-                <React.Fragment key={step.num}>
-                  <div className="flex flex-col items-center gap-1 w-12 sm:w-14 lg:w-16">
-                    <div className={`h-5 w-5 lg:h-6 lg:w-6 rounded-full flex items-center justify-center text-[9px] lg:text-[10px] font-bold border ${step.state === 'active' ? 'bg-indigo-700 border-indigo-700 text-white' :
-                      step.state === 'done' ? 'bg-white border-zinc-300 text-zinc-500' :
-                        'bg-white border-zinc-200 text-zinc-400'
-                      }`}>
-                      {step.num}
-                    </div>
-                    <span className={`text-[8px] lg:text-[9px] text-center leading-tight font-medium ${step.state === 'active' ? 'text-indigo-700' : 'text-zinc-500'}`}>
-                      {step.label}
-                    </span>
+                { num: 1, label: 'Upload CV', status: 'completed' },
+                { num: 2, label: 'Review & Edit', status: 'completed' },
+                { num: 3, label: 'Submit Application', status: 'completed' },
+                { num: 4, label: 'AI Screening', status: 'completed' },
+                { num: 5, label: 'HOD Review', status: 'completed' },
+                { num: 6, label: 'Interview', status: 'active' },
+                { num: 7, label: 'Offer', status: 'pending' },
+                { num: 8, label: 'Onboarding', status: 'pending' },
+              ].map((step, idx) => (
+                <div key={idx} className="relative z-10 flex flex-col items-center gap-1 px-1 bg-slate-50 lg:bg-transparent">
+                  <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-colors
+                    ${step.status === 'completed' ? 'border-indigo-100 text-indigo-600 bg-indigo-50' :
+                      step.status === 'active' ? 'border-indigo-600 bg-indigo-600 text-white shadow-[0_0_0_3px_rgba(79,70,229,0.15)]' :
+                        'border-zinc-200 text-zinc-400 bg-white'}`}>
+                    {step.status === 'completed' ? <Check className="w-3 h-3" strokeWidth={3} /> : step.num}
                   </div>
-                  {i < arr.length - 1 && (
-                    <div className={`h-[1px] w-6 sm:w-5 lg:w-8 shrink-0 -mt-4 lg:-mt-5 ${step.state === 'done' ? 'bg-zinc-300' : 'bg-zinc-200'}`} />
-                  )}
-                </React.Fragment>
+                  <span className={`text-[8.5px] lg:text-[9px] whitespace-nowrap font-bold ${step.status === 'active' ? 'text-indigo-900' : step.status === 'completed' ? 'text-indigo-600' : 'text-zinc-400'}`}>
+                    {step.label}
+                  </span>
+                </div>
               ))}
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm whitespace-nowrap">
-              <ArrowLeft size={13} /> Back to Applications
+          {/* Buttons */}
+          <div className="flex items-center justify-end gap-2 shrink-0 w-full lg:w-[280px] xl:w-[340px]">
+            <button className="flex items-center justify-center h-8 px-3 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
+              <ArrowLeft className="w-3 h-3 mr-1" /> Back to Applications
             </button>
-            <button className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors whitespace-nowrap">
-              End Interview <StopCircle size={14} />
+            <button className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
+              End Interview <StopCircle className="w-3 h-3 ml-1" />
             </button>
           </div>
         </div>
+        <div className="h-[1px] bg-zinc-200 w-full mb-4 shrink-0"></div>
 
         {/* Top Cards Section */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
           {/* Profile Card */}
-          <div className="xl:col-span-2 py-4">
-            <div className="flex flex-col md:flex-row items-start gap-5">
+          <div className="xl:col-span-2 p-4 bg-white rounded-xl border border-zinc-200 shadow-sm">
+            <div className="flex flex-col md:flex-row items-start gap-5 w-full">
               <img src="https://i.pravatar.cc/150?u=amit" alt="Amit" className="h-20 w-20 rounded-lg object-cover border border-zinc-200 shadow-sm shrink-0" />
               <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
                 {/* Col 1 */}
@@ -128,7 +127,7 @@ export default function InterviewUI() {
           </div>
 
           {/* Application Summary Card */}
-          <div className="py-4 flex flex-col justify-center border border-zinc-100 shadow-sm p-4 rounded-lg">
+          <div className="py-4 flex flex-col justify-center border border-zinc-100 shadow-sm p-4 rounded-lg bg-white">
             <h3 className="text-[13px] font-bold text-zinc-900 mb-4">Application Summary</h3>
             <div className="flex flex-col gap-3 text-[11px]">
               <div className="flex items-center justify-between">

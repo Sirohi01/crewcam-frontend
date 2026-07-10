@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import {
   CheckCircle2, Loader2, Minus, Plus, Maximize2, Download, Mail, Phone,
@@ -91,8 +91,22 @@ function Card({
 }
 
 export default function CreateCandidatePage() {
+  const [file, setFile] = useState<{ name: string, size: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const selectedFile = e.target.files[0];
+      const sizeInKb = (selectedFile.size / 1024).toFixed(0);
+      setFile({
+        name: selectedFile.name,
+        size: `${sizeInKb} KB`
+      });
+    }
+  };
+
   return (
-    <div className="w-full bg-slate-50 flex flex-col font-sans min-h-[650px] lg:h-[calc(100%-48px)] lg:overflow-hidden" id="create-page-root">
+    <div className="w-full bg-slate-50 flex flex-col font-sans min-h-[650px] lg:h-[calc(100%-48px)] overflow-y-auto pb-6" id="create-page-root">
       <div className="w-full mx-auto max-w-[1600px] px-2 pt-2">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-3">
@@ -132,20 +146,45 @@ export default function CreateCandidatePage() {
             </button>
           </div>
         </div>
-
+        <div className="h-[1px] bg-zinc-200 w-full mb-2 shrink-0"></div>
         {/* Row 1: upload / status / confidence */}
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-[7fr_3fr]">
           <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-3">
-            <Card title="CV / Resume Uploaded">
-              <div className="flex items-center gap-2">
-                <span className="grid h-11 w-9 shrink-0 place-items-center rounded-none bg-rose-600 text-[9px] font-bold text-white">PDF</span>
-                <div className="min-w-0">
-                  <p className="truncate text-[11px] font-semibold text-zinc-800">Amit_Kumar_Verma_Resume.pdf</p>
-                  <p className="text-[9.5px] text-zinc-400">245 KB</p>
+            <div className="bg-white rounded-lg border border-slate-100 p-3.5 shadow-sm flex flex-col gap-3">
+              <h3 className="text-[12px] font-bold text-indigo-950">CV / Resume Uploaded</h3>
+
+              <div className="flex items-start gap-4">
+                {/* PDF Icon exactly like the image */}
+                <div className="relative w-11 h-14 shrink-0">
+                  <svg width="100%" height="100%" viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 1C2.34315 1 1 2.34315 1 4V48C1 49.6569 2.34315 51 4 51H36C37.6569 51 39 49.6569 39 48V14L26 1H4Z" fill="white" stroke="#E2E8F0" strokeWidth="2" />
+                    <path d="M25 1V10C25 12.2091 26.7909 14 29 14H39" fill="#E2E8F0" stroke="#E2E8F0" strokeWidth="2" />
+                    <path d="M26 1L39 14" fill="#E2E8F0" stroke="#E2E8F0" strokeWidth="2" />
+                    <path d="M26 1V10C26 11.1046 26.8954 12 28 12H39Z" fill="#E2E8F0" />
+                  </svg>
+                  <div className="absolute bottom-2.5 left-0 right-0 h-5 bg-[#e52e2e] rounded-sm flex items-center justify-center">
+                    <span className="text-[11px] font-bold text-white tracking-wide">PDF</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1 min-w-0 mt-0.5">
+                  <p className="truncate text-[11.5px] font-bold text-indigo-950">
+                    {file ? file.name : "Amit_Kumar_Verma_Resume.pdf"}
+                  </p>
+                  <p className="text-[10px] font-medium text-slate-400">
+                    {file ? file.size : "245 KB"}
+                  </p>
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="text-left mt-1.5 text-[10px] font-bold text-indigo-600 hover:text-indigo-700">Replace File</button>
                 </div>
               </div>
-              <button type="button" className="mt-0.5 text-[10.5px] font-semibold text-indigo-600 hover:text-indigo-700">Replace File</button>
-            </Card>
+            </div>
 
             <Card title="AI Extraction Status">
               <div className="space-y-0.5">
@@ -288,7 +327,7 @@ export default function CreateCandidatePage() {
             <div className="space-y-2">
               <div>
                 <p className="mb-1.5 text-[11px] font-bold text-zinc-700">Personal Information</p>
-                <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-4">
                   <Field title="Full Name" required><input className={inputCls} defaultValue="Amit Kumar Verma" /></Field>
                   <Field title="Email Address" required><input className={inputCls} defaultValue="amit.verma@email.com" /></Field>
                   <Field title="Mobile Number" required><input className={inputCls} defaultValue="+91 98765 43210" /></Field>
@@ -301,7 +340,7 @@ export default function CreateCandidatePage() {
 
               <div>
                 <p className="mb-1.5 text-[11px] font-bold text-zinc-700">Application Details</p>
-                <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-4">
                   <SelectField title="Position Applied For" required options={['Sales Manager', 'Sales Executive']} />
                   <SelectField title="Department" required options={['Sales & Marketing', 'IT', 'HR']} />
                   <SelectField title="Employment Type" required options={['Full Time', 'Contract']} />
@@ -327,7 +366,7 @@ export default function CreateCandidatePage() {
 
               <div>
                 <p className="mb-1.5 text-[11px] font-bold text-zinc-700">Education Details</p>
-                <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-4">
                   <Field title="Highest Qualification" required><input className={inputCls} defaultValue="MBA - Marketing" /></Field>
                   <Field title="University / Board" required><input className={inputCls} defaultValue="Amity University, Noida" /></Field>
                   <Field title="Year of Passing" required><input className={inputCls} defaultValue="2017" /></Field>

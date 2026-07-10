@@ -128,33 +128,66 @@ function Stepper() {
 
 // ─── Page header ────────────────────────────────────────────────────────────
 function PageHeader() {
+  const steps = [
+    { num: 1, label: 'Upload CV', status: 'completed' },
+    { num: 2, label: 'Review & Edit', status: 'completed' },
+    { num: 3, label: 'Submit Application', status: 'completed' },
+    { num: 4, label: 'AI Screening', status: 'completed' },
+    { num: 5, label: 'HOD Review', status: 'completed' },
+    { num: 6, label: 'Interview', status: 'active' },
+    { num: 7, label: 'Offer', status: 'pending' },
+    { num: 8, label: 'Onboarding', status: 'pending' },
+  ];
+
   return (
-    <section className="flex flex-nowrap items-center justify-between gap-3 py-1 w-full max-w-full overflow-hidden">
-      <div className="shrink-0">
-        <h1 className="text-xl font-bold text-zinc-900 leading-tight">Interview – Round 5</h1>
-        <p className="text-[13px] text-zinc-500 mt-1">HR Interview – AI Powered</p>
+    <div className="w-full font-sans text-zinc-900 mb-2">
+      {/* HEADER & HORIZONTAL STEP INDICATOR */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-3">
+        {/* Title */}
+        <div className="shrink-0 w-full lg:w-[280px] xl:w-[340px]">
+          <h1 className="text-[17px] font-bold text-zinc-900 tracking-tight leading-tight">Interview &ndash; Round 5</h1>
+          <p className="text-[11px] font-medium text-zinc-500 mt-0.5">HR Interview – AI Powered</p>
+        </div>
+
+        {/* Steps */}
+        <div className="flex-1 max-w-[550px] xl:max-w-[600px] w-full flex items-center justify-center relative mx-auto">
+          <div className="absolute left-[30px] right-[30px] top-[11px] h-[2px] bg-zinc-200 -z-0"></div>
+          <div className="flex w-full justify-between z-10">
+            {steps.map((step, idx) => (
+              <div key={idx} className="relative z-10 flex flex-col items-center gap-1 px-1 bg-slate-50 lg:bg-transparent">
+                <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-colors
+                  ${step.status === 'completed' ? 'border-indigo-100 text-indigo-600 bg-indigo-50' :
+                    step.status === 'active' ? 'border-indigo-600 bg-indigo-600 text-white shadow-[0_0_0_3px_rgba(79,70,229,0.15)]' :
+                      'border-zinc-200 text-zinc-400 bg-white'}`}>
+                  {step.status === 'completed' ? <Check className="w-3 h-3" strokeWidth={3} /> : step.num}
+                </div>
+                <span className={`text-[8.5px] lg:text-[9px] whitespace-nowrap font-bold ${step.status === 'active' ? 'text-indigo-900' : step.status === 'completed' ? 'text-indigo-600' : 'text-zinc-400'}`}>
+                  {step.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex items-center justify-end gap-2 shrink-0 w-full lg:w-[280px] xl:w-[340px]">
+          <button className="flex items-center justify-center h-8 px-3 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
+            <ArrowLeft className="w-3 h-3 mr-1" /> Back to Applications
+          </button>
+          <button className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
+            End Interview <LogOut className="w-3 h-3 ml-1" />
+          </button>
+        </div>
       </div>
-      <div className="flex-1 flex justify-center min-w-0 overflow-hidden px-2">
-        <Stepper />
-      </div>
-      <div className="flex items-center gap-2 shrink-0">
-        <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:border-indigo-200 transition-colors whitespace-nowrap">
-          <ArrowLeft size={14} />
-          Back to Applications
-        </button>
-        <button className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-800 transition-colors whitespace-nowrap">
-          End Interview
-          <LogOut size={14} />
-        </button>
-      </div>
-    </section>
+      <div className="h-[1px] bg-zinc-200 w-full shrink-0"></div>
+    </div>
   );
 }
 
 // ─── Candidate info card ────────────────────────────────────────────────────
 function CandidateInfoCard() {
   return (
-    <Card className="border-zinc-200/80 shadow-sm h-full">
+    <Card className="border-zinc-200/80 shadow-sm h-full bg-white">
       <CardContent className="p-4 h-full flex flex-col">
         <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr_1.1fr] gap-x-10 xl:gap-x-14 gap-y-4 items-start flex-1">
           {/* Column 1: photo, name, title, contact */}
@@ -223,7 +256,7 @@ function ApplicationSummaryCard() {
     { icon: <Gauge size={13} />, label: 'AI Screening Score', value: '87%' },
   ];
   return (
-    <Card className="border-zinc-200/80 shadow-sm h-full">
+    <Card className="border-zinc-200/80 shadow-sm h-full bg-white">
       <CardContent className="p-4 h-full flex flex-col">
         <h3 className="text-[13px] font-bold text-zinc-900 mb-3">Application Summary</h3>
         <div className="space-y-2.5">

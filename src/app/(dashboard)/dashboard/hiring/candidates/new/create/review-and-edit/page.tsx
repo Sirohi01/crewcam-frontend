@@ -217,10 +217,9 @@ export default function ReviewPage({
   };
 
   return (
-    <div className="w-full bg-slate-50 flex flex-col font-sans min-h-[650px] lg:h-[calc(100%-48px)] lg:overflow-hidden select-none" id="review-page-root">
+    <div className="w-full bg-slate-50 flex flex-col font-sans select-none" id="review-page-root">
       <div className="w-full mx-auto max-w-[1600px] px-2 pt-2">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-3">
-          {/* Title */}
           <div className="shrink-0 w-full lg:w-[380px]">
             <h1 className="text-[17px] font-bold text-zinc-900 tracking-tight leading-tight">Review &amp; Edit Candidate</h1>
             <p className="mt-0.5 text-[11px] font-medium text-zinc-500 whitespace-nowrap">Review AI extracted details and edit if required before submitting</p>
@@ -265,7 +264,7 @@ export default function ReviewPage({
           </div>
         </div>
       </div>
-
+      <div className="h-[1px] bg-zinc-200 w-full shrink-0"></div>
       {/* =========================================================================
           MAIN CONTAINER
           ========================================================================= */}
@@ -1059,69 +1058,71 @@ export default function ReviewPage({
       </div>
 
       {/* Suggestions Modal */}
-      {showSuggestions && (
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 z-50"
-        >
+      {
+        showSuggestions && (
           <div
-            className="bg-white rounded-lg border border-slate-200 max-w-md w-full max-h-[90vh] overflow-y-auto p-3.5 shadow-xl space-y-3"
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 z-50"
           >
-            <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
-              <div className="flex items-center gap-1">
-                <Sparkles className="w-4 h-4 text-indigo-700 animate-spin" />
-                <h3 className="text-xs font-bold text-indigo-950">AI Extraction Suggestions</h3>
-              </div>
-              <button
-                onClick={() => setShowSuggestions(false)}
-                className="p-1 hover:bg-slate-100 rounded  text-xs font-semibold"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-2 text-[10.5px]  leading-relaxed">
-              <p>
-                Our parsing algorithms detected alternative match coefficients for Amit Kumar Verma:
-              </p>
-
-              <div className="space-y-1.5">
-                <div className="p-1.5 bg-emerald-50 rounded border border-emerald-100">
-                  <span className="font-semibold text-emerald-950 block">1. Target Location Check (98% Confidence)</span>
-                  <span>Matched "Noida, Delhi NCR" with Preferred Location instead of current address. Form matches successfully updated.</span>
+            <div
+              className="bg-white rounded-lg border border-slate-200 max-w-md w-full max-h-[90vh] overflow-y-auto p-3.5 shadow-xl space-y-3"
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                <div className="flex items-center gap-1">
+                  <Sparkles className="w-4 h-4 text-indigo-700 animate-spin" />
+                  <h3 className="text-xs font-bold text-indigo-950">AI Extraction Suggestions</h3>
                 </div>
-                <div className="p-1.5 bg-indigo-50 rounded border border-indigo-100">
-                  <span className="font-semibold text-indigo-950 block">2. CTC Extracted (95% Confidence)</span>
-                  <span>Current CTC: ₹ 8.50 LPA, Expected CTC: ₹ 12.00 LPA. Notice period is 30 Days. Matches successfully updated.</span>
-                </div>
-                <div className="p-1.5 bg-indigo-50 rounded border border-indigo-100">
-                  <span className="font-semibold text-indigo-950 block">3. Years of Experience (91% Confidence)</span>
-                  <span>Extracted 7 Years from ABC Pvt Ltd and XYZ Solutions history. Matches successfully updated.</span>
-                </div>
+                <button
+                  onClick={() => setShowSuggestions(false)}
+                  className="p-1 hover:bg-slate-100 rounded  text-xs font-semibold"
+                >
+                  ✕
+                </button>
               </div>
 
-              <p className="text-[9px]  italic">
-                *AI generated details are suggestions based on the uploaded document structure. Verify details before submitting.
-              </p>
-            </div>
+              <div className="space-y-2 text-[10.5px]  leading-relaxed">
+                <p>
+                  Our parsing algorithms detected alternative match coefficients for Amit Kumar Verma:
+                </p>
 
-            <div className="flex flex-col sm:flex-row justify-end gap-x-4 gap-y-2 pt-1.5 border-t border-slate-100">
-              <button
-                onClick={handleAcceptSuggestions}
-                className="px-2.5 py-1.5 sm:py-1 text-[10px] bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded animate-pulse"
-              >
-                Accept & Update Form
-              </button>
-              <button
-                onClick={() => setShowSuggestions(false)}
-                className="px-2.5 py-1.5 sm:py-1 text-[10px] border border-slate-200  rounded font-medium hover:bg-slate-50"
-              >
-                Close Suggestions
-              </button>
+                <div className="space-y-1.5">
+                  <div className="p-1.5 bg-emerald-50 rounded border border-emerald-100">
+                    <span className="font-semibold text-emerald-950 block">1. Target Location Check (98% Confidence)</span>
+                    <span>Matched "Noida, Delhi NCR" with Preferred Location instead of current address. Form matches successfully updated.</span>
+                  </div>
+                  <div className="p-1.5 bg-indigo-50 rounded border border-indigo-100">
+                    <span className="font-semibold text-indigo-950 block">2. CTC Extracted (95% Confidence)</span>
+                    <span>Current CTC: ₹ 8.50 LPA, Expected CTC: ₹ 12.00 LPA. Notice period is 30 Days. Matches successfully updated.</span>
+                  </div>
+                  <div className="p-1.5 bg-indigo-50 rounded border border-indigo-100">
+                    <span className="font-semibold text-indigo-950 block">3. Years of Experience (91% Confidence)</span>
+                    <span>Extracted 7 Years from ABC Pvt Ltd and XYZ Solutions history. Matches successfully updated.</span>
+                  </div>
+                </div>
+
+                <p className="text-[9px]  italic">
+                  *AI generated details are suggestions based on the uploaded document structure. Verify details before submitting.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row justify-end gap-x-4 gap-y-2 pt-1.5 border-t border-slate-100">
+                <button
+                  onClick={handleAcceptSuggestions}
+                  className="px-2.5 py-1.5 sm:py-1 text-[10px] bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded animate-pulse"
+                >
+                  Accept & Update Form
+                </button>
+                <button
+                  onClick={() => setShowSuggestions(false)}
+                  className="px-2.5 py-1.5 sm:py-1 text-[10px] border border-slate-200  rounded font-medium hover:bg-slate-50"
+                >
+                  Close Suggestions
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-    </div>
+    </div >
   );
 }

@@ -87,7 +87,7 @@ export default function HODEvaluationPage() {
                 ${step.status === 'completed' ? 'border-indigo-100 text-indigo-600 bg-indigo-50' :
                   step.status === 'active' ? 'border-indigo-600 bg-indigo-600 text-white shadow-[0_0_0_3px_rgba(79,70,229,0.15)]' :
                     'border-zinc-200 text-zinc-400 bg-white'}`}>
-                {step.num}
+                {step.status === 'completed' ? <Check className="w-3 h-3" strokeWidth={3} /> : step.num}
               </div>
               <span className={`text-[8.5px] lg:text-[9px] whitespace-nowrap font-bold ${step.status === 'active' ? 'text-indigo-900' : step.status === 'completed' ? 'text-indigo-600' : 'text-zinc-400'}`}>
                 {step.label}
