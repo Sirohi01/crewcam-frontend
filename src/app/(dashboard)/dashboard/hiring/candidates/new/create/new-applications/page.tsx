@@ -140,7 +140,7 @@ const STATS = [
 
 export default function NewApplicationsUI() {
   return (
-    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
+    <div className="w-full max-w-[1600px] mx-auto px-1 py-0.5 lg:px-2 lg:py-1 space-y-4 font-sans text-zinc-900  min-h-screen">
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -186,7 +186,7 @@ export default function NewApplicationsUI() {
             <input
               type="text"
               placeholder="Search by name, email, phone, job title or skills..."
-              className="w-1/2 text-[11px] pl-8 pr-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:border-indigo-500 transition-colors bg-zinc-50/50"
+              className="w-1/2 text-[11px] pl-8 pr-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:border-indigo-500 transition-colors bg-zinc-50/50 placeholder:text-slate-500"
             />
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
@@ -211,7 +211,7 @@ export default function NewApplicationsUI() {
             <div key={i} className="flex flex-col gap-1">
               <label className="text-[10px] font-semibold text-zinc-700">{filter.label}</label>
               <div className="relative">
-                <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm">
+                <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm ">
                   <option>{filter.value}</option>
                 </select>
                 <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
@@ -266,25 +266,25 @@ export default function NewApplicationsUI() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-[10px] whitespace-nowrap">
             <thead>
-              <tr className="bg-zinc-50/50 text-zinc-600 border-b border-zinc-100">
-                <th className="px-3 py-3 font-bold w-10 text-center"><input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" /></th>
-                <th className="px-3 py-3 font-bold">Candidate</th>
-                <th className="px-3 py-3 font-bold">Job Applied For</th>
-                <th className="px-3 py-3 font-bold">Experience</th>
-                <th className="px-3 py-3 font-bold">Source</th>
-                <th className="px-3 py-3 font-bold">Applied On</th>
-                <th className="px-3 py-3 font-bold">Resume</th>
-                <th className="px-3 py-3 font-bold">Status</th>
-                <th className="px-3 py-3 font-bold text-center">Actions</th>
+              <tr className="bg-blue-50 text-zinc-600 border-b border-zinc-100">
+                <th className="px-3 py-2 font-bold w-10 text-center"><input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" /></th>
+                <th className="px-3 py-2 font-bold">Candidate</th>
+                <th className="px-3 py-2 font-bold">Job Applied For</th>
+                <th className="px-3 py-2 font-bold">Experience</th>
+                <th className="px-3 py-2 font-bold">Source</th>
+                <th className="px-3 py-2 font-bold">Applied On</th>
+                <th className="px-3 py-2 font-bold">Resume</th>
+                <th className="px-3 py-2 font-bold">Status</th>
+                <th className="px-3 py-2 font-bold text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-50">
               {APPLICATIONS.map((app) => (
                 <tr key={app.id} className="hover:bg-zinc-50/50 transition-colors">
-                  <td className="px-3 py-3 text-center">
+                  <td className="px-3 py-2 text-center">
                     <input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" />
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-2">
                     <div className="flex items-center gap-2.5">
                       <img src={app.avatar} alt={app.name} className="h-8 w-8 rounded-full border border-zinc-200 shadow-sm object-cover" />
                       <div className="flex flex-col gap-0.5">
@@ -294,14 +294,14 @@ export default function NewApplicationsUI() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-2">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-zinc-900 font-bold">{app.jobRole}</span>
                       <span className="text-zinc-500 text-[9px]">{app.jobId}</span>
                     </div>
                   </td>
-                  <td className="px-3 py-3 font-medium text-zinc-700">{app.experience}</td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-2 font-medium text-zinc-700">{app.experience}</td>
+                  <td className="px-3 py-2">
                     <div className="flex items-center gap-1.5 text-zinc-700">
                       {app.sourceType === 'naukri' && <div className="h-4 w-4 bg-blue-600 text-white rounded text-[8px] font-bold flex items-center justify-center">n</div>}
                       {app.sourceType === 'linkedin' && <Link2 size={14} className="text-blue-600" />}
@@ -311,13 +311,13 @@ export default function NewApplicationsUI() {
                       <span className="font-medium">{app.source}</span>
                     </div>
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-2">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-zinc-900 font-medium">{app.appliedOnDate}</span>
                       <span className="text-zinc-500 text-[9px]">{app.appliedOnTime}</span>
                     </div>
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-2">
                     <div className="flex items-center gap-1.5">
                       <FileText size={16} className="text-rose-500" />
                       <div className="flex flex-col gap-0.5">
@@ -326,12 +326,12 @@ export default function NewApplicationsUI() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-2">
                     <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
                       {app.status}
                     </span>
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-2">
                     <div className="flex items-center justify-center gap-1.5">
                       <button className="h-6 w-6 flex items-center justify-center rounded border border-indigo-100 text-indigo-700 hover:bg-indigo-50 bg-white shadow-sm transition-colors">
                         <Eye size={12} />
@@ -352,21 +352,23 @@ export default function NewApplicationsUI() {
 
         {/* Footer Pagination */}
         <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-t border-zinc-100 bg-white">
-          <div className="text-[11px] text-zinc-500 font-medium">
-            Showing 1 to 10 of 24 entries
-          </div>
-
-          <div className="flex items-center gap-2 mt-2 sm:mt-0">
-            <span className="text-[11px] text-zinc-500 font-medium">Show</span>
-            <div className="relative">
-              <select className="appearance-none rounded border border-zinc-200 bg-white pl-2 pr-6 py-1 text-[11px] font-medium text-zinc-700 focus:outline-none shadow-sm">
-                <option>10</option>
-                <option>20</option>
-                <option>50</option>
-              </select>
-              <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+          <div className='flex items-center gap-32'>
+            <div className="text-[11px] text-zinc-500 font-medium">
+              Showing 1 to 10 of 24 entries
             </div>
-            <span className="text-[11px] text-zinc-500 font-medium">entries</span>
+
+            <div className="flex items-center gap-2 mt-2 sm:mt-0">
+              <span className="text-[11px] text-zinc-500 font-medium">Show</span>
+              <div className="relative">
+                <select className="appearance-none rounded border border-zinc-200 bg-white pl-2 pr-6 py-1 text-[11px] font-medium text-zinc-700 focus:outline-none shadow-sm">
+                  <option>10</option>
+                  <option>20</option>
+                  <option>50</option>
+                </select>
+                <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+              </div>
+              <span className="text-[11px] text-zinc-500 font-medium">entries</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-1 mt-2 sm:mt-0">

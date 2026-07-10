@@ -325,11 +325,10 @@ function SuperAdminCompaniesPageInner() {
       label: 'SETUP FEE',
       width: '110px',
       render: (_v, row) => (
-        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-          row.setupFeeStatus === 'PAID' ? 'bg-emerald-100 text-emerald-700'
+        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${row.setupFeeStatus === 'PAID' ? 'bg-emerald-100 text-emerald-700'
             : row.setupFeeStatus === 'WAIVED' ? 'bg-zinc-100 text-zinc-600'
-            : 'bg-amber-100 text-amber-700'
-        }`}>
+              : 'bg-amber-100 text-amber-700'
+          }`}>
           {row.setupFeeStatus || 'PENDING'}
         </span>
       ),
@@ -339,11 +338,10 @@ function SuperAdminCompaniesPageInner() {
       label: 'SUBSCRIPTION',
       width: '130px',
       render: (_v, row) => (
-        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-          row.subscriptionStatus === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700'
+        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${row.subscriptionStatus === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700'
             : row.subscriptionStatus === 'PAST_DUE' ? 'bg-rose-100 text-rose-700'
-            : 'bg-zinc-100 text-zinc-600'
-        }`}>
+              : 'bg-zinc-100 text-zinc-600'
+          }`}>
           {row.subscriptionStatus || 'PENDING'} · {row.billingCycle === 'YEARLY' ? 'Yearly' : 'Monthly'}
         </span>
       ),
@@ -407,7 +405,7 @@ function SuperAdminCompaniesPageInner() {
             Quick Add
           </Button>
           <Button asChild className="h-8 text-xs bg-indigo-600 hover:bg-indigo-700 text-white">
-            <Link href="/super-admin/companies/new"><Plus size={14} className="mr-1" /> New Company (Wizard)</Link>
+            <Link href="/super-admin/add-new-company"><Plus size={14} className="mr-1" /> New Company (Wizard)</Link>
           </Button>
         </div>
       </div>

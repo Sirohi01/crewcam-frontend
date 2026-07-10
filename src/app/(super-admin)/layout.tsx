@@ -34,10 +34,8 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
           </header>
 
           {/* Scrollable Page Content */}
-          <div className="flex-1 overflow-auto px-4 py-4">
-            <div className="w-full h-full">
-              {children}
-            </div>
+          <div className="flex-1 overflow-auto p-2">
+            {children}
           </div>
         </main>
       </div>

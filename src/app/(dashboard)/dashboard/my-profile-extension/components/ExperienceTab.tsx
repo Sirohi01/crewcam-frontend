@@ -352,7 +352,7 @@ export function ExperienceTab({ comingSoon, profileCard }: { comingSoon: (what: 
               <p className="text-[12.5px] font-medium text-gray-700 dark:text-zinc-300">Noida, Uttar Pradesh, India</p>
             </div>
             <div className="flex items-start gap-1.5">
-              <div className="text-gray-400 shrink-0 mt-0.5 font-bold text-[12px] leading-none flex items-center justify-center w-[14px] h-[14px] rounded-[2px] bg-gray-400 text-white">in</div>
+              <div className="text-gray-400 shrink-0 mt-0.5 font-bold text-[12px] leading-none flex items-center justify-center w-[14px] h-[14px] rounded-[2px] bg-gray-400">in</div>
               <p className="text-[12.5px] font-medium text-blue-600">linkedin.com/in/rohanmehta</p>
             </div>
           </CardContent>
