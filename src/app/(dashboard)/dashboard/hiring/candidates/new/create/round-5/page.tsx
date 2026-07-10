@@ -99,9 +99,9 @@ function Stepper() {
           <div className="flex flex-col items-center gap-0.5 shrink-0 w-[34px] sm:w-[42px]">
             <div
               className={`grid h-4 w-4 sm:h-5 sm:w-5 place-items-center rounded-full border-2 text-[7px] sm:text-[8px] font-bold shrink-0 ${s.status === 'done'
-                ? 'bg-indigo-700 border-violet-600 text-white'
+                ? 'bg-indigo-700 border-indigo-700 text-white'
                 : s.status === 'active'
-                  ? 'bg-indigo-700 border-violet-600 text-white ring-2 ring-violet-100'
+                  ? 'bg-indigo-700 border-indigo-700 text-white ring-2 ring-violet-100'
                   : 'bg-white border-zinc-200 text-zinc-400'
                 }`}
             >
@@ -203,7 +203,7 @@ function CandidateInfoCard() {
                 <p className="text-[10px] text-zinc-400 leading-tight">HR Manager</p>
               </div>
             </div>
-            <button className="mt-3 inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 shadow-sm hover:border-indigo-200 hover:bg-violet-50 transition-colors w-full lg:w-auto">
+            <button className="mt-3 inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 shadow-sm hover:border-indigo-200 hover:bg-indigo-50 transition-colors w-full lg:w-auto">
               View Candidate Profile
               <ArrowRight size={12} />
             </button>
@@ -337,7 +337,7 @@ function RoundProgressPanel({ remainingSeconds, totalSeconds, answered, total }:
         </div>
 
         <div className="mt-2">
-          <div className="rounded-lg bg-violet-50 border border-violet-100 p-2 text-[11px] text-violet-700 leading-snug">
+          <div className="rounded-lg bg-indigo-50 border border-indigo-100 p-2 text-[11px] text-violet-700 leading-snug">
             All questions are AI-generated based on candidate profile, role, and HR competencies.
           </div>
         </div>
@@ -359,7 +359,7 @@ function QuestionPanel({
         <div className="flex flex-nowrap items-center justify-between gap-2 mb-1">
           <div className="flex items-center gap-2 min-w-0">
             <h3 className="text-[12px] font-bold text-zinc-900 whitespace-nowrap">Question {index + 1} of {total}</h3>
-            <span className="inline-flex items-center rounded-full bg-violet-50 text-indigo-700 border border-violet-100 px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap">
+            <span className="inline-flex items-center rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap">
               {question.tag}
             </span>
           </div>
@@ -372,7 +372,7 @@ function QuestionPanel({
         <p className="text-[13px] font-semibold text-zinc-800 leading-snug mt-2">{question.text}</p>
 
         {question.aiInsight && (
-          <div className="mt-2 rounded-lg bg-violet-50/70 border border-violet-100 p-1.5">
+          <div className="mt-2 rounded-lg bg-indigo-50/70 border border-indigo-100 p-1.5">
             <p className="flex items-center gap-1.5 text-[11px] font-bold text-violet-700">
               <Sparkles size={12} /> AI Insight
             </p>
@@ -463,7 +463,7 @@ function PreviousAnswerCard() {
         </div>
         <div className="rounded-lg bg-emerald-50/60 border border-emerald-100 p-2">
           <p className="text-[11px] text-zinc-700 leading-snug line-clamp-2">{PREVIOUS_ANSWER}</p>
-          <button className="mt-1 text-[10.5px] font-semibold text-indigo-700 hover:text-violet-700 transition-colors">
+          <button className="mt-1 text-[10.5px] font-semibold text-indigo-700 hover:text-indigo-800 transition-colors">
             View Full Answer
           </button>
         </div>
@@ -482,7 +482,7 @@ function CompetencyAreasCard() {
           {COMPETENCIES.map((c) => (
             <span
               key={c.label}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-violet-50 text-violet-700 border border-violet-100 px-2 py-1 text-[10.5px] font-medium whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 text-violet-700 border border-indigo-100 px-2 py-1 text-[10.5px] font-medium whitespace-nowrap"
             >
               {c.icon}
               {c.label}
@@ -504,7 +504,7 @@ function RoundsOverviewCard() {
           {ROUNDS_OVERVIEW.map((r) => (
             <div
               key={r.n}
-              className={`flex items-center gap-2.5 rounded-lg p-2 ${r.status === 'In Progress' ? 'bg-violet-50/70' : ''}`}
+              className={`flex items-center gap-2.5 rounded-lg p-2 ${r.status === 'In Progress' ? 'bg-indigo-50/70' : ''}`}
             >
               <span
                 className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${r.status === 'Completed'
@@ -524,7 +524,7 @@ function RoundsOverviewCard() {
                 <span
                   className={`inline-flex items-center justify-center w-full rounded-full border px-1.5 py-0.5 text-[9px] font-semibold whitespace-nowrap ${r.status === 'Completed'
                     ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                    : 'bg-violet-50 text-indigo-700 border-violet-100'
+                    : 'bg-indigo-50 text-indigo-700 border-indigo-100'
                     }`}
                 >
                   {r.status}
@@ -553,7 +553,7 @@ function GuidelinesCard() {
             </li>
           ))}
         </ul>
-        <button className="mt-3 inline-flex items-center gap-1 text-[12px] font-semibold text-indigo-700 hover:text-violet-700 transition-colors">
+        <button className="mt-3 inline-flex items-center gap-1 text-[12px] font-semibold text-indigo-700 hover:text-indigo-800 transition-colors">
           Need Help? View Guidelines <ExternalLink size={12} />
         </button>
       </CardContent>

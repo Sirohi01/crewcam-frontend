@@ -307,8 +307,8 @@ export default function InterviewProcessPage() {
                   <div key={t.title} className="relative flex gap-2 pb-2 last:pb-0">
                     {i < timeline.length - 1 && <span className="absolute left-[7px] top-4 h-full w-px bg-zinc-200" />}
                     <span className={`relative z-10 mt-0.5 grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full ${t.state === 'done' ? 'bg-emerald-500 text-white'
-                        : t.state === 'current' ? 'border-2 border-indigo-600 bg-white'
-                          : 'border border-zinc-200 bg-white'
+                      : t.state === 'current' ? 'border-2 border-indigo-600 bg-white'
+                        : 'border border-zinc-200 bg-white'
                       }`}
                     >
                       {t.state === 'done' && <CheckCircle2 size={11} />}

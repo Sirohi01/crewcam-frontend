@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   Briefcase, FileText, Loader2, CalendarCheck, XCircle, Rocket,
   Search, SlidersHorizontal, X, ChevronDown, Eye, MessageSquare,
@@ -52,7 +53,7 @@ const TABS: { key: TabKey; label: string; count: number }[] = [
 ];
 
 const SUMMARY = [
-  { key: 'total', label: 'Total Applications', value: 156, sub: 'All time', icon: <Briefcase size={20} />, color: 'text-indigo-700', bg: 'bg-violet-50' },
+  { key: 'total', label: 'Total Applications', value: 156, sub: 'All time', icon: <Briefcase size={20} />, color: 'text-indigo-700', bg: 'bg-indigo-50' },
   { key: 'new', label: 'New Applications', value: 24, sub: 'This Week', icon: <FileText size={20} />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
   { key: 'underReview', label: 'Under Review', value: 48, sub: '30.77% of total', icon: <Loader2 size={20} />, color: 'text-amber-600', bg: 'bg-amber-50' },
   { key: 'shortlisted', label: 'Shortlisted', value: 32, sub: '20.51% of total', icon: <CalendarCheck size={20} />, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -267,9 +268,9 @@ function ApplicationsTable({ rows }: { rows: Application[] }) {
               </td>
               <td className="py-2.5 pr-1">
                 <div className="flex items-center justify-end gap-1">
-                  <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
+                  <Link href={`/dashboard/hiring/candidates/${a.id}`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
                     <Eye size={13} />
-                  </button>
+                  </Link>
                   <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
                     <MessageSquare size={13} />
                   </button>

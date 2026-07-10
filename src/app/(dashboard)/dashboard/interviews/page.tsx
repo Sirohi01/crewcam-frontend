@@ -209,292 +209,291 @@ const Interviews: React.FC = () => {
   }
 
   return (
-   <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen"> 
-    <div className="w-full h-[calc(100vh-3rem)] min-h-[650px] flex flex-col gap-2 p-2 bg-gray-50 overflow-hidden">
-      <Toaster position="top-right" toastOptions={{ style: { fontSize: '11px' } }} />
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
+      <div className="w-full h-[calc(100vh-3rem)] min-h-[650px] flex flex-col gap-2 p-2 bg-gray-50 overflow-hidden">
+        <Toaster position="top-right" toastOptions={{ style: { fontSize: '11px' } }} />
 
-      {/* Header */}
-      <div className="flex items-center justify-between shrink-0">
-        <div>
-          <h1 className="text-base font-bold">Interviews</h1>
-          <p className="text-[10px]">Manage and track all candidate interviews</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => toast.success('Exporting interviews...')}
-            className="flex items-center gap-1 text-[10px] font-semibold border border-gray-300 bg-white rounded-lg px-2 py-1.5 hover:bg-gray-100"
-          >
-            <Download className="w-3 h-3" /> Export
-          </button>
-          <button
-            onClick={() => toast.success('Opening email composer...')}
-            className="flex items-center gap-1 text-[10px] font-semibold border border-gray-300 bg-white rounded-lg px-2 py-1.5 hover:bg-gray-100"
-          >
-            <Mail className="w-3 h-3" /> Email
-          </button>
-          <button
-            onClick={() => toast.success('Schedule Interview form opened')}
-            className="flex items-center gap-1 text-[10px] font-semibold text-white bg-indigo-600 rounded-lg px-2 py-1.5 hover:bg-indigo-700"
-          >
-            <Plus className="w-3 h-3" /> Schedule Interview
-          </button>
-        </div>
-      </div>
-
-      {/* Stat cards */}
-      <div className="grid grid-cols-5 gap-2 shrink-0">
-        {statCards.map((s, i) => {
-          const Icon = s.icon
-          return (
-            <div key={i} className="bg-white rounded-xl border border-gray-300 p-2 flex items-center gap-2">
-              <span className={`inline-flex items-center justify-center w-9 h-9 rounded-full shrink-0 ${s.iconBg}`}>
-                <Icon className={`w-4 h-4 ${s.iconColor}`} />
-              </span>
-              <div className="min-w-0">
-                <div className="text-lg font-bold leading-none">{s.value}</div>
-                <div className="text-[10px] font-medium mt-0.5 truncate">{s.label}</div>
-                <div className="text-[9px] font-semibold text-emerald-700 mt-0.5">{s.sub}</div>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Search + top actions */}
-      <div className="flex items-center gap-2 shrink-0">
-        <div className="flex-1 relative">
-          <Search className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2" />
-          <input
-            value={searchQuery}
-            onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1) }}
-            placeholder="Search by candidate name, job title or interviewer..."
-            className="w-full text-[11px] border border-gray-300 rounded-lg pl-7 pr-2 py-1.5 bg-white outline-none focus:border-indigo-500"
-          />
-        </div>
-        <button className={`relative flex items-center gap-1 text-[10px] font-semibold border border-gray-300 bg-white rounded-lg px-2 py-1.5 ${activeFilterCount>0&&'text-blue-500'}`}>
-          <Filter className="w-3 h-3" /> Filters
-          {activeFilterCount > 0 && (
-            <span className="ml-0.5 inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-indigo-600 text-white text-[9px] font-bold">
-              {activeFilterCount}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={clearAll}
-          className="flex items-center gap-1 text-[10px] font-semibold border border-gray-300 bg-white rounded-lg px-2 py-1.5 hover:bg-gray-100"
-        >
-          <X className="w-3 h-3" /> Clear All
-        </button>
-      </div>
-
-      {/* Filter selects */}
-      <div className="grid grid-cols-6 gap-2 shrink-0">
-        <FilterSelect label="Job Opening" value={jobOpening} options={jobOpeningOptions} onChange={v => { setJobOpening(v); setCurrentPage(1) }} />
-        <FilterSelect label="Interview Stage" value={stage} options={stageOptions} onChange={v => { setStage(v); setCurrentPage(1) }} />
-        <FilterSelect label="Interview Type" value={type} options={typeOptions} onChange={v => { setType(v); setCurrentPage(1) }} />
-        <FilterSelect label="Interviewer" value={interviewer} options={interviewerOptions} onChange={v => { setInterviewer(v); setCurrentPage(1) }} />
-        <FilterSelect label="Status" value={status} options={statusOptions} onChange={v => { setStatus(v); setCurrentPage(1) }} />
-        <div className="flex flex-col justify-end">
-          <span className="text-[9px] font-medium  mb-0.5">Date Range</span>
-          <button className="flex items-center gap-1 text-[10px] font-semibold  border border-gray-300 bg-white rounded-lg px-2 py-1.5">
-            <Calendar className="w-3 h-3" /> 01 Jun 2026 - 15 Jun 2026
-          </button>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex items-center justify-between border-b border-gray-300 shrink-0">
-        <div className="flex items-center gap-4">
-          {tabs.map(t => (
+        {/* Header */}
+        <div className="flex items-center justify-between shrink-0">
+          <div>
+            <h1 className="text-base font-bold">Interviews</h1>
+            <p className="text-[10px]">Manage and track all candidate interviews</p>
+          </div>
+          <div className="flex items-center gap-2">
             <button
-              key={t.key}
-              onClick={() => { setActiveTab(t.key); setCurrentPage(1) }}
-              className={`text-[11px] font-semibold pb-1.5 border-b-2 transition-colors ${
-                activeTab === t.key ? 'text-indigo-600 border-indigo-600' : ' border-transparent hover:text-gray-900'
-              }`}
+              onClick={() => toast.success('Exporting interviews...')}
+              className="flex items-center gap-1 text-[10px] font-semibold border border-gray-300 bg-white rounded-lg px-2 py-1.5 hover:bg-gray-100"
             >
-              {t.label} ({tabCount(t.key)})
+              <Download className="w-3 h-3" /> Export
             </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-2 pb-1">
-          <button className="flex items-center gap-1 text-[10px] font-semibold text-gray-800 border border-gray-300 bg-white rounded-lg px-2 py-1">
-            <LayoutGrid className="w-3 h-3" /> Columns
-          </button>
-          <button className="flex items-center gap-1 text-[10px] font-semibold text-gray-800 border border-gray-300 bg-white rounded-lg px-2 py-1">
-            Interview Date <ChevronDown className="w-3 h-3" />
-          </button>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="flex-1 min-h-0 bg-white rounded-xl border border-gray-300 flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto">
-          <table className="w-full text-[10px]">
-            <thead className="sticky top-0 bg-gray-100 z-10">
-              <tr className="text-gray-700 text-left">
-                <th className="py-2 px-2 w-8">
-                  <input type="checkbox" checked={allChecked} onChange={toggleAll} className="accent-indigo-600" />
-                </th>
-                <th className="py-2 px-2">Candidate</th>
-                <th className="py-2 px-2">Job Opening</th>
-                <th className="py-2 px-2">Interview Type</th>
-                <th className="py-2 px-2">Stage</th>
-                <th className="py-2 px-2">Interviewer(s)</th>
-                <th className="py-2 px-2">Interview Date &amp; Time</th>
-                <th className="py-2 px-2">Status</th>
-                <th className="py-2 px-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pagedRows.map(r => (
-                <tr key={r.id} className="border-t border-gray-200 text-gray-900 hover:bg-gray-50">
-                  <td className="py-2 px-2">
-                    <input type="checkbox" checked={selectedIds.has(r.id)} onChange={() => toggleRow(r.id)} className="accent-indigo-600" />
-                  </td>
-                  <td className="py-2 px-2">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-semibold shrink-0 ${r.avatarColor}`}>
-                        {r.candidateName.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                      </span>
-                      <div className="min-w-0">
-                        <div className="font-semibold text-gray-900 truncate">{r.candidateName}</div>
-                        <div className="text-[9px] truncate">{r.email}</div>
-                        <div className="text-[9px] truncate">{r.phone}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-2 px-2">
-                    <div className="text-gray-900 truncate font-semibold">{r.jobTitle}</div>
-                    <div className="text-[9px]">{r.jobId}</div>
-                  </td>
-                  <td className="py-2 px-2">
-                    <div className="flex items-center gap-1 text-gray-900 font-semibold">
-                      {r.interviewType}
-                      {r.mode === 'Online' ? <Video className="w-3 h-3 text-indigo-600" /> : <UserIcon className="w-3 h-3 text-indigo-600" />}
-                    </div>
-                    <div className="text-[9px] ">{r.mode === 'Online' ? '(Online)' : '(In Person)'}</div>
-                  </td>
-                  <td className="py-2 px-2 text-gray-900">{r.stage}</td>
-                  <td className="py-2 px-2">
-                    {r.interviewers.length > 1 ? (
-                      <div>
-                        <div className="text-gray-900">{r.interviewers.length} Interviewers</div>
-                        <button
-                          onClick={() => setModalInterviewers(r.interviewers)}
-                          className="text-[9px] text-indigo-700 font-semibold hover:underline"
-                        >
-                          View All
-                        </button>
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="text-gray-900 font-semibold">{r.interviewers[0]?.name}</div>
-                        <div className="text-[9px] ">{r.interviewers[0]?.role}</div>
-                      </div>
-                    )}
-                  </td>
-                  <td className="py-2 px-2">
-                    <div className="text-gray-900 font-semibold">{r.date}</div>
-                    <div className="text-[9px] ">{r.time}</div>
-                  </td>
-                  <td className="py-2 px-2">
-                    <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full font-semibold ${statusBadgeClass[r.status]}`}>{r.status}</span>
-                  </td>
-                  <td className="py-2 px-2">
-                    <div className="flex items-center gap-1.5">
-                      <button onClick={() => toast(`Viewing ${r.candidateName}`)} className=" hover:text-indigo-600 border border-gray-200 p-1 rounded-lg">
-                        <Eye className="w-3.5 h-3.5" />
-                      </button>
-                      <button onClick={() => toast.success(`Editing ${r.candidateName}`)} className=" hover:text-indigo-600 border border-gray-200 p-1 rounded-lg">
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button onClick={() => toast(`More options for ${r.candidateName}`)} className=" hover:text-indigo-600 border border-gray-200 p-1 rounded-lg">
-                        <MoreHorizontal className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {pagedRows.length === 0 && (
-                <tr>
-                  <td colSpan={9} className="py-6 text-center  text-[11px]">No interviews match your filters.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+            <button
+              onClick={() => toast.success('Opening email composer...')}
+              className="flex items-center gap-1 text-[10px] font-semibold border border-gray-300 bg-white rounded-lg px-2 py-1.5 hover:bg-gray-100"
+            >
+              <Mail className="w-3 h-3" /> Email
+            </button>
+            <button
+              onClick={() => toast.success('Schedule Interview form opened')}
+              className="flex items-center gap-1 text-[10px] font-semibold text-white bg-indigo-600 rounded-lg px-2 py-1.5 hover:bg-indigo-700"
+            >
+              <Plus className="w-3 h-3" /> Schedule Interview
+            </button>
+          </div>
         </div>
 
-        {/* Pagination */}
-        <div className="flex items-center justify-between border-t border-gray-300 px-2 py-1.5 shrink-0">
-          <div className="flex items-center gap-1 text-[10px] ">
-            Show
-            <select
-              value={pageSize}
-              onChange={e => { setPageSize(Number(e.target.value)); setCurrentPage(1) }}
-              className="border border-gray-300 rounded px-1 py-0.5 text-[10px] text-gray-900 outline-none"
-            >
-              {[10, 25, 50].map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
-            entries
+        {/* Stat cards */}
+        <div className="grid grid-cols-5 gap-2 shrink-0">
+          {statCards.map((s, i) => {
+            const Icon = s.icon
+            return (
+              <div key={i} className="bg-white rounded-xl border border-gray-300 p-2 flex items-center gap-2">
+                <span className={`inline-flex items-center justify-center w-9 h-9 rounded-full shrink-0 ${s.iconBg}`}>
+                  <Icon className={`w-4 h-4 ${s.iconColor}`} />
+                </span>
+                <div className="min-w-0">
+                  <div className="text-lg font-bold leading-none">{s.value}</div>
+                  <div className="text-[10px] font-medium mt-0.5 truncate">{s.label}</div>
+                  <div className="text-[9px] font-semibold text-emerald-700 mt-0.5">{s.sub}</div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Search + top actions */}
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="flex-1 relative">
+            <Search className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2" />
+            <input
+              value={searchQuery}
+              onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1) }}
+              placeholder="Search by candidate name, job title or interviewer..."
+              className="w-full text-[11px] border border-gray-300 rounded-lg pl-7 pr-2 py-1.5 bg-white outline-none focus:border-indigo-500"
+            />
           </div>
-          <div className="text-[10px] ">
-            Showing {totalEntries === 0 ? 0 : (pageSafe - 1) * pageSize + 1} to {Math.min(pageSafe * pageSize, totalEntries)} of {totalEntries} entries
-          </div>
-          <div className="flex items-center gap-1">
-            <button onClick={() => goToPage(pageSafe - 1)} disabled={pageSafe === 1} className="w-6 h-6 flex items-center justify-center rounded border border-gray-300  disabled:opacity-40">
-              <ChevronLeft className="w-3 h-3" />
+          <button className={`relative flex items-center gap-1 text-[10px] font-semibold border border-gray-300 bg-white rounded-lg px-2 py-1.5 ${activeFilterCount > 0 && 'text-blue-500'}`}>
+            <Filter className="w-3 h-3" /> Filters
+            {activeFilterCount > 0 && (
+              <span className="ml-0.5 inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-indigo-600 text-white text-[9px] font-bold">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={clearAll}
+            className="flex items-center gap-1 text-[10px] font-semibold border border-gray-300 bg-white rounded-lg px-2 py-1.5 hover:bg-gray-100"
+          >
+            <X className="w-3 h-3" /> Clear All
+          </button>
+        </div>
+
+        {/* Filter selects */}
+        <div className="grid grid-cols-6 gap-2 shrink-0">
+          <FilterSelect label="Job Opening" value={jobOpening} options={jobOpeningOptions} onChange={v => { setJobOpening(v); setCurrentPage(1) }} />
+          <FilterSelect label="Interview Stage" value={stage} options={stageOptions} onChange={v => { setStage(v); setCurrentPage(1) }} />
+          <FilterSelect label="Interview Type" value={type} options={typeOptions} onChange={v => { setType(v); setCurrentPage(1) }} />
+          <FilterSelect label="Interviewer" value={interviewer} options={interviewerOptions} onChange={v => { setInterviewer(v); setCurrentPage(1) }} />
+          <FilterSelect label="Status" value={status} options={statusOptions} onChange={v => { setStatus(v); setCurrentPage(1) }} />
+          <div className="flex flex-col justify-end">
+            <span className="text-[9px] font-medium  mb-0.5">Date Range</span>
+            <button className="flex items-center gap-1 text-[10px] font-semibold  border border-gray-300 bg-white rounded-lg px-2 py-1.5">
+              <Calendar className="w-3 h-3" /> 01 Jun 2026 - 15 Jun 2026
             </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).slice(0, 4).map(p => (
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex items-center justify-between border-b border-gray-300 shrink-0">
+          <div className="flex items-center gap-4">
+            {tabs.map(t => (
               <button
-                key={p}
-                onClick={() => goToPage(p)}
-                className={`w-6 h-6 flex items-center justify-center rounded text-[10px] font-semibold ${
-                  p === pageSafe ? 'bg-indigo-600 text-white' : 'border border-gray-300  hover:bg-gray-100'
-                }`}
+                key={t.key}
+                onClick={() => { setActiveTab(t.key); setCurrentPage(1) }}
+                className={`text-[11px] font-semibold pb-1.5 border-b-2 transition-colors ${activeTab === t.key ? 'text-indigo-600 border-indigo-600' : ' border-transparent hover:text-gray-900'
+                  }`}
               >
-                {p}
+                {t.label} ({tabCount(t.key)})
               </button>
             ))}
-            <button onClick={() => goToPage(pageSafe + 1)} disabled={pageSafe === totalPages} className="w-6 h-6 flex items-center justify-center rounded border border-gray-300  disabled:opacity-40">
-              <ChevronRight className="w-3 h-3" />
+          </div>
+          <div className="flex items-center gap-2 pb-1">
+            <button className="flex items-center gap-1 text-[10px] font-semibold text-gray-800 border border-gray-300 bg-white rounded-lg px-2 py-1">
+              <LayoutGrid className="w-3 h-3" /> Columns
+            </button>
+            <button className="flex items-center gap-1 text-[10px] font-semibold text-gray-800 border border-gray-300 bg-white rounded-lg px-2 py-1">
+              Interview Date <ChevronDown className="w-3 h-3" />
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Interviewers Modal */}
-      {modalInterviewers && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-          onClick={() => setModalInterviewers(null)}
-        >
-          <div
-            className="bg-white rounded-xl border border-gray-300 w-80 max-h-[70vh] overflow-y-auto p-3"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-[12px] font-bold text-gray-900">Interviewers ({modalInterviewers.length})</h3>
-              <button onClick={() => setModalInterviewers(null)} className=" hover:text-gray-900">
-                <X className="w-4 h-4" />
-              </button>
+        {/* Table */}
+        <div className="flex-1 min-h-0 bg-white rounded-xl border border-gray-300 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto">
+            <table className="w-full text-[10px]">
+              <thead className="sticky top-0 bg-gray-100 z-10">
+                <tr className="text-gray-700 text-left">
+                  <th className="py-2 px-2 w-8">
+                    <input type="checkbox" checked={allChecked} onChange={toggleAll} className="accent-indigo-600" />
+                  </th>
+                  <th className="py-2 px-2">Candidate</th>
+                  <th className="py-2 px-2">Job Opening</th>
+                  <th className="py-2 px-2">Interview Type</th>
+                  <th className="py-2 px-2">Stage</th>
+                  <th className="py-2 px-2">Interviewer(s)</th>
+                  <th className="py-2 px-2">Interview Date &amp; Time</th>
+                  <th className="py-2 px-2">Status</th>
+                  <th className="py-2 px-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pagedRows.map(r => (
+                  <tr key={r.id} className="border-t border-gray-200 text-gray-900 hover:bg-gray-50">
+                    <td className="py-2 px-2">
+                      <input type="checkbox" checked={selectedIds.has(r.id)} onChange={() => toggleRow(r.id)} className="accent-indigo-600" />
+                    </td>
+                    <td className="py-2 px-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-semibold shrink-0 ${r.avatarColor}`}>
+                          {r.candidateName.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="font-semibold text-gray-900 truncate">{r.candidateName}</div>
+                          <div className="text-[9px] truncate">{r.email}</div>
+                          <div className="text-[9px] truncate">{r.phone}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-2 px-2">
+                      <div className="text-gray-900 truncate font-semibold">{r.jobTitle}</div>
+                      <div className="text-[9px]">{r.jobId}</div>
+                    </td>
+                    <td className="py-2 px-2">
+                      <div className="flex items-center gap-1 text-gray-900 font-semibold">
+                        {r.interviewType}
+                        {r.mode === 'Online' ? <Video className="w-3 h-3 text-indigo-600" /> : <UserIcon className="w-3 h-3 text-indigo-600" />}
+                      </div>
+                      <div className="text-[9px] ">{r.mode === 'Online' ? '(Online)' : '(In Person)'}</div>
+                    </td>
+                    <td className="py-2 px-2 text-gray-900">{r.stage}</td>
+                    <td className="py-2 px-2">
+                      {r.interviewers.length > 1 ? (
+                        <div>
+                          <div className="text-gray-900">{r.interviewers.length} Interviewers</div>
+                          <button
+                            onClick={() => setModalInterviewers(r.interviewers)}
+                            className="text-[9px] text-indigo-700 font-semibold hover:underline"
+                          >
+                            View All
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="text-gray-900 font-semibold">{r.interviewers[0]?.name}</div>
+                          <div className="text-[9px] ">{r.interviewers[0]?.role}</div>
+                        </div>
+                      )}
+                    </td>
+                    <td className="py-2 px-2">
+                      <div className="text-gray-900 font-semibold">{r.date}</div>
+                      <div className="text-[9px] ">{r.time}</div>
+                    </td>
+                    <td className="py-2 px-2">
+                      <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full font-semibold ${statusBadgeClass[r.status]}`}>{r.status}</span>
+                    </td>
+                    <td className="py-2 px-2">
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={() => toast(`Viewing ${r.candidateName}`)} className=" hover:text-indigo-600 border border-gray-200 p-1 rounded-lg">
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => toast.success(`Editing ${r.candidateName}`)} className=" hover:text-indigo-600 border border-gray-200 p-1 rounded-lg">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => toast(`More options for ${r.candidateName}`)} className=" hover:text-indigo-600 border border-gray-200 p-1 rounded-lg">
+                          <MoreHorizontal className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {pagedRows.length === 0 && (
+                  <tr>
+                    <td colSpan={9} className="py-6 text-center  text-[11px]">No interviews match your filters.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between border-t border-gray-300 px-2 py-1.5 shrink-0">
+            <div className="flex items-center gap-1 text-[10px] ">
+              Show
+              <select
+                value={pageSize}
+                onChange={e => { setPageSize(Number(e.target.value)); setCurrentPage(1) }}
+                className="border border-gray-300 rounded px-1 py-0.5 text-[10px] text-gray-900 outline-none"
+              >
+                {[10, 25, 50].map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+              entries
             </div>
-            <div className="flex flex-col gap-2">
-              {modalInterviewers.map((iv, idx) => (
-                <div key={idx} className="flex items-center gap-2 border border-gray-200 rounded-lg p-2">
-                  <span className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-bold shrink-0">
-                    {iv.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="text-[11px] font-semibold text-gray-900 truncate">{iv.name}</div>
-                    <div className="text-[9px]  truncate">{iv.role}</div>
-                  </div>
-                </div>
+            <div className="text-[10px] ">
+              Showing {totalEntries === 0 ? 0 : (pageSafe - 1) * pageSize + 1} to {Math.min(pageSafe * pageSize, totalEntries)} of {totalEntries} entries
+            </div>
+            <div className="flex items-center gap-1">
+              <button onClick={() => goToPage(pageSafe - 1)} disabled={pageSafe === 1} className="w-6 h-6 flex items-center justify-center rounded border border-gray-300  disabled:opacity-40">
+                <ChevronLeft className="w-3 h-3" />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).slice(0, 4).map(p => (
+                <button
+                  key={p}
+                  onClick={() => goToPage(p)}
+                  className={`w-6 h-6 flex items-center justify-center rounded text-[10px] font-semibold ${p === pageSafe ? 'bg-indigo-600 text-white' : 'border border-gray-300  hover:bg-gray-100'
+                    }`}
+                >
+                  {p}
+                </button>
               ))}
+              <button onClick={() => goToPage(pageSafe + 1)} disabled={pageSafe === totalPages} className="w-6 h-6 flex items-center justify-center rounded border border-gray-300  disabled:opacity-40">
+                <ChevronRight className="w-3 h-3" />
+              </button>
             </div>
           </div>
         </div>
-      )}
+
+        {/* Interviewers Modal */}
+        {modalInterviewers && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+            onClick={() => setModalInterviewers(null)}
+          >
+            <div
+              className="bg-white rounded-xl border border-gray-300 w-80 max-h-[70vh] overflow-y-auto p-3"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-[12px] font-bold text-gray-900">Interviewers ({modalInterviewers.length})</h3>
+                <button onClick={() => setModalInterviewers(null)} className=" hover:text-gray-900">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="flex flex-col gap-2">
+                {modalInterviewers.map((iv, idx) => (
+                  <div key={idx} className="flex items-center gap-2 border border-gray-200 rounded-lg p-2">
+                    <span className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+                      {iv.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="text-[11px] font-semibold text-gray-900 truncate">{iv.name}</div>
+                      <div className="text-[9px]  truncate">{iv.role}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
