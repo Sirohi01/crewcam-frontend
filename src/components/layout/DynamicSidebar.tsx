@@ -58,10 +58,10 @@ const STATIC_RECRUITMENT_ITEMS: SidebarItem[] = [
   { _id: 'r3', section: 'WORKSPACE', label: 'Job Opening', href: '/dashboard/hiring/job-opening', icon: 'ListTree', order: 2.03, parent: 'Requirement' },
   { _id: 'r3b', section: 'WORKSPACE', label: 'Post New Job', href: '/dashboard/hiring/jobs/new', icon: 'PlusSquare', order: 2.04, parent: 'Requirement' },
 
-  { _id: 'r4e', section: 'WORKSPACE', label: 'Job Applications', href: '/dashboard/hiring/applications', icon: 'FileText', order: 2.05, parent: 'Requirement', subParent: 'Job Application' },
+  { _id: 'r4e', section: 'WORKSPACE', label: 'Job Applications', href: '/dashboard/hiring/applications', icon: 'FileText', order: 2.05, parent: 'Requirement' },
   // { _id: 'r4', section: 'WORKSPACE', label: 'Review and Edit', href: '/dashboard/hiring/candidates/new/create/review-and-edit', icon: 'FileSignature', order: 2.06, parent: 'Requirement', subParent: 'Job Application' },
   // { _id: 'r4a', section: 'WORKSPACE', label: 'Submit Application', href: '/dashboard/hiring/candidates/new/create/submit-application-preview', icon: 'UserPlus', order: 2.07, parent: 'Requirement', subParent: 'Job Application' },
-  { _id: 'r4a', section: 'WORKSPACE', label: 'AI Screening Evaluation', href: '/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation', icon: 'Sparkles', order: 2.07, parent: 'Requirement', subParent: 'Job Application' },
+  // { _id: 'r4a', section: 'WORKSPACE', label: 'AI Screening Evaluation', href: '/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation', icon: 'Sparkles', order: 2.07, parent: 'Requirement', subParent: 'Job Application' },
   // { _id: 'r4b', section: 'WORKSPACE', label: 'HOD Evaluation', href: '/dashboard/hiring/candidates/new/create/evaluation', icon: 'UserPlus', order: 2.08, parent: 'Requirement', subParent: 'Job Application' },
   // { _id: 'r4c', section: 'WORKSPACE', label: 'Interview Round - 1', href: '/dashboard/hiring/candidates/new/create/interview-process', icon: 'UserPlus', order: 2.09, parent: 'Requirement', subParent: 'Job Application' },
   // { _id: 'r4c', section: 'WORKSPACE', label: 'Interview Round - 2', href: '/dashboard/hiring/candidates/new/create/round-2', icon: 'UserPlus', order: 2.09, parent: 'Requirement', subParent: 'Job Application' },
