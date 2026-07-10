@@ -816,4 +816,4 @@ const OffersPage = () => {
   )
 }
 
-export default OffersPage
+export default OffersPage;

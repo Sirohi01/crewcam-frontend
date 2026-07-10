@@ -115,7 +115,7 @@ const reviewSections: ReviewSection[] = [
     title: "Application Details",
     summary: "Sales Manager • Sales & Marketing • Full Time • 7 Years Exp • Expected CTC: ₹ 12.00 LPA",
     icon: Briefcase,
-    iconBg: "bg-violet-50",
+    iconBg: "bg-indigo-50",
     iconColor: "text-indigo-700",
   },
   {

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import {
   CheckCircle2, Clock, MapPin, FileText,
   Download, Plus, Headphones, Target, FileCheck, Users, Briefcase, UserPlus, Info,
@@ -116,13 +117,13 @@ export default function ApplicationSubmittedUI() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
               {[
-                { title: 'AI Screening', desc: 'Our AI will analyze your CV and match it with the job requirements.', time: '1-2 Days', icon: Target, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100' },
-                { title: 'HOD Review', desc: 'The hiring manager will review your profile and AI screening report.', time: '2-3 Days', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
-                { title: 'Interview', desc: 'If shortlisted, our team will contact you for interview scheduling.', time: '3-5 Days', icon: Briefcase, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
-                { title: 'Offer', desc: 'Selected candidates will receive an offer based on the discussion.', time: 'As per process', icon: FileCheck, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100' },
-                { title: 'Onboarding', desc: "Welcome aboard! We'll help you through the joining process.", time: 'After Offer', icon: UserPlus, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
+                { title: 'AI Screening', desc: 'Our AI will analyze your CV and match it with the job requirements.', time: '1-2 Days', icon: Target, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', href: '/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation' },
+                { title: 'HOD Review', desc: 'The hiring manager will review your profile and AI screening report.', time: '2-3 Days', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', href: '/dashboard/hiring/candidates/new/create/evaluation' },
+                { title: 'Interview', desc: 'If shortlisted, our team will contact you for interview scheduling.', time: '3-5 Days', icon: Briefcase, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', href: '/dashboard/hiring/candidates/new/create/round-2' },
+                { title: 'Offer', desc: 'Selected candidates will receive an offer based on the discussion.', time: 'As per process', icon: FileCheck, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', href: '/dashboard/offers' },
+                { title: 'Onboarding', desc: "Welcome aboard! We'll help you through the joining process.", time: 'After Offer', icon: UserPlus, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', href: '/dashboard/onboarding' },
               ].map((step, i) => (
-                <div key={i} className="border border-zinc-100 rounded-xl p-3.5 bg-white shadow-sm flex flex-col items-start relative hover:shadow-md transition-shadow">
+                <Link href={step.href || '#'} key={i} className="block border border-zinc-100 rounded-xl p-3.5 bg-white shadow-sm flex flex-col items-start relative hover:shadow-md transition-shadow">
                   <div className={`p-2 rounded-lg ${step.bg} ${step.color} mb-2.5`}>
                     <step.icon size={16} />
                   </div>
@@ -136,7 +137,7 @@ export default function ApplicationSubmittedUI() {
                       <ArrowLeft size={14} className="rotate-180" />
                     </div>
                   )}
-                </div>
+                </Link>
               ))}
             </div>
           </div>

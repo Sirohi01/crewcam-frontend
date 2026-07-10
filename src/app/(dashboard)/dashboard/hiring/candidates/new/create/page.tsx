@@ -88,7 +88,7 @@ function Card({
 
 export default function CreateCandidatePage() {
   return (
-    <div className="bg-[#fafbfc] font-sans">
+    <div className="font-sans">
       <div className="mx-auto max-w-[1600px] space-y-2 p-1">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3">
