@@ -127,8 +127,8 @@ export default function SubmittedPage({
   ];
 
   return (
-    <div className="w-full min-h-screen lg:h-screen lg:min-h-[650px] overflow-y-auto lg:overflow-hidden flex flex-col bg-white font-sans text-slate-900 select-none" id="submitted-page-root">
-      <header className="min-h-[70px] lg:h-[9%] lg:min-h-[56px] bg-white border-b border-slate-100 px-3 lg:px-4 py-2 lg:py-0 flex flex-col md:flex-row md:items-center items-start justify-between gap-2 shrink-0">
+    <div className="w-full min-h-screen lg:h-screen lg:min-h-[650px] overflow-y-auto lg:overflow-hidden flex flex-col font-sans text-slate-900 select-none" id="submitted-page-root">
+      <header className="min-h-[70px] lg:h-[9%] lg:min-h-[56px] border-b border-slate-100 px-3 lg:px-4 py-2 lg:py-0 flex flex-col md:flex-row md:items-center items-start justify-between gap-2 shrink-0">
         <div>
           <h1 className="font-display font-bold text-base sm:text-lg text-indigo-950 leading-tight">
             Application Submitted Successfully!
@@ -156,11 +156,11 @@ export default function SubmittedPage({
           </button>
         </div>
       </header>
-
+      <div className="h-[1px] bg-zinc-200 w-full mb-2 shrink-0"></div>
       {/* =========================================================================
           2. FULL 8-STEP JOURNEY STEPPER
           ========================================================================= */}
-      <section className="min-h-[46px] lg:h-[7%] bg-white border-b border-slate-100 px-3 lg:px-4 py-1.5 lg:py-0 flex items-center overflow-x-auto shrink-0">
+      <section className="min-h-[46px] lg:h-[7%] bg-white border-b border-slate-100 px-3 lg:px-4 py-1.5 lg:py-0 flex items-center pt-1">
         <div className="w-full min-w-max lg:min-w-0 flex items-center justify-between gap-1 lg:gap-0">
           {journeySteps.map((step, idx) => (
             <React.Fragment key={step.label}>
@@ -425,7 +425,7 @@ export default function SubmittedPage({
                   </div>
                   <span className="absolute bottom-1 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
                 </div>
-                
+
                 <div className="flex flex-col items-center mt-1">
                   <h3 className="font-display font-bold text-[14px] text-indigo-950 leading-tight">
                     {candidate.fullName}

@@ -4,8 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/axios';
-import { Bell, HelpCircle, Mail, MessageSquare, FileText, Calendar, Clock, RefreshCw, Search } from 'lucide-react';
+import { Bell, HelpCircle, Mail, MessageSquare, FileText, Calendar, Clock, RefreshCw, Search, Menu } from 'lucide-react';
 import Link from 'next/link';
+import { useUIStore } from '@/store/uiStore';
 
 // Converts a route like /dashboard/superadmin/employee-dashboard/123
 // into "superadmin/employee-dashboard"
@@ -89,18 +90,27 @@ export default function DashboardTopbar() {
     <header
       className="h-12 flex items-center justify-between px-5 shrink-0 gap-4"
       style={{
-        background: 'linear-gradient(90deg, #0f172a 0%, #1e1b4b 100%)',
+        // background: 'linear-gradient(90deg, #0f172a 0%, #1e1b4b 100%)',
+        background: 'rgba(0, 19, 51)',
         borderBottom: '1px solid rgba(99,102,241,0.2)',
       }}
     >
-      {/* Left — current route path (e.g. superadmin/employee-dashboard) */}
-      <span
-        className="text-sm font-semibold tracking-wide shrink-0 truncate max-w-[220px] capitalize"
-        style={{ color: '#e2e8f0' }}
-        title={pageTitle}
-      >
-        {pageTitle}
-      </span>
+      {/* Left — toggle & title */}
+      <div className="flex items-center gap-3 shrink-0">
+        <button
+          onClick={() => useUIStore.getState().toggleSidebar()}
+          className="p-1 rounded-md hover:bg-white/10 transition-colors text-slate-300 hover:text-white"
+        >
+          <Menu size={18} />
+        </button>
+        <span
+          className="font-bold text-sm tracking-wide shrink-0 truncate max-w-[120px] sm:max-w-xs"
+          style={{ color: '#e2e8f0' }}
+          title={pageTitle}
+        >
+          {pageTitle}
+        </span>
+      </div>
 
       {/* Center — search bar (made smaller) */}
       <div className="flex-1 flex justify-center min-w-0">
