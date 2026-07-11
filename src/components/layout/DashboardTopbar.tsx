@@ -8,35 +8,7 @@ import { Bell, HelpCircle, Mail, MessageSquare, FileText, Calendar, Clock, Refre
 import Link from 'next/link';
 import { useUIStore } from '@/store/uiStore';
 
-// Converts a route like /dashboard/superadmin/employee-dashboard/123
-// into "superadmin/employee-dashboard"
-function getPageTitle(pathname: string | null): string {
-  if (!pathname) return 'dashboard';
-
-  let segments = pathname.split('/').filter(Boolean);
-  if (segments.length === 0) return 'dashboard';
-
-  // Drop id-like trailing segments (numeric ids, mongo/uuid-style ids)
-  while (
-    segments.length > 0 &&
-    (/^\d+$/.test(segments[segments.length - 1]) ||
-      /^[0-9a-fA-F]{20,}$/.test(segments[segments.length - 1]))
-  ) {
-    segments.pop();
-  }
-
-  // Drop a leading "dashboard" root segment, e.g. /dashboard/superadmin/... -> superadmin/...
-  if (segments[0] === 'dashboard') {
-    segments = segments.slice(1);
-  }
-
-  if (segments.length === 0) return 'dashboard';
-
-  // Show at most the last two meaningful segments, e.g. "superadmin/employee-dashboard"
-  const visible = segments.slice(-2);
-
-  return visible.join('/');
-}
+// Removed getPageTitle, now driven by sidebar state in uiStore
 
 export default function DashboardTopbar() {
   const user = useAuthStore((state) => state.user);
@@ -45,7 +17,7 @@ export default function DashboardTopbar() {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const pageTitle = getPageTitle(pathname);
+  const pageTitle = useUIStore((s) => s.pageTitle);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -96,15 +68,15 @@ export default function DashboardTopbar() {
       }}
     >
       {/* Left — toggle & title */}
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex-1 flex items-center gap-3 min-w-0">
         <button
           onClick={() => useUIStore.getState().toggleSidebar()}
-          className="p-1 rounded-md hover:bg-white/10 transition-colors text-slate-300 hover:text-white"
+          className="p-1 rounded-md hover:bg-white/10 transition-colors text-slate-300 hover:text-white shrink-0"
         >
           <Menu size={18} />
         </button>
         <span
-          className="font-bold text-sm tracking-wide shrink-0 truncate max-w-[120px] sm:max-w-xs"
+          className="font-bold text-xs sm:text-sm tracking-wide truncate"
           style={{ color: '#e2e8f0' }}
           title={pageTitle}
         >
@@ -145,7 +117,7 @@ export default function DashboardTopbar() {
       </div>
 
       {/* Right — icons + greeting + avatar */}
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex-1 flex items-center justify-end gap-1 min-w-0">
 
         {/* 3 icon buttons */}
         {[

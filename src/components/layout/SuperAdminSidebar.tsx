@@ -93,7 +93,7 @@ export default function SuperAdminSidebar() {
       <aside
         className="w-64 flex-shrink-0 flex flex-col relative z-20"
         style={{
-          background: 'linear-gradient(180deg, #0f172a 0%, #1e1b4b 60%, #0f172a 100%)',
+          background: 'rgba(0, 19, 51)',
           borderRight: '1px solid rgba(99,102,241,0.2)',
         }}
       >
@@ -164,10 +164,33 @@ function NavItem({
   return (
     <Link
       href={href}
-      className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${active
-        ? 'bg-red-600/20 text-red-400 border border-red-500/20'
-        : 'text-white/60 hover:text-white hover:bg-white/10'
-        }`}
+      className="flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all"
+      style={
+        active
+          ? {
+              background: 'linear-gradient(90deg, #d97706 0%, #92400e 100%)',
+              color: '#ffffff',
+              border: '1px solid rgba(251, 191, 36, 0.5)',
+              boxShadow: '0 0 10px rgba(245, 158, 11, 0.3)',
+              borderRadius: '9999px',
+            }
+          : {
+              color: '#e2e8f0',
+              borderRadius: '6px',
+            }
+      }
+      onMouseEnter={(e) => {
+        if (!active) {
+          (e.currentTarget as HTMLAnchorElement).style.backgroundColor = 'rgba(245, 158, 11, 0.15)';
+          (e.currentTarget as HTMLAnchorElement).style.color = '#ffffff';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!active) {
+          (e.currentTarget as HTMLAnchorElement).style.backgroundColor = 'transparent';
+          (e.currentTarget as HTMLAnchorElement).style.color = '#e2e8f0';
+        }
+      }}
     >
       {icon}
       <span className="flex-1 truncate">{label}</span>
@@ -199,10 +222,24 @@ function NavGroup({
     <div className="space-y-1">
       <button
         onClick={() => setExpanded((e) => !e)}
-        className={`w-full flex items-center justify-between gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${sectionActive
-          ? 'bg-red-600/20 text-red-400 border border-red-500/20'
-          : 'text-white/60 hover:text-white hover:bg-white/10'
-          }`}
+        className="w-full flex items-center justify-between gap-3 px-3 py-2 text-sm font-medium transition-colors"
+        style={{
+          borderRadius: '6px',
+          color: sectionActive ? '#fde68a' : '#e2e8f0',
+          backgroundColor: sectionActive ? 'rgba(0, 19, 51)' : 'transparent',
+        }}
+        onMouseEnter={(e) => {
+          if (!sectionActive) {
+            (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(245, 158, 11, 0.15)';
+            (e.currentTarget as HTMLButtonElement).style.color = '#ffffff';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!sectionActive) {
+            (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent';
+            (e.currentTarget as HTMLButtonElement).style.color = '#e2e8f0';
+          }
+        }}
       >
         <div className="flex items-center gap-3">
           {icon}
@@ -218,10 +255,30 @@ function NavGroup({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`block px-3 py-1.5 text-sm rounded-lg transition-colors ${active
-                  ? 'bg-red-600/20 text-red-400 font-medium'
-                  : 'text-white/50 hover:text-white hover:bg-white/10'
-                  }`}
+                className="block px-3 py-1.5 text-sm transition-all"
+                style={
+                  active
+                    ? {
+                        background: 'linear-gradient(90deg, #d97706 0%, #92400e 100%)',
+                        color: '#ffffff',
+                        border: '1px solid rgba(251, 191, 36, 0.5)',
+                        boxShadow: '0 0 10px rgba(245, 158, 11, 0.3)',
+                        borderRadius: '9999px',
+                      }
+                    : { color: '#e2e8f0', borderRadius: '6px' }
+                }
+                onMouseEnter={(e) => {
+                  if (!active) {
+                    (e.currentTarget as HTMLAnchorElement).style.backgroundColor = 'rgba(245, 158, 11, 0.15)';
+                    (e.currentTarget as HTMLAnchorElement).style.color = '#ffffff';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!active) {
+                    (e.currentTarget as HTMLAnchorElement).style.backgroundColor = 'transparent';
+                    (e.currentTarget as HTMLAnchorElement).style.color = '#e2e8f0';
+                  }
+                }}
               >
                 {item.label}
               </Link>
