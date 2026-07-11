@@ -220,15 +220,22 @@ export default function DynamicSidebar() {
         >
           {isSidebarOpen ? (
             <Image
-              src="/crewcam.png"
+              src="/logo.png"
               alt="Crewcam"
               width={1073}
               height={156}
               priority
-              className="h-auto w-full max-w-[190px] object-contain shrink-0"
+              className="h-auto w-full max-w-[160px] object-contain shrink-0"
             />
           ) : (
-            <div className="text-xl font-black text-indigo-400">C</div>
+            <Image
+              src="/shortlogo2.png"
+              alt="Crewcam Icon"
+              width={128}
+              height={128}
+              priority
+              className="h-8 w-8 object-contain shrink-0"
+            />
           )}
         </div>
 
