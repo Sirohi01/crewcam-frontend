@@ -193,7 +193,7 @@ export default function DynamicSidebar() {
         }
       `}</style>
       <aside
-        className="w-64 flex-shrink-0 flex flex-col"
+        className="hidden lg:flex w-64 flex-shrink-0 flex-col"
         style={{
           background: 'linear-gradient(180deg, #0f172a 0%, #1e1b4b 60%, #0f172a 100%)',
           borderRight: '1px solid rgba(99,102,241,0.2)',
