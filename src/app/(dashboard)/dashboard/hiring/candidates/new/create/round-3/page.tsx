@@ -59,7 +59,7 @@ export default function InterviewUI() {
           </button>
         </div>
       </div>
-      <div className="h-[1px] bg-zinc-200 w-full mb-4 shrink-0"></div>
+      <div className="h-[1px] bg-zinc-200 w-full mb-2 shrink-0"></div>
 
       {/* Top Cards Section */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
@@ -417,6 +417,6 @@ export default function InterviewUI() {
       </div>
 
     </div>
-      );
+  );
 }
 

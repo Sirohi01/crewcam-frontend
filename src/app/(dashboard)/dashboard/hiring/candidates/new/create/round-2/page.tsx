@@ -14,7 +14,7 @@ export default function InterviewUI() {
 
 
       {/* Header & Steps */}
-      <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4  pb-4">
+      <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4  pb-2">
         <div>
           <h1 className="text-xl font-bold text-zinc-900">Interview – Round 2</h1>
           <p className="text-[11px] text-zinc-500 mt-0.5">Technical Interview – AI Powered</p>
@@ -59,7 +59,7 @@ export default function InterviewUI() {
           </button>
         </div>
       </div>
-      <div className="h-[1px] bg-zinc-200 w-full mb-4 shrink-0"></div>
+      <div className="h-[1px] bg-zinc-200 w-full mb-2 shrink-0"></div>
 
       {/* Top Cards Section */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">

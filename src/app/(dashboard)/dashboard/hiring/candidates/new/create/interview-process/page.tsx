@@ -140,7 +140,7 @@ export default function InterviewProcessPage() {
           </div>
         </div>
 
-        <div className="h-[1px] bg-zinc-200 w-full mb-4 shrink-0"></div>
+        <div className="h-[1px] bg-zinc-200 w-full mb-2 shrink-0"></div>
 
         <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-[7fr_3fr]">
           <div className="min-w-0 space-y-2">
