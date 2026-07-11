@@ -284,7 +284,7 @@ export default function CompanyCreatedUI() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 flex-1 text-[9px]">
+            <div className="flex flex-col gap-3 flex-1 text-[9px]">
               <div className="flex items-center justify-between">
                 <span className="text-zinc-500 font-medium">Company ID</span>
                 <span className="font-bold text-zinc-900">TECHVISION_001</span>
@@ -316,15 +316,14 @@ export default function CompanyCreatedUI() {
             <button className="text-[9px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors">Manage Admins</button>
           </div>
 
-          <div className="flex items-center gap-2 mb-3">
-            <div className="h-8 w-8 rounded-full border-[2.5px] border-[#16a34a] flex items-center justify-center text-[9px] font-bold text-zinc-900 shrink-0">1/1</div>
+          <div className="flex items-center gap-2 mb-3 mt-2">
+            <div className="h-12 w-12 rounded-full border-[3px] border-[#16a34a] flex items-center justify-center text-[9px] font-bold text-zinc-900 shrink-0">1/1</div>
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-zinc-900">Admin Users</span>
-              <span className="text-[8px] font-medium text-zinc-500">Allocated Quota</span>
+              <span className="text-[10px] font-bold text-zinc-900">Admin Users Added</span>
             </div>
           </div>
 
-          <div className="border border-zinc-100 rounded-md p-2 bg-zinc-50 flex flex-col gap-1 mb-3 shadow-sm">
+          <div className="border border-zinc-100 rounded-md p-2 bg-zinc-50 flex flex-col gap-1 mb-3  mt-10 shadow-sm">
             <div className="flex items-center justify-between mb-0.5">
               <div className="flex items-center gap-1.5">
                 <span className="text-[10px] font-bold text-zinc-900">Rohit Mehta</span>
@@ -336,7 +335,7 @@ export default function CompanyCreatedUI() {
             <span className="text-[9px] text-zinc-400">HR Manager</span>
           </div>
 
-          <div className="mt-auto pt-2">
+          <div className="mt-auto pt-2 px-9">
             <button className="w-full flex items-center justify-center gap-1.5 border border-zinc-200 text-zinc-700 bg-white text-[9px] font-bold px-2 py-1.5 rounded-md shadow-sm hover:bg-zinc-50 hover:border-zinc-300 transition-all">
               <Users size={11} /> Invite More Admins
             </button>
@@ -352,17 +351,18 @@ export default function CompanyCreatedUI() {
 
           <div className="flex items-center justify-between mb-3 pb-3 border-b border-zinc-100">
             <div className="relative h-10 w-10 shrink-0">
-              <svg viewBox="0 0 36 36" className="w-10 h-10 transform -rotate-90">
+              <svg viewBox="0 0 36 36" className="w-20 h-20 transform -rotate-[148deg]">
                 <path className="text-zinc-100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4.5" />
-                <path className="text-[#16a34a]" strokeDasharray="80, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" />
+                <path className="text-[#16a34a]" strokeDasharray="60, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" />
               </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center mt-1">
-                <span className="text-[11px] font-bold leading-none text-zinc-900">10</span>
-                <span className="text-[7px] text-zinc-500 font-semibold mt-[1px] text-center leading-tight">of 12<br />Mod</span>
+              <div className="absolute inset-0 flex flex-col  items-center justify-center ml-10 mt-14 gap-1">
+                <span className="text-[20px] font-bold leading-none text-zinc-900">10</span>
+                <span className="text-[9px] text-zinc-500 font-semibold mt-[1px] text-center whitespace-nowrap leading-tight pl-1">of 12</span>
+                <span className='text-[9px] font-semibold text-zinc-600 whitespace-nowrap pl-14'>Modules Enabled</span>
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5 text-[9px] font-semibold text-zinc-600 w-full pl-3">
+            <div className="flex flex-col gap-1.5 text-[9px] font-semibold text-zinc-600 w-full pl-16 pt-2">
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-[#16a34a]"></div> Enabled</div>
                 <span className="font-bold text-zinc-900">10</span>
@@ -380,22 +380,22 @@ export default function CompanyCreatedUI() {
 
           <div className="mt-auto">
             <h4 className="text-[9px] font-bold text-zinc-900 mb-2">Most Enabled Modules</h4>
-            <div className="grid grid-cols-4 gap-1 text-center text-[7px] font-semibold text-zinc-500">
-              <div className="flex flex-col items-center gap-1 hover:text-indigo-600 transition-colors cursor-pointer group">
-                <div className="h-6 w-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform"><Users size={10} /></div>
-                <span className="leading-tight">Employee<br />Mgmt</span>
+            <div className="grid grid-cols-4 gap-1 text-center text-[10px] font-bold text-zinc-500">
+              <div className="flex flex-col items-center gap-0 hover:text-indigo-600 transition-colors cursor-pointer group">
+                <div className="h-6 w-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform"><Users size={20} /></div>
+                <span className="leading-none mt-1">Employee<br />Mgmt</span>
               </div>
-              <div className="flex flex-col items-center gap-1 hover:text-indigo-600 transition-colors cursor-pointer group">
-                <div className="h-6 w-6 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform"><CalendarDays size={10} /></div>
-                <span className="leading-tight">Attendance<br />Mgmt</span>
+              <div className="flex flex-col items-center gap-0 hover:text-indigo-600 transition-colors cursor-pointer group">
+                <div className="h-6 w-6 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform"><CalendarDays size={20} /></div>
+                <span className="leading-none mt-1">Attendance<br />Mgmt</span>
               </div>
-              <div className="flex flex-col items-center gap-1 hover:text-indigo-600 transition-colors cursor-pointer group">
-                <div className="h-6 w-6 rounded-md bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform"><Calendar size={10} /></div>
-                <span className="leading-tight">Leave<br />Mgmt</span>
+              <div className="flex flex-col items-center gap-0 hover:text-indigo-600 transition-colors cursor-pointer group">
+                <div className="h-6 w-6 rounded-md bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform"><Calendar size={20} /></div>
+                <span className="leading-none mt-1">Leave<br />Mgmt</span>
               </div>
-              <div className="flex flex-col items-center gap-1 hover:text-indigo-600 transition-colors cursor-pointer group">
-                <div className="h-6 w-6 rounded-md bg-teal-50 text-teal-600 flex items-center justify-center group-hover:scale-105 transition-transform"><CreditCard size={10} /></div>
-                <span className="leading-tight">Payroll<br />Mgmt</span>
+              <div className="flex flex-col items-center gap-0 hover:text-indigo-600 transition-colors cursor-pointer group">
+                <div className="h-6 w-6 rounded-md bg-teal-50 text-teal-600 flex items-center justify-center group-hover:scale-105 transition-transform"><CreditCard size={20} /></div>
+                <span className="leading-none mt-1">Payroll<br />Mgmt</span>
               </div>
             </div>
           </div>
@@ -407,22 +407,22 @@ export default function CompanyCreatedUI() {
             <h3 className="font-bold text-[11px] text-zinc-900 mb-2">Quick Actions</h3>
             <div className="flex flex-col text-[10px] font-semibold text-zinc-700">
               <button className="flex items-center justify-between py-1.5 border-b border-zinc-50 hover:text-indigo-600 group transition-colors">
-                <span className="flex items-center gap-1.5"><Users size={11} className="text-zinc-400 group-hover:text-indigo-600 transition-colors" /> Invite Admin Users</span> <ChevronRight size={11} className="text-zinc-300 group-hover:translate-x-1 transition-transform" />
+                <span className="flex items-center gap-1.5"><Users size={13} className="text-zinc-600 group-hover:text-indigo-600 transition-colors" /> Invite Admin Users</span> <ChevronRight size={11} className="text-zinc-300 group-hover:translate-x-1 transition-transform" />
               </button>
               <button className="flex items-center justify-between py-1.5 border-b border-zinc-50 hover:text-indigo-600 group transition-colors">
-                <span className="flex items-center gap-1.5"><Upload size={11} className="text-zinc-400 group-hover:text-indigo-600 transition-colors" /> Import Employees</span> <ChevronRight size={11} className="text-zinc-300 group-hover:translate-x-1 transition-transform" />
+                <span className="flex items-center gap-1.5"><Upload size={13} className="text-zinc-600 group-hover:text-indigo-600 transition-colors" /> Import Employees</span> <ChevronRight size={11} className="text-zinc-300 group-hover:translate-x-1 transition-transform" />
               </button>
               <button className="flex items-center justify-between py-1.5 border-b border-zinc-50 hover:text-indigo-600 group transition-colors">
-                <span className="flex items-center gap-1.5"><Settings size={11} className="text-zinc-400 group-hover:text-indigo-600 transition-colors" /> Configure Modules</span> <ChevronRight size={11} className="text-zinc-300 group-hover:translate-x-1 transition-transform" />
+                <span className="flex items-center gap-1.5"><Settings size={13} className="text-zinc-600 group-hover:text-indigo-600 transition-colors" /> Configure Modules</span> <ChevronRight size={11} className="text-zinc-300 group-hover:translate-x-1 transition-transform" />
               </button>
               <button className="flex items-center justify-between py-1.5 border-b border-zinc-50 hover:text-indigo-600 group transition-colors">
-                <span className="flex items-center gap-1.5"><Calendar size={11} className="text-zinc-400 group-hover:text-indigo-600 transition-colors" /> Setup Payroll</span> <ChevronRight size={11} className="text-zinc-300 group-hover:translate-x-1 transition-transform" />
+                <span className="flex items-center gap-1.5"><Calendar size={13} className="text-zinc-600 group-hover:text-indigo-600 transition-colors" /> Setup Payroll</span> <ChevronRight size={11} className="text-zinc-300 group-hover:translate-x-1 transition-transform" />
               </button>
               <button className="flex items-center justify-between py-1.5 border-b border-zinc-50 hover:text-indigo-600 group transition-colors">
-                <span className="flex items-center gap-1.5"><Building2 size={11} className="text-zinc-400 group-hover:text-indigo-600 transition-colors" /> Customize Profile</span> <ChevronRight size={11} className="text-zinc-300 group-hover:translate-x-1 transition-transform" />
+                <span className="flex items-center gap-1.5"><Building2 size={13} className="text-zinc-600 group-hover:text-indigo-600 transition-colors" /> Customize Profile</span> <ChevronRight size={11} className="text-zinc-300 group-hover:translate-x-1 transition-transform" />
               </button>
               <button className="flex items-center justify-between py-1.5 hover:text-indigo-600 group transition-colors">
-                <span className="flex items-center gap-1.5"><Download size={11} className="text-zinc-400 group-hover:text-indigo-600 transition-colors" /> Download Guide</span> <ChevronRight size={11} className="text-zinc-300 group-hover:translate-x-1 transition-transform" />
+                <span className="flex items-center gap-1.5"><Download size={13} className="text-zinc-600 group-hover:text-indigo-600 transition-colors" /> Download Guide</span> <ChevronRight size={11} className="text-zinc-300 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
           </div>
@@ -446,7 +446,8 @@ export default function CompanyCreatedUI() {
       </div>
 
       {/* Need Help Banner & Footer Actions */}
-      <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3 mt-2 flex flex-col md:flex-row items-center justify-between gap-3">
+
+      <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3 mt-2 flex flex-col md:flex-row items-center justify-between gap-3 ">
         <div className="flex items-center gap-2">
           <div className="h-12 w-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center shrink-0">
             <Image src={women} alt="women" width={50} height={50} className='rounded-full' />
@@ -463,6 +464,7 @@ export default function CompanyCreatedUI() {
           <button className="flex items-center gap-1 bg-[#16a34a] text-white text-[9px] font-bold px-3 py-1.5 rounded-md hover:bg-emerald-700 transition-colors shadow-sm">
             <MessageCircle size={11} /> Chat Support
           </button>
+
         </div>
       </div>
 

@@ -417,8 +417,6 @@ export default function InterviewUI() {
       </div>
     </div>
 
-
-    // </div>
   );
 }
 
