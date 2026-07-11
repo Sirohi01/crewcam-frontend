@@ -21,6 +21,7 @@ import {
   ChevronRight,
   Minus,
   Plus,
+  RefreshCw,
 } from "lucide-react";
 import { FaLinkedin, FaLinkedinIn } from "react-icons/fa";
 
@@ -77,10 +78,10 @@ interface SubmitApplicationPreviewProps {
 /* Static data                                                           */
 /* --------------------------------------------------------------------- */
 
-const steps: StepItem[] = [
-  { id: 1, label: "Upload CV", status: "done" },
-  { id: 2, label: "Review & Edit", status: "done" },
-  { id: 3, label: "Submit Application", status: "active" },
+const steps = [
+  { num: 1, label: 'Upload CV', status: 'completed' },
+  { num: 2, label: 'Review & Edit', status: 'completed' },
+  { num: 3, label: 'Submit Application', status: 'active' },
 ];
 
 const candidate: CandidateSummary = {
@@ -199,75 +200,66 @@ export default function SubmitApplicationPreview({
       className="w-full bg-slate-50 flex flex-col font-sans min-h-[650px] lg:h-[calc(100%-48px)] lg:overflow-hidden"
       id="submit-application-root"
     >
-      {/* ================= Header ================= */}
-      <header className="w-full bg-white border-b border-slate-200 px-2 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 shrink-0">
-        <div className="flex flex-col min-w-0">
-          <h1 className="text-sm font-bold text-slate-900 leading-tight">Submit Application</h1>
-          <p className="text-[10px] leading-tight">
-            Review all details before submitting the application for screening
-          </p>
-        </div>
+      {/* Header Container matched to Add New Candidate width */}
+      <div className="w-full mx-auto max-w-[1600px] px-2 pt-2">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-3">
+          {/* Title */}
+          <div className="shrink-0 w-full lg:w-[380px]">
+            <h1 className="text-[17px] font-bold text-zinc-900 tracking-tight leading-tight">Submit Application</h1>
+            <p className="mt-0.5 text-[11px] font-medium text-zinc-500 whitespace-nowrap">Review all details before submitting the application for screening</p>
+          </div>
 
-        {/* Stepper */}
-        <div className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto">
-          {steps.map((step, idx) => (
-            <React.Fragment key={step.id}>
-              <div className="flex flex-col items-center gap-1 text-xs shrink-0">
-                <span
-                  className={`w-4 h-4 rounded-full flex items-center justify-center font-bold text-[9px] border ${step.status === "done"
-                    ? "bg-emerald-100 text-emerald-800 border-emerald-300"
-                    : step.status === "active"
-                      ? "bg-indigo-600 text-white border-indigo-600"
-                      : "bg-slate-100 text-slate-600 border-slate-300"
-                    }`}
-                >
-                  {step.status === "done" ? (
-                    <Check className="w-2.5 h-2.5" />
-                  ) : (
-                    step.id
-                  )}
-                </span>
+          {/* Steps */}
+          <div className="flex-1 max-w-[320px] w-full flex items-center justify-center relative mx-auto">
+            <div className="absolute left-[30px] right-[30px] top-[11px] h-[2px] bg-zinc-200 -z-0"></div>
+            <div className="flex w-full justify-between z-10">
+              {steps.map((step, idx) => (
+                <div key={idx} className="relative z-10 flex flex-col items-center gap-1 px-1 bg-slate-50 lg:bg-transparent">
+                  <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-colors
+                    ${step.status === 'completed' ? 'border-indigo-100 text-indigo-600 bg-indigo-50' :
+                      step.status === 'active' ? 'border-indigo-600 bg-indigo-600 text-white shadow-[0_0_0_3px_rgba(79,70,229,0.15)]' :
+                        'border-zinc-200 text-zinc-400 bg-white'}`}>
+                    {step.status === 'completed' ? <Check className="w-3 h-3" strokeWidth={3} /> : step.num}
+                  </div>
+                  <span className={`text-[8.5px] lg:text-[9px] whitespace-nowrap font-bold ${step.status === 'active' ? 'text-indigo-900' : step.status === 'completed' ? 'text-indigo-600' : 'text-zinc-400'}`}>
+                    {step.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
 
-                <span
-                  className={`whitespace-nowrap ${step.status === "active"
-                    ? "text-indigo-900 font-semibold"
-                    : "font-medium text-slate-700"
-                    }`}
-                >
-                  {step.label}
-                </span>
-              </div>
-
-              {idx < steps.length - 1 && (
-                <div
-                  className={`w-6 h-[1px] shrink-0 self-start mt-2 ${step.status === "done" ? "bg-emerald-300" : "bg-slate-200"
-                    }`}
-                />
+          {/* Buttons */}
+          <div className="flex items-center justify-end gap-2 shrink-0 w-full lg:w-[380px]">
+            <button
+              onClick={handleBack}
+              className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors"
+            >
+              &larr; Back
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={!declared || submitting}
+              className={`flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold shadow-sm transition-colors ${!declared || submitting
+                ? "bg-slate-300 text-slate-500 cursor-not-allowed"
+                : "bg-indigo-600 hover:bg-indigo-700 text-white"
+                }`}
+            >
+              {submitting ? (
+                <>
+                  <RefreshCw className="w-3 h-3 mr-1.5 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Send className="w-3 h-3 mr-1.5" />
+                  Submit Application
+                </>
               )}
-            </React.Fragment>
-          ))}
+            </button>
+          </div>
         </div>
-
-        <div className="flex items-center gap-1 shrink-0">
-          <button
-            type="button"
-            onClick={handleBack}
-            className="flex-1 sm:flex-none justify-center px-2 py-1 text-[11px] font-medium border border-slate-300 text-slate-700 rounded flex items-center gap-1 hover:bg-slate-50 transition-colors"
-          >
-            <ArrowLeft className="w-3 h-3" />
-            <span>Back</span>
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!declared || submitting}
-            className="flex-1 sm:flex-none justify-center px-2 py-1 text-[11px] font-bold bg-indigo-600 text-white rounded flex items-center gap-1 hover:bg-indigo-700 transition-colors disabled:opacity-50 whitespace-nowrap"
-          >
-            <Send className="w-3 h-3" />
-            <span>{submitting ? "Submitting..." : "Submit Application"}</span>
-          </button>
-        </div>
-      </header>
+      </div>
 
       {/* ================= Main ================= */}
       <div className="flex-1 lg:min-h-0 flex flex-col lg:flex-row gap-2 p-2 lg:overflow-hidden">

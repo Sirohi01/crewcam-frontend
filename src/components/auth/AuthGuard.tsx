@@ -20,7 +20,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (mounted && hydrated && !isAuthenticated) {
-      document.cookie = "has_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      // Prevent aggressive logout during Next.js Fast Refresh
+      // document.cookie = "has_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
       router.replace('/login');
     }
   }, [mounted, hydrated, isAuthenticated, router, pathname]);
