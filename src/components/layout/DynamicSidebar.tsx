@@ -89,6 +89,7 @@ const STATIC_RECRUITMENT_ITEMS: SidebarItem[] = [
 export default function DynamicSidebar() {
   const pathname = usePathname();
   const isSidebarOpen = useUIStore((s) => s.isSidebarOpen);
+  const setPageTitle = useUIStore((s) => s.setPageTitle);
   const router = useRouter();
   const logout = useAuthStore((state) => state.logout);
 
@@ -162,6 +163,27 @@ export default function DynamicSidebar() {
     }
   });
 
+  React.useEffect(() => {
+    let matchedItem = allItems.find(i => pathname === i.href);
+    if (!matchedItem) {
+      const matches = allItems.filter(i => i.href !== '/dashboard' && pathname.startsWith(i.href));
+      if (matches.length > 0) {
+        matchedItem = matches.reduce((prev, current) => (prev.href.length > current.href.length ? prev : current));
+      }
+    }
+    if (matchedItem) {
+      let title = matchedItem.label;
+      if (matchedItem.subParent) {
+        title = `${matchedItem.parent} / ${matchedItem.subParent} / ${matchedItem.label}`;
+      } else if (matchedItem.parent) {
+        title = `${matchedItem.parent} / ${matchedItem.label}`;
+      }
+      setPageTitle(title);
+    } else {
+      setPageTitle('Dashboard');
+    }
+  }, [pathname, allItems, setPageTitle]);
+
   return (
     <>
       <style>{`
@@ -198,15 +220,22 @@ export default function DynamicSidebar() {
         >
           {isSidebarOpen ? (
             <Image
-              src="/crewcam.png"
+              src="/logo.png"
               alt="Crewcam"
               width={1073}
               height={156}
               priority
-              className="h-auto w-full max-w-[190px] object-contain shrink-0"
+              className="h-auto w-full max-w-[160px] object-contain shrink-0"
             />
           ) : (
-            <div className="text-xl font-black text-indigo-400">C</div>
+            <Image
+              src="/shortlogo2.png"
+              alt="Crewcam Icon"
+              width={128}
+              height={128}
+              priority
+              className="h-8 w-8 object-contain shrink-0"
+            />
           )}
         </div>
 
