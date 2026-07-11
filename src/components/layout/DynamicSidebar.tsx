@@ -185,7 +185,7 @@ export default function DynamicSidebar() {
         }
       `}</style>
       <aside
-        className={`hidden lg:flex flex-shrink-0 flex-col transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-[68px]'}`}
+        className={`hidden lg:flex flex-shrink-0 flex-col transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-58' : 'w-[68px]'}`}
         style={{
           background: 'rgba(0, 19, 51)',
           borderRight: '1px solid rgba(99,102,241,0.2)',
@@ -294,21 +294,21 @@ function NavItem({
       className={`flex items-center gap-2 py-1.5 text-xs font-medium transition-all ${isSidebarOpen ? 'px-3' : 'justify-center px-0 mx-auto'}`}
       style={
         active
-          ? { 
-              background: 'linear-gradient(90deg, #d97706 0%, #92400e 100%)', 
-              color: '#ffffff', 
-              border: '1px solid rgba(251, 191, 36, 0.5)',
-              boxShadow: '0 0 10px rgba(245, 158, 11, 0.3)',
-              borderRadius: isSidebarOpen ? '9999px' : '12px',
-              width: isSidebarOpen ? 'auto' : '36px',
-              height: isSidebarOpen ? 'auto' : '36px',
-            }
-          : { 
-              color: '#e2e8f0', 
-              borderRadius: isSidebarOpen ? '6px' : '12px',
-              width: isSidebarOpen ? 'auto' : '36px',
-              height: isSidebarOpen ? 'auto' : '36px',
-            }
+          ? {
+            background: 'linear-gradient(90deg, #d97706 0%, #92400e 100%)',
+            color: '#ffffff',
+            border: '1px solid rgba(251, 191, 36, 0.5)',
+            boxShadow: '0 0 10px rgba(245, 158, 11, 0.3)',
+            borderRadius: isSidebarOpen ? '9999px' : '12px',
+            width: isSidebarOpen ? 'auto' : '36px',
+            height: isSidebarOpen ? 'auto' : '36px',
+          }
+          : {
+            color: '#e2e8f0',
+            borderRadius: isSidebarOpen ? '6px' : '12px',
+            width: isSidebarOpen ? 'auto' : '36px',
+            height: isSidebarOpen ? 'auto' : '36px',
+          }
       }
       onMouseEnter={(e) => {
         if (!active) {
@@ -410,13 +410,13 @@ function NavGroup({ label, items, pathname, level = 0 }: { label: string; items:
                 className="block px-3 py-1.5 text-xs font-medium transition-all"
                 style={
                   isActive
-                    ? { 
-                        background: 'linear-gradient(90deg, #d97706 0%, #92400e 100%)', 
-                        color: '#ffffff', 
-                        border: '1px solid rgba(251, 191, 36, 0.5)',
-                        boxShadow: '0 0 10px rgba(245, 158, 11, 0.3)',
-                        borderRadius: '9999px'
-                      }
+                    ? {
+                      background: 'linear-gradient(90deg, #d97706 0%, #92400e 100%)',
+                      color: '#ffffff',
+                      border: '1px solid rgba(251, 191, 36, 0.5)',
+                      boxShadow: '0 0 10px rgba(245, 158, 11, 0.3)',
+                      borderRadius: '9999px'
+                    }
                     : { color: '#e2e8f0', borderRadius: '6px' }
                 }
                 onMouseEnter={(e) => {
