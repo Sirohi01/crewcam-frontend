@@ -208,7 +208,7 @@ export default function EvaluationPage({
         </div>
       </div>
 
-      <div className="h-[1px] bg-zinc-200 w-full mb-4 shrink-0"></div>
+      <div className="h-[1px] bg-zinc-200 w-full mb-2 shrink-0"></div>
 
       <div
         className="w-full lg:h-[calc(100vh-120px)] lg:min-h-[650px] overflow-y-auto lg:overflow-hidden flex flex-col bg-slate-50 font-sans text-slate-900 select-none rounded-xl"
@@ -229,7 +229,7 @@ export default function EvaluationPage({
 
                 {/* Score Summary Title Hero */}
                 <div
-                  className="bg-slate-50 p-2 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center items-start justify-between gap-2"
+                  className="bg-slate-50 p-2 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center items-start justify-between gap-2 bg-white"
                   id="eval-header-panel"
                 >
                   <div className="flex gap-2 w-full lg:w-auto">

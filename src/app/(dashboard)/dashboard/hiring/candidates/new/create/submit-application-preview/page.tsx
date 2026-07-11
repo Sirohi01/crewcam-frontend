@@ -260,7 +260,7 @@ export default function SubmitApplicationPreview({
           </div>
         </div>
       </div>
-
+      <div className="h-[1px] bg-zinc-200 w-full shrink-0"></div>
       {/* ================= Main ================= */}
       <div className="flex-1 lg:min-h-0 flex flex-col lg:flex-row gap-2 p-2 lg:overflow-hidden">
         {/* ---------- Left column ---------- */}

@@ -495,7 +495,6 @@ const Interviews: React.FC = () => {
         )}
       </div>
     </div>
-   </div>
   )
 }
 
