@@ -1,14 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ListTree, Loader2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/axios';
-
-const ROLE_CATEGORIES = ['employee', 'reporting_manager', 'hod', 'hr', 'hr_admin', 'finance', 'admin', 'company_admin', 'developer'];
+import { RolePicker } from '@/components/settings/RolePicker';
 
 interface SidebarItem {
   _id: string;
@@ -18,7 +17,7 @@ interface SidebarItem {
   order: number;
   requiredPermission?: string;
   requiredFeature?: string;
-  categories: string[];
+  roleIds: Array<{ _id: string; name: string } | string>;
   isActive: boolean;
 }
 
@@ -84,15 +83,12 @@ export default function SidebarConfigPage() {
 }
 
 function SidebarRow({ item, onSave, saving }: { item: SidebarItem; onSave: (payload: Partial<SidebarItem>) => void; saving: boolean }) {
+  const initialRoleIds = (item.roleIds || []).map((r) => (typeof r === 'string' ? r : r._id));
   const [label, setLabel] = useState(item.label);
   const [order, setOrder] = useState(item.order);
-  const [categories, setCategories] = useState<string[]>(item.categories || []);
+  const [roleIds, setRoleIds] = useState<string[]>(initialRoleIds);
   const [isActive, setIsActive] = useState(item.isActive);
-  const dirty = label !== item.label || order !== item.order || isActive !== item.isActive || categories.join(',') !== (item.categories || []).join(',');
-
-  const toggleCategory = (cat: string) => {
-    setCategories((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
-  };
+  const dirty = label !== item.label || order !== item.order || isActive !== item.isActive || roleIds.join(',') !== initialRoleIds.join(',');
 
   return (
     <div className="flex items-center gap-3 px-4 py-2.5 text-[12px]">
@@ -104,19 +100,11 @@ function SidebarRow({ item, onSave, saving }: { item: SidebarItem; onSave: (payl
         onChange={(e) => setOrder(Number(e.target.value))}
         className="h-7 w-16 text-[12px]"
       />
-      <div className="flex flex-wrap gap-1 flex-1">
-        {ROLE_CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => toggleCategory(cat)}
-            className={`px-1.5 py-0.5 rounded text-[10px] font-medium border ${categories.includes(cat)
-              ? 'bg-indigo-600 text-white border-indigo-600'
-              : 'bg-transparent text-zinc-500 border-zinc-200 dark:border-zinc-700'
-              }`}
-          >
-            {cat.replace('_', ' ')}
-          </button>
-        ))}
+      {item.requiredPermission && (
+        <span className="text-[10px] text-zinc-400 font-mono shrink-0">{item.requiredPermission}</span>
+      )}
+      <div className="flex-1">
+        <RolePicker value={roleIds} onChange={setRoleIds} />
       </div>
       <label className="flex items-center gap-1 text-[10px] text-zinc-500">
         <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} /> Active
@@ -124,7 +112,7 @@ function SidebarRow({ item, onSave, saving }: { item: SidebarItem; onSave: (payl
       <Button
         size="sm"
         disabled={!dirty || saving}
-        onClick={() => onSave({ label, order, categories, isActive })}
+        onClick={() => onSave({ label, order, roleIds: roleIds as any, isActive })}
         className="h-7 px-2 text-[11px]"
       >
         {saving ? <Loader2 size={12} className="animate-spin" /> : 'Save'}

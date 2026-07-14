@@ -31,15 +31,17 @@ export const useAuthStore = create<AuthState>()(
       setAuth: (user, tenantId, token) => {
         if (typeof window !== 'undefined') {
           if (tenantId) localStorage.setItem('tenant_id', tenantId);
-          if (token) localStorage.setItem('token', token);
-          document.cookie = "has_session=true; path=/; max-age=86400; samesite=lax";
+          // Named per-portal (not just "has_session") so logging out of crewcam-superadmin,
+          // which runs on a different port of the same bare "localhost" in dev, can never
+          // clear this app's session cookie — cookies aren't port-scoped, only host-scoped.
+          document.cookie = "has_session_employer=true; path=/; max-age=86400; samesite=lax";
         }
         set({ user, tenantId: tenantId || null, isAuthenticated: true, token: token || null });
       },
       logout: () => {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('tenant_id');
-          document.cookie = "has_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+          document.cookie = "has_session_employer=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         }
         set({ user: null, token: null, tenantId: null, isAuthenticated: false });
       },

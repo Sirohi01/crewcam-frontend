@@ -13,37 +13,109 @@ import PageLayout from '@/components/ui/pageLayout';
 type NoticePeriod = 'Immediate' | '1 Month' | '1 - 2 Months' | '2 Months' | '2 - 3 Months' | '3 Months';
 type TabKey = 'all' | 'followup' | 'longterm' | 'ready';
 
-interface HoldCandidate {
-  id: string;
-  name: string;
-  avatar: string;
-  email: string;
-  phone: string;
-  currentRole: string;
-  company: string;
-  experience: string;
-  skills: string[];
-  extraSkills: number;
-  noticePeriod: NoticePeriod;
-  reasonForHold: string;
-  addedOn: string;
-  lastContact: string;
-  nextFollowUp: string;
-  daysLeft: number;
-  tab: TabKey;
-  checked?: boolean;
-}
+interface DashboardConfig { scope: string; effectivePermissions: string[]; widgets: string[]; }
 
-// ─── Mock data (matches the reference screenshot) ──────────────────────────
-const CANDIDATES: HoldCandidate[] = [
-  { id: 'HC-001', name: 'Ananya Verma', avatar: '201', email: 'ananya.verma@email.com', phone: '+91 98765 43210', currentRole: 'Marketing Specialist', company: 'Wipro Technologies', experience: '3 Years', skills: ['Digital Marketing', 'SEO', 'Google Ads'], extraSkills: 2, noticePeriod: '2 Months', reasonForHold: 'Better Role Opportunity', addedOn: '14 Jun 2026', lastContact: '15 Jun 2026', nextFollowUp: '15 Jul 2026', daysLeft: 30, tab: 'followup' },
-  { id: 'HC-002', name: 'Rohit Singh', avatar: '202', email: 'rohit.singh@email.com', phone: '+91 91234 56789', currentRole: 'Software Engineer', company: 'TCS', experience: '4 Years', skills: ['Java', 'Spring Boot', 'SQL'], extraSkills: 1, noticePeriod: '3 Months', reasonForHold: 'Higher Studies', addedOn: '12 Jun 2026', lastContact: '13 Jun 2026', nextFollowUp: '13 Jul 2026', daysLeft: 28, tab: 'longterm' },
-  { id: 'HC-003', name: 'Pooja Mehta', avatar: '203', email: 'pooja.mehta@email.com', phone: '+91 99887 66554', currentRole: 'HR Executive', company: 'HCL Technologies', experience: '2.5 Years', skills: ['HR', 'Recruitment', 'Excel'], extraSkills: 1, noticePeriod: '1 Month', reasonForHold: 'Location Preference', addedOn: '10 Jun 2026', lastContact: '11 Jun 2026', nextFollowUp: '11 Jul 2026', daysLeft: 26, tab: 'ready' },
-  { id: 'HC-004', name: 'Karan Malhotra', avatar: '204', email: 'karan.malhotra@email.com', phone: '+91 98712 34567', currentRole: 'UI/UX Designer', company: 'Infosys', experience: '3 Years', skills: ['Figma', 'UI Design', 'Adobe XD'], extraSkills: 1, noticePeriod: '2 Months', reasonForHold: 'Salary Expectation', addedOn: '08 Jun 2026', lastContact: '09 Jun 2026', nextFollowUp: '09 Jul 2026', daysLeft: 24, tab: 'followup' },
-  { id: 'HC-005', name: 'Neha Yadav', avatar: '205', email: 'neha.yadav@email.com', phone: '+91 99111 22334', currentRole: 'Business Analyst', company: 'Deloitte', experience: '3.5 Years', skills: ['Business Analysis', 'Excel', 'Power BI'], extraSkills: 1, noticePeriod: '2 - 3 Months', reasonForHold: 'Waiting for Notice Buyout', addedOn: '06 Jun 2026', lastContact: '07 Jun 2026', nextFollowUp: '07 Jul 2026', daysLeft: 22, tab: 'longterm' },
-  { id: 'HC-006', name: 'Vikas Sharma', avatar: '206', email: 'vikas.sharma@email.com', phone: '+91 98855 66778', currentRole: 'DevOps Engineer', company: 'Capgemini', experience: '4 Years', skills: ['AWS', 'Docker', 'Kubernetes'], extraSkills: 2, noticePeriod: '1 Month', reasonForHold: 'Relocation Constraint', addedOn: '04 Jun 2026', lastContact: '05 Jun 2026', nextFollowUp: '05 Jul 2026', daysLeft: 20, tab: 'ready' },
-  { id: 'HC-007', name: 'Ritika Agarwal', avatar: '207', email: 'ritika.agarwal@email.com', phone: '+91 90012 34567', currentRole: 'Accountant', company: 'Genpact', experience: '2 Years', skills: ['Tally', 'Excel', 'GST'], extraSkills: 0, noticePeriod: 'Immediate', reasonForHold: 'Family Commitment', addedOn: '02 Jun 2026', lastContact: '03 Jun 2026', nextFollowUp: '03 Jul 2026', daysLeft: 18, tab: 'ready' },
-  { id: 'HC-008', name: 'Saurabh Kumar', avatar: '208', email: 'saurabh.k@email.com', phone: '+91 91234 87654', currentRole: 'Data Analyst', company: 'Accenture', experience: '2.8 Years', skills: ['SQL', 'Python', 'Tableau'], extraSkills: 1, noticePeriod: '1 - 2 Months', reasonForHold: 'Exploring Opportunities', addedOn: '31 May 2026', lastContact: '01 Jun 2026', nextFollowUp: '01 Jul 2026', daysLeft: 16, tab: 'followup' },
+// Widget keys that a pure self-scope ("Employee") role gets by default — used to decide
+// which dashboard variant to render, now that persona is derived from the actual widget
+// set (driven by Role scope + per-role overrides) instead of a fixed category value.
+const SELF_ONLY_WIDGETS = new Set(['my-attendance-today', 'my-leave-balance', 'my-todo']);
+
+const performanceData = [
+  { name: 'High Performers', value: 174, pct: '(13.92%)', color: '#22c55e' },
+  { name: 'Meets Expectations', value: 802, pct: '(64.26%)', color: '#3b82f6' },
+  { name: 'Needs Improvement', value: 164, pct: '(13.14%)', color: '#f59e0b' },
+  { name: 'Poor Performers', value: 108, pct: '(8.67%)', color: '#ef4444' },
+];
+
+const leaveBalanceData = [
+  { type: 'Casual Leave', balance: 10.5, color: '#38bdf8' },
+  { type: 'Sick Leave', balance: 10, color: '#f59e0b' },
+  { type: 'Privilege Leave', balance: 18, color: '#8b5cf6' },
+  { type: 'Comp Off', balance: 5, color: '#22c55e' },
+];
+
+const ALERT_EMPLOYEES: Record<string, { name: string; dept: string }[]> = {
+  birthday: [
+    { name: 'Priya Sharma', dept: 'Engineering' },
+    { name: 'Rahul Verma', dept: 'Sales' },
+    { name: 'Neha Gupta', dept: 'HR' },
+    { name: 'Amit Patel', dept: 'Finance' },
+    { name: 'Sunita Rao', dept: 'Marketing' },
+    { name: 'Vikram Singh', dept: 'Engineering' },
+    { name: 'Pooja Nair', dept: 'Operations' },
+    { name: 'Arjun Mehta', dept: 'Design' },
+    { name: 'Kavya Reddy', dept: 'Product' },
+    { name: 'Rohit Das', dept: 'Engineering' },
+    { name: 'Divya Iyer', dept: 'HR' },
+    { name: 'Suresh Kumar', dept: 'Finance' },
+  ],
+  anniversary: [
+    { name: 'Priya Sharma', dept: 'Engineering' },
+    { name: 'Rahul Verma', dept: 'Sales' },
+    { name: 'Neha Gupta', dept: 'HR' },
+    { name: 'Amit Patel', dept: 'Finance' },
+    { name: 'Sunita Rao', dept: 'Marketing' },
+    { name: 'Vikram Singh', dept: 'Engineering' },
+    { name: 'Pooja Nair', dept: 'Operations' },
+    { name: 'Arjun Mehta', dept: 'Design' },
+  ],
+  salary: [
+    { name: 'Priya Sharma', dept: 'Engineering' },
+    { name: 'Rahul Verma', dept: 'Sales' },
+    { name: 'Neha Gupta', dept: 'HR' },
+    { name: 'Amit Patel', dept: 'Finance' },
+    { name: 'Sunita Rao', dept: 'Marketing' },
+    { name: 'Vikram Singh', dept: 'Engineering' },
+    { name: 'Pooja Nair', dept: 'Operations' },
+    { name: 'Arjun Mehta', dept: 'Design' },
+    { name: 'Kavya Reddy', dept: 'Product' },
+    { name: 'Rohit Das', dept: 'Engineering' },
+  ],
+  probation: [
+    { name: 'Priya Sharma', dept: 'Engineering' },
+    { name: 'Rahul Verma', dept: 'Sales' },
+    { name: 'Neha Gupta', dept: 'HR' },
+    { name: 'Amit Patel', dept: 'Finance' },
+    { name: 'Sunita Rao', dept: 'Marketing' },
+    { name: 'Vikram Singh', dept: 'Engineering' },
+  ],
+  special: [
+    { name: 'Priya Sharma', dept: 'Engineering' },
+    { name: 'Rahul Verma', dept: 'Sales' },
+    { name: 'Neha Gupta', dept: 'HR' },
+    { name: 'Amit Patel', dept: 'Finance' },
+    { name: 'Sunita Rao', dept: 'Marketing' },
+  ],
+};
+
+const topAlertsData = [
+  { key: 'birthday', icon: <Cake size={14} />, color: '#8b5cf6', bg: '#f5f3ff', title: 'Birthday', subtitle: 'Celebrating birthday', count: 12, detail: 'Celebrating today', extra: 9, date: 'Jun 26, 2025', dateLabel: 'Today' },
+  { key: 'anniversary', icon: <Star size={14} />, color: '#8b5cf6', bg: '#f5f3ff', title: 'Anniversary', subtitle: 'Work anniversaries', count: 8, detail: 'Work anniversary', extra: 5, date: 'Jun 27 – Jul 3', dateLabel: 'This week' },
+  { key: 'salary', icon: <Wallet2 size={14} />, color: '#22c55e', bg: '#f0fdf4', title: 'Salary Increment', subtitle: 'Upcoming increment', count: 10, detail: 'Awaiting review', extra: 7, date: 'Jun 30, 2025', dateLabel: 'in 4 days' },
+  { key: 'probation', icon: <Shield size={14} />, color: '#f59e0b', bg: '#fffbeb', title: 'Probation Ending', subtitle: 'Probation ending', count: 6, detail: 'Need evaluation', extra: 3, date: 'Jul 5, 2025', dateLabel: 'in 9 days' },
+  { key: 'special', icon: <PartyPopper size={14} />, color: '#ef4444', bg: '#fef2f2', title: 'Special Occasion', subtitle: 'Other occasions', count: 5, detail: 'Special occasion', extra: 2, date: 'Jun 28, 2025', dateLabel: 'in 2 days' },
+];
+
+const todaySchedule = [
+  { time: '08:30 AM', title: 'Daily HR Standup', location: 'HR Cabin' },
+  { time: '09:30 AM', title: 'HR Policy Review Meeting', location: 'Conference Room A' },
+  { time: '10:15 AM', title: 'Employee Onboarding Session', location: 'Training Hall' },
+  { time: '11:00 AM', title: 'Interview – Senior Developer', location: 'Panel Room 2' },
+  { time: '12:30 PM', title: 'Lunch with New Joiners', location: 'Cafeteria' },
+  { time: '02:00 PM', title: 'Performance Calibration', location: 'Conference Room B' },
+  { time: '03:00 PM', title: 'Payroll Review Meeting', location: 'Finance Room' },
+  { time: '04:00 PM', title: 'Townhall Meeting', location: 'Auditorium' },
+  { time: '05:00 PM', title: 'Leave Approval Review', location: 'HR Department' },
+  { time: '06:00 PM', title: 'Recruitment Planning', location: 'Meeting Room C' },
+];
+
+const todayTasks = [
+  { id: 1, title: 'Review onboarding docs for 3 new joiners', priority: 'high', done: false },
+  { id: 2, title: 'Approve pending leave requests (12)', priority: 'high', done: false },
+  { id: 3, title: 'Send offer letter to Rohit Mehra', priority: 'medium', done: true },
+  { id: 4, title: 'Update Q2 performance ratings', priority: 'medium', done: false },
+  { id: 5, title: 'Schedule exit interview – Priya Shah', priority: 'low', done: false },
+  { id: 6, title: 'Publish June payroll summary', priority: 'low', done: true },
 ];
 
 const TOTAL_HOLD_CANDIDATES = 48;
@@ -128,21 +200,57 @@ function SummaryCards() {
   );
 }
 
-// ─── Filters bar ────────────────────────────────────────────────────────────
-function FiltersBar({
-  search, onSearch, department, setDepartment, skill, setSkill,
-  experience, setExperience, noticePeriod, setNoticePeriod, reason, setReason,
-  sortBy, setSortBy, activeCount, onClear,
-}: {
-  search: string; onSearch: (v: string) => void;
-  department: string; setDepartment: (v: string) => void;
-  skill: string; setSkill: (v: string) => void;
-  experience: string; setExperience: (v: string) => void;
-  noticePeriod: string; setNoticePeriod: (v: string) => void;
-  reason: string; setReason: (v: string) => void;
-  sortBy: string; setSortBy: (v: string) => void;
-  activeCount: number; onClear: () => void;
-}) {
+   ───────────────────────────────────────────────────────────────────────── */
+
+// ─── Welcome Header (replaces the banner) ─────────────────────────────────
+function WelcomeHeader({ scope }: { scope?: string }) {
+  const router = useRouter();
+  const [now, setNow] = useState(new Date());
+  const [showCustomize, setShowCustomize] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const customizeRef = useRef<HTMLDivElement>(null);
+
+  // live clock, updates every second
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (customizeRef.current && !customizeRef.current.contains(e.target as Node)) {
+        setShowCustomize(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  let dashboardOptions = [
+    { label: 'Admin Dashboard', href: '/dashboard/admin-dashboard' },
+    { label: 'HR Dashboard', href: '/dashboard/hr-dashboard' },
+    { label: 'Employee Dashboard', href: '/dashboard/employee' },
+  ];
+
+  if (scope === 'self' || scope === 'team') {
+    dashboardOptions = [];
+  } else if (scope === 'department') {
+    dashboardOptions = [
+      { label: 'HOD Dashboard', href: '/dashboard/hod-dashboard' },
+      { label: 'Employee Dashboard', href: '/dashboard/employee' },
+    ];
+  }
+
+  const displayDate = selectedDate || now;
+  const dateStr = displayDate.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+  const handleSelectDashboard = (href: string) => {
+    setShowCustomize(false);
+    router.push(href);
+  };
+
   return (
     <Card className="border-zinc-200/80 shadow-sm">
       <CardContent className="p-3.5 space-y-3">
@@ -492,39 +600,181 @@ export default function HoldCandidatesPage() {
             <TabsBar active={activeTab} onChange={(t) => { setActiveTab(t); setPage(1); }} />
           </div>
 
-          <div className="p-3.5">
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-              <h3 className="text-[13px] font-semibold text-zinc-900">
-                {TABS.find((t) => t.key === activeTab)?.label} ({tabCount})
-              </h3>
-              <div className="flex items-center gap-2">
-                <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-violet-300 transition-colors">
-                  <Columns3 size={13} />
-                  Columns
+        {/* My Task / Team Task toggle buttons */}
+        <div className="mb-3 flex items-center gap-1.5 rounded-lg bg-zinc-100 p-1 shrink-0">
+          <button
+            onClick={() => setView('my')}
+            className={`flex-1 rounded-md py-1.5 text-[11px] font-semibold transition-colors ${view === 'my' ? 'bg-white text-violet-700 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+          >
+            My Task
+          </button>
+          <button
+            onClick={() => setView('team')}
+            className={`flex-1 rounded-md py-1.5 text-[11px] font-semibold transition-colors ${view === 'team' ? 'bg-white text-violet-700 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+          >
+            Team Task
+          </button>
+        </div>
+
+        {view === 'my' ? (
+          // ── My Task view: personal checklist ──
+          <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }} className="pr-0.5 scrollbar-thin scrollbar-thumb-zinc-200 space-y-1.5">
+            {tasks.map((task) => (
+              <div key={task.id} className="flex items-start gap-2 rounded-lg border border-zinc-100 px-2 py-1.5 hover:bg-zinc-50 transition-colors">
+                <button onClick={() => toggleTask(task.id)} className="shrink-0 mt-0.5">
+                  {task.done ? <CheckCircle2 size={16} className="text-emerald-500" /> : <Circle size={16} className="text-zinc-300" />}
                 </button>
-                <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-violet-300 transition-colors">
-                  <Download size={13} />
-                  Download List
-                  <ChevronDown size={12} />
-                </button>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-[12px] font-medium leading-tight ${task.done ? 'text-zinc-400 line-through' : 'text-zinc-800'}`}>{task.title}</p>
+                </div>
+                <span className={`shrink-0 text-[9px] font-semibold px-2 py-0.5 rounded-full border capitalize ${priorityStyles[task.priority]}`}>
+                  {task.priority}
+                </span>
               </div>
-            </div>
-
-            <HoldCandidatesTable
-              rows={filtered.slice((page - 1) * pageSize, page * pageSize)}
-              checkedIds={checkedIds}
-              onToggleCheck={toggleCheck}
-              onToggleAll={toggleAll}
-            />
-
-            <TableFooter
-              pageSize={pageSize} setPageSize={setPageSize}
-              page={page} setPage={setPage}
-              totalEntries={TOTAL_HOLD_CANDIDATES}
-            />
+            ))}
           </div>
-        </CardContent>
-      </Card>
+        ) : (
+          // ── Team Task view: meeting/event timeline ──
+          <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }} className="pr-0.5 scrollbar-thin scrollbar-thumb-zinc-200">
+            {todaySchedule.map((item, i) => (
+              <div key={i} className="flex items-start gap-3 group">
+                <div className="shrink-0 w-[58px] pt-1">
+                  <span className="text-[10px] font-medium text-zinc-400 tabular-nums leading-tight">{item.time}</span>
+                </div>
+                <div className="shrink-0 flex flex-col items-center">
+                  <div className="w-2.5 h-2.5 rounded-full bg-violet-400 group-hover:bg-violet-600 transition-colors mt-1 shrink-0 ring-2 ring-violet-100" />
+                  {i < todaySchedule.length - 1 && (
+                    <div className="w-px flex-1 bg-zinc-300 mt-0.5" style={{ minHeight: '28px' }} />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0 pb-3">
+                  <p className="text-[12px] font-semibold text-zinc-800 leading-tight group-hover:text-violet-700 transition-colors">{item.title}</p>
+                  {item.location && (
+                    <p className="text-[10px] text-zinc-400 mt-0.5 flex items-center gap-1">
+                      <MapPin size={9} className="shrink-0" />
+                      <span>{item.location}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-2 pt-2 border-t border-zinc-100 shrink-0">
+          <Link href="/dashboard/meetings"
+            className="flex items-center justify-center gap-1 text-[11px] font-semibold text-violet-600 hover:text-violet-700 transition-colors">
+            View Full Calendar <ArrowRight size={11} />
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+export default function DashboardPage() {
+  const { data: config, isLoading } = useQuery<DashboardConfig>({
+    queryKey: ['dashboard', 'config'],
+    queryFn: async () => (await api.get('/dashboard/config')).data,
+  });
+
+  const { data: attendance } = useQuery({
+    queryKey: ['dashboard', 'widget', 'team-attendance-today'],
+    queryFn: async () => (await api.get('/dashboard/widget-data/team-attendance-today')).data,
+  });
+
+  const topKpiKeys = ['org-headcount', 'team-attendance-today', 'absent-today', 'work-from-home', 'late-coming', 'on-leave-today', 'new-joinees'];
+
+  if (config && config.widgets.length > 0 && config.widgets.every((w) => SELF_ONLY_WIDGETS.has(w))) {
+    return <EmployeeDashboard />;
+  }
+
+  if (config && config.widgets.includes('hiring-pipeline-summary') && !config.effectivePermissions.includes('*')) {
+    return <RecruiterDashboard />;
+  }
+
+  return (
+    <main className="mx-auto max-w-[1600px] space-y-2 pb-4 px-2 sm:px-3">
+
+      {/* Banner — commented out, replaced by WelcomeHeader (see comment block above) */}
+      {/* <HeroSlider /> */}
+      <WelcomeHeader scope={config?.scope} />
+
+      {/* KPI Strip */}
+      <section className="grid gap-2 grid-cols-2 sm:grid-cols-4 lg:grid-cols-7">
+        {isLoading
+          ? Array.from({ length: 7 }).map((_, i) => <div key={i} className="h-[72px] animate-pulse rounded-xl bg-zinc-100" />)
+          : topKpiKeys.map((key) => <KpiCard key={key} widgetKey={key} />)
+        }
+      </section>
+
+      {/* Important Alerts */}
+      <ImportantAlertsCards />
+
+      {/* Main Content */}
+      <div className="grid gap-2 grid-cols-1 xl:grid-cols-12 items-start xl:items-stretch">
+
+        {/* LEFT SIDE: Rows 1 & 2 */}
+        <div className="xl:col-span-8 flex flex-col gap-2">
+          {/* Row 1: Activity Log | Birthdays */}
+          <div className="grid gap-2 grid-cols-1 md:grid-cols-2">
+            <MyPerformanceCard />
+            <BirthdaysOverview />
+          </div>
+
+          {/* Row 2: Attendance Overview | Leave Overview */}
+          <div className="grid gap-2 grid-cols-1 md:grid-cols-2">
+            <AttendanceOverview attendance={attendance} />
+            <LeaveOverview />
+          </div>
+        </div>
+
+        {/* RIGHT SIDE: Today's Schedule */}
+        <div className="xl:col-span-4 relative min-h-[320px] xl:min-h-0">
+          <div className="xl:absolute xl:inset-0 h-full w-full">
+            <TodaySchedule />
+          </div>
+        </div>
+
+        {/* FULL WIDTH: Row 2b — Leave Approvals | Top Late Comers | AI Insights */}
+        <div className="xl:col-span-12 flex flex-col gap-2">
+          <div className="grid gap-2 grid-cols-1 md:grid-cols-3">
+            <LeaveApprovalsCard />
+            <TopLateComers />
+            <AiInsightsCard />
+          </div>
+        </div>
+
+        {/* FULL WIDTH: Row 3 — Performance | Team Performance (replaces Quick Actions) | Recent New Joiners */}
+        <div className="xl:col-span-12 flex flex-col gap-2">
+          <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+            <ActivityLog />
+            <TeamPerformanceCard />
+            <RecentNewJoiners />
+          </div>
+        </div>
+
+        {/* FULL WIDTH: Row 4 — Reports Shortcut */}
+        {/* <div className="xl:col-span-12 flex flex-col gap-2">
+          <ReportsShortcut />
+        </div> */}
+
+        {/* FULL WIDTH: Row 5 — Payroll | Compliance | Recruitment */}
+        <div className="xl:col-span-12">
+          <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+            <PayrollOverview />
+            <ComplianceOverview />
+            <RecruitmentOverview />
+          </div>
+        </div>
+
+        {/* FULL WIDTH: Bottom strip — Quick Actions */}
+        <div className="xl:col-span-12">
+          <QuickActions />
+        </div>
+
+      </div>
     </main>
     </PageLayout>
   );

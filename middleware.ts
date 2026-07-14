@@ -2,12 +2,14 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export default function middleware(request: NextRequest) {
-  const hasSession = request.cookies.get('has_session')?.value === 'true';
-  const isAuthPage = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/register');
-  const isProtectedPath = request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname.startsWith('/super-admin');
+  const pathname = request.nextUrl.pathname;
+  const hasSession = request.cookies.get('has_session_employer')?.value === 'true';
   const isRsc = request.headers.has('rsc') || request.nextUrl.searchParams.has('_rsc');
 
-  if (isProtectedPath && !hasSession) {
+  const isDashboardArea = pathname.startsWith('/dashboard');
+  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
+
+  if (isDashboardArea && !hasSession) {
     if (isRsc) return NextResponse.next();
     return NextResponse.redirect(new URL('/login', request.url));
   }
@@ -21,5 +23,5 @@ export default function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/super-admin/:path*', '/login', '/register'],
+  matcher: ['/dashboard/:path*', '/login', '/register'],
 };

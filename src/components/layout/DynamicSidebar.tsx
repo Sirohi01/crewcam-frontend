@@ -95,37 +95,32 @@ export default function DynamicSidebar() {
 
   const handleSignOut = async () => {
     try {
-      await api.post('/auth/logout');
+      await api.post('/auth/logout', { portal: 'employer' });
     } catch { }
     logout();
     router.replace('/login');
   };
 
-  const { data, isLoading } = useQuery<{ items: SidebarItem[]; roleCategory: string }>({
+  const { data, isLoading } = useQuery<{ items: SidebarItem[]; roleScope: string }>({
     queryKey: ['sidebar', 'mine'],
     queryFn: async () => (await api.get('/permissions/sidebar-config/mine')).data,
     staleTime: 5 * 60 * 1000,
   });
-  const items = Array.isArray(data) ? data : data?.items;
-  const roleCategory = data?.roleCategory;
+  const items = data?.items;
+  const roleScope = data?.roleScope;
 
   const sections: { section: string; items: GroupedItem[] }[] = [];
 
+  // If loading, we wait. Whether to merge the dynamic (role-permissioned) items with
+  // the static employee items comes straight from the backend-resolved role scope (see
+  // resolveRoleScope) — a plain 'self'-scope role only gets the static self-service items,
+  // every broader scope (team, department, branch, company) gets both. This used to be
+  // guessed client-side from which sidebar sections happened to come back, which broke
+  // for any admin whose role didn't have the specific permissions gating those sections.
   const allItems = React.useMemo(() => {
     if (isLoading) return [];
-
-    const safeItems = items || [];
-
-    const isSuperAdminOrCompanyAdmin = ['company_admin', 'super_admin'].includes(roleCategory || '');
-
-    const isHrRecruiter = ['hr_recruiter', 'hr', 'hr_admin', 'company_admin', 'hod'].includes(roleCategory || '') || safeItems.some(item =>
-      ['Hiring Process', 'Requirement', 'Recruitment'].includes(item.section)
-    );
-
-    let merged = [...STATIC_PEOPLE_ITEMS];
-
-    if (isSuperAdminOrCompanyAdmin) {
-      merged = [...merged, ...safeItems];
+    if (!items || items.length === 0 || roleScope === 'self') {
+      return [...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
     }
 
     if (isHrRecruiter) {
@@ -133,7 +128,7 @@ export default function DynamicSidebar() {
     }
 
     return merged.sort((a, b) => a.order - b.order);
-  }, [items, isLoading, roleCategory]);
+  }, [items, isLoading, roleScope]);
 
   allItems.forEach((item) => {
     let group = sections.find((s) => s.section === item.section);
