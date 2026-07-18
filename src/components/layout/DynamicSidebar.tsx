@@ -123,14 +123,20 @@ export default function DynamicSidebar() {
       return [...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
     }
 
-    if (isHrRecruiter) {
+    let merged = [...STATIC_PEOPLE_ITEMS, ...items];
+
+    const hasRecruitment = items.some(item =>
+      ['Hiring Process', 'Requirement', 'Recruitment'].includes(item.section)
+    );
+
+    if (hasRecruitment) {
       merged = [...merged, ...STATIC_RECRUITMENT_ITEMS];
     }
 
-    return merged.sort((a, b) => a.order - b.order);
+    return merged.sort((a: SidebarItem, b: SidebarItem) => a.order - b.order);
   }, [items, isLoading, roleScope]);
 
-  allItems.forEach((item) => {
+  allItems.forEach((item: SidebarItem) => {
     let group = sections.find((s) => s.section === item.section);
     if (!group) {
       group = { section: item.section, items: [] };
@@ -159,11 +165,11 @@ export default function DynamicSidebar() {
   });
 
   React.useEffect(() => {
-    let matchedItem = allItems.find(i => pathname === i.href);
+    let matchedItem = allItems.find((i: SidebarItem) => pathname === i.href);
     if (!matchedItem) {
-      const matches = allItems.filter(i => i.href !== '/dashboard' && pathname.startsWith(i.href));
+      const matches = allItems.filter((i: SidebarItem) => i.href !== '/dashboard' && pathname.startsWith(i.href));
       if (matches.length > 0) {
-        matchedItem = matches.reduce((prev, current) => (prev.href.length > current.href.length ? prev : current));
+        matchedItem = matches.reduce((prev: SidebarItem, current: SidebarItem) => (prev.href.length > current.href.length ? prev : current));
       }
     }
     if (matchedItem) {
