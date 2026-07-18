@@ -424,6 +424,11 @@ export default function CompanyProfilePage() {
                       </div>
                     </div>
                   </div>
+                  <div className="col-span-1 sm:col-span-2 space-y-1.5 mb-2 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+                    <Label className="text-xs font-md">Corporate ID</Label>
+                    <Input name="corporateId" value={formData.corporateId || ''} onChange={handleChange} className="h-9 text-sm bg-white max-w-sm" placeholder="e.g. DESIGNHOUSE001" />
+                    <p className="text-[10px] text-zinc-500">Required on the Employer Login screen as an extra check, in addition to the OTP. Leave empty to leave Employer Login unavailable for now.</p>
+                  </div>
                   <div className="col-span-1 sm:col-span-2 space-y-1.5">
                     <Label className="text-xs font-md">Hiring PDF Footer Text</Label>
                     <Input name="documentFooterText" value={formData.documentFooterText || ''} onChange={handleChange} className="h-9 text-sm bg-white" placeholder="e.g. This is a system-generated document." />

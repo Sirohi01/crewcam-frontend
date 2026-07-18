@@ -7,11 +7,10 @@ import { Button } from '@/components/ui/button';
 import { ShieldCheck, Loader2, Search } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/axios';
-
-const ROLE_CATEGORIES = ['employee', 'reporting_manager', 'hod', 'hr', 'hr_admin', 'finance', 'admin', 'company_admin', 'developer'];
+import { ROLE_SCOPES } from '@/lib/roleScopes';
 
 interface PermissionCatalogEntry { name: string; module: string; }
-interface Role { _id: string; name: string; category: string; permissions: string[]; isActive: boolean; }
+interface Role { _id: string; name: string; scope: string; permissions: string[]; isActive: boolean; }
 
 export default function UserRolePage() {
   const [tab, setTab] = useState<'matrix' | 'overrides'>('matrix');
@@ -69,8 +68,8 @@ function PermissionMatrix() {
     updateRole.mutate({ id: role._id, payload: { permissions: next } });
   };
 
-  const changeCategory = (role: Role, category: string) => {
-    updateRole.mutate({ id: role._id, payload: { category } as any });
+  const changeScope = (role: Role, scope: string) => {
+    updateRole.mutate({ id: role._id, payload: { scope } as any });
   };
 
   if (isLoading) return <div className="text-sm text-zinc-500 py-8 text-center">Loading roles...</div>;
@@ -86,13 +85,11 @@ function PermissionMatrix() {
                 <th key={role._id} className="px-3 py-2 text-left min-w-[140px]">
                   <div className="font-md text-zinc-900 dark:text-zinc-100">{role.name}</div>
                   <select
-                    value={role.category}
-                    onChange={(e) => changeCategory(role, e.target.value)}
+                    value={role.scope}
+                    onChange={(e) => changeScope(role, e.target.value)}
                     className="mt-1 text-[10px] border border-zinc-200 dark:border-zinc-700 rounded px-1 py-0.5 bg-transparent"
                   >
-                    {ROLE_CATEGORIES.map((c) => (
-                      <option key={c} value={c}>{c.replace('_', ' ')}</option>
-                    ))}
+                    {ROLE_SCOPES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                   </select>
                 </th>
               ))}
@@ -172,7 +169,7 @@ function EmployeeOverrides() {
         <Card className="border-zinc-200/80 shadow-sm dark:border-zinc-800">
           <CardHeader className="py-3">
             <CardTitle className="text-[13px]">
-              Role: {effective.roleName || 'Unassigned'} ({effective.roleCategory})
+              Role: {effective.roleName || 'Unassigned'} ({effective.roleScope})
             </CardTitle>
             <CardDescription className="text-[11px]">
               Effective permissions: {effective.effectivePermissions.join(', ') || 'none'}

@@ -5,14 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Edit2, Plus, Search, Trash2, X } from 'lucide-react';
 import api from '@/lib/axios';
+import { ROLE_SCOPES, getRoleScopeLabel } from '@/lib/roleScopes';
+import { LOGIN_TYPES, ROLE_PRESET_GROUPS, EMPLOYER_PERMISSION_CHIPS, RolePreset } from '@/lib/rolePresets';
 
-const ROLE_CATEGORIES = [
-  'employee', 'reporting_manager', 'hod', 'hr', 'hr_recruiter', 'hr_admin', 'finance', 'admin', 'company_admin', 'developer'
-];
+type Role = { _id: string; name: string; description: string; scope: string; loginType: string; permissions: string[]; createdAt: string; updatedAt: string; createdBy?: any; updatedBy?: any; };
 
-type Role = { _id: string; name: string; description: string; category: string; permissions: string[]; createdAt: string; updatedAt: string; createdBy?: any; updatedBy?: any; };
-
-const emptyRole = { name: '', description: '', category: 'employee', permissions: '' };
+const emptyRole = { name: '', description: '', scope: 'self', loginType: 'employee', permissions: '' };
 
 export default function RolesPage() {
   const [roles, setRoles] = useState<Role[]>([]);
@@ -55,11 +53,31 @@ export default function RolesPage() {
     setRoleData({
       name: item.name || '',
       description: item.description || '',
-      category: item.category || 'employee',
+      scope: item.scope || 'self',
+      loginType: item.loginType || 'employee',
       permissions: Array.isArray(item.permissions) ? item.permissions.join(', ') : ''
     });
     setModalItem(item);
     setModal(true);
+  };
+
+  const applyPreset = (preset: RolePreset) => {
+    setRoleData({
+      name: preset.name,
+      description: '',
+      scope: preset.scope,
+      loginType: preset.loginType,
+      permissions: preset.permissions.join(', '),
+    });
+  };
+
+  const togglePermissionChip = (permissions: string[]) => {
+    setRoleData((prev) => {
+      const current = new Set(prev.permissions.split(',').map((p) => p.trim()).filter(Boolean));
+      const allPresent = permissions.every((p) => current.has(p));
+      permissions.forEach((p) => (allPresent ? current.delete(p) : current.add(p)));
+      return { ...prev, permissions: Array.from(current).join(', ') };
+    });
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -137,21 +155,27 @@ export default function RolesPage() {
               <thead className="bg-zinc-50 dark:bg-zinc-900/50 text-xs text-zinc-500 font-medium">
                 <tr>
                   <th className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">Role Name</th>
-                  <th className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">Category</th>
+                  <th className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">Login Type</th>
+                  <th className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">Scope</th>
                   <th className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">Description</th>
                   <th className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">Last Modified</th>
                   <th className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 w-16"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                {loading && <tr><td colSpan={5} className="p-8 text-center text-sm text-zinc-500">Loading...</td></tr>}
-                {!loading && filteredRoles.length === 0 && <tr><td colSpan={5} className="p-8 text-center text-sm text-zinc-500">No roles found.</td></tr>}
+                {loading && <tr><td colSpan={6} className="p-8 text-center text-sm text-zinc-500">Loading...</td></tr>}
+                {!loading && filteredRoles.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-sm text-zinc-500">No roles found.</td></tr>}
                 {!loading && filteredRoles.map((item) => (
                   <tr key={item._id} className="hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors group">
                     <td className="px-5 py-3 font-medium text-zinc-900 dark:text-zinc-100">{item.name}</td>
+                    <td className="px-5 py-3">
+                      <span className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium ${item.loginType === 'employer' ? 'bg-amber-50 text-amber-700' : 'bg-sky-50 text-sky-700'}`}>
+                        {item.loginType === 'employer' ? 'Employer' : 'Employee'}
+                      </span>
+                    </td>
                     <td className="px-5 py-3 text-zinc-600 dark:text-zinc-400">
-                      <span className="inline-flex rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700 capitalize">
-                        {item.category?.replace('_', ' ')}
+                      <span className="inline-flex rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700">
+                        {getRoleScopeLabel(item.scope)}
                       </span>
                     </td>
                     <td className="px-5 py-3 text-zinc-600 dark:text-zinc-400 whitespace-normal min-w-[200px] text-xs">
@@ -187,19 +211,81 @@ export default function RolesPage() {
       {modal && (
         <Modal title={`${modalItem ? 'Edit' : 'Create'} Role`} onClose={() => setModal(false)} onSubmit={submit} busy={saving}>
           <div className="space-y-4">
+            {!modalItem && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium block text-zinc-700 dark:text-zinc-300">Quick presets</label>
+                <div className="space-y-2">
+                  {ROLE_PRESET_GROUPS.map((g) => (
+                    <div key={g.group}>
+                      <p className="text-[10px] uppercase tracking-wider text-zinc-400 mb-1">{g.group}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {g.roles.map((preset) => (
+                          <button
+                            key={preset.name}
+                            type="button"
+                            onClick={() => applyPreset(preset)}
+                            className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${roleData.name === preset.name ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-zinc-200 text-zinc-600 hover:bg-zinc-50'}`}
+                          >
+                            {preset.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-zinc-500 mt-1">Or just type your own role name below — these are only starting points.</p>
+              </div>
+            )}
+
             <Field label="Role Name" value={roleData.name} onChange={(val: string) => setRoleData(prev => ({ ...prev, name: val }))} placeholder="e.g. Finance Admin" required />
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium block text-zinc-700 dark:text-zinc-300">Category</label>
+              <label className="text-xs font-medium block text-zinc-700 dark:text-zinc-300">Login Type</label>
               <select
-                value={roleData.category}
-                onChange={(e) => setRoleData(prev => ({ ...prev, category: e.target.value }))}
+                value={roleData.loginType}
+                onChange={(e) => setRoleData(prev => ({ ...prev, loginType: e.target.value }))}
                 className="flex h-8 w-full rounded-md border border-zinc-200 bg-transparent px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500"
                 required
               >
-                {ROLE_CATEGORIES.map(c => <option key={c} value={c}>{c.replace('_', ' ').toUpperCase()}</option>)}
+                {LOGIN_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
+              <p className="text-[10px] text-zinc-500">Which company-portal login screen users with this role sign in through.</p>
             </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium block text-zinc-700 dark:text-zinc-300">Scope</label>
+              <select
+                value={roleData.scope}
+                onChange={(e) => setRoleData(prev => ({ ...prev, scope: e.target.value }))}
+                className="flex h-8 w-full rounded-md border border-zinc-200 bg-transparent px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500"
+                required
+              >
+                {ROLE_SCOPES.map((s) => <option key={s.value} value={s.value}>{s.label} — {s.hint}</option>)}
+              </select>
+              <p className="text-[10px] text-zinc-500">How much company data this role can see — separate from Login Type.</p>
+            </div>
+
+            {roleData.loginType === 'employer' && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium block text-zinc-700 dark:text-zinc-300">Add permissions</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {EMPLOYER_PERMISSION_CHIPS.map((chip) => {
+                    const current = roleData.permissions.split(',').map((p) => p.trim());
+                    const active = chip.permissions.every((p) => current.includes(p));
+                    return (
+                      <button
+                        key={chip.label}
+                        type="button"
+                        onClick={() => togglePermissionChip(chip.permissions)}
+                        className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${active ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-zinc-200 text-zinc-600 hover:bg-zinc-50'}`}
+                      >
+                        {chip.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium block text-zinc-700 dark:text-zinc-300">Permissions (Comma separated)</label>
@@ -239,15 +325,17 @@ function Field({ label, value, onChange, ...props }: any) {
 
 function Modal({ title, onClose, onSubmit, children, busy }: any) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 backdrop-blur-sm">
-      <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-zinc-200/50 dark:border-zinc-800">
-        <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-md border border-zinc-200/50 dark:border-zinc-800 flex flex-col max-h-[90vh]">
+        <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center shrink-0">
           <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{title}</h2>
           <button type="button" onClick={onClose} className="text-zinc-400 hover:text-zinc-600 p-1 rounded-md"><X size={16} /></button>
         </div>
-        <form onSubmit={onSubmit} className="p-5 space-y-5">
-          {children}
-          <div className="pt-3 flex justify-end gap-3">
+        <form onSubmit={onSubmit} className="flex flex-col min-h-0 flex-1">
+          <div className="p-5 space-y-5 overflow-y-auto min-h-0">
+            {children}
+          </div>
+          <div className="px-5 py-3 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3 shrink-0">
             <Button type="button" variant="outline" className="h-9 px-4 text-xs" onClick={onClose}>Cancel</Button>
             <Button type="submit" disabled={busy} className="h-9 px-4 text-xs bg-indigo-600 hover:bg-indigo-700 text-white">{busy ? 'Saving...' : 'Save Role'}</Button>
           </div>

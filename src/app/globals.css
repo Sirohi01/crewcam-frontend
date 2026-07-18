@@ -24,6 +24,11 @@
     --input: 240 5.9% 90%;
     --ring: 240 10% 3.9%;
     --radius: 0.5rem;
+
+    /* Default Crewcam brand accents (navy/gold) — overridden per-tenant on the login page
+       via applyBrandColors() when a WhiteLabel doc resolves for the current subdomain. */
+    --brand-primary: #0b1638;
+    --brand-secondary: #f5c451;
   }
 
   .dark {
