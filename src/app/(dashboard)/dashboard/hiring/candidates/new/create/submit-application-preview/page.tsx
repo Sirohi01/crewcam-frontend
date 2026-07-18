@@ -192,6 +192,7 @@ export default function SubmitApplicationPreview({
   };
 
   const handleBack = () => {
+    window.open("/dashboard/hiring/candidates/new/create/review-and-edit", "_self");
     if (onBack) onBack();
   };
 
