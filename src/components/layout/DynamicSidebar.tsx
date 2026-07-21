@@ -208,7 +208,7 @@ export default function DynamicSidebar() {
         }
       `}</style>
       <aside
-        className={`hidden lg:flex flex-shrink-0 flex-col transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-58' : 'w-[68px]'}`}
+        className={`hidden lg:flex flex-shrink-0 flex-col transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-[232px]' : 'w-[68px]'}`}
         style={{
           background: 'rgba(0, 19, 51)',
           borderRight: '1px solid rgba(99,102,241,0.2)',
@@ -216,8 +216,8 @@ export default function DynamicSidebar() {
       >
         {/* Logo */}
         <div
-          className={`flex h-14 items-center ${isSidebarOpen ? 'px-4' : 'justify-center'} overflow-hidden transition-all shrink-0`}
-          style={{ borderBottom: '1px solid rgba(99,102,241,0.2)' }}
+          className={`flex h-14 items-center justify-center overflow-hidden transition-all shrink-0 w-full`}
+          style={{ borderBottom: '1px solid rgba(245,196,81,0.15)' }}
         >
           {isSidebarOpen ? (
             <Image
