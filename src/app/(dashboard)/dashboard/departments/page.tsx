@@ -213,14 +213,15 @@ export default function DepartmentsPage() {
 
       {modal && (
         <Modal title={`${modalItem ? 'Edit' : 'Create'} Department`} onClose={() => setModal(false)} onSubmit={submit} busy={saving}>
+          {error && <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 mb-4">{error}</div>}
           <div className="space-y-4">
-            <Input label="Department Name" value={deptData.name} onChange={(e: any) => setDeptData({ ...deptData, name: e.target.value })} required />
-            <Input label="Department Code" value={deptData.code} onChange={(e: any) => setDeptData({ ...deptData, code: e.target.value })} required />
+            <Input label="Department Name" value={deptData.name} onChange={(e: any) => setDeptData((prev) => ({ ...prev, name: e.target.value }))} required />
+            <Input label="Department Code" value={deptData.code} onChange={(e: any) => setDeptData((prev) => ({ ...prev, code: e.target.value }))} required />
             <div className="space-y-1.5">
               <label className="block text-xs font-md text-zinc-700 dark:text-zinc-300">Branch <span className="text-rose-500">*</span></label>
               <SearchableDropdown
                 value={deptData.branchId}
-                onChange={(val) => setDeptData({ ...deptData, branchId: val })}
+                onChange={(val) => setDeptData((prev) => ({ ...prev, branchId: val }))}
                 options={branchOptions}
                 placeholder="Select Branch"
               />
@@ -230,7 +231,7 @@ export default function DepartmentsPage() {
               <textarea
                 className="w-full border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-transparent min-h-[80px]"
                 value={deptData.description || ''}
-                onChange={(e) => setDeptData({ ...deptData, description: e.target.value })}
+                onChange={(e) => setDeptData((prev) => ({ ...prev, description: e.target.value }))}
                 placeholder="Brief description of the department..."
               />
             </div>

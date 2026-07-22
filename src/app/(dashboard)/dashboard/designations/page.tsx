@@ -224,14 +224,15 @@ export default function DesignationsPage() {
 
       {modal && (
         <Modal title={`${modalItem ? 'Edit' : 'Create'} Designation`} onClose={() => setModal(false)} onSubmit={submit} busy={saving}>
+          {error && <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 mb-4">{error}</div>}
           <div className="space-y-4">
-            <Input label="Designation Name" value={desigData.name} onChange={(e: any) => setDesigData({ ...desigData, name: e.target.value })} required />
-            <Input label="Code" value={desigData.code} onChange={(e: any) => setDesigData({ ...desigData, code: e.target.value })} required />
+            <Input label="Designation Name" value={desigData.name} onChange={(e: any) => setDesigData((prev) => ({ ...prev, name: e.target.value }))} required />
+            <Input label="Code" value={desigData.code} onChange={(e: any) => setDesigData((prev) => ({ ...prev, code: e.target.value }))} required />
             <div className="space-y-1.5">
               <label className="block text-xs font-md text-zinc-700 dark:text-zinc-300">Level</label>
               <SearchableDropdown
                 value={desigData.level}
-                onChange={(val) => setDesigData({ ...desigData, level: val })}
+                onChange={(val) => setDesigData((prev) => ({ ...prev, level: val }))}
                 options={levelOptions}
                 placeholder="Select Level"
               />
@@ -240,7 +241,7 @@ export default function DesignationsPage() {
               <label className="block text-xs font-md text-zinc-700 dark:text-zinc-300">Department <span className="text-rose-500">*</span></label>
               <SearchableDropdown
                 value={desigData.departmentId}
-                onChange={(val) => setDesigData({ ...desigData, departmentId: val })}
+                onChange={(val) => setDesigData((prev) => ({ ...prev, departmentId: val }))}
                 options={deptOptions}
                 placeholder="Select Department"
               />
