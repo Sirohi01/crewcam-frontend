@@ -301,7 +301,7 @@ export default function DepartmentsPage() {
               <button className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"><X className="w-4 h-4" /></button>
               <div className="flex items-start gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-blue-100 border-4 border-blue-50 flex items-center justify-center shrink-0 shadow-sm relative">
-                   <div className="absolute inset-0 bg-blue-600 rounded-xl m-0.5 flex items-center justify-center text-white"><Edit2 className="w-4 h-4" /></div>
+                  <div className="absolute inset-0 bg-blue-600 rounded-xl m-0.5 flex items-center justify-center text-white"><Edit2 className="w-4 h-4" /></div>
                 </div>
                 <div className="pt-0.5">
                   <h2 className="text-[14px] font-bold text-slate-900 leading-tight mb-1">Design Studio</h2>
@@ -403,12 +403,12 @@ export default function DepartmentsPage() {
                 {activities.map((act) => (
                   <div key={act.id} className="flex gap-3">
                     <div className="w-7 h-7 rounded bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 text-slate-500">
-                       {act.id === 1 ? <PieChartIcon className="w-4 h-4" /> : act.id === 2 ? <User className="w-4 h-4" /> : <Building className="w-4 h-4" />}
+                      {act.id === 1 ? <PieChartIcon className="w-4 h-4" /> : act.id === 2 ? <User className="w-4 h-4" /> : <Building className="w-4 h-4" />}
                     </div>
                     <div className="leading-tight flex-1 flex justify-between items-start pt-0.5">
                       <div>
-                         <p className="text-[11px] font-bold text-slate-800 mb-1">{act.text}</p>
-                         <p className="text-[10px] text-slate-500 font-medium">by <span className="text-slate-400">{act.by}</span></p>
+                        <p className="text-[11px] font-bold text-slate-800 mb-1">{act.text}</p>
+                        <p className="text-[10px] text-slate-500 font-medium">by <span className="text-slate-400">{act.by}</span></p>
                       </div>
                       <span className="text-[10px] font-semibold text-slate-500">{act.time}</span>
                     </div>
