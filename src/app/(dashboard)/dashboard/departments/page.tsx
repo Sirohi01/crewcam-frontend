@@ -112,9 +112,9 @@ export default function DepartmentsPage() {
             <Sparkles className="w-4 h-4" /> AI Insights
           </button>
           <div className="flex items-center rounded-md overflow-hidden shadow-sm h-8 ml-2">
-            <button className="flex items-center gap-2 px-2 h-full bg-blue-600 text-white text-[11px] font-medium hover:bg-blue-700 transition-colors">
+            <Link href="/dashboard/departments/add-department/basic-info" className="flex items-center gap-2 px-2 h-full bg-blue-600 text-white text-[11px] font-medium hover:bg-blue-700 transition-colors">
               <Plus className="w-4 h-4" /> Add Department
-            </button>
+            </Link>
             <button className="px-2 h-full bg-blue-700 text-white hover:bg-blue-800 transition-colors border-l border-blue-500 flex items-center justify-center">
               <ChevronDown className="w-4 h-4" />
             </button>
