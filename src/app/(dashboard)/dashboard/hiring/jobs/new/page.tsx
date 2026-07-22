@@ -105,7 +105,7 @@ function RichTextBox({
         {aiLabel && (
           <button type="button" className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors">
             <Sparkles size={11} /> {aiLabel}
-          </button>
+          </button>                                                 
         )}
       </div>
       <div className="rounded-none border border-zinc-200 bg-white">
@@ -158,7 +158,7 @@ export default function PostNewJobPage() {
   return (
     <div className="font-sans">
       <div className="mx-auto max-w-[1500px] p-1">
-        <div className="grid grid-cols-1 gap-2 lg:grid-cols-[3fr_1fr]">
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-[1fr_260px] xl:grid-cols-[1fr_270px]">
           <div className="space-y-2">
             {/* Header */}
             <div>
@@ -170,20 +170,20 @@ export default function PostNewJobPage() {
             </div>
 
             {/* KPI strip */}
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
               {KPIS.map((s) => (
-                <div key={s.label} className="rounded-none border border-zinc-200 bg-white p-2.5 shadow-sm">
-                  <div className="flex items-center gap-2.5">
-                    <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-none ${s.accent}`}>
-                      <s.icon size={17} />
+                <div key={s.label} className="flex flex-col justify-between rounded-none border border-zinc-200 bg-white p-2.5 shadow-sm">
+                  <div className="flex items-start justify-between gap-1">
+                    <p className="text-[11px] font-medium text-zinc-500 leading-snug">{s.label}</p>
+                    <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-none ${s.accent}`}>
+                      <s.icon size={13} />
                     </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[10.5px] text-zinc-500 leading-tight">{s.label}</p>
-                      <p className="text-base font-bold leading-tight text-zinc-900">{s.value}</p>
-                      <p className={`truncate text-[9.5px] font-semibold leading-tight ${s.up ? 'text-emerald-600' : 'text-rose-500'}`}>
-                        {s.up ? '↗' : '↘'} {s.trend}
-                      </p>
-                    </div>
+                  </div>
+                  <div className="mt-2.5">
+                    <p className="text-lg font-bold leading-none text-zinc-900">{s.value}</p>
+                    <p className={`mt-1.5 text-[9.5px] font-semibold leading-none ${s.up ? 'text-emerald-600' : 'text-rose-500'}`}>
+                      {s.up ? '↗' : '↘'} {s.trend}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -352,11 +352,12 @@ export default function PostNewJobPage() {
           {/* Sidebar */}
           <div className="space-y-2">
             <div className="mt-3 mb-1 flex gap-2">
-              <button type="button" className="flex flex-1 items-center justify-center gap-1.5 rounded-none border border-zinc-200 bg-white px-2.5 py-1.5 text-[11.5px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
-                <Save size={14} /> Save as Draft
+              <button type="button" className="flex flex-1 items-center justify-center gap-1.5 rounded-none border border-zinc-200 bg-white px-1 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
+                <Save size={12} /> Save as Draft
               </button>
-              <button type="button" className="flex flex-1 items-center justify-center gap-1.5 rounded-none bg-indigo-600 px-2.5 py-1.5 text-[11.5px] font-semibold text-white shadow-sm hover:bg-indigo-700">
-                <Send size={14} /> Submit for Approval
+              <button type="button" className="flex flex-1 items-center justify-center gap-1.5 rounded-none bg-indigo-600 px-1 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700">
+                {/* <Send size={10} />  */}
+                Submit for Approval
               </button>
             </div>
 
@@ -367,8 +368,8 @@ export default function PostNewJobPage() {
               <p className="mb-1.5 text-[11px] leading-snug text-zinc-500">Use AI to create a professional and accurate job posting.</p>
               <div className="space-y-1">
                 {aiActions.map((a) => (
-                  <button key={a.title} type="button" className="flex w-full items-start gap-2 rounded-none border border-zinc-100 px-2 py-1.5 text-left hover:bg-indigo-50/40">
-                    <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-none ${a.accent}`}><a.icon size={13} /></span>
+                  <button key={a.title} type="button" className="flex w-full items-start gap-2 rounded-none border border-zinc-100 px-0.5 py-1.5 text-left hover:bg-indigo-50/40">
+                    <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-none ${a.accent}`}><a.icon size={13} /></span>
                     <span className="min-w-0">
                       <span className="block truncate text-[11px] font-semibold text-zinc-800">{a.title}</span>
                       <span className="block truncate text-[10px] text-zinc-400">{a.detail}</span>
@@ -431,3 +432,5 @@ export default function PostNewJobPage() {
     </div>
   );
 }
+
+
