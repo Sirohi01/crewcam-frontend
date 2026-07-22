@@ -77,7 +77,7 @@ const COUNTRIES = ['India', 'United States', 'United Kingdom', 'United Arab Emir
 // ─── Small building blocks ─────────────────────────────────────────────────
 function FieldLabel({ children, required }: { children: React.ReactNode; required?: boolean }) {
   return (
-    <label className="text-[12.5px] font-semibold text-zinc-700">
+    <label className="text-[11px] font-medium text-zinc-500">
       {children} {required && <span className="text-rose-500">*</span>}
     </label>
   );
