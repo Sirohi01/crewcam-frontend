@@ -110,7 +110,13 @@ export default function BranchesPage() {
     } finally {
       setSaving(false);
     }
+
   };
+
+  const reset = () => {
+    setBranchData(emptyBranch);
+    setError('');
+  }
 
   const executeDelete = async () => {
     if (!deleteConfirm) return;
@@ -247,18 +253,19 @@ export default function BranchesPage() {
 
       {modal && (
         <Modal title={`${modalItem ? 'Edit' : 'Create'} Branch`} onClose={() => setModal(false)} onSubmit={submit} busy={saving}>
+          {error && <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 mb-4">{error}</div>}
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Branch Name" value={branchData.name} onChange={(e: any) => setBranchData({ ...branchData, name: e.target.value })} required />
-            <Input label="Branch Code" value={branchData.code} onChange={(e: any) => setBranchData({ ...branchData, code: e.target.value })} required />
+            <Input label="Branch Name" value={branchData.name} onChange={(e: any) => setBranchData((prev) => ({ ...prev, name: e.target.value }))} required />
+            <Input label="Branch Code" value={branchData.code} onChange={(e: any) => setBranchData((prev) => ({ ...prev, code: e.target.value }))} required />
 
             <Input label="Pincode" value={branchData.pincode} onChange={handlePincodeChange} />
-            <Input label="City" value={branchData.city} onChange={(e: any) => setBranchData({ ...branchData, city: e.target.value })} />
+            <Input label="City" value={branchData.city} onChange={(e: any) => setBranchData((prev) => ({ ...prev, city: e.target.value }))} />
 
-            <Input label="State" value={branchData.state} onChange={(e: any) => setBranchData({ ...branchData, state: e.target.value })} />
-            <Input label="Country" value={branchData.country} onChange={(e: any) => setBranchData({ ...branchData, country: e.target.value })} />
+            <Input label="State" value={branchData.state} onChange={(e: any) => setBranchData((prev) => ({ ...prev, state: e.target.value }))} />
+            <Input label="Country" value={branchData.country} onChange={(e: any) => setBranchData((prev) => ({ ...prev, country: e.target.value }))} />
 
             <div className="col-span-2">
-              <Input label="Address" value={branchData.address} onChange={(e: any) => setBranchData({ ...branchData, address: e.target.value })} />
+              <Input label="Address" value={branchData.address} onChange={(e: any) => setBranchData((prev) => ({ ...prev, address: e.target.value }))} />
             </div>
 
             <div className="col-span-2">
@@ -273,11 +280,11 @@ export default function BranchesPage() {
               </button>
             </div>
 
-            <Input label="Contact Person" value={branchData.contactPerson} onChange={(e: any) => setBranchData({ ...branchData, contactPerson: e.target.value })} />
-            <Input label="Contact Phone" value={branchData.contactPhone} onChange={(e: any) => setBranchData({ ...branchData, contactPhone: e.target.value })} />
+            <Input label="Contact Person" value={branchData.contactPerson} onChange={(e: any) => setBranchData((prev) => ({ ...prev, contactPerson: e.target.value }))} />
+            <Input label="Contact Phone" value={branchData.contactPhone} onChange={(e: any) => setBranchData((prev) => ({ ...prev, contactPhone: e.target.value }))} />
 
             <div className="col-span-2">
-              <Input label="Contact Email" type="email" value={branchData.contactEmail} onChange={(e: any) => setBranchData({ ...branchData, contactEmail: e.target.value })} />
+              <Input label="Contact Email" type="email" value={branchData.contactEmail} onChange={(e: any) => setBranchData((prev) => ({ ...prev, contactEmail: e.target.value }))} />
             </div>
           </div>
         </Modal>
