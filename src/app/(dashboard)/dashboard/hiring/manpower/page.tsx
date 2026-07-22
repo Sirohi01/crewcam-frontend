@@ -331,7 +331,7 @@ function PageHeader() {
           <BarChart3 size={14} />
           Analytics
         </button>
-        <Link href="/dashboard/hiring/requisitions/new" className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-800 transition-colors">
+        <Link href="/dashboard/hiring/manpower/new" className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-800 transition-colors">
           <Plus size={14} />
           New Requisition
         </Link>
