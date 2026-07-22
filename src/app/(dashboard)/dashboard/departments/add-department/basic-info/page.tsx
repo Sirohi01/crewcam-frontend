@@ -307,9 +307,9 @@ export default function AddDepartmentBasicInfo() {
 
             {/* Bottom Footer Actions */}
             <div className="pb-2 px-2 flex items-center justify-between shadow-sm w-[67%]">
-                <button type="button" className="flex items-center justify-center h-8 px-5 rounded-lg text-[12px] font-bold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
+                <Link href="/dashboard/departments" className="flex items-center justify-center h-8 px-5 rounded-lg text-[12px] font-bold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
                     Cancel
-                </button>
+                </Link>
                 <div className="flex items-center gap-3">
                     <button type="button" className="flex items-center justify-center gap-2 h-8 px-4 rounded-lg text-[12px] font-bold text-indigo-700 border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100 shadow-sm transition-colors">
                         <Save size={14} /> Save Draft
