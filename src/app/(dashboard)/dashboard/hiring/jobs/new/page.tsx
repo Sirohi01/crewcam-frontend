@@ -2,12 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import {
-  Briefcase, FileText, Clock3, Percent, UserCheck, Wallet, ChevronDown, Save, Send,
-  ListChecks, Target, BarChart3, Lightbulb, TrendingUp, RotateCcw, Plus, UploadCloud,
-  Bold, Italic, Underline, List, ListOrdered, Indent, Link2, Eye, ArrowRight,
-  CalendarDays, Sparkles,
-} from 'lucide-react';
+import {Briefcase, FileText, Clock3, Percent, UserCheck, Wallet, ChevronDown, Save, ListChecks, Target, BarChart3, Lightbulb, TrendingUp, RotateCcw, Plus, UploadCloud,Bold, Italic, Underline, List, ListOrdered, Indent, Link2, Eye, ArrowRight,CalendarDays, Sparkles,} from 'lucide-react';
 
 // Dummy data / static mockup — matches the approved design 1:1. No backend
 // wiring yet; this is a visual reference for the "Post New Job" flow.
@@ -146,7 +141,7 @@ function SectionCard({
         <span className="grid h-6 w-6 shrink-0 place-items-center rounded-none bg-indigo-600 text-[11px] font-bold text-white">{number}</span>
         <h2 className="text-[13.5px] font-bold text-zinc-800">{title}</h2>
       </div>
-      <div className="space-y-2 px-3 pb-2.5 pt-1">{children}</div>
+      <div className="space-y-1 px-3 pb-2.5 pt-1">{children}</div>
     </div>
   );
 }
@@ -159,7 +154,7 @@ export default function PostNewJobPage() {
     <div className="font-sans">
       <div className="mx-auto max-w-[1500px] p-1">
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-[1fr_260px] xl:grid-cols-[1fr_270px]">
-          <div className="space-y-2">
+          <div className="space-y-1">
             {/* Header */}
             <div>
               <h1 className="text-xl font-bold text-zinc-900">Post New Job</h1>
@@ -432,5 +427,3 @@ export default function PostNewJobPage() {
     </div>
   );
 }
-
-

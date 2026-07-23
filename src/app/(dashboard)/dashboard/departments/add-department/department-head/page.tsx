@@ -93,8 +93,8 @@ export default function AddDepartmentHead() {
                                 <div className="absolute left-[8%] right-[8%] top-[14px] h-[2px] bg-zinc-200 -z-0"></div>
                                 <div className="flex w-full justify-between z-10">
                                     {steps.map((step, idx) => (
-                                        <div 
-                                            key={idx} 
+                                        <div
+                                            key={idx}
                                             onClick={() => step.link ? navigate.push(step.link) : null}
                                             className={`flex flex-col items-center gap-2 bg-white px-2 ${step.link ? 'cursor-pointer hover:opacity-80' : ''}`}
                                         >
@@ -199,7 +199,7 @@ export default function AddDepartmentHead() {
                                 <button type="button" className="flex items-center justify-center gap-2 h-8 px-4 rounded-lg text-[12px] font-bold text-indigo-700 border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100 shadow-sm transition-colors">
                                     <Save size={14} /> Save Draft
                                 </button>
-                                <Link href="/dashboard/departments/add-department/description" className="flex items-center justify-center gap-2 h-8 px-5 rounded-lg text-[12px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_2px_10px_rgba(79,70,229,0.2)] transition-colors">
+                                <Link href="/dashboard/departments/add-department/description-settings" className="flex items-center justify-center gap-2 h-8 px-5 rounded-lg text-[12px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_2px_10px_rgba(79,70,229,0.2)] transition-colors">
                                     Next: Description & Settings <ArrowRight size={14} />
                                 </Link>
                             </div>

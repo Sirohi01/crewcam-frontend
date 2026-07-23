@@ -92,6 +92,7 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
         {/* LEFT NAV PANEL */}
         <div className="flex flex-col gap-1 py-1">
           {tabs.map((tab, idx) => {
+<<<<<<< Updated upstream
             if (tab.href) {
               return (
                 <Link 
@@ -101,14 +102,30 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg text-[12px] font-bold transition-colors ${idx === 0 ? 'bg-white text-blue-600 shadow-sm border border-slate-200 relative before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-blue-600 before:rounded-r-md' : 'text-slate-600 hover:bg-slate-100 border border-transparent'}`}
                 >
                   <tab.icon className={`w-4 h-4 ${idx === 0 ? 'text-blue-600' : 'text-slate-400'}`} />
+=======
+            const isBudget = tab.name === 'Budget & Costing';
+            const isActive = idx === 0;
+            const cls = `flex items-center gap-3 px-4 py-3 rounded-lg text-[12px] font-bold transition-colors ${isActive ? 'bg-white text-blue-600 shadow-sm border border-slate-200 relative before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-blue-600 before:rounded-r-md' : 'text-slate-600 hover:bg-slate-100 border border-transparent'}`;
+            const iconCls = `w-4 h-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`;
+            if (isBudget) {
+              return (
+                <Link key={idx} href="/dashboard/buget-and-costing" className={cls}>
+                  <tab.icon className={iconCls} />
+>>>>>>> Stashed changes
                   {tab.name}
                 </Link>
               );
             }
+<<<<<<< Updated upstream
             
             return (
               <button key={idx} className={`flex items-center gap-3 px-4 py-3 rounded-lg text-[12px] font-bold transition-colors ${idx === 0 ? 'bg-white text-blue-600 shadow-sm border border-slate-200 relative before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-blue-600 before:rounded-r-md' : 'text-slate-600 hover:bg-slate-100 border border-transparent'}`}>
                 <tab.icon className={`w-4 h-4 ${idx === 0 ? 'text-blue-600' : 'text-slate-400'}`} />
+=======
+            return (
+              <button key={idx} className={cls}>
+                <tab.icon className={iconCls} />
+>>>>>>> Stashed changes
                 {tab.name}
               </button>
             );
