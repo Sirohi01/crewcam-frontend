@@ -255,10 +255,10 @@ export default function DepartmentStructurePage() {
       </div>
 
       {/* MAIN TWO-COLUMN LAYOUT */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 items-start h-[calc(100vh-230px)]">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 items-start">
 
         {/* LEFT SECTION (Org Tree) */}
-        <div className="xl:col-span-9 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col h-full overflow-hidden relative">
+        <div className="xl:col-span-9 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col h-[calc(100vh-230px)] min-h-[600px] overflow-hidden relative">
 
           {/* HEADER & CONTROLS */}
           <div className="p-4 border-b border-slate-100 flex items-center justify-between shrink-0">
@@ -285,37 +285,39 @@ export default function DepartmentStructurePage() {
               </ul>
             </div>
 
-            {/* Zoom Controls */}
-            <div className="absolute bottom-6 right-6 flex items-center bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden p-1 gap-1 z-20">
-              <button onClick={() => setZoom(z => Math.max(z - 10, 50))} className="p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded">
-                <Minus className="w-4 h-4" />
-              </button>
-              <span className="text-[11px] font-bold text-slate-700 w-10 text-center">{zoom}%</span>
-              <button onClick={() => setZoom(z => Math.min(z + 10, 150))} className="p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded">
-                <Plus className="w-4 h-4" />
-              </button>
-              <div className="w-px h-4 bg-slate-200 mx-1" />
-              <button className="p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded">
-                <Maximize className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Bottom Legend */}
-            <div className="absolute bottom-6 left-6 flex items-center gap-2 z-20 bg-white/80 backdrop-blur border border-slate-200 p-2 rounded-lg shadow-sm">
-              {legendItems.map((item, i) => (
-                <div key={i} className="flex items-center gap-1.5 px-2">
-                  <div className={`w-7 h-5 rounded flex items-center justify-center text-[9px] font-bold shrink-0 ${typeStyles[item.type]}`}>
-                    {typeLabels[item.type]}
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-700 whitespace-nowrap">{item.type}</span>
-                </div>
-              ))}
-            </div>
           </div>
+
+          {/* Zoom Controls (Fixed relative to left section) */}
+          <div className="absolute bottom-6 right-6 flex items-center bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden p-1 gap-1 z-20">
+            <button onClick={() => setZoom(z => Math.max(z - 10, 50))} className="p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded">
+              <Minus className="w-4 h-4" />
+            </button>
+            <span className="text-[11px] font-bold text-slate-700 w-10 text-center">{zoom}%</span>
+            <button onClick={() => setZoom(z => Math.min(z + 10, 150))} className="p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded">
+              <Plus className="w-4 h-4" />
+            </button>
+            <div className="w-px h-4 bg-slate-200 mx-1" />
+            <button className="p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded">
+              <Maximize className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Bottom Legend (Fixed relative to left section) */}
+          <div className="absolute bottom-6 left-6 flex items-center gap-2 z-20 bg-white/80 backdrop-blur border border-slate-200 p-2 rounded-lg shadow-sm">
+            {legendItems.map((item, i) => (
+              <div key={i} className="flex items-center gap-1.5 px-2">
+                <div className={`w-7 h-5 rounded flex items-center justify-center text-[9px] font-bold shrink-0 ${typeStyles[item.type]}`}>
+                  {typeLabels[item.type]}
+                </div>
+                <span className="text-[10px] font-bold text-slate-700 whitespace-nowrap">{item.type}</span>
+              </div>
+            ))}
+          </div>
+
         </div>
 
         {/* RIGHT SECTION */}
-        <div className="xl:col-span-3 min-w-0 flex flex-col gap-3 h-full overflow-y-auto pr-1 pb-1 custom-scrollbar">
+        <div className="xl:col-span-3 min-w-0 flex flex-col gap-3 pb-1">
 
           {/* Selected Department */}
           <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4 shrink-0">
