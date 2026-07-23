@@ -41,7 +41,7 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
 
   const tabs = [
     { name: 'Basic Information', icon: Info },
-    { name: 'Department Structure', icon: GitBranch },
+    { name: 'Department Structure', icon: GitBranch, href: '/dashboard/departments/structure' },
     { name: 'Business Mapping', icon: Building },
     { name: 'Budget & Costing', icon: PieChartIcon },
     { name: 'Documents (3)', icon: FileText },
@@ -91,12 +91,28 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
 
         {/* LEFT NAV PANEL */}
         <div className="flex flex-col gap-1 py-1">
-          {tabs.map((tab, idx) => (
-            <button key={idx} className={`flex items-center gap-3 px-4 py-3 rounded-lg text-[12px] font-bold transition-colors ${idx === 0 ? 'bg-white text-blue-600 shadow-sm border border-slate-200 relative before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-blue-600 before:rounded-r-md' : 'text-slate-600 hover:bg-slate-100 border border-transparent'}`}>
-              <tab.icon className={`w-4 h-4 ${idx === 0 ? 'text-blue-600' : 'text-slate-400'}`} />
-              {tab.name}
-            </button>
-          ))}
+          {tabs.map((tab, idx) => {
+            if (tab.href) {
+              return (
+                <Link 
+                  key={idx} 
+                  href={tab.href} 
+                  target="_blank"
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-[12px] font-bold transition-colors ${idx === 0 ? 'bg-white text-blue-600 shadow-sm border border-slate-200 relative before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-blue-600 before:rounded-r-md' : 'text-slate-600 hover:bg-slate-100 border border-transparent'}`}
+                >
+                  <tab.icon className={`w-4 h-4 ${idx === 0 ? 'text-blue-600' : 'text-slate-400'}`} />
+                  {tab.name}
+                </Link>
+              );
+            }
+            
+            return (
+              <button key={idx} className={`flex items-center gap-3 px-4 py-3 rounded-lg text-[12px] font-bold transition-colors ${idx === 0 ? 'bg-white text-blue-600 shadow-sm border border-slate-200 relative before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-blue-600 before:rounded-r-md' : 'text-slate-600 hover:bg-slate-100 border border-transparent'}`}>
+                <tab.icon className={`w-4 h-4 ${idx === 0 ? 'text-blue-600' : 'text-slate-400'}`} />
+                {tab.name}
+              </button>
+            );
+          })}
         </div>
 
         {/* MIDDLE SECTION - FORM */}

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import {
-  ChevronRight, Download, Edit2, Search, Share2, Filter,
+  ChevronRight, Download, Edit2, Search, Share2,
   RotateCcw, Building, Users, Clock, AlignLeft, RefreshCcw,
   MoreVertical, Plus, ChevronDown
 } from 'lucide-react';

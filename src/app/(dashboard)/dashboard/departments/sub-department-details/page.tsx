@@ -5,6 +5,7 @@ import {
   Users, IndianRupee, Box, Layers, Palette, FileImage, MoreVertical,
   Wallet, Layers3, ClipboardList, Upload, UserPlus,
 } from 'lucide-react';
+import Link from 'next/link';
 
 // ─── Static data ────────────────────────────────────────────────────────────
 const BREADCRUMB = ['Organization Setup', 'Departments', 'Department Structure', 'Sub Department Details'];
@@ -104,7 +105,7 @@ const COST_CENTER_MAP = [
 // ─── Breadcrumb + heading ───────────────────────────────────────────────────
 function PageHeading() {
   return (
-    <section className="space-y-3">
+    <section className="space-y-2">
       <div className="flex items-center gap-1.5 text-[12px] text-zinc-500 flex-wrap">
         {BREADCRUMB.map((crumb, i) => (
           <React.Fragment key={crumb}>
@@ -117,18 +118,18 @@ function PageHeading() {
           </React.Fragment>
         ))}
       </div>
-      <div className="flex items-start justify-between gap-3 flex-wrap">
+      <div className="flex items-start justify-between gap-2 flex-wrap">
         <div className="space-y-1">
           <h1 className="text-1xl font-bold text-zinc-900 leading-tight">Sub Department Details</h1>
           <p className="text-[13px] text-zinc-500">Manage and track all sub departments under this department.</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <button className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors">
+          <Link href="/dashboard/departments/structure" className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors">
             <ArrowLeft size={14} /> Back to Department Structure
-          </button>
-          <button className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors">
+          </Link>
+          <Link href="/dashboard/departments/structure/view-in-tree" className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors">
             <GitBranch size={14} /> View in Tree
-          </button>
+          </Link>
           <button className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-2 py-2 text-[12px] font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors">
             <Plus size={14} /> Add Sub Department
           </button>
@@ -445,7 +446,7 @@ export default function SubDepartmentDetailsPage() {
   const [activeTab, setActiveTab] = useState('Sub Departments');
 
   return (
-    <div className="space-y-2 font-sans text-zinc-900">
+    <div className="space-y-2 font-sans text-zinc-900 p-2">
       <PageHeading />
       <InfoStrip />
       <Tabs active={activeTab} onChange={setActiveTab} />
