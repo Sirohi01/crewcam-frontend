@@ -4,7 +4,7 @@ import Link from 'next/link';
 import {
   ChevronRight, Download, Edit2, Search, Share2,
   Building, Users, Clock, AlignLeft,
-  Plus, Maximize, Minus, User, MapPin
+  Plus, Maximize, Minus, User, MapPin, Map
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
@@ -258,7 +258,7 @@ export default function DepartmentStructurePage() {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 items-start">
 
         {/* LEFT SECTION (Org Tree) */}
-        <div className="xl:col-span-9 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col h-[calc(100vh-230px)] min-h-[600px] overflow-hidden relative">
+        <div className="xl:col-span-9 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col relative">
 
           {/* HEADER & CONTROLS */}
           <div className="p-4 border-b border-slate-100 flex items-center justify-between shrink-0">
@@ -278,8 +278,8 @@ export default function DepartmentStructurePage() {
           </div>
 
           {/* TREE CANVAS */}
-          <div className="flex-1 overflow-auto bg-slate-50/30 p-8 relative flex justify-center org-tree">
-            <div style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top center', transition: 'transform 0.2s' }} className="pb-16">
+          <div className="flex-1 overflow-x-auto overflow-y-visible bg-slate-50/30 p-8 relative flex org-tree">
+            <div style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top center', transition: 'transform 0.2s' }} className="pb-16 min-w-max mx-auto">
               <ul className="flex justify-center">
                 <OrgNode node={orgData} />
               </ul>
@@ -428,17 +428,17 @@ export default function DepartmentStructurePage() {
           <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4 shrink-0">
             <h3 className="text-[14px] font-bold text-slate-900 mb-3">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-2">
-              <button className="flex items-center gap-1.5 justify-center py-2 bg-white border border-slate-200 rounded-lg text-[10.5px] font-bold text-blue-600 hover:bg-slate-50 transition-colors shadow-sm">
-                <Plus className="w-3 h-3" /> Add Department
+              <button className="flex items-center gap-2 justify-start px-2.5 py-2.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-blue-600 hover:bg-slate-50 transition-colors shadow-sm whitespace-nowrap overflow-hidden">
+                <Plus className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">Add Department</span>
               </button>
-              <button className="flex items-center gap-1.5 justify-center py-2 bg-white border border-slate-200 rounded-lg text-[10.5px] font-bold text-blue-600 hover:bg-slate-50 transition-colors shadow-sm">
-                <Plus className="w-3 h-3" /> Add Sub Department
+              <button className="flex items-center gap-2 justify-start px-2.5 py-2.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-blue-600 hover:bg-slate-50 transition-colors shadow-sm whitespace-nowrap overflow-hidden">
+                <Plus className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">Add Sub Department</span>
               </button>
-              <button className="flex items-center gap-1.5 justify-center py-2 bg-white border border-slate-200 rounded-lg text-[10.5px] font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
-                <Edit2 className="w-3 h-3" /> Edit Department
+              <button className="flex items-center gap-2 justify-start px-2.5 py-2.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm whitespace-nowrap overflow-hidden">
+                <Edit2 className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">Edit Department</span>
               </button>
-              <button className="flex items-center gap-1.5 justify-center py-2 bg-white border border-slate-200 rounded-lg text-[10.5px] font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
-                <MapPin className="w-3 h-3" /> Map Cost Center
+              <button className="flex items-center gap-2 justify-start px-2.5 py-2.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm whitespace-nowrap overflow-hidden">
+                <Map className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">Map Cost Center</span>
               </button>
             </div>
           </div>
