@@ -43,7 +43,7 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
     { name: 'Basic Information', icon: Info },
     { name: 'Department Structure', icon: GitBranch, href: '/dashboard/departments/structure' },
     { name: 'Business Mapping', icon: Building },
-    { name: 'Budget & Costing', icon: PieChartIcon },
+    { name: 'Budget & Costing', icon: PieChartIcon, href: "/dashboard/departments/buget-and-costing" },
     { name: 'Documents (3)', icon: FileText },
     { name: 'KPIs & Goals', icon: Target },
     { name: 'Policies', icon: Book },
@@ -73,7 +73,7 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
             <p className="text-[12px] text-slate-500 font-medium">View and manage department information, structure and settings.</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Link href="/dashboard/departments" className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors shadow-sm">
             <ArrowLeft className="w-4 h-4" /> Back to List
           </Link>
@@ -92,40 +92,23 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
         {/* LEFT NAV PANEL */}
         <div className="flex flex-col gap-1 py-1">
           {tabs.map((tab, idx) => {
-<<<<<<< Updated upstream
             if (tab.href) {
               return (
-                <Link 
-                  key={idx} 
-                  href={tab.href} 
+                <Link
+                  key={idx}
+                  href={tab.href}
                   target="_blank"
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg text-[12px] font-bold transition-colors ${idx === 0 ? 'bg-white text-blue-600 shadow-sm border border-slate-200 relative before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-blue-600 before:rounded-r-md' : 'text-slate-600 hover:bg-slate-100 border border-transparent'}`}
                 >
                   <tab.icon className={`w-4 h-4 ${idx === 0 ? 'text-blue-600' : 'text-slate-400'}`} />
-=======
-            const isBudget = tab.name === 'Budget & Costing';
-            const isActive = idx === 0;
-            const cls = `flex items-center gap-3 px-4 py-3 rounded-lg text-[12px] font-bold transition-colors ${isActive ? 'bg-white text-blue-600 shadow-sm border border-slate-200 relative before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-blue-600 before:rounded-r-md' : 'text-slate-600 hover:bg-slate-100 border border-transparent'}`;
-            const iconCls = `w-4 h-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`;
-            if (isBudget) {
-              return (
-                <Link key={idx} href="/dashboard/buget-and-costing" className={cls}>
-                  <tab.icon className={iconCls} />
->>>>>>> Stashed changes
                   {tab.name}
                 </Link>
               );
             }
-<<<<<<< Updated upstream
-            
+
             return (
               <button key={idx} className={`flex items-center gap-3 px-4 py-3 rounded-lg text-[12px] font-bold transition-colors ${idx === 0 ? 'bg-white text-blue-600 shadow-sm border border-slate-200 relative before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-blue-600 before:rounded-r-md' : 'text-slate-600 hover:bg-slate-100 border border-transparent'}`}>
                 <tab.icon className={`w-4 h-4 ${idx === 0 ? 'text-blue-600' : 'text-slate-400'}`} />
-=======
-            return (
-              <button key={idx} className={cls}>
-                <tab.icon className={iconCls} />
->>>>>>> Stashed changes
                 {tab.name}
               </button>
             );
@@ -145,7 +128,7 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
 
           <div className="p-4 flex flex-col gap-4">
             {/* ROW 1 */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Department Name <span className="text-red-500">*</span></label>
                 <input type="text" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm" />
@@ -161,7 +144,7 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
             </div>
 
             {/* ROW 2 */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Parent Department</label>
                 <div className="relative">
@@ -209,7 +192,7 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
             </div>
 
             {/* ROW 3 */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Business Unit <span className="text-red-500">*</span></label>
                 <div className="relative">

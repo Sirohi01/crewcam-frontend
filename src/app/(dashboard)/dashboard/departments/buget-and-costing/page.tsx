@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
-import {ChevronRight, ArrowLeft, GitBranch, Pencil, Users, Building2, Wallet, CalendarRange, Download, ChevronDown, MoreVertical, TrendingUp,ArrowRight, ShieldCheck, Plus, Receipt, CreditCard, Cpu, GraduationCap,Plane, Package, } from 'lucide-react';
+import { ChevronRight, ArrowLeft, GitBranch, Pencil, Users, Building2, Wallet, CalendarRange, Download, ChevronDown, MoreVertical, TrendingUp, ArrowRight, ShieldCheck, Plus, Receipt, CreditCard, Cpu, GraduationCap, Plane, Package, } from 'lucide-react';
+import Link from 'next/link';
 
 // ─── Static data ────────────────────────────────────────────────────────────
 const BREADCRUMB = ['Organization Setup', 'Departments', 'Department Structure', 'Sub Department Details', 'Budget & Costing'];
@@ -72,15 +73,15 @@ function PageHeading() {
           <p className="text-[13px] text-zinc-500">Plan, allocate and track budgets and costs for this sub department.</p>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          <button className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors whitespace-nowrap">
+          <Link href={'/dashboard/departments/sub-department-details'} className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors whitespace-nowrap">
             <ArrowLeft size={13} /> Back to Sub Department
-          </button>
-          <button className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors whitespace-nowrap">
+          </Link>
+          <Link href={'/dashboard/departments/structure/view-in-tree'} className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors whitespace-nowrap">
             <GitBranch size={13} /> View in Tree
-          </button>
-          <button className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors whitespace-nowrap">
+          </Link>
+          <Link href={'/dashboard/departments/structure/edit-budget'} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors whitespace-nowrap">
             <Pencil size={13} /> Edit Budget
-          </button>
+          </Link>
         </div>
       </div>
     </section>
@@ -117,9 +118,8 @@ function Tabs({ active, onChange }: { active: string; onChange: (t: string) => v
         <button
           key={t}
           onClick={() => onChange(t)}
-          className={`shrink-0 pb-3 pt-1 text-[13px] font-semibold whitespace-nowrap border-b-2 transition-colors ${
-            active === t ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'
-          }`}
+          className={`shrink-0 pb-3 pt-1 text-[13px] font-semibold whitespace-nowrap border-b-2 transition-colors ${active === t ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'
+            }`}
         >
           {t}
         </button>
@@ -163,13 +163,13 @@ function CategoryAllocationCard() {
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <colgroup>
-            <col style={{width:'22%'}} />
-            <col style={{width:'14%'}} />
-            <col style={{width:'14%'}} />
-            <col style={{width:'13%'}} />
-            <col style={{width:'14%'}} />
-            <col style={{width:'15%'}} />
-            <col style={{width:'8%'}} />
+            <col style={{ width: '22%' }} />
+            <col style={{ width: '14%' }} />
+            <col style={{ width: '14%' }} />
+            <col style={{ width: '13%' }} />
+            <col style={{ width: '14%' }} />
+            <col style={{ width: '15%' }} />
+            <col style={{ width: '8%' }} />
           </colgroup>
           <thead>
             <tr className="border-b border-zinc-100">
@@ -352,7 +352,7 @@ export default function BudgetAndCostingPage() {
   const [activeTab, setActiveTab] = useState('Budget Overview');
 
   return (
-    <div className="space-y-2.5 font-sans text-zinc-900">
+    <div className="space-y-2.5 font-sans text-zinc-900 p-2">
       <PageHeading />
       <InfoStrip />
       <Tabs active={activeTab} onChange={setActiveTab} />
