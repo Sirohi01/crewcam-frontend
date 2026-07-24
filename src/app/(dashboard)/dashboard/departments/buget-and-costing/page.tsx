@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { ChevronRight, ArrowLeft, GitBranch, Pencil, Users, Building2, Wallet, CalendarRange, Download, ChevronDown, MoreVertical, TrendingUp, ArrowRight, ShieldCheck, Plus, Receipt, CreditCard, Cpu, GraduationCap, Plane, Package, } from 'lucide-react';
 import Link from 'next/link';
+import CostCenterMappingTab from './CostCenterMappingTab';
 
 // ─── Static data ────────────────────────────────────────────────────────────
 const BREADCRUMB = ['Organization Setup', 'Departments', 'Department Structure', 'Sub Department Details', 'Budget & Costing'];
@@ -14,7 +15,14 @@ const INFO_CARDS = [
   { label: 'Financial Year', value: 'FY 2025-26', sub: '01 Apr 2025 – 31 Mar 2026', icon: CalendarRange, bg: 'bg-blue-50', color: 'text-blue-600' },
 ];
 
-const TABS = ['Budget Overview', 'Budget Allocation', 'Expense Tracking', 'Cost Center Mapping', 'Approval Workflow', 'History'];
+const TABS = [
+  { name: 'Budget Overview' },
+  { name: 'Budget Allocation' },
+  { name: 'Expense Tracking' },
+  { name: 'Cost Center Mapping' },
+  { name: 'Approval Workflow' },
+  { name: 'History' }
+];
 
 const SUMMARY_CARDS = [
   { label: 'Total Budget (INR)', value: '₹ 24,00,000', pct: null, pctColor: '' },
@@ -116,12 +124,12 @@ function Tabs({ active, onChange }: { active: string; onChange: (t: string) => v
     <div className="flex items-center gap-4 border-b border-zinc-200 overflow-x-auto">
       {TABS.map((t) => (
         <button
-          key={t}
-          onClick={() => onChange(t)}
-          className={`shrink-0 pb-3 pt-1 text-[13px] font-semibold whitespace-nowrap border-b-2 transition-colors ${active === t ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'
+          key={t.name}
+          onClick={() => onChange(t.name)}
+          className={`shrink-0 pb-3 pt-1 text-[13px] font-semibold whitespace-nowrap border-b-2 transition-colors ${active === t.name ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'
             }`}
         >
-          {t}
+          {t.name}
         </button>
       ))}
     </div>
@@ -357,18 +365,22 @@ export default function BudgetAndCostingPage() {
       <InfoStrip />
       <Tabs active={activeTab} onChange={setActiveTab} />
 
-      <div className="grid grid-cols-1 xl:grid-cols-[2.6fr_1fr] gap-2.5 items-start">
-        <div className="min-w-0 space-y-2.5">
-          <BudgetSummaryCard />
-          <CategoryAllocationCard />
-        </div>
+      {activeTab === 'Cost Center Mapping' ? (
+        <CostCenterMappingTab />
+      ) : (
+        <div className="grid grid-cols-1 xl:grid-cols-[2.6fr_1fr] gap-2.5 items-start">
+          <div className="min-w-0 space-y-2.5">
+            <BudgetSummaryCard />
+            <CategoryAllocationCard />
+          </div>
 
-        <div className="space-y-2.5 min-w-0 xl:sticky xl:top-[20px]">
-          <BudgetVsActualCard />
-          <TopExpensesCard />
-          <QuickActionsCard />
+          <div className="space-y-2.5 min-w-0 xl:sticky xl:top-[20px]">
+            <BudgetVsActualCard />
+            <TopExpensesCard />
+            <QuickActionsCard />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
