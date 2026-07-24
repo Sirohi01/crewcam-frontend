@@ -87,7 +87,7 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
       </div>
 
       {/* THREE COLUMN GRID */}
-      <div className="grid grid-cols-1 xl:grid-cols-[200px_minmax(0,1fr)_380px] gap-5 items-start mt-2">
+      <div className="grid grid-cols-1 xl:grid-cols-[200px_minmax(0,1fr)_300px] gap-3 items-start mt-2">
 
         {/* LEFT NAV PANEL */}
         <div className="flex flex-col gap-1 py-1">
@@ -294,18 +294,16 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
           </div>
 
           {/* ACTIONS */}
-          <div className="p-4 border-t border-slate-100 flex items-center justify-between">
-            <button className="flex items-center gap-2 px-5 py-2.5 border border-red-200 text-red-600 rounded-md font-bold text-[12px] hover:bg-red-50 transition-colors bg-white shadow-sm">
-              <Archive className="w-4 h-4" /> Archive Department
+          <div className="p-3 border-t border-slate-100 flex items-center gap-2">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 border border-red-200 text-red-600 rounded-md font-semibold text-[11.5px] hover:bg-red-50 transition-colors bg-white shadow-sm whitespace-nowrap">
+              <Archive className="w-3.5 h-3.5" /> Archive Department
             </button>
-            <div className="flex items-center gap-3">
-              <button className="px-6 py-2.5 border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors bg-white shadow-sm">
-                Cancel
-              </button>
-              <button className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 border border-blue-600 text-white rounded-md font-bold text-[12px] hover:bg-blue-700 transition-colors shadow-sm">
-                <Save className="w-4 h-4" /> Save Changes
-              </button>
-            </div>
+            <button className="px-3 py-1.5 border border-slate-200 text-slate-700 rounded-md font-semibold text-[11.5px] hover:bg-slate-50 transition-colors bg-white shadow-sm whitespace-nowrap">
+              Cancel
+            </button>
+            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 border border-blue-600 text-white rounded-md font-semibold text-[11.5px] hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap">
+              <Save className="w-3.5 h-3.5" /> Save Changes
+            </button>
           </div>
         </div>
 
