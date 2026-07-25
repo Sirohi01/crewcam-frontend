@@ -194,9 +194,8 @@ function TabsBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) =
         <button
           key={tab.key}
           onClick={() => onChange(tab.key)}
-          className={`relative px-3 py-2.5 text-[12.5px] font-semibold whitespace-nowrap transition-colors ${
-            active === tab.key ? 'text-violet-700' : 'text-zinc-500 hover:text-zinc-700'
-          }`}
+          className={`relative px-3 py-2.5 text-[12.5px] font-semibold whitespace-nowrap transition-colors ${active === tab.key ? 'text-violet-700' : 'text-zinc-500 hover:text-zinc-700'
+            }`}
         >
           {tab.label} <span className={active === tab.key ? 'text-violet-400' : 'text-zinc-400'}>({tab.count})</span>
           {active === tab.key && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-indigo-700 rounded-full" />}

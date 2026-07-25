@@ -20,7 +20,7 @@ const HierarchyIcon = ({ className }: { className?: string }) => <svg viewBox="0
 export default function DepartmentDetailsPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const id = params.id;
-  
+
   const [formData, setFormData] = useState({
     name: 'Design Studio',
     code: 'DS',
@@ -336,17 +336,17 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
 
           {/* ACTIONS */}
           <div className="p-4 border-t border-slate-100 flex items-center justify-between">
-              <button className="flex items-center gap-2 px-5 py-2.5 border border-red-200 text-red-600 rounded-md font-bold text-[12px] hover:bg-red-50 transition-colors bg-white shadow-sm">
-                <Archive className="w-4 h-4" /> Archive Department
+            <button className="flex items-center gap-2 px-5 py-2.5 border border-red-200 text-red-600 rounded-md font-bold text-[12px] hover:bg-red-50 transition-colors bg-white shadow-sm">
+              <Archive className="w-4 h-4" /> Archive Department
+            </button>
+            <div className="flex items-center gap-3">
+              <Link href="/dashboard/departments" className="px-6 py-2.5 border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors bg-white shadow-sm">
+                Cancel
+              </Link>
+              <button onClick={handleSave} className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 border border-blue-600 text-white rounded-md font-bold text-[12px] hover:bg-blue-700 transition-colors shadow-sm">
+                <Save className="w-4 h-4" /> Save Changes
               </button>
-              <div className="flex items-center gap-3">
-                <Link href="/dashboard/departments" className="px-6 py-2.5 border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors bg-white shadow-sm">
-                  Cancel
-                </Link>
-                <button onClick={handleSave} className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 border border-blue-600 text-white rounded-md font-bold text-[12px] hover:bg-blue-700 transition-colors shadow-sm">
-                  <Save className="w-4 h-4" /> Save Changes
-                </button>
-              </div>
+            </div>
           </div>
         </div>
 
