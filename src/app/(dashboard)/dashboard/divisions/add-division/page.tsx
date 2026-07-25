@@ -22,9 +22,9 @@ function AddDivisionPage() {
   return (
     <div className="w-full bg-[#f8f9fc] flex flex-col font-sans min-h-[calc(100vh-64px)]">
       <div className="w-full mx-auto p-2 sm:p-2 md:p-2 lg:p-2">
-        
+
         {/* Breadcrumbs */}
-        <div className="flex items-center gap-2 text-[12px] font-medium text-zinc-500 mb-3">
+        <div className="flex items-center gap-2 text-[12px] font-medium text-zinc-500 mb-2">
           <span>Organization Setup</span>
           <span className="text-zinc-400">›</span>
           <span>Business Units</span>
@@ -35,7 +35,7 @@ function AddDivisionPage() {
         </div>
 
         {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
           <div>
             <h1 className="text-xl font-bold text-zinc-900 tracking-tight">Add New Division</h1>
             <p className="text-[12px] text-zinc-500 mt-0.5">Create a new division and define its details.</p>
@@ -52,7 +52,7 @@ function AddDivisionPage() {
 
         {/* Main 2-Column Layout */}
         <div className="flex flex-col lg:flex-row gap-3">
-          
+
           {/* Left Column (Main Form Area) */}
           <div className="flex-1 space-y-3">
             <DivisionInformationCard />
