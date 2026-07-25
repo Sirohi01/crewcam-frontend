@@ -117,8 +117,7 @@ function RichTextBox({
 }
 
 function Card({
-  title, action, children, className = '',
-}: { title?: string; action?: React.ReactNode; children?: React.ReactNode; className?: string }) {
+  title, action, children, className = '', }: { title?: string; action?: React.ReactNode; children?: React.ReactNode; className?: string }) {
   return (
     <div className={`rounded-none border border-zinc-200 bg-white shadow-sm ${className}`}>
       {title && (
@@ -127,7 +126,7 @@ function Card({
           {action}
         </div>
       )}
-      <div className="px-3 pb-2.5 pt-1">{children}</div>
+      <div className="px-3 pb-2 pt-1">{children}</div>
     </div>
   );
 }
