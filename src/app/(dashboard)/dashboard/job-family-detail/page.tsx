@@ -19,6 +19,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { PieChart, Pie, Cell } from "recharts";
+import { useRouter } from "next/navigation";
 
 const infoCards = [
   {
@@ -158,6 +159,7 @@ function SectionCard({
 }
 
 export default function JobFamilyDetailsPage() {
+    const router = useRouter()
   return (
     <main className="mx-auto w-full max-w-[1600px] space-y-2 overflow-x-hidden bg-zinc-50/40 p-2 sm:p-2">
       {/* Breadcrumb */}
@@ -187,10 +189,13 @@ export default function JobFamilyDetailsPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md border border-[#e0e4eb] bg-white px-3 text-[11px] font-semibold text-[#101743] sm:flex-none">
-            <ArrowLeft size={14} strokeWidth={2} />
-            Back to Job Families
-          </button>
+          <button
+  onClick={() => router.push("/dashboard/job-families")}
+  className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md border cursor-pointer border-[#e0e4eb] bg-white px-3 text-[11px] font-semibold text-[#101743] sm:flex-none"
+>
+  <ArrowLeft size={14} strokeWidth={2} />
+  Back to Job Families
+</button>
 
           <button className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md border border-[#e0e4eb] bg-white px-3 text-[11px] font-semibold text-[#101743] sm:flex-none">
             <Pencil size={14} strokeWidth={2} />

@@ -20,7 +20,11 @@ import {
   Laptop,
   Wrench,
   Shield,
+  PlusCircle,
+  BriefcaseBusiness,
 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type JobFamily = {
   id: number;
@@ -194,6 +198,7 @@ function SummaryCard({
 }
 
 export default function JobFamiliesPage() {
+  const router = useRouter()
   return (
     <main className="mx-auto w-full max-w-[1600px] space-y-2 overflow-x-hidden bg-zinc-50/40 p-2 sm:p-2">
       {/* Breadcrumb */}
@@ -222,17 +227,20 @@ export default function JobFamiliesPage() {
             Export
           </button>
 
-          <button className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md bg-[#153ee7] px-3 text-[11px] font-semibold text-white shadow-[0_2px_5px_rgba(21,62,231,0.25)] sm:flex-none">
-            <Plus size={14} strokeWidth={2} />
-            Add New Job Family
-          </button>
+        <button
+  onClick={() => router.push("/dashboard/add-job-family")}
+  className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md bg-[#153ee7] px-3 text-[11px] font-semibold text-white shadow-[0_2px_5px_rgba(21,62,231,0.25)] sm:flex-none"
+>
+  <PlusCircle size={14} strokeWidth={2} />
+  Add New Job Family
+</button>
         </div>
       </div>
 
       {/* Summary Cards */}
       <div className="mb-2 grid grid-cols-2 gap-2 lg:grid-cols-4">
         <SummaryCard
-          icon={<Building2 size={18} />}
+          icon={<BriefcaseBusiness size={18} />}
           title="Total Job Families"
           value="8"
           subtitle="Active Families"
@@ -289,7 +297,7 @@ export default function JobFamiliesPage() {
         {/* Table */}
         <div className="w-full overflow-x-auto">
     <div className="min-w-[920px]">
-  <div className="grid grid-cols-[40px_240px_100px_300px_110px_100px_90px_1fr] items-center gap-2 border-b border-zinc-200 bg-zinc-50 px-3 py-2 text-[10px] font-bold text-zinc-800">
+  <div className="grid grid-cols-[40px_240px_100px_300px_110px_100px_90px_1fr] items-center gap-2 border-b border-zinc-200 bg-zinc-50 px-3 py-2 text-[10px] font-semibold text-zinc-800">
     <span>#</span>
     <span>Job Family Name</span>
     <span>Family Code</span>
@@ -301,6 +309,7 @@ export default function JobFamiliesPage() {
   </div>
 
   {jobFamilies.map((family) => (
+    <Link href='/dashboard/job-family-detail'  key={family.id}>
     <div
       key={family.id}
       className="grid min-h-[46px] grid-cols-[40px_240px_100px_300px_110px_100px_90px_1fr] items-center gap-2 border-b border-zinc-100 px-3 py-1.5 text-[11px] text-zinc-800"
@@ -314,14 +323,14 @@ export default function JobFamiliesPage() {
           {family.icon}
         </div>
 
-        <span className="whitespace-nowrap font-bold">
+        <span className="whitespace-nowrap font-semibold">
           {family.name}
         </span>
       </div>
 
       <div>
         <span
-          className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-bold ${family.codeBg} ${family.codeColor}`}
+          className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-semibold ${family.codeBg} ${family.codeColor}`}
         >
           {family.code}
         </span>
@@ -355,6 +364,7 @@ export default function JobFamiliesPage() {
         </button>
       </div>
     </div>
+    </Link>
   ))}
 </div>
         </div>
