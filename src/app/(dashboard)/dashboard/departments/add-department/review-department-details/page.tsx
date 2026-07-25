@@ -3,6 +3,9 @@
 import React from 'react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/ui/page-header';
+import { useDepartmentForm } from '@/context/DepartmentFormContext';
+import { createDepartment, updateDepartment } from '@/services/departmentService';
+import { useRouter } from 'next/navigation';
 import {
     Building2, User, Calendar, Users, CheckCircle2,
     Eye, MapPin, Building, Briefcase, UserCheck, ChevronDown,
@@ -51,6 +54,24 @@ function InfoRow({ label, value, valueClass = '', vertical = false }: { label: s
 }
 
 export default function ReviewDepartmentDetails() {
+    const { formData, resetForm } = useDepartmentForm();
+    const router = useRouter();
+
+    const handleCreate = async () => {
+        try {
+            if (formData._id) {
+                await updateDepartment(formData._id, formData);
+            } else {
+                await createDepartment(formData);
+            }
+            resetForm();
+            router.push('/dashboard/departments');
+        } catch (error) {
+            console.error('Failed to save department', error);
+            alert('Failed to save department');
+        }
+    };
+
     return (
         <div className="w-full bg-[#f8f9fc] flex flex-col font-sans min-h-screen">
             <div className="w-full mx-auto p-2 sm:p-2 md:p-2 lg:p-2">
@@ -100,7 +121,7 @@ export default function ReviewDepartmentDetails() {
                                 <h2 className="text-[16px] font-bold text-zinc-900">Review Department Details</h2>
                                 <p className="text-[12px] text-zinc-500 font-medium mt-1">Please review all the information below. You can go back and edit if needed.</p>
                             </div>
-                            <button type="button" className="flex items-center gap-1.5 px-3 py-1.5 border border-zinc-200 rounded-lg text-[11px] font-bold text-indigo-700 hover:bg-zinc-50 transition-colors shadow-sm">
+                            <button type="button" onClick={() => router.push('/dashboard/departments/add-department/basic-info')} className="flex items-center gap-1.5 px-3 py-1.5 border border-zinc-200 rounded-lg text-[11px] font-bold text-indigo-700 hover:bg-zinc-50 transition-colors shadow-sm">
                                 <Edit size={12} /> Edit All Details
                             </button>
                         </div>
@@ -110,22 +131,22 @@ export default function ReviewDepartmentDetails() {
                             {/* Basic Information */}
                             <Card title={<><Info size={14} className="text-indigo-600" /> Basic Information</>}>
                                 <div className="mt-1">
-                                    <InfoRow label="Department Name" value="Design Studio" />
-                                    <InfoRow label="Department Code" value="DS" />
-                                    <InfoRow label="Parent Department" value="Business Operations" />
-                                    <InfoRow label="Department Type" value="Core Department" />
-                                    <InfoRow label="Business Unit" value="Retail Interiors & Exhibition" />
-                                    <InfoRow label="Status" value={<span className="px-1.5 py-0.5 rounded bg-emerald-100/60 text-emerald-600 text-[10px] font-bold">Active</span>} />
+                                    <InfoRow label="Department Name" value={formData.name || 'Design Studio'} />
+                                    <InfoRow label="Department Code" value={formData.code || 'DS'} />
+                                    <InfoRow label="Parent Department" value={formData.branchId || 'Business Operations'} />
+                                    <InfoRow label="Department Type" value={formData.departmentType || 'Core Department'} />
+                                    <InfoRow label="Business Unit" value={formData.businessUnit || 'Retail Interiors & Exhibition'} />
+                                    <InfoRow label="Status" value={<span className={`px-1.5 py-0.5 rounded ${formData.isActive ? 'bg-emerald-100/60 text-emerald-600' : 'bg-rose-100/60 text-rose-600'} text-[10px] font-bold`}>{formData.isActive ? 'Active' : 'Inactive'}</span>} />
                                 </div>
                             </Card>
 
                             {/* Department Head */}
                             <Card title={<><User size={14} className="text-purple-600" /> Department Head</>}>
                                 <div className="mt-1">
-                                    <InfoRow label="Department Head (HOD)" value="Aman Malhotra" />
-                                    <InfoRow label="Reporting To" value="Rajesh Sharma" />
+                                    <InfoRow label="Department Head (HOD)" value={formData.hodEmployeeId ? 'Aman Malhotra' : '-'} />
+                                    <InfoRow label="Reporting To" value={formData.reportingToId || '-'} />
                                     <InfoRow label="Assistant / Co-Head" value="-" />
-                                    <InfoRow label="Effective Date" value="01 May 2025" />
+                                    <InfoRow label="Effective Date" value={formData.effectiveDate || '01 May 2025'} />
                                     <InfoRow label="Probation Period" value="3 Months" />
                                     <InfoRow label="Department Email" value="designstudio@designhouse.co.in" />
                                 </div>
@@ -136,7 +157,7 @@ export default function ReviewDepartmentDetails() {
                                 <div className="mt-1">
                                     <InfoRow label="Location" value="Noida - Head Office" />
                                     <InfoRow label="Cost Center" value="CC-DS-1001" />
-                                    <InfoRow label="Business Unit" value="Retail Interiors & Exhibition" />
+                                    <InfoRow label="Business Unit" value={formData.businessUnit || 'Retail Interiors & Exhibition'} />
                                     <InfoRow label="Budget Owner" value="Neha Sethi (GM - Retail)" />
                                 </div>
                             </Card>
@@ -144,9 +165,9 @@ export default function ReviewDepartmentDetails() {
                             {/* Description & Settings */}
                             <Card title={<><FileText size={14} className="text-amber-500" /> Description & Settings</>}>
                                 <div className="mt-1">
-                                    <InfoRow vertical label="Department Purpose" value="To create innovative and functional design solutions for retail stores, exhibitions and corporate interiors." />
-                                    <InfoRow vertical label="Key Responsibilities" value="Retail Design, Exhibition Design, 3D Visualization, Working Drawings, BOQ, Material Selection, Client Presentation, Site Design Support" />
-                                    <InfoRow label="Employee Capacity" value="50" />
+                                    <InfoRow vertical label="Department Purpose" value={formData.description || 'To create innovative and functional design solutions for retail stores, exhibitions and corporate interiors.'} />
+                                    <InfoRow vertical label="Key Responsibilities" value={formData.keyResponsibilities || 'Retail Design, Exhibition Design, 3D Visualization, Working Drawings, BOQ, Material Selection, Client Presentation, Site Design Support'} />
+                                    <InfoRow label="Employee Capacity" value={formData.employeeCapacity || '50'} />
                                     <InfoRow label="Department Keywords" value="Design, Creative, Interior, 3D, Visualization" />
                                 </div>
                             </Card>
@@ -156,7 +177,7 @@ export default function ReviewDepartmentDetails() {
                                 <div className="mt-1">
                                     <InfoRow label="Working Days" value="Monday - Saturday" />
                                     <InfoRow label="Default Shift" value="09:30 AM - 06:30 PM" />
-                                    <InfoRow label="Is Active" value={<span className="px-1.5 py-0.5 rounded bg-emerald-100/60 text-emerald-600 text-[10px] font-bold">Yes</span>} />
+                                    <InfoRow label="Is Active" value={<span className={`px-1.5 py-0.5 rounded ${formData.isActive ? 'bg-emerald-100/60 text-emerald-600' : 'bg-rose-100/60 text-rose-600'} text-[10px] font-bold`}>{formData.isActive ? 'Yes' : 'No'}</span>} />
 
                                     <div className="mt-4 border-t border-zinc-100 pt-3">
                                         <div className="text-[11px] font-medium text-zinc-500 mb-3">Reports To Structure :</div>
@@ -240,15 +261,15 @@ export default function ReviewDepartmentDetails() {
                         <Card title={<><Eye size={14} className="text-indigo-600 mr-2" /> Department Preview</>}>
                             <div className="flex items-start gap-3 mt-1 mb-4">
                                 <div className="w-12 h-12 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-lg font-bold shrink-0 shadow-md shadow-indigo-600/20">
-                                    DS
+                                    {formData.code || 'DS'}
                                 </div>
                                 <div>
-                                    <h3 className="text-[14px] font-bold text-zinc-900 leading-tight">Design Studio</h3>
+                                    <h3 className="text-[14px] font-bold text-zinc-900 leading-tight">{formData.name || 'Design Studio'}</h3>
                                     <div className="flex items-center gap-1.5 mt-1.5">
-                                        <span className="px-1.5 py-[2px] rounded bg-emerald-50 text-emerald-600 text-[9px] font-bold border border-emerald-100 uppercase tracking-wider">Active</span>
+                                        <span className={`px-1.5 py-[2px] rounded ${formData.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'} text-[9px] font-bold border uppercase tracking-wider`}>{formData.isActive ? 'Active' : 'Inactive'}</span>
                                     </div>
                                     <p className="text-[11px] text-zinc-500 mt-1.5 font-medium flex items-center gap-1">
-                                        <span className="font-semibold text-zinc-700">DS</span> &bull; Core Department
+                                        <span className="font-semibold text-zinc-700">{formData.code || 'DS'}</span> &bull; {formData.departmentType || 'Core Department'}
                                     </p>
                                 </div>
                             </div>
@@ -356,7 +377,7 @@ export default function ReviewDepartmentDetails() {
                     <button type="button" className="flex items-center justify-center gap-2 h-8 px-4 rounded-lg text-[12px] font-bold text-indigo-700 border border-indigo-200 bg-white hover:bg-indigo-50 shadow-sm transition-colors">
                         <Save size={14} /> Save Draft
                     </button>
-                    <button type="button" className="flex items-center justify-center gap-2 h-8 px-6 rounded-lg text-[12px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_2px_10px_rgba(79,70,229,0.2)] transition-colors">
+                    <button onClick={handleCreate} type="button" className="flex items-center justify-center gap-2 h-8 px-6 rounded-lg text-[12px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_2px_10px_rgba(79,70,229,0.2)] transition-colors">
                         <CheckCircle size={14} /> Create Department
                     </button>
                 </div>

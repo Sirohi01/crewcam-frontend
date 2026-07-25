@@ -1,13 +1,16 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Upload, Download, Sparkles, Plus, ChevronRight, Search, Filter,
   RotateCcw, Eye, Edit2, MoreVertical, X, ChevronDown, ChevronLeft,
-  Building, Users, User, PieChart as PieChartIcon, CheckCircle2, Circle, TrendingUp, Clock
+  Building, Users, User, PieChart as PieChartIcon, CheckCircle2, Circle, TrendingUp, Clock,
+  Delete,
+  Trash2
 } from 'lucide-react';
 import { LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Card } from '@/components/ui/card';
+import { getDepartments, deleteDepartment } from '@/services/departmentService';
 
 // --- MOCK DATA ---
 const topCards = [
@@ -21,18 +24,7 @@ const topCards = [
 
 const mockChartData = [{ v: 10 }, { v: 25 }, { v: 20 }, { v: 45 }, { v: 30 }, { v: 50 }, { v: 40 }];
 
-const departments = [
-  { id: 1, name: 'Design Studio', code: 'DS', headName: 'Aman Malhotra', headRole: 'Design Director', empTotal: 42, empManager: 28, empSupport: 14, budgetStr: '₹ 1,20,00,000', util: 80, active: true },
-  { id: 2, name: 'Retail Interiors', code: 'RI', headName: 'Neha Sethi', headRole: 'GM - Retail', empTotal: 68, empManager: 40, empSupport: 28, budgetStr: '₹ 2,45,00,000', util: 75, active: true },
-  { id: 3, name: 'Display Merchandising', code: 'DM', headName: 'Rohit Arora', headRole: 'GM - Display', empTotal: 55, empManager: 35, empSupport: 20, budgetStr: '₹ 1,75,00,000', util: 70, active: true },
-  { id: 4, name: 'Events & Exhibitions', code: 'EE', headName: 'Pooja Bansal', headRole: 'Events Director', empTotal: 38, empManager: 26, empSupport: 12, budgetStr: '₹ 1,10,00,000', util: 65, active: true },
-  { id: 5, name: 'Projects', code: 'PR', headName: 'Vivek Rana', headRole: 'VP - Projects', empTotal: 72, empManager: 48, empSupport: 24, budgetStr: '₹ 3,10,00,000', util: 78, active: true },
-  { id: 6, name: 'Production', code: 'PD', headName: 'Sandeep Yadav', headRole: 'Production Head', empTotal: 61, empManager: 50, empSupport: 11, budgetStr: '₹ 2,05,00,000', util: 72, active: true },
-  { id: 7, name: 'Procurement', code: 'PC', headName: 'Meena Joshi', headRole: 'Procurement Head', empTotal: 18, empManager: 12, empSupport: 6, budgetStr: '₹ 65,00,000', util: 60, active: true },
-  { id: 8, name: 'Sales & Business Dev.', code: 'SB', headName: 'Karan Wadhwa', headRole: 'Sales Director', empTotal: 46, empManager: 30, empSupport: 16, budgetStr: '₹ 1,90,00,000', util: 68, active: true },
-  { id: 9, name: 'Accounts & Finance', code: 'AF', headName: 'Anjali Gupta', headRole: 'Finance Manager', empTotal: 20, empManager: 12, empSupport: 8, budgetStr: '₹ 85,00,000', util: 55, active: true },
-  { id: 10, name: 'Human Resources', code: 'HR', headName: 'Priyanka Singh', headRole: 'HR Manager', empTotal: 15, empManager: 9, empSupport: 6, budgetStr: '₹ 60,00,000', util: 50, active: true },
-];
+// Real data will overwrite this.
 
 const compositionData = [
   { name: 'Managers', value: 10, color: '#3b82f6', percent: '24%' },
@@ -85,6 +77,35 @@ const CircularProgress = ({ value, color, hideText }: { value: number, color: st
 export default function DepartmentsPage() {
   const [activeLeftTab, setActiveLeftTab] = useState('Department List');
   const [activeRightTab, setActiveRightTab] = useState('Overview');
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
+
+  const fetchDepartments = async () => {
+    try {
+      setLoading(true);
+      const data = await getDepartments();
+      setDepartments(data);
+    } catch (error) {
+      console.error('Failed to fetch departments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this department?')) {
+      try {
+        await deleteDepartment(id);
+        fetchDepartments();
+      } catch (error) {
+        console.error('Failed to delete department:', error);
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col gap-2 animate-in fade-in duration-300 p-2 w-full font-sans text-slate-800">
@@ -209,8 +230,12 @@ export default function DepartmentsPage() {
                   </tr>
                 </thead>
                 <tbody className="text-[11px]">
-                  {departments.map((dept, i) => (
-                    <tr key={i} className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors group ${i === 0 ? 'bg-blue-50/20' : ''}`}>
+                  {loading ? (
+                    <tr><td colSpan={8} className="text-center py-4 text-slate-500">Loading departments...</td></tr>
+                  ) : departments.length === 0 ? (
+                    <tr><td colSpan={8} className="text-center py-4 text-slate-500">No departments found.</td></tr>
+                  ) : departments.map((dept, i) => (
+                    <tr key={dept._id || i} className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors group ${i === 0 ? 'bg-blue-50/20' : ''}`}>
                       <td className="py-1.5 px-2 text-slate-400">
                         <ChevronRight className="w-4 h-4 cursor-pointer hover:text-slate-600 transition-colors" />
                       </td>
@@ -225,43 +250,43 @@ export default function DepartmentsPage() {
                       <td className="py-1.5 px-2 font-semibold text-slate-700">{dept.code}</td>
                       <td className="py-1.5 px-2">
                         <div className="flex items-center gap-3">
-                          <img src={`https://i.pravatar.cc/150?u=${dept.id}`} alt={dept.headName} className="w-8 h-8 rounded-full border border-slate-200" />
+                          <img src={`https://i.pravatar.cc/150?u=${dept._id || dept.id}`} alt={dept.headName || 'User'} className="w-8 h-8 rounded-full border border-slate-200" />
                           <div className="leading-tight">
-                            <p className="font-bold text-slate-800 text-[11px]">{dept.headName}</p>
-                            <p className="text-[11px] text-slate-500 mt-0.5">{dept.headRole}</p>
+                            <p className="font-bold text-slate-800 text-[11px]">{dept.hodEmployeeId || 'Aman Malhotra'}</p>
+                            <p className="text-[11px] text-slate-500 mt-0.5">Design Director</p>
                           </div>
                         </div>
                       </td>
                       <td className="py-1.5 px-2">
                         <div className="flex flex-col gap-1.5">
-                          <span className="font-bold text-slate-800">{dept.empTotal}</span>
+                          <span className="font-bold text-slate-800">{dept.employeeCapacity || dept.empTotal || 0}</span>
                           <div className="flex items-center gap-1.5 text-[10px] font-semibold">
-                            <span className="text-blue-600 flex items-center gap-1"><Users className="w-3 h-3 text-blue-400" /> {dept.empManager}</span>
-                            <span className="text-rose-500 flex items-center gap-1"><Users className="w-3 h-3 text-rose-400" /> {dept.empSupport}</span>
+                            <span className="text-blue-600 flex items-center gap-1"><Users className="w-3 h-3 text-blue-400" /> {dept.empManager || 0}</span>
+                            <span className="text-rose-500 flex items-center gap-1"><Users className="w-3 h-3 text-rose-400" /> {dept.empSupport || 0}</span>
                           </div>
                         </div>
                       </td>
                       <td className="py-1.5 px-2">
                         <div className="flex flex-col gap-1.5 w-36">
                           <div className="flex justify-between items-center text-[10px]">
-                            <span className="font-bold text-slate-800">{dept.budgetStr}</span>
-                            <span className="font-bold text-slate-500 text-[11px]">{dept.util}%</span>
+                            <span className="font-bold text-slate-800">{dept.budgetStr || '₹ 0'}</span>
+                            <span className="font-bold text-slate-500 text-[11px]">{dept.util || 0}%</span>
                           </div>
                           <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-blue-600 rounded-full" style={{ width: `${dept.util}%` }} />
+                            <div className="h-full bg-blue-600 rounded-full" style={{ width: `${dept.util || 0}%` }} />
                           </div>
                         </div>
                       </td>
                       <td className="py-1.5 px-2">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-wider border border-emerald-100">
-                          Active
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md ${dept.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'} text-[10px] font-bold uppercase tracking-wider border`}>
+                          {dept.isActive ? 'Active' : 'Inactive'}
                         </span>
                       </td>
                       <td className="py-1.5 px-2">
                         <div className="flex items-center justify-center gap-1">
-                          <Link href={`/dashboard/departments/${i + 1}`} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors block"><Eye className="w-4 h-4" /></Link>
-                          <button className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"><Edit2 className="w-4 h-4" /></button>
-                          <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors"><MoreVertical className="w-4 h-4" /></button>
+                          <Link href={`/dashboard/departments/${dept._id || dept.id}`} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors block"><Eye className="w-4 h-4" /></Link>
+                          <Link href={`/dashboard/departments/add-department/init/${dept._id || dept.id}`} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors block"><Edit2 className="w-4 h-4" /></Link>
+                          <button onClick={() => handleDelete(dept._id || dept.id?.toString())} className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"><Trash2 className="w-4 h-4" /></button>
                         </div>
                       </td>
                     </tr>
