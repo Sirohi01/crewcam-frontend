@@ -6,11 +6,13 @@ import {
   Wallet, Layers3, ClipboardList, Upload, UserPlus,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
+import TeamMembersTab from '@/components/departments/TeamMembersTab';
 
 // ─── Static data ────────────────────────────────────────────────────────────
 const BREADCRUMB = ['Organization Setup', 'Departments', 'Department Structure', 'Sub Department Details'];
 
-const INFO_CARDS = [
+export const INFO_CARDS = [
   { label: 'Department', value: 'Design Studio', sub: 'DS-3D', icon: Layers, bg: 'bg-orange-50', color: 'text-orange-600' },
   { label: 'Parent Division', value: 'Design & Planning', sub: 'DIV-DSPL', icon: GitBranch, bg: 'bg-purple-50', color: 'text-purple-600' },
   { label: 'Business Unit', value: 'Retail Interiors', sub: 'BU-RI', icon: Users, bg: 'bg-emerald-50', color: 'text-emerald-600' },
@@ -18,7 +20,7 @@ const INFO_CARDS = [
   { label: 'Total Budget (FY 25-26)', value: '₹ 8,40,000', sub: 'Allocated', icon: IndianRupee, bg: 'bg-amber-50', color: 'text-amber-600' },
 ];
 
-const TABS = ['Sub Departments', 'Budget Allocation', 'Expense Tracking', 'Team Members', 'Documents', 'History'];
+export const TABS = ['Sub Departments', 'Budget Allocation', 'Expense Tracking', 'Team Members', 'Documents', 'History'];
 
 const SUB_DEPARTMENTS = [
   {
@@ -103,35 +105,45 @@ const COST_CENTER_MAP = [
 ];
 
 // ─── Breadcrumb + heading ───────────────────────────────────────────────────
-function PageHeading() {
+export function PageHeading({ activeTab }: { activeTab: string }) {
+  const isTeamMembers = activeTab === 'Team Members';
+
+  const breadcrumb = isTeamMembers
+    ? [...BREADCRUMB, 'Team Members']
+    : BREADCRUMB;
+
   return (
     <section className="space-y-2">
       <div className="flex items-center gap-1.5 text-[12px] text-zinc-500 flex-wrap">
-        {BREADCRUMB.map((crumb, i) => (
+        {breadcrumb.map((crumb, i) => (
           <React.Fragment key={crumb}>
-            {i === BREADCRUMB.length - 1 ? (
-              <span className="text-indigo-600 font-semibold">{crumb}</span>
+            {i === breadcrumb.length - 1 ? (
+              <span className="text-blue-600 font-semibold">{crumb}</span>
             ) : (
               <span className="text-zinc-500 hover:underline cursor-pointer">{crumb}</span>
             )}
-            {i < BREADCRUMB.length - 1 && <ChevronRight size={12} />}
+            {i < breadcrumb.length - 1 && <ChevronRight size={12} />}
           </React.Fragment>
         ))}
       </div>
       <div className="flex items-start justify-between gap-2 flex-wrap">
         <div className="space-y-1">
-          <h1 className="text-1xl font-bold text-zinc-900 leading-tight">Sub Department Details</h1>
-          <p className="text-[13px] text-zinc-500">Manage and track all sub departments under this department.</p>
+          <h1 className="text-xl font-bold text-zinc-900 leading-tight">
+            {isTeamMembers ? 'Team Members' : 'Sub Department Details'}
+          </h1>
+          <p className="text-[12px] text-zinc-500">
+            {isTeamMembers ? 'View and manage all team members of this sub department.' : 'Manage and track all sub departments under this department.'}
+          </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Link href="/dashboard/departments/structure" className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors">
-            <ArrowLeft size={14} /> Back to Department Structure
+          <Link href={isTeamMembers ? "/dashboard/departments/sub-department-details" : "/dashboard/departments/structure"} className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors">
+            <ArrowLeft size={14} /> {isTeamMembers ? 'Back to Sub Department' : 'Back to Department Structure'}
           </Link>
-          <Link href="/dashboard/departments/structure/view-in-tree" className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors">
+          <Link href="/dashboard/departments/structure/view-in-tree" className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors">
             <GitBranch size={14} /> View in Tree
           </Link>
-          <button className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-2 py-2 text-[12px] font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors">
-            <Plus size={14} /> Add Sub Department
+          <button className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors">
+            <Plus size={14} /> {isTeamMembers ? 'Add Team Member' : 'Add Sub Department'}
           </button>
         </div>
       </div>
@@ -140,9 +152,9 @@ function PageHeading() {
 }
 
 // ─── Info strip ──────────────────────────────────────────────────────────────
-function InfoStrip() {
+export function InfoStrip() {
   return (
-    <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
+    <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-2">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 divide-y sm:divide-y-0 lg:divide-x divide-zinc-100">
         {INFO_CARDS.map((c) => (
           <div key={c.label} className="flex items-center gap-3 py-3 lg:py-0 lg:px-4 first:pl-0 first:pt-0 last:pr-0">
@@ -162,13 +174,21 @@ function InfoStrip() {
 }
 
 // ─── Tabs ────────────────────────────────────────────────────────────────────
-function Tabs({ active, onChange }: { active: string; onChange: (t: string) => void }) {
+export function Tabs({ active, onChange }: { active: string; onChange?: (t: string) => void }) {
+  const router = useRouter();
+
   return (
     <div className="flex items-center gap-6 border-b border-zinc-200 overflow-x-auto">
       {TABS.map((t) => (
         <button
           key={t}
-          onClick={() => onChange(t)}
+          onClick={() => {
+            if (t === 'Team Members') {
+              router.push('/dashboard/departments/sub-department-details/team-members');
+            } else if (onChange) {
+              onChange(t);
+            }
+          }}
           className={`shrink-0 pb-3 pt-1 text-[13px] font-semibold whitespace-nowrap border-b-2 transition-colors ${active === t ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'
             }`}
         >
@@ -446,8 +466,8 @@ export default function SubDepartmentDetailsPage() {
   const [activeTab, setActiveTab] = useState('Sub Departments');
 
   return (
-    <div className="space-y-2 font-sans text-zinc-900 p-2">
-      <PageHeading />
+    <div className="space-y-2 font-sans text-zinc-900 p-2 max-w-[1400px] mx-auto min-h-[calc(100vh-64px)]">
+      <PageHeading activeTab={activeTab} />
       <InfoStrip />
       <Tabs active={activeTab} onChange={setActiveTab} />
 
