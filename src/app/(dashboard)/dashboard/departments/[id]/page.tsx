@@ -63,7 +63,7 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
       </div>
 
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-3">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div className="flex items-start gap-4">
           <div className="mt-1 flex items-center justify-center w-9 h-9 rounded-md border border-slate-200 text-blue-600">
             <Share2 className="w-5 h-5" />
@@ -77,9 +77,12 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
           <Link href="/dashboard/departments" className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors shadow-sm">
             <ArrowLeft className="w-4 h-4" /> Back to List
           </Link>
-          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors shadow-sm">
+          <Link href="/dashboard/departments/sub-department-management" className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors shadow-sm">
+            <Users className="w-4 h-4" /> Sub Departments
+          </Link>
+          {/* <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors shadow-sm">
             <Copy className="w-4 h-4" /> Duplicate Department
-          </button>
+          </button> */}
           <button className="flex items-center gap-2 px-6 py-2 bg-blue-600 border border-blue-600 text-white rounded-md font-bold text-[12px] hover:bg-blue-700 transition-colors shadow-sm">
             <Edit2 className="w-4 h-4" /> Edit Department
           </button>
@@ -87,7 +90,7 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
       </div>
 
       {/* THREE COLUMN GRID */}
-      <div className="grid grid-cols-1 xl:grid-cols-[200px_minmax(0,1fr)_380px] gap-5 items-start mt-2">
+      <div className="grid grid-cols-1 xl:grid-cols-[200px_minmax(0,1fr)_380px] gap-2 items-start mt-2">
 
         {/* LEFT NAV PANEL */}
         <div className="flex flex-col gap-1 py-1">
@@ -310,10 +313,10 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
         </div>
 
         {/* RIGHT INFORMATION PANEL */}
-        <div className="flex flex-col gap-5 sticky top-6">
+        <div className="flex flex-col gap-2 sticky top-6">
           {/* Understand Key Fields */}
           <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-2">
               <div className="text-amber-500"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.9 1.2 1.5 1.5 2.5" /><path d="M9 18h6" /><path d="M10 22h4" /></svg></div>
               <h3 className="text-[14px] font-bold text-slate-900">Understand Key Fields</h3>
             </div>
@@ -372,7 +375,7 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
 
           {/* Hierarchy Preview */}
           <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
-            <h3 className="text-[14px] font-bold text-slate-900 mb-4">Hierarchy Preview</h3>
+            <h3 className="text-[14px] font-bold text-slate-900 mb-2">Hierarchy Preview</h3>
             <div className="flex flex-col text-[11px] font-bold text-slate-800 relative z-0">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-6 h-6 rounded bg-[#E8F3EA] text-[#6CA97B] flex items-center justify-center shrink-0">
