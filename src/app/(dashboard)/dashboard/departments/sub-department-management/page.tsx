@@ -438,7 +438,7 @@ export default function SubDepartmentManagementPage() {
   const [selectedId, setSelectedId] = useState(1);
 
   return (
-    <div className="space-y-2 font-sans text-zinc-900">
+    <div className="space-y-2 font-sans text-zinc-900 p-2">
       <PageHeading />
       <KpiStrip />
 
