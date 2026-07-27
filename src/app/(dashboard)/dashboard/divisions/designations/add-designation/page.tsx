@@ -10,7 +10,7 @@ export default function AddDesignationPage() {
   return (
     <div className="w-full bg-[#f8f9fc] flex flex-col font-sans min-h-[calc(100vh-64px)]">
       <div className="w-full mx-auto p-2 sm:p-2 md:p-2 lg:p-2">
-        
+
         {/* Breadcrumbs */}
         <div className="flex items-center gap-2 text-[12px] font-medium text-zinc-500 mb-2">
           <span>Organization Setup</span>
@@ -31,7 +31,7 @@ export default function AddDesignationPage() {
             <p className="text-[12px] text-zinc-500 mt-0.5">Create a new job role / designation and define its details.</p>
           </div>
           <div className="flex items-center gap-2">
-            <Link 
+            <Link
               href="/dashboard/divisions/designations"
               className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors"
             >
@@ -45,7 +45,7 @@ export default function AddDesignationPage() {
 
         {/* Main 2-Column Layout */}
         <div className="flex flex-col lg:flex-row gap-2">
-          
+
           {/* Left Column (Main Form Area) */}
           <div className="flex-1 min-w-0">
             <DesignationFormCards />
@@ -53,7 +53,8 @@ export default function AddDesignationPage() {
 
           {/* Right Column (Sidebar Area) */}
           <div className="w-full lg:w-[320px] shrink-0">
-            <div className="sticky top-2">
+            {/* <div className="sticky top-2"> */}
+            <div>
               <DesignationSidebarCards />
             </div>
           </div>
