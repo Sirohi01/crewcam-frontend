@@ -167,13 +167,26 @@ export default function AssessmentRoundPage() {
               <Card title="Written Assessment in Progress">
                 <p className="text-[10px] leading-snug text-zinc-500">This is a role-based written assessment with AI-generated questions.</p>
 
-                <div className="relative mx-auto my-3 grid h-24 w-24 place-items-center rounded-full" style={{ background: 'conic-gradient(#4f46e5 80%, #e5e7eb 0)' }}>
-                  <div className="grid h-[76px] w-[76px] place-items-center rounded-full bg-white text-center">
-                    <p className="text-[9px] text-zinc-400">Time Remaining</p>
-                    <p className="text-[15px] font-bold text-zinc-900">48:25</p>
-                    <p className="text-[8.5px] text-zinc-400">of 60:00</p>
-                  </div>
-                </div>
+<div
+  className="relative mx-auto my-3 grid h-[114px] w-[114px] place-items-center rounded-full"
+  style={{
+    background: "conic-gradient(#4f46e5 80%, #e5e7eb 0)",
+  }}
+>
+  <div className="flex h-[94px] w-[94px] flex-col items-center justify-center rounded-full bg-white text-center">
+    <p className="text-[10px] leading-tight text-zinc-500">
+      Time Remaining
+    </p>
+
+    <p className="text-[18px] font-bold leading-tight text-zinc-900">
+      48:25
+    </p>
+
+    <p className="text-[9px] leading-tight text-zinc-500">
+      of 60:00
+    </p>
+  </div>
+</div>
 
                 <div className="space-y-1 border-t border-zinc-100 pt-2 text-[10.5px]">
                   <div className="flex items-center justify-between"><span className="text-zinc-500">Total Questions</span><span className="font-semibold text-zinc-800">40</span></div>
@@ -232,8 +245,8 @@ export default function AssessmentRoundPage() {
                   </Card>
 
                   <Card title={<span className="flex items-center gap-1.5"><Lightbulb size={13} className="text-amber-500" /> Test Tips</span>}>
-                    <ul className="space-y-1 text-[10.5px] text-zinc-600">
-                      {testTips.map((t) => <li key={t} className="list-disc pl-3">{t}</li>)}
+                    <ul className="space-y-1 text-[10.5px] text-zinc-600 pl-3">
+                      {testTips.map((t) => <li key={t} className="list-disc ">{t}</li>)}
                     </ul>
                   </Card>
                 </div>
