@@ -4,12 +4,18 @@ import React from 'react';
 import { CloudUpload, Monitor, LayoutDashboard, Presentation, Users, Folder, Network } from 'lucide-react';
 import { Card } from './FormHelpers';
 
-export function DivisionIconCard() {
+export function DivisionIconCard({ 
+    title = "Division Icon", 
+    entityName = "division" 
+}: { 
+    title?: string; 
+    entityName?: string; 
+}) {
     return (
         <Card>
             <div className="mb-4">
-                <h3 className="text-[13px] font-bold text-zinc-800">Division Icon</h3>
-                <p className="text-[11px] text-zinc-500 mt-1">Upload an icon or choose from library to represent this division.</p>
+                <h3 className="text-[13px] font-bold text-zinc-800">{title}</h3>
+                <p className="text-[11px] text-zinc-500 mt-1">Upload an icon or choose from library to represent this {entityName}.</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
