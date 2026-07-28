@@ -8,6 +8,7 @@ import {
   ChevronRight, MessageCircleQuestion, FilePlus2, ClipboardList,
   CreditCard, FileDown, ArrowRight,
 } from 'lucide-react';
+import { Breadcrumb } from '@/components/ui/breadCrumb';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Mock data
@@ -138,11 +139,12 @@ function Card({ title, action, className = '', children, titleExtra }: CardProps
 function PageHeader() {
   return (
     <div>
-      <p className="flex items-center gap-1.5 text-[12px] text-zinc-400">
-        <span className="text-zinc-400">Dashboard</span>
-        <span>›</span>
-        <span className="font-semibold text-zinc-700">Reimbursement (Imprest)</span>
-      </p>
+      <Breadcrumb
+  items={[
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "Reimbursement (Imprest)" },
+  ]}
+/>
       <h1 className="mt-1 text-[24px] font-bold text-zinc-900">Reimbursement (Imprest)</h1>
       <p className="mt-0.5 text-[13px] text-zinc-400">Submit, track and manage your reimbursement requests.</p>
     </div>

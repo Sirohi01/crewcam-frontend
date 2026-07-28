@@ -9,6 +9,7 @@ import {
   FileText, Users, Monitor, Database, Calendar, BookOpen,
   Plus, CalendarPlus, Target, BarChart3, ArrowUpRight,
 } from 'lucide-react';
+import { Breadcrumb } from '@/components/ui/breadCrumb';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Mock data

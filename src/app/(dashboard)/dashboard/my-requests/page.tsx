@@ -8,6 +8,7 @@ import {
   MessageCircleQuestion, Umbrella, Receipt, Home, Plane, Calendar,
   Monitor, ArrowRight, Plus, History, SlidersHorizontal, Sparkles,
 } from 'lucide-react';
+import { Breadcrumb } from '@/components/ui/breadCrumb';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Mock data
@@ -151,11 +152,14 @@ function PageHeader() {
   return (
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
-        <p className="flex items-center gap-1.5 text-[12px] text-zinc-400">
-          <span className="text-zinc-400">Dashboard</span>
-          <span>›</span>
-          <span className="font-semibold text-zinc-700">My Requests</span>
-        </p>
+    <Breadcrumb
+  items={[
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "My Requests" },
+  ]}
+/>
+
+
         <h1 className="mt-1 text-[24px] font-bold text-zinc-900">My Requests</h1>
         <p className="mt-0.5 text-[13px] text-zinc-400">Track and manage all your requests in one place.</p>
       </div>
