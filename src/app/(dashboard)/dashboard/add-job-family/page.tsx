@@ -15,6 +15,8 @@ import {
   ShoppingBag,
   Headphones,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const benefits = [
   "Organize roles into logical groups",
@@ -116,13 +118,14 @@ function Field({
 }
 
 export default function AddNewJobFamilyPage() {
+  const router = useRouter();
   return (
     <main className="mx-auto w-full max-w-[1600px] space-y-2 overflow-x-hidden bg-zinc-50/40 p-2 sm:p-2">
       {/* Breadcrumb */}
       <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold">
         <span className="text-zinc-400">Organization Setup</span>
         <span className="text-sm font-normal leading-none">›</span>
-        <span className="text-zinc-400">Job Families</span>
+        <Link href="/dashboard/job-families" className="text-zinc-400">Job Families</Link>
         <span className="text-sm font-normal leading-none">›</span>
         <span>Add New Job Family</span>
       </div>
@@ -140,7 +143,10 @@ export default function AddNewJobFamilyPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md border border-[#e0e4eb] bg-white px-3 text-[11px] font-semibold text-[#101743] sm:flex-none">
+          <button
+            onClick={() => router.push("/dashboard/job-families")}
+            className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md border cursor-pointer border-[#e0e4eb] bg-white px-3 text-[11px] font-semibold text-[#101743] sm:flex-none"
+          >
             <ArrowLeft size={14} strokeWidth={2} />
             Back to Job Families
           </button>
@@ -153,7 +159,7 @@ export default function AddNewJobFamilyPage() {
       </div>
 
       {/* Content */}
-       <div className="grid grid-cols-1 items-stretch gap-2 lg:grid-cols-[1fr_300px]">
+      <div className="grid grid-cols-1 items-stretch gap-2 lg:grid-cols-[1fr_300px]">
         {/* Left column */}
         <div className="flex h-full flex-col gap-2">
           {/* Job Family Information */}
@@ -162,7 +168,7 @@ export default function AddNewJobFamilyPage() {
               <IdCard size={16} className="text-[#2474d5]" />
               Job Family Information
             </div>
- 
+
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Field label="Job Family Name" required helper="e.g., Information Technology">
                 <input
@@ -170,14 +176,14 @@ export default function AddNewJobFamilyPage() {
                   className="h-6 w-full rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
                 />
               </Field>
- 
+
               <Field label="Family Code" required helper="e.g., IT">
                 <input
                   defaultValue="IT"
                   className="h-6 w-full rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
                 />
               </Field>
- 
+
               <Field label="Description" required>
                 <div className="relative">
                   <textarea
@@ -191,7 +197,7 @@ export default function AddNewJobFamilyPage() {
                 </div>
               </Field>
             </div>
- 
+
             <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Field label="Parent Family (Optional)" helper="Select if this is a sub-family">
                 <div className="relative">
@@ -204,7 +210,7 @@ export default function AddNewJobFamilyPage() {
                   />
                 </div>
               </Field>
- 
+
               <Field label="Applicable Business Unit" helper="Select the applicable business unit">
                 <div className="relative">
                   <select className="h-6 w-full appearance-none rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none">
@@ -216,7 +222,7 @@ export default function AddNewJobFamilyPage() {
                   />
                 </div>
               </Field>
- 
+
               <Field label="Status" required helper="Choose current status">
                 <div className="relative">
                   <select className="h-6 w-full appearance-none rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none">
@@ -229,7 +235,7 @@ export default function AddNewJobFamilyPage() {
                 </div>
               </Field>
             </div>
- 
+
             <div className="mt-3">
               <Field label="Key Responsibilities (Optional)">
                 <div className="relative">
@@ -247,13 +253,13 @@ export default function AddNewJobFamilyPage() {
               </Field>
             </div>
           </div>
- 
+
           {/* Examples */}
           <div className="rounded-xl border border-[#e7e9ee] bg-white p-3">
             <div className="mb-3 text-[13px] font-bold text-[#101743]">
               Examples of Job Families in Your Organization
             </div>
- 
+
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
               {examples.map((ex) => (
                 <div
@@ -283,7 +289,7 @@ export default function AddNewJobFamilyPage() {
                 </div>
               ))}
             </div>
- 
+
             <div className="mt-3 flex items-start gap-2 rounded-md border border-[#dbe4ff] bg-[#eef2ff] p-2.5">
               <Lightbulb size={14} className="mt-0.5 shrink-0 text-[#2474d5]" />
               <p className="text-[11px] leading-[16px] text-[#2474d5]">
@@ -294,7 +300,7 @@ export default function AddNewJobFamilyPage() {
             </div>
           </div>
         </div>
- 
+
         {/* Right column */}
         <div className="flex h-full flex-col gap-2">
           <div className="rounded-xl border border-[#e7e9ee] bg-white p-3">
@@ -312,7 +318,7 @@ export default function AddNewJobFamilyPage() {
               </p>
             </div>
           </div>
- 
+
           <div className="rounded-xl border border-[#e7e9ee] bg-white p-3">
             <div className="mb-2 text-[13px] font-bold text-[#101743]">
               Benefits
@@ -332,7 +338,7 @@ export default function AddNewJobFamilyPage() {
               ))}
             </ul>
           </div>
- 
+
           <div className="flex flex-1 flex-col rounded-xl border border-[#e7e9ee] bg-white p-3">
             <div className="mb-2 flex items-center gap-1.5 text-[13px] font-bold text-[#101743]">
               <Info size={15} className="text-[#2474d5]" />
@@ -352,7 +358,7 @@ export default function AddNewJobFamilyPage() {
           </div>
         </div>
       </div>
- 
+
 
       {/* Copyright */}
       <footer className="pt-2 text-center text-[10px] font-medium text-[#565b7b]">

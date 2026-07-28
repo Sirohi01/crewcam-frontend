@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { PieChart, Pie, Cell } from "recharts";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const infoCards = [
   {
@@ -159,14 +160,14 @@ function SectionCard({
 }
 
 export default function JobFamilyDetailsPage() {
-    const router = useRouter()
+  const router = useRouter()
   return (
     <main className="mx-auto w-full max-w-[1600px] space-y-2 overflow-x-hidden bg-zinc-50/40 p-2 sm:p-2">
       {/* Breadcrumb */}
       <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold">
         <span className="text-zinc-400">Organization Setup</span>
         <span className="text-sm font-normal leading-none">›</span>
-        <span className="text-zinc-400">Job Families</span>
+        <Link href="/dashboard/job-families" className="text-zinc-400">Job Families</Link>
         <span className="text-sm font-normal leading-none">›</span>
         <span>Job Family Details</span>
       </div>
@@ -190,12 +191,12 @@ export default function JobFamilyDetailsPage() {
 
         <div className="flex items-center gap-2">
           <button
-  onClick={() => router.push("/dashboard/job-families")}
-  className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md border cursor-pointer border-[#e0e4eb] bg-white px-3 text-[11px] font-semibold text-[#101743] sm:flex-none"
->
-  <ArrowLeft size={14} strokeWidth={2} />
-  Back to Job Families
-</button>
+            onClick={() => router.push("/dashboard/job-families")}
+            className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md border cursor-pointer border-[#e0e4eb] bg-white px-3 text-[11px] font-semibold text-[#101743] sm:flex-none"
+          >
+            <ArrowLeft size={14} strokeWidth={2} />
+            Back to Job Families
+          </button>
 
           <button className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md border border-[#e0e4eb] bg-white px-3 text-[11px] font-semibold text-[#101743] sm:flex-none">
             <Pencil size={14} strokeWidth={2} />
@@ -217,212 +218,211 @@ export default function JobFamilyDetailsPage() {
         ))}
       </div>
 
- 
+
 
       {/* Content */}
-  <div className="grid grid-cols-1 gap-2 lg:grid-cols-[minmax(0,1fr)_300px]">
-  {/* ================= LEFT COLUMN ================= */}
-  <div className="flex min-h-full flex-col gap-2">
-         {/* Tabs */}
-  <div className="mb-2 flex w-full gap-4 overflow-x-auto border-b border-[#e7e9ee]">
-  {tabs.map((tab) => (
-    <button
-      key={tab.name}
-      className={`min-w-[140px] flex-1 whitespace-nowrap border-b-2 py-2 text-[12px] font-semibold ${
-        tab.active
-          ? "border-[#153ee7] text-[#153ee7]"
-          : "border-transparent"
-      }`}
-    >
-      {tab.name}
-    </button>
-  ))}
-</div>
-    <div className="flex-1">
-      <SectionCard
-        icon={<Info size={15} />}
-        iconColor="text-[#2474d5]"
-        title="About This Job Family"
-      >
-        <p className="text-[11px] leading-[18px] text-[#31365c]">
-          The Information Technology job family encompasses roles that plan,
-          develop, implement and support technology solutions to meet business
-          needs. It includes software development, system administration,
-          network management, IT support and information security functions.
-        </p>
-      </SectionCard>
-    </div>
-
-    <div className="flex-1">
-      <SectionCard
-        icon={<ClipboardList size={15} />}
-        iconColor="text-[#153ee7]"
-        title="Key Responsibilities"
-      >
-        <ul className="flex flex-col gap-1.5">
-          {responsibilities.map((r) => (
-            <li
-              key={r}
-              className="flex items-start gap-1.5 text-[11px] leading-[18px] text-[#31365c]"
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-[minmax(0,1fr)_300px]">
+        {/* ================= LEFT COLUMN ================= */}
+        <div className="flex min-h-full flex-col gap-2">
+          {/* Tabs */}
+          <div className="mb-2 flex w-full gap-4 overflow-x-auto border-b border-[#e7e9ee]">
+            {tabs.map((tab) => (
+              <button
+                key={tab.name}
+                className={`min-w-[140px] flex-1 whitespace-nowrap border-b-2 py-2 text-[12px] font-semibold ${tab.active
+                    ? "border-[#153ee7] text-[#153ee7]"
+                    : "border-transparent"
+                  }`}
+              >
+                {tab.name}
+              </button>
+            ))}
+          </div>
+          <div className="flex-1">
+            <SectionCard
+              icon={<Info size={15} />}
+              iconColor="text-[#2474d5]"
+              title="About This Job Family"
             >
-              <span className="mt-[7px] h-[4px] w-[4px] shrink-0 rounded-full bg-[#153ee7]" />
-              {r}
-            </li>
-          ))}
-        </ul>
-      </SectionCard>
-    </div>
+              <p className="text-[11px] leading-[18px] text-[#31365c]">
+                The Information Technology job family encompasses roles that plan,
+                develop, implement and support technology solutions to meet business
+                needs. It includes software development, system administration,
+                network management, IT support and information security functions.
+              </p>
+            </SectionCard>
+          </div>
 
-    <div className="flex-1">
-      <SectionCard
-        icon={<Star size={15} />}
-        iconColor="text-[#2474d5]"
-        title="Key Skills (Typical)"
-      >
-        <div className="flex flex-wrap gap-1.5">
-          {skills.map((s) => (
-            <span
-              key={s}
-              className="rounded border border-[#e0e4eb] bg-[#f5f7fb] px-2 py-1 text-[10px] font-medium text-[#2474d5]"
+          <div className="flex-1">
+            <SectionCard
+              icon={<ClipboardList size={15} />}
+              iconColor="text-[#153ee7]"
+              title="Key Responsibilities"
             >
-              {s}
-            </span>
-          ))}
-        </div>
-      </SectionCard>
-    </div>
+              <ul className="flex flex-col gap-1.5">
+                {responsibilities.map((r) => (
+                  <li
+                    key={r}
+                    className="flex items-start gap-1.5 text-[11px] leading-[18px] text-[#31365c]"
+                  >
+                    <span className="mt-[7px] h-[4px] w-[4px] shrink-0 rounded-full bg-[#153ee7]" />
+                    {r}
+                  </li>
+                ))}
+              </ul>
+            </SectionCard>
+          </div>
 
-    <div className="flex-1">
-      <SectionCard
-        icon={<StickyNote size={15} />}
-        iconColor="text-[#2da348]"
-        title="Notes (Optional)"
-      >
-        <p className="text-[11px] leading-[18px] text-[#31365c]">
-          This job family is applicable across all business units.
-        </p>
-      </SectionCard>
-    </div>
-  </div>
+          <div className="flex-1">
+            <SectionCard
+              icon={<Star size={15} />}
+              iconColor="text-[#2474d5]"
+              title="Key Skills (Typical)"
+            >
+              <div className="flex flex-wrap gap-1.5">
+                {skills.map((s) => (
+                  <span
+                    key={s}
+                    className="rounded border border-[#e0e4eb] bg-[#f5f7fb] px-2 py-1 text-[10px] font-medium text-[#2474d5]"
+                  >
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </SectionCard>
+          </div>
 
-  {/* ================= RIGHT COLUMN ================= */}
-  <div className="flex min-h-full flex-col gap-2">
-    {/* Designation Examples */}
-  <div className="rounded-xl border border-[#e7e9ee] bg-white">
-  <div className="flex items-center gap-1.5 px-2 pt-2 text-xs font-bold text-[#101743]">
-    <Briefcase size={15} className="text-[#153ee7]" />
-    Designation Examples
-  </div>
-
-  <div className="grid grid-cols-[1fr_70px] gap-1 px-2 pb-1.5 pt-2 text-[10px] font-bold text-[#5c6178]">
-    <span>Designation</span>
-    <span>Job Grade</span>
-  </div>
-
-  <div className="flex flex-col">
-    {designationExamples.map((d) => (
-      <div
-        key={d.name}
-        className="grid grid-cols-[1fr_70px] items-center gap-1 border-b border-[#edf0f4] px-2 py-1 transition-colors duration-150 hover:bg-blue-100"
-      >
-        <span className="truncate text-[11px] font-medium text-[#101743]">
-          {d.name}
-        </span>
-
-        <span
-          className={`inline-flex w-fit rounded px-1.5 py-0.5 text-[10px] font-bold ${d.bg} ${d.color}`}
-        >
-          {d.grade}
-        </span>
-      </div>
-    ))}
-  </div>
-
-  <button className="px-2 pb-2 pt-2 text-[11px] font-semibold text-[#153ee7]">
-    View All (12)
-  </button>
-</div>
-
-    {/* Job Grade Distribution */}
-   <div className="rounded-xl border border-[#e7e9ee] bg-white p-2">
-  <div className="mb-2 text-[12px] font-bold text-[#101743]">
-    Job Grade Distribution
-  </div>
-
-  <div className="flex items-center gap-2">
-    {/* Chart */}
-    <div className="relative flex h-[90px] w-[90px] shrink-0 items-center justify-center">
-      <PieChart width={90} height={90}>
-        <Pie
-          data={gradeDistribution}
-          dataKey="value"
-          cx="50%"
-          cy="50%"
-          innerRadius={26}
-          outerRadius={42}
-          stroke="none"
-        >
-          {gradeDistribution.map((entry) => (
-            <Cell key={entry.name} fill={entry.color} />
-          ))}
-        </Pie>
-      </PieChart>
-
-      {/* Center Text */}
-      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[14px] font-bold leading-none text-[#101743]">
-          12
-        </span>
-
-        <span className="mt-0.5 text-[7px] leading-none ">
-          Designations
-        </span>
-      </div>
-    </div>
-
-    {/* Legend */}
-    <div className="flex flex-1 flex-col gap-1">
-      {gradeDistribution.map((g) => (
-        <div
-          key={g.name}
-          className="flex items-center justify-between text-[10px]"
-        >
-          <span className="flex items-center gap-1.5 text-[#31365c]">
-            <span
-              className="h-[7px] w-[7px] shrink-0 rounded-full"
-              style={{ backgroundColor: g.color }}
-            />
-
-            {g.name} ({g.value})
-          </span>
-
-          <span className="font-semibold text-[#101743]">
-            {g.pct}
-          </span>
-        </div>
-      ))}
-    </div>
-  </div>
-</div>
-
-    {/* Tip */}
-    <div className="flex flex-col gap-2 rounded-xl border border-[#e4e6ff] bg-[#f3f4ff] p-2">
-        <div className="flex items-start gap-2">
-
-      <Lightbulb size={16} className="mt-0.5 shrink-0 text-[#153ee7]" />
-        <p className="text-[12px] font-bold text-[#101743]">Tip</p>
+          <div className="flex-1">
+            <SectionCard
+              icon={<StickyNote size={15} />}
+              iconColor="text-[#2da348]"
+              title="Notes (Optional)"
+            >
+              <p className="text-[11px] leading-[18px] text-[#31365c]">
+                This job family is applicable across all business units.
+              </p>
+            </SectionCard>
+          </div>
         </div>
 
-      <div>
+        {/* ================= RIGHT COLUMN ================= */}
+        <div className="flex min-h-full flex-col gap-2">
+          {/* Designation Examples */}
+          <div className="rounded-xl border border-[#e7e9ee] bg-white">
+            <div className="flex items-center gap-1.5 px-2 pt-2 text-xs font-bold text-[#101743]">
+              <Briefcase size={15} className="text-[#153ee7]" />
+              Designation Examples
+            </div>
 
-        <p className="mt-0.5 text-[11px] leading-[16px] text-[#31365c]">
-          Keep job family information up to date to ensure accurate reporting
-          and role mapping.
-        </p>
+            <div className="grid grid-cols-[1fr_70px] gap-1 px-2 pb-1.5 pt-2 text-[10px] font-bold text-[#5c6178]">
+              <span>Designation</span>
+              <span>Job Grade</span>
+            </div>
+
+            <div className="flex flex-col">
+              {designationExamples.map((d) => (
+                <div
+                  key={d.name}
+                  className="grid grid-cols-[1fr_70px] items-center gap-1 border-b border-[#edf0f4] px-2 py-1 transition-colors duration-150 hover:bg-blue-100"
+                >
+                  <span className="truncate text-[11px] font-medium text-[#101743]">
+                    {d.name}
+                  </span>
+
+                  <span
+                    className={`inline-flex w-fit rounded px-1.5 py-0.5 text-[10px] font-bold ${d.bg} ${d.color}`}
+                  >
+                    {d.grade}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <button className="px-2 pb-2 pt-2 text-[11px] font-semibold text-[#153ee7]">
+              View All (12)
+            </button>
+          </div>
+
+          {/* Job Grade Distribution */}
+          <div className="rounded-xl border border-[#e7e9ee] bg-white p-2">
+            <div className="mb-2 text-[12px] font-bold text-[#101743]">
+              Job Grade Distribution
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Chart */}
+              <div className="relative flex h-[90px] w-[90px] shrink-0 items-center justify-center">
+                <PieChart width={90} height={90}>
+                  <Pie
+                    data={gradeDistribution}
+                    dataKey="value"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={26}
+                    outerRadius={42}
+                    stroke="none"
+                  >
+                    {gradeDistribution.map((entry) => (
+                      <Cell key={entry.name} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+
+                {/* Center Text */}
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-[14px] font-bold leading-none text-[#101743]">
+                    12
+                  </span>
+
+                  <span className="mt-0.5 text-[7px] leading-none ">
+                    Designations
+                  </span>
+                </div>
+              </div>
+
+              {/* Legend */}
+              <div className="flex flex-1 flex-col gap-1">
+                {gradeDistribution.map((g) => (
+                  <div
+                    key={g.name}
+                    className="flex items-center justify-between text-[10px]"
+                  >
+                    <span className="flex items-center gap-1.5 text-[#31365c]">
+                      <span
+                        className="h-[7px] w-[7px] shrink-0 rounded-full"
+                        style={{ backgroundColor: g.color }}
+                      />
+
+                      {g.name} ({g.value})
+                    </span>
+
+                    <span className="font-semibold text-[#101743]">
+                      {g.pct}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Tip */}
+          <div className="flex flex-col gap-2 rounded-xl border border-[#e4e6ff] bg-[#f3f4ff] p-2">
+            <div className="flex items-start gap-2">
+
+              <Lightbulb size={16} className="mt-0.5 shrink-0 text-[#153ee7]" />
+              <p className="text-[12px] font-bold text-[#101743]">Tip</p>
+            </div>
+
+            <div>
+
+              <p className="mt-0.5 text-[11px] leading-[16px] text-[#31365c]">
+                Keep job family information up to date to ensure accurate reporting
+                and role mapping.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
 
       {/* Copyright */}
       <footer className="pt-3 text-center text-[10px] font-medium text-[#565b7b]">

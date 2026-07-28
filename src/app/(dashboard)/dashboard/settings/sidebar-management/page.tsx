@@ -356,8 +356,8 @@ export default function SidebarManagementPage() {
               {isLoading ? (
                 <div className="p-12 text-center text-sm text-zinc-500">Loading sidebar items...</div>
               ) : (
-                <div>
-                  <table className="w-full text-[13px] text-left">
+              <div className="w-full overflow-x-auto">
+  <table className="min-w-full text-[13px] text-left table-fixed">
                     <thead className="bg-white border-b border-zinc-100">
                       <tr className="whitespace-nowrap">
                         <th className="px-3 py-2 font-semibold text-zinc-900 w-12">#</th>
