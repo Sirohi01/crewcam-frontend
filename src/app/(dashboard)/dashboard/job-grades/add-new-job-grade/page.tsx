@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import {
   ChevronRight, ArrowLeft, Save, IdCard, Check, Info,
 } from 'lucide-react';
+import Link from 'next/link';
 
 // ─── Static data ────────────────────────────────────────────────────────────
 const BREADCRUMB = ['Organization Setup', 'Job Grades', 'Add New Job Grade'];
@@ -73,9 +74,9 @@ function PageHeading() {
         <p className="text-[13px] text-zinc-500">Create a new job grade and define its basic details.</p>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
-        <button className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors">
+        <Link href="/dashboard/job-grades" className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors">
           <ArrowLeft size={14} /> Back to Job Grades
-        </button>
+        </Link>
         <button className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-[12.5px] font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors">
           <Save size={14} /> Save Job Grade
         </button>
@@ -291,7 +292,7 @@ function NoteCard() {
 // ─── Page ───────────────────────────────────────────────────────────────────
 export default function AddNewJobGradePage() {
   return (
-    <div className="space-y-2 font-sans text-zinc-900">
+    <div className="space-y-2 font-sans text-zinc-900 p-2">
       <PageHeading />
 
       <div className="grid grid-cols-1 xl:grid-cols-[2.6fr_1fr] gap-2.5 items-start">

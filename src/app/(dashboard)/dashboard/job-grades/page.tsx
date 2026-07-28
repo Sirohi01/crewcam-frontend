@@ -50,9 +50,9 @@ export default function JobGradesPage() {
                     <button className="flex items-center gap-1.5 h-8 px-2.5 bg-white border border-zinc-200 rounded-md text-[11px] font-semibold hover:bg-zinc-50 transition-colors shadow-sm text-zinc-700">
                         <Download className="w-3.5 h-3.5" /> Export <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                     </button>
-                    <button className="flex items-center gap-1.5 h-8 px-2.5 bg-indigo-600 text-white rounded-md text-[11px] font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
+                    <Link href={"/dashboard/job-grades/add-new-job-grade"} className="flex items-center gap-1.5 h-8 px-2.5 bg-indigo-600 text-white rounded-md text-[11px] font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
                         <Plus className="w-3.5 h-3.5" /> Add New Job Grade
-                    </button>
+                    </Link>
                 </div>
             </div>
 

@@ -151,7 +151,7 @@ export default function BasicInformation() {
                         {/* Section 2: Department Head */}
                         <Card title={<><span className="flex items-center justify-center bg-indigo-600 text-white rounded-full w-4 h-4 text-[9px]">2</span> Department Head</>}>
                             <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-3 mt-0.5">
-                                <Field title="Department Head (HOD)" required>
+                                <Field title="Department Head (HOD)">
                                     <div className="relative flex items-center border border-indigo-200 bg-indigo-50/50 px-2 py-1 mt-1 cursor-pointer h-8 rounded-md transition-colors hover:border-indigo-300">
                                         <img src="https://i.pravatar.cc/150?u=aman" alt="User" className="w-5 h-5 rounded-full border border-white shrink-0 shadow-sm" />
                                         <div className="ml-2 flex-1 overflow-hidden leading-tight">
@@ -165,7 +165,7 @@ export default function BasicInformation() {
                                     </div>
                                 </Field>
 
-                                <SelectField title="Reporting To" value={formData.reportingToId} onChange={e => updateFormData({ reportingToId: e.target.value })} required options={['Rajesh Sharma']} helpText="Select reporting manager" />
+                                <SelectField title="Reporting To" value={formData.reportingToId} onChange={e => updateFormData({ reportingToId: e.target.value })} options={['Rajesh Sharma']} helpText="Select reporting manager" />
 
                                 <Field title="Effective Date" required helpText="From when this department will be active">
                                     <div className="relative">
