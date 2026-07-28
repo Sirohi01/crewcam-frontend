@@ -193,8 +193,7 @@ function TabsBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) =
           key={tab.key}
           onClick={() => onChange(tab.key)}
           className={`relative px-3 py-2.5 text-[12.5px] font-semibold whitespace-nowrap transition-colors ${active === tab.key ? 'text-violet-700' : 'text-zinc-500 hover:text-zinc-700'
-            }`}
-        >
+            }`}>
           {tab.label} <span className={active === tab.key ? 'text-violet-400' : 'text-zinc-400'}>({tab.count})</span>
           {active === tab.key && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-indigo-700 rounded-full" />}
         </button>
@@ -237,7 +236,7 @@ function ApplicationsTable({ rows }: { rows: Application[] }) {
             <tr key={a.id} className="border-b border-zinc-50 hover:bg-zinc-50/70 transition-colors">
               <td className="py-2.5 pr-3">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-[11px] font-bold ${a.avatarBg} ${a.avatarColor}`}>
+                  <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-bold ${a.avatarBg} ${a.avatarColor}`}>
                     {a.initials}
                   </span>
                   <div className="min-w-0">
@@ -306,8 +305,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
             <select
               value={pageSize}
               onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
-              className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-6 py-1 text-[12px] font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
-            >
+              className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-6 py-1 text-[12px] font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer">
               {[10, 25, 50].map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
             <ChevronDown size={12} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400" />
@@ -318,16 +316,14 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
           <button
             onClick={() => setPage(Math.max(1, page - 1))}
             disabled={page === 1}
-            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors"
-          >
+            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors">
             <ChevronLeft size={13} />
           </button>
           {pages.map((p) => (
             <button
               key={p}
               onClick={() => setPage(p)}
-              className={`h-7 w-7 rounded-md text-[12px] font-semibold transition-colors ${p === page ? 'bg-indigo-700 text-white' : 'border border-zinc-200 text-zinc-600 hover:border-indigo-200 hover:text-indigo-700'}`}
-            >
+              className={`h-7 w-7 rounded-md text-[12px] font-semibold transition-colors ${p === page ? 'bg-indigo-700 text-white' : 'border border-zinc-200 text-zinc-600 hover:border-indigo-200 hover:text-indigo-700'}`}>
               {p}
             </button>
           ))}
@@ -335,8 +331,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
           <button
             onClick={() => setPage(Math.min(totalPages, page + 1))}
             disabled={page === totalPages}
-            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors"
-          >
+            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors">
             <ChevronRight size={13} />
           </button>
         </div>
@@ -421,13 +416,11 @@ export default function JobApplicationsPage() {
         experience={experience} setExperience={setExperience}
         status={status} setStatus={setStatus}
         dateRange={dateRange}
-        onClear={handleClear}
-      />
+        onClear={handleClear}/>
 
       <Card className="border-zinc-200/80 shadow-sm">
         <CardContent className="p-0">
           <TabsBar active={activeTab} onChange={(t) => { setActiveTab(t); setPage(1); }} />
-
           <div className="p-3.5">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <h3 className="text-[13px] font-semibold text-zinc-900">
@@ -441,8 +434,7 @@ export default function JobApplicationsPage() {
                 <div className="relative">
                   <select
                     defaultValue="Applied Date (Newest)"
-                    className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-7 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-indigo-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors cursor-pointer"
-                  >
+                    className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-7 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-indigo-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors cursor-pointer">
                     <option>Applied Date (Newest)</option>
                     <option>Applied Date (Oldest)</option>
                     <option>Experience (High to Low)</option>
@@ -458,8 +450,7 @@ export default function JobApplicationsPage() {
             <TableFooter
               pageSize={pageSize} setPageSize={setPageSize}
               page={page} setPage={setPage}
-              totalEntries={filtered.length}
-            />
+              totalEntries={filtered.length}/>
           </div>
         </CardContent>
       </Card>
