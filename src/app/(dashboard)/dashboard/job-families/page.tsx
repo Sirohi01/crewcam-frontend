@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/ui/breadCrumb";
 
 type JobFamily = {
   id: number;
@@ -202,11 +203,12 @@ export default function JobFamiliesPage() {
   return (
     <main className="mx-auto w-full max-w-[1600px] space-y-2 overflow-x-hidden bg-zinc-50/40 p-2 sm:p-2">
       {/* Breadcrumb */}
-      <div className="mb-2 flex items-center gap-2 text-xs font-semibold">
-        <span className="text-zinc-400">Organization Setup</span>
-        <span className="text-sm font-normal leading-none">›</span>
-        <span>Job Families</span>
-      </div>
+     <Breadcrumb
+  items={[
+    { label: "Organization Setup", href: "/dashboard" },
+    { label: "Job Families" },
+  ]}
+/>
 
       {/* Header */}
       <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">

@@ -4,6 +4,7 @@ import {
   ChevronRight, ArrowLeft, Save, IdCard, Check, Info,
 } from 'lucide-react';
 import Link from 'next/link';
+import { Breadcrumb } from '@/components/ui/breadCrumb';
 
 // ─── Static data ────────────────────────────────────────────────────────────
 const BREADCRUMB = ['Organization Setup', 'Job Grades', 'Add New Job Grade'];
@@ -59,16 +60,13 @@ function PageHeading() {
     <section className="flex items-start justify-between gap-3 flex-wrap">
       <div className="space-y-1">
         <div className="flex items-center gap-1.5 text-[12px] text-zinc-500 flex-wrap">
-          {BREADCRUMB.map((crumb, i) => (
-            <React.Fragment key={crumb}>
-              {i === BREADCRUMB.length - 1 ? (
-                <span className="text-indigo-600 font-semibold">{crumb}</span>
-              ) : (
-                <span className="text-zinc-500 hover:underline cursor-pointer">{crumb}</span>
-              )}
-              {i < BREADCRUMB.length - 1 && <ChevronRight size={12} />}
-            </React.Fragment>
-          ))}
+         <Breadcrumb
+  items={[
+    { label: "Organization Setup", href: "/dashboard" },
+    { label: "Job Grades", href: "/dashboard/job-grades" },
+    { label: "Add New Job Grade" },
+  ]}
+/>
         </div>
         <h1 className="text-1xl font-bold text-zinc-900 leading-tight">Add New Job Grade</h1>
         <p className="text-[13px] text-zinc-500">Create a new job grade and define its basic details.</p>

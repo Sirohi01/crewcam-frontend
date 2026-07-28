@@ -35,6 +35,7 @@ import {
   ResponsiveContainer,
   Area,
 } from 'recharts'
+import { Breadcrumb } from '@/components/ui/breadCrumb'
 
 // ---------- Types ----------
 
@@ -493,11 +494,12 @@ const MyPerformance: React.FC = () => {
         {/* Breadcrumb + Header */}
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 shrink-0">
           <div className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-1 text-[11px] font-medium ">
-              <span>Dashboard</span>
-              <ChevronRight className="h-3 w-3" />
-              <span className="">My Performance</span>
-            </div>
+         <Breadcrumb
+  items={[
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "My Performance" },
+  ]}
+/>
             <div className="flex items-center gap-1">
               <h1 className="text-lg font-bold  leading-none">My Performance</h1>
               <Info className="h-3.5 w-3.5 " />

@@ -11,6 +11,7 @@ import {
 import { LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Card } from '@/components/ui/card';
 import { getDepartments, deleteDepartment } from '@/services/departmentService';
+import { Breadcrumb } from '@/components/ui/breadCrumb';
 
 // --- MOCK DATA ---
 const topCards = [
@@ -113,11 +114,12 @@ export default function DepartmentsPage() {
       {/* PAGE HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-1">
         <div>
-          <div className="text-[11px] font-medium text-slate-500 mb-1 flex items-center gap-2">
-            <span className="cursor-pointer hover:text-slate-700">Organization Setup</span>
-            <ChevronRight className="w-3 h-3" />
-            <span className="text-blue-600 font-semibold cursor-pointer">Departments</span>
-          </div>
+        <Breadcrumb
+      items={[
+        { label: "Organization Setup", href: "/dashboard" },
+        { label: "Departments" },
+      ]}
+    />
           <h1 className="text-xl font-bold text-slate-900 mb-1">Departments</h1>
           <p className="text-[11px] text-slate-500">Manage, organize and track all departments across the organization.</p>
         </div>

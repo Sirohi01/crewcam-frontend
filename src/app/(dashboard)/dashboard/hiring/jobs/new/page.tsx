@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import {Briefcase, FileText, Clock3, Percent, UserCheck, Wallet, ChevronDown, Save, ListChecks, Target, BarChart3, Lightbulb, TrendingUp, RotateCcw, Plus, UploadCloud,Bold, Italic, Underline, List, ListOrdered, Indent, Link2, Eye, ArrowRight,CalendarDays, Sparkles,} from 'lucide-react';
+import { Breadcrumb } from '@/components/ui/breadCrumb';
 
 // Dummy data / static mockup — matches the approved design 1:1. No backend
 // wiring yet; this is a visual reference for the "Post New Job" flow.
@@ -157,10 +158,13 @@ export default function PostNewJobPage() {
             {/* Header */}
             <div>
               <h1 className="text-xl font-bold text-zinc-900">Post New Job</h1>
-              <p className="mt-0.5 flex items-center gap-1.5 text-[10.5px] text-zinc-500">
-                <span>Recruitment</span> <span>›</span> <span>Job Openings</span> <span>›</span>
-                <span className="font-semibold text-zinc-700">Post New Job</span>
-              </p>
+            <Breadcrumb
+  items={[
+    { label: "Recruitment", href: "/dashboard/hiring/pipeline" },
+    { label: "Job Openings", href: "/dashboard/hiring/jobs" },
+    { label: "Post New Job" },
+  ]}
+/>
             </div>
 
             {/* KPI strip */}

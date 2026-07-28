@@ -7,6 +7,7 @@ import {
   Filter, Table2, LayoutGrid, Star, Eye, MoreVertical, ChevronLeft, ChevronRight,
   Download, Phone, MapPin, Mail,
 } from 'lucide-react';
+import { Breadcrumb } from '@/components/ui/breadCrumb';
 
 // Dummy data / static mockup — matches the approved design 1:1.
 
@@ -112,10 +113,15 @@ export default function SelectedCandidatesPage() {
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <h1 className="text-xl font-bold text-zinc-900">Selected Candidates</h1>
-            <p className="mt-0.5 flex items-center gap-1.5 text-[10.5px] text-zinc-500">
-              <span>Recruitment</span> <span>›</span> <span>Candidates</span> <span>›</span>
-              <span className="font-semibold text-zinc-700">Selected Candidates</span>
-            </p>
+            <Breadcrumb
+  items={[
+    { label: "Recruitment", href: "" },
+    { label: "Candidates", href: "/dashboard/hiring/candidates" },
+    { label: "Selected Candidates" },
+  ]}
+/>
+
+
           </div>
           <div className="flex gap-2">
             <button type="button" className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">

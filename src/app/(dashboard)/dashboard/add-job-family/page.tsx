@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Breadcrumb } from "@/components/ui/breadCrumb";
 
 const benefits = [
   "Organize roles into logical groups",
@@ -122,13 +123,13 @@ export default function AddNewJobFamilyPage() {
   return (
     <main className="mx-auto w-full max-w-[1600px] space-y-2 overflow-x-hidden bg-zinc-50/40 p-2 sm:p-2">
       {/* Breadcrumb */}
-      <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold">
-        <span className="text-zinc-400">Organization Setup</span>
-        <span className="text-sm font-normal leading-none">›</span>
-        <Link href="/dashboard/job-families" className="text-zinc-400">Job Families</Link>
-        <span className="text-sm font-normal leading-none">›</span>
-        <span>Add New Job Family</span>
-      </div>
+     <Breadcrumb
+  items={[
+    { label: "Organization Setup", href: "/dashboard" },
+    { label: "Job Families", href: "/dashboard/job-families" },
+    { label: "Add New Job Family" },
+  ]}
+/>
 
       {/* Header */}
       <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
