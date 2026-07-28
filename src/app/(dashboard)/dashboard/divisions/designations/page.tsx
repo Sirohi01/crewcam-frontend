@@ -7,6 +7,7 @@ import SummaryCards from '@/components/designations/SummaryCards';
 import DesignationsTable from '@/components/designations/DesignationsTable';
 import AnalyticsSidebar from '@/components/designations/AnalyticsSidebar';
 import InfoCardsFooter from '@/components/designations/InfoCardsFooter';
+import { Breadcrumb } from '@/components/ui/breadCrumb';
 
 export default function DesignationsPage() {
   return (
@@ -14,15 +15,14 @@ export default function DesignationsPage() {
       <div className="w-full mx-auto p-2 sm:p-2 md:p-2 lg:p-2">
 
         {/* Breadcrumbs */}
-        <div className="flex items-center gap-2 text-[12px] font-medium text-zinc-500 mb-2">
-          <span>Organization Setup</span>
-          <span className="text-zinc-400">›</span>
-          <span>Business Units</span>
-          <span className="text-zinc-400">›</span>
-          <span>Divisions</span>
-          <span className="text-zinc-400">›</span>
-          <span className="text-blue-600 font-semibold">Designations</span>
-        </div>
+      <Breadcrumb
+  items={[
+    { label: "Organization Setup", href: "/dashboard" },
+    { label: "Business Units", href: "/dashboard/bussiness-unit/bussinessunit-bu" },
+    { label: "Divisions", href: "" },
+    { label: "Designations", href: "" },
+  ]}
+/>
 
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">

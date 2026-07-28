@@ -6,6 +6,7 @@ import {
     Users, UserCircle, IndianRupee, UserPlus, CheckCircle2, ChevronDown, ChevronLeft, MoreVertical,
     FileText, Lightbulb, MapPin, Briefcase, Info
 } from 'lucide-react';
+import { Breadcrumb } from '@/components/ui/breadCrumb';
 
 // --- MOCK DATA ---
 const topCards = [
@@ -35,11 +36,12 @@ export default function JobGradesPage() {
             {/* PAGE HEADER */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-1">
                 <div>
-                    <div className="text-[11px] font-medium text-zinc-500 mb-1 flex items-center gap-2">
-                        <span className="cursor-pointer hover:text-zinc-700">Organization Setup</span>
-                        <ChevronRight className="w-3 h-3" />
-                        <span className="text-indigo-600 font-semibold cursor-pointer">Job Grades</span>
-                    </div>
+                 <Breadcrumb
+  items={[
+    { label: "Organization Setup", href: "/dashboard" },
+    { label: "Job Grades" },
+  ]}
+/>
                     <h1 className="text-lg font-bold text-zinc-900 mb-0.5">Job Grades</h1>
                     <p className="text-[11px] text-zinc-500">Create and manage job grades used across the organization for role hierarchy and pay structure.</p>
                 </div>

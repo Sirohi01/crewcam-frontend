@@ -25,6 +25,7 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import book from '../../../../../public/assets/book.png'
+import { Breadcrumb } from '@/components/ui/breadCrumb';
 
 
 // Dummy Data
@@ -75,11 +76,12 @@ export default function PoliciesAndDocuments() {
         {/* Breadcrumb & Header */}
         <div className="mb-2 flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-2 text-[10px] text-zinc-500 mb-2">
-              <span>Dashboard</span>
-              <span>›</span>
-              <span className="font-semibold text-zinc-800">Policies & Documents</span>
-            </div>
+            <Breadcrumb
+  items={[
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "Policies & Documents" },
+  ]}
+/>
             <h1 className="text-2xl font-bold text-[#1a1c21]">Policies & Documents</h1>
             <p className="text-[10px] text-zinc-500 mt-1">Access company policies, guidelines, forms and important documents.</p>
           </div>
