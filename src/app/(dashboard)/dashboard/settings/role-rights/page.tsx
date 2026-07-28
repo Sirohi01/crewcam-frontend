@@ -157,66 +157,9 @@ export default function RoleRightsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 mt-2">
-        {/* LEFT PANE - Configured Roles Table */}
-        <div className="xl:col-span-4 flex flex-col gap-3">
-          <Card className="border-zinc-200/80 shadow-sm flex flex-col overflow-hidden">
-            <CardHeader className="py-3 border-b border-zinc-100">
-              <CardTitle className="text-[13px] font-semibold text-zinc-900">Configured Role Rights</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 overflow-x-auto">
-              {loadingRoles ? (
-                <div className="p-8 text-center text-sm text-zinc-500">Loading roles...</div>
-              ) : (
-                <table className="w-full text-[13px] text-left">
-                  <thead className="bg-white">
-                    <tr>
-                      <th className="px-3 py-2 font-semibold text-zinc-900 w-12 border-b border-zinc-100">S.No</th>
-                      <th className="px-3 py-2 font-semibold text-zinc-900 border-b border-zinc-100">Role</th>
-                      <th className="px-3 py-2 font-semibold text-zinc-900 border-b border-zinc-100 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-100/80">
-                    {roles.filter(r => r.isActive).map((role, index) => (
-                      <tr key={role._id} className="hover:bg-zinc-50/50 transition-colors bg-white">
-                        <td className="px-3 py-2 text-zinc-500">{index + 1}.</td>
-                        <td className="px-3 py-2 font-medium text-zinc-800">
-                          <div>{role.name}</div>
-                          <div className="text-[11px] text-zinc-500 font-normal mt-0.5">
-                            {role.permissions?.includes('*') || role.permissions?.includes('SUPER_ADMIN')
-                              ? 'All Pages Accessible'
-                              : `${Math.ceil((role.permissions?.length || 0) / 3)} Pages Accessible`}
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 text-right">
-                          <div className="flex items-center justify-end gap-3">
-                            <button onClick={() => setSelectedRoleId(role._id)} className="text-zinc-900 hover:text-zinc-700 transition-colors" title="Edit Rights">
-                              <Edit2 className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (confirm(`Are you sure you want to clear all permissions for the role "${role.name}"?`)) {
-                                  updateRole.mutate({ id: role._id, payload: { permissions: [] } });
-                                }
-                              }}
-                              className="text-red-500 hover:text-red-700 transition-colors"
-                              title="Clear All Rights"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* RIGHT PANE - Add Role Rights */}
-        <div className="xl:col-span-8 flex flex-col gap-3">
+      <div className="flex flex-col gap-3 mt-2">
+        {/* TOP PANE - Add Role Rights */}
+        <div className="w-full flex flex-col gap-3">
           <Card className="border-zinc-200/80 shadow-sm overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between py-3 border-b border-zinc-100">
               <CardTitle className="text-[13px] font-semibold text-zinc-900">Add Role Rights</CardTitle>
@@ -357,6 +300,63 @@ export default function RoleRightsPage() {
                   {updateRole.isPending ? <Loader2 size={14} className="animate-spin" /> : 'Save Rights'}
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* BOTTOM PANE - Configured Roles Table */}
+        <div className="w-full flex flex-col gap-3">
+          <Card className="border-zinc-200/80 shadow-sm flex flex-col overflow-hidden">
+            <CardHeader className="py-3 border-b border-zinc-100">
+              <CardTitle className="text-[13px] font-semibold text-zinc-900">Configured Role Rights</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              {loadingRoles ? (
+                <div className="p-8 text-center text-sm text-zinc-500">Loading roles...</div>
+              ) : (
+                <table className="w-full text-[13px] text-left">
+                  <thead className="bg-white">
+                    <tr>
+                      <th className="px-3 py-2 font-semibold text-zinc-900 w-12 border-b border-zinc-100">S.No</th>
+                      <th className="px-3 py-2 font-semibold text-zinc-900 border-b border-zinc-100">Role</th>
+                      <th className="px-3 py-2 font-semibold text-zinc-900 border-b border-zinc-100 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-100/80">
+                    {roles.filter(r => r.isActive).map((role, index) => (
+                      <tr key={role._id} className="hover:bg-zinc-50/50 transition-colors bg-white">
+                        <td className="px-3 py-2 text-zinc-500">{index + 1}.</td>
+                        <td className="px-3 py-2 font-medium text-zinc-800">
+                          <div>{role.name}</div>
+                          <div className="text-[11px] text-zinc-500 font-normal mt-0.5">
+                            {role.permissions?.includes('*') || role.permissions?.includes('SUPER_ADMIN')
+                              ? 'All Pages Accessible'
+                              : `${Math.ceil((role.permissions?.length || 0) / 3)} Pages Accessible`}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center justify-end gap-3">
+                            <button onClick={() => setSelectedRoleId(role._id)} className="text-zinc-900 hover:text-zinc-700 transition-colors" title="Edit Rights">
+                              <Edit2 className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to clear all permissions for the role "${role.name}"?`)) {
+                                  updateRole.mutate({ id: role._id, payload: { permissions: [] } });
+                                }
+                              }}
+                              className="text-red-500 hover:text-red-700 transition-colors"
+                              title="Clear All Rights"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </CardContent>
           </Card>
         </div>
