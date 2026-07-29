@@ -1,7 +1,9 @@
 import React from 'react';
 import { Plus, GitMerge, Settings2, Upload, GitPullRequest } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/axios';
 
-function DoughnutChart() {
+function DoughnutChart({ total = 0 }: { total?: number }) {
   return (
     <div className="relative w-[120px] h-[120px] rounded-full flex items-center justify-center shrink-0 mx-auto mt-2" 
          style={{
@@ -13,7 +15,7 @@ function DoughnutChart() {
            )`
          }}>
       <div className="absolute w-[85px] h-[85px] bg-white rounded-full flex flex-col items-center justify-center">
-        <span className="text-[18px] font-bold text-zinc-900 leading-tight">42</span>
+        <span className="text-[18px] font-bold text-zinc-900 leading-tight">{total}</span>
         <span className="text-[10px] text-zinc-500 font-medium">Total</span>
       </div>
     </div>
@@ -21,10 +23,10 @@ function DoughnutChart() {
 }
 
 function ProgressBar({ grade, count, max }: { grade: string; count: number; max: number }) {
-  const percentage = Math.max(2, (count / max) * 100);
+  const percentage = max > 0 ? Math.max(2, (count / max) * 100) : 0;
   return (
     <div className="flex items-center gap-3">
-      <div className="w-[34px] text-[10px] font-bold text-zinc-600 shrink-0">{grade}</div>
+      <div className="w-[45px] text-[10px] font-bold text-zinc-600 shrink-0 truncate" title={grade}>{grade}</div>
       <div className="flex-1 flex items-center">
         <div className="h-[6px] bg-blue-600 rounded-full transition-all duration-500" style={{ width: `${percentage}%` }} />
       </div>
@@ -34,19 +36,30 @@ function ProgressBar({ grade, count, max }: { grade: string; count: number; max:
 }
 
 export default function AnalyticsSidebar() {
-  const JOB_GRADES = [
-    { grade: 'JG-10', count: 1 },
-    { grade: 'JG-09', count: 3 },
-    { grade: 'JG-08', count: 12 },
-    { grade: 'JG-07', count: 18 },
-    { grade: 'JG-06', count: 45 },
-    { grade: 'JG-05', count: 62 },
-    { grade: 'JG-04', count: 110 },
-    { grade: 'JG-03', count: 168 },
-    { grade: 'JG-02', count: 82 },
-    { grade: 'JG-01', count: 31 },
-  ];
-  const maxGrade = Math.max(...JOB_GRADES.map(g => g.count));
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['designationStats'],
+    queryFn: async () => {
+      const res = await api.get('/designations/stats');
+      return res.data;
+    }
+  });
+
+  const jobGrades = stats?.gradeCounts?.length > 0 
+    ? stats.gradeCounts 
+    : [
+        { grade: 'JG-10', count: 1 },
+        { grade: 'JG-09', count: 3 },
+        { grade: 'JG-08', count: 12 },
+        { grade: 'JG-07', count: 18 },
+        { grade: 'JG-06', count: 45 },
+        { grade: 'JG-05', count: 62 },
+        { grade: 'JG-04', count: 110 },
+        { grade: 'JG-03', count: 168 },
+        { grade: 'JG-02', count: 82 },
+        { grade: 'JG-01', count: 31 },
+      ];
+      
+  const maxGrade = Math.max(...jobGrades.map((g: any) => g.count), 0);
 
   return (
     <div className="space-y-2">
@@ -55,41 +68,32 @@ export default function AnalyticsSidebar() {
       <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-4">
         <h3 className="text-[13px] font-bold text-zinc-900 mb-2">Designation Overview</h3>
         <div className="flex gap-4 items-center">
-          <DoughnutChart />
+          <DoughnutChart total={stats?.total || 0} />
           <div className="flex-1 space-y-2.5">
-            <div className="flex items-center justify-between text-[10.5px]">
-              <div className="flex items-center gap-1.5 font-semibold text-zinc-700">
-                <span className="w-2 h-2 rounded-full bg-blue-500"></span> Management (6)
-              </div>
-              <span className="text-zinc-500">24 (57.1%)</span>
-            </div>
-            <div className="flex items-center justify-between text-[10.5px]">
-              <div className="flex items-center gap-1.5 font-semibold text-zinc-700">
-                <span className="w-2 h-2 rounded-full bg-amber-500"></span> Professional (6)
-              </div>
-              <span className="text-zinc-500">12 (28.6%)</span>
-            </div>
-            <div className="flex items-center justify-between text-[10.5px]">
-              <div className="flex items-center gap-1.5 font-semibold text-zinc-700">
-                <span className="w-2 h-2 rounded-full bg-purple-500"></span> Leadership (2)
-              </div>
-              <span className="text-zinc-500">2 (4.8%)</span>
-            </div>
-            <div className="flex items-center justify-between text-[10.5px]">
-              <div className="flex items-center gap-1.5 font-semibold text-zinc-700">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Support (2)
-              </div>
-              <span className="text-zinc-500">4 (9.5%)</span>
-            </div>
+            {stats?.familyCounts ? stats.familyCounts.map((f: any, i: number) => {
+               const colors = ['bg-blue-500', 'bg-amber-500', 'bg-purple-500', 'bg-emerald-500'];
+               const colorClass = colors[i % colors.length];
+               const pct = stats.total > 0 ? ((f.count / stats.total) * 100).toFixed(1) : 0;
+               return (
+                 <div key={f.name} className="flex items-center justify-between text-[10.5px]">
+                   <div className="flex items-center gap-1.5 font-semibold text-zinc-700">
+                     <span className={`w-2 h-2 rounded-full ${colorClass}`}></span> <span className="truncate max-w-[80px]" title={f.name}>{f.name}</span> ({f.count})
+                   </div>
+                   <span className="text-zinc-500">{pct}%</span>
+                 </div>
+               );
+            }) : (
+              <div className="text-[10px] text-zinc-400">Loading families...</div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Employees by Job Grade Card */}
       <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-4">
-        <h3 className="text-[13px] font-bold text-zinc-900 mb-2">Employees by Job Grade</h3>
+        <h3 className="text-[13px] font-bold text-zinc-900 mb-2">Designations by Job Grade</h3>
         <div className="space-y-2.5">
-          {JOB_GRADES.map((jg) => (
+          {jobGrades.map((jg: any) => (
             <ProgressBar key={jg.grade} grade={jg.grade} count={jg.count} max={maxGrade} />
           ))}
         </div>
