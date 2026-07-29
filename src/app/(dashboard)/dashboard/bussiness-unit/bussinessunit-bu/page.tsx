@@ -107,65 +107,131 @@ export default function BusinessUnitsPage() {
 
                         {/* TABLE */}
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="border-b border-zinc-100 bg-zinc-50/50">
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase">Business Unit</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase">BU Code</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase">Head / Owner</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Total Employees</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Departments</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Cost Centers</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-right">Budget (FY 25-26)</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Status</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="text-[11px]">
-                                    {businessUnits.map((bu) => {
-                                        const BuIcon = bu.icon;
-                                        return (
-                                            <tr key={bu.id} className="border-b border-zinc-50 hover:bg-zinc-50 transition-colors">
-                                                <td className="py-2 px-3">
-                                                    <div className="flex items-center gap-2.5">
-                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${bu.iconBg} ${bu.iconColor}`}>
-                                                            <BuIcon className="w-4 h-4" />
-                                                        </div>
-                                                        <div className="flex flex-col">
-                                                            <span className="font-bold text-zinc-800 text-[11px]">{bu.name}</span>
-                                                            <span className="text-[10px] text-zinc-500 w-36 truncate" title={bu.desc}>{bu.desc}</span>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="py-2 px-3 font-semibold text-zinc-700">{bu.code}</td>
-                                                <td className="py-2 px-3">
-                                                    <div className="flex items-center gap-2">
-                                                        <img src={`https://i.pravatar.cc/150?u=${bu.id + 10}`} alt={bu.headName} className="w-7 h-7 rounded-full border border-zinc-200" />
-                                                        <div className="leading-tight">
-                                                            <p className="font-bold text-zinc-800 text-[11px]">{bu.headName}</p>
-                                                            <p className="text-[10px] text-zinc-500">{bu.headRole}</p>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="py-2 px-3 text-center font-bold text-zinc-800">{bu.employees}</td>
-                                                <td className="py-2 px-3 text-center font-bold text-zinc-800">{bu.depts}</td>
-                                                <td className="py-2 px-3 text-center font-bold text-zinc-800">{bu.costCenters}</td>
-                                                <td className="py-2 px-3 text-right font-bold text-zinc-800">{bu.budget}</td>
-                                                <td className="py-2 px-3 text-center">
-                                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[10px] font-bold border border-emerald-100">
-                                                        Active
-                                                    </span>
-                                                </td>
-                                                <td className="py-2 px-3">
-                                                    <div className="flex items-center justify-center gap-1 text-zinc-400">
-                                                        <button className="p-1 hover:text-zinc-600 transition-colors"><MoreVertical className="w-4 h-4" /></button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
+             <div className="w-full overflow-x-auto">
+    <table className="w-full table-auto border-collapse text-left">
+        <thead className="bg-zinc-50/50">
+            <tr className="border-b border-zinc-100">
+                <th className="py-2 px-3 whitespace-nowrap text-[10px] font-bold uppercase text-zinc-500">
+                    Business Unit
+                </th>
+                <th className="py-2 px-3 whitespace-nowrap text-[10px] font-bold uppercase text-zinc-500">
+                    BU Code
+                </th>
+                <th className="py-2 px-3 whitespace-nowrap text-[10px] font-bold uppercase text-zinc-500">
+                    Head / Owner
+                </th>
+                <th className="py-2 px-3 whitespace-nowrap text-center text-[10px] font-bold uppercase text-zinc-500">
+                    Total Employees
+                </th>
+                <th className="py-2 px-3 whitespace-nowrap text-center text-[10px] font-bold uppercase text-zinc-500">
+                    Departments
+                </th>
+                <th className="py-2 px-3 whitespace-nowrap text-center text-[10px] font-bold uppercase text-zinc-500">
+                    Cost Centers
+                </th>
+                <th className="py-2 px-3 whitespace-nowrap text-right text-[10px] font-bold uppercase text-zinc-500">
+                    Budget (FY 25-26)
+                </th>
+                <th className="py-2 px-3 whitespace-nowrap text-center text-[10px] font-bold uppercase text-zinc-500">
+                    Status
+                </th>
+                <th className="py-2 px-3 whitespace-nowrap text-center text-[10px] font-bold uppercase text-zinc-500">
+                    Actions
+                </th>
+            </tr>
+        </thead>
+
+        <tbody className="text-[11px]">
+            {businessUnits.map((bu) => {
+                const BuIcon = bu.icon;
+
+                return (
+                    <tr
+                        key={bu.id}
+                        className="border-b border-zinc-50 hover:bg-zinc-50 transition-colors"
+                    >
+                        <td className="py-2 px-3 whitespace-nowrap">
+                            <div className="flex items-center gap-2.5">
+                                <div
+                                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${bu.iconBg} ${bu.iconColor}`}
+                                >
+                                    <BuIcon className="w-4 h-4" />
+                                </div>
+
+                                <div>
+                                    <p className="font-bold text-[11px] text-zinc-800 whitespace-nowrap">
+                                        {bu.name}
+                                    </p>
+
+                                    <p
+                                        className="text-[10px] text-zinc-500 truncate"
+                                        title={bu.desc}
+                                    >
+                                        {bu.desc}
+                                    </p>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td className="py-2 px-3 whitespace-nowrap font-semibold text-zinc-700">
+                            {bu.code}
+                        </td>
+
+                        <td className="py-2 px-3 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                                <img
+                                    src={`https://i.pravatar.cc/150?u=${bu.id + 10}`}
+                                    alt={bu.headName}
+                                    className="w-7 h-7 rounded-full border border-zinc-200 shrink-0"
+                                />
+
+                                <div>
+                                    <p className="font-bold text-[11px] text-zinc-800 whitespace-nowrap">
+                                        {bu.headName}
+                                    </p>
+
+                                    <p className="text-[10px] text-zinc-500 whitespace-nowrap">
+                                        {bu.headRole}
+                                    </p>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td className="py-2 px-3 text-center font-bold text-zinc-800 whitespace-nowrap">
+                            {bu.employees}
+                        </td>
+
+                        <td className="py-2 px-3 text-center font-bold text-zinc-800 whitespace-nowrap">
+                            {bu.depts}
+                        </td>
+
+                        <td className="py-2 px-3 text-center font-bold text-zinc-800 whitespace-nowrap">
+                            {bu.costCenters}
+                        </td>
+
+                        <td className="py-2 px-3 text-right font-bold text-zinc-800 whitespace-nowrap">
+                            {bu.budget}
+                        </td>
+
+                        <td className="py-2 px-3 text-center whitespace-nowrap">
+                            <span className="inline-flex items-center px-2 py-1 rounded-md border border-emerald-100 bg-emerald-50 text-[10px] font-bold text-emerald-600">
+                                Active
+                            </span>
+                        </td>
+
+                        <td className="py-2 px-3 whitespace-nowrap">
+                            <div className="flex justify-center">
+                                <button className="p-1 rounded-md hover:bg-zinc-100 hover:text-zinc-700 text-zinc-400 transition-colors">
+                                    <MoreVertical className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                );
+            })}
+        </tbody>
+    </table>
+</div>
                         </div>
 
                         {/* TABLE FOOTER */}
