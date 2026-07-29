@@ -1,38 +1,120 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 import {
     Upload, Download, Plus, ChevronRight, Search, Filter,
-    Eye, Edit2, MoreVertical, Building, Users, User, PieChart as PieChartIcon, CheckCircle2, ChevronDown, ChevronLeft, Map, FileText, CheckCircle, Lightbulb, MapPin, BarChart2, Armchair, PenTool, LayoutDashboard, Briefcase
+    Eye, Edit2, MoreVertical, Building, Users, User, PieChart as PieChartIcon, CheckCircle2, ChevronDown, ChevronLeft, Map, FileText, CheckCircle, Lightbulb, MapPin, BarChart2, Armchair, PenTool, LayoutDashboard, Briefcase, Trash2
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Card } from '@/components/ui/card';
+import api from '@/lib/axios';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 
-// --- MOCK DATA ---
-const topCards = [
-    { title: 'Total Business Units', value: '4', subtitle: 'Active', color: '#3b82f6', icon: Building, bg: 'bg-blue-50', text: 'text-blue-600' },
-    { title: 'Total Employees', value: '532', subtitle: 'Across all BU', color: '#10b981', icon: Users, bg: 'bg-emerald-50', text: 'text-emerald-600' },
-    { title: 'Total Departments', value: '28', subtitle: 'Linked to BU', color: '#8b5cf6', icon: PieChartIcon, bg: 'bg-purple-50', text: 'text-purple-600' },
-    { title: 'Total Cost Centers', value: '12', subtitle: 'Mapped', color: '#f59e0b', icon: Map, bg: 'bg-amber-50', text: 'text-amber-600' },
-    { title: 'Total Budget (FY 25-26)', value: '₹ 24,50,000', subtitle: 'Allocated', color: '#14b8a6', icon: BarChart2, bg: 'bg-teal-50', text: 'text-teal-600' },
-];
-
-const businessUnits = [
-    { id: 1, name: 'Retail Interiors', desc: 'Interior solutions for retail spaces and stores', code: 'BU-RI', headName: 'Neha Sethi', headRole: 'BU Head', employees: 186, depts: 8, costCenters: 4, budget: '₹ 8,40,000', icon: Armchair, iconBg: 'bg-blue-50', iconColor: 'text-blue-600' },
-    { id: 2, name: 'Design & Planning', desc: 'Conceptual design and planning services', code: 'BU-DP', headName: 'Vivek Rana', headRole: 'BU Head', employees: 152, depts: 6, costCenters: 2, budget: '₹ 6,50,000', icon: PenTool, iconBg: 'bg-emerald-50', iconColor: 'text-emerald-600' },
-    { id: 3, name: 'Display Solutions', desc: 'Exhibition and retail display solutions', code: 'BU-DS', headName: 'Amit Kumar', headRole: 'BU Head', employees: 118, depts: 7, costCenters: 3, budget: '₹ 5,20,000', icon: LayoutDashboard, iconBg: 'bg-amber-50', iconColor: 'text-amber-600' },
-    { id: 4, name: 'Corporate Services', desc: 'Support functions and corporate services', code: 'BU-CS', headName: 'Pooja Bansal', headRole: 'BU Head', employees: 76, depts: 7, costCenters: 3, budget: '₹ 4,40,000', icon: Briefcase, iconBg: 'bg-purple-50', iconColor: 'text-purple-600' },
-];
-
-const empCompositionData = [
-    { name: 'Retail Interiors', value: 186, color: '#3b82f6', percent: '35.0%' },
-    { name: 'Design & Planning', value: 152, color: '#10b981', percent: '28.6%' },
-    { name: 'Display Solutions', value: 118, color: '#f59e0b', percent: '22.2%' },
-    { name: 'Corporate Services', value: 76, color: '#8b5cf6', percent: '14.2%' },
+const COLORS = [
+    { iconBg: 'bg-blue-50', iconColor: 'text-blue-600', color: '#3b82f6' },
+    { iconBg: 'bg-emerald-50', iconColor: 'text-emerald-600', color: '#10b981' },
+    { iconBg: 'bg-amber-50', iconColor: 'text-amber-600', color: '#f59e0b' },
+    { iconBg: 'bg-purple-50', iconColor: 'text-purple-600', color: '#8b5cf6' },
 ];
 
 export default function BusinessUnitsPage() {
+    const router = useRouter();
+    const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const [businessUnitsData, setBusinessUnitsData] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const handleDelete = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this business unit?')) return;
+        
+        try {
+            await api.delete(`/business-units/${id}`);
+            setBusinessUnitsData((prev) => prev.filter((bu) => bu._id !== id));
+            toast.success('Business unit deleted successfully');
+        } catch (error: any) {
+            console.error('Error deleting business unit:', error);
+            toast.error(error.response?.data?.message || 'Failed to delete business unit');
+        }
+    };
+
+    useEffect(() => {
+        const fetchBusinessUnits = async () => {
+            try {
+                const response = await api.get('/business-units');
+                setBusinessUnitsData(response.data.data || []);
+            } catch (error) {
+                console.error('Error fetching business units:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchBusinessUnits();
+    }, []);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setOpenDropdownId(null);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // Derived Data
+    const totalEmployees = businessUnitsData.reduce((acc, bu) => acc + (bu.totalEmployees || 0), 0);
+    const totalDepartments = businessUnitsData.reduce((acc, bu) => acc + (bu.totalDepartments || 0), 0);
+    const totalCostCenters = businessUnitsData.reduce((acc, bu) => acc + (bu.costCenters?.length || 0), 0);
+    const totalBudget = businessUnitsData.reduce((acc, bu) => {
+        const amount = parseFloat((bu.annualBudget || '0').replace(/[^0-9.-]+/g, ''));
+        return acc + (isNaN(amount) ? 0 : amount);
+    }, 0);
+
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+    };
+
+    const topCards = [
+        { title: 'Total Business Units', value: businessUnitsData.length.toString(), subtitle: 'Active', color: '#3b82f6', icon: Building, bg: 'bg-blue-50', text: 'text-blue-600' },
+        { title: 'Total Employees', value: totalEmployees.toString(), subtitle: 'Across all BU', color: '#10b981', icon: Users, bg: 'bg-emerald-50', text: 'text-emerald-600' },
+        { title: 'Total Departments', value: totalDepartments.toString(), subtitle: 'Linked to BU', color: '#8b5cf6', icon: PieChartIcon, bg: 'bg-purple-50', text: 'text-purple-600' },
+        { title: 'Total Cost Centers', value: totalCostCenters.toString(), subtitle: 'Mapped', color: '#f59e0b', icon: Map, bg: 'bg-amber-50', text: 'text-amber-600' },
+        { title: 'Total Budget (FY 25-26)', value: formatCurrency(totalBudget), subtitle: 'Allocated', color: '#14b8a6', icon: BarChart2, bg: 'bg-teal-50', text: 'text-teal-600' },
+    ];
+
+    const empCompositionData = businessUnitsData.map((bu, idx) => {
+        const colorObj = COLORS[idx % COLORS.length];
+        const val = bu.totalEmployees || 0;
+        const percent = totalEmployees > 0 ? ((val / totalEmployees) * 100).toFixed(1) : '0.0';
+        return {
+            name: bu.name,
+            value: val,
+            color: colorObj.color,
+            percent: `${percent}%`
+        };
+    }).filter(item => item.value > 0);
+
+    const mappedBusinessUnits = businessUnitsData.map((bu, idx) => {
+        const colorObj = COLORS[idx % COLORS.length];
+        return {
+            id: bu._id,
+            name: bu.name || '-',
+            desc: bu.description || 'No description provided',
+            code: bu.code || '-',
+            headName: bu.head ? `${bu.head.firstName} ${bu.head.lastName}` : 'Unassigned',
+            headRole: 'BU Head',
+            employees: bu.totalEmployees || 0,
+            depts: bu.totalDepartments || 0,
+            costCenters: bu.costCenters?.length || 0,
+            budget: bu.annualBudget ? formatCurrency(parseFloat(bu.annualBudget.replace(/[^0-9.-]+/g, ''))) : '₹ 0',
+            icon: Briefcase,
+            iconBg: colorObj.iconBg,
+            iconColor: colorObj.iconColor,
+            status: bu.status || 'Active'
+        };
+    });
     return (
         <div className="flex flex-col gap-2 animate-in fade-in duration-300 p-2 w-full font-sans text-zinc-800 bg-[#f8f9fc] min-h-screen">
 
@@ -122,7 +204,19 @@ export default function BusinessUnitsPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="text-[11px]">
-                                    {businessUnits.map((bu) => {
+                                    {isLoading ? (
+                                        <tr>
+                                            <td colSpan={9} className="py-8 text-center text-zinc-500 font-medium">
+                                                Loading business units...
+                                            </td>
+                                        </tr>
+                                    ) : mappedBusinessUnits.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={9} className="py-8 text-center text-zinc-500 font-medium">
+                                                No business units found
+                                            </td>
+                                        </tr>
+                                    ) : mappedBusinessUnits.map((bu) => {
                                         const BuIcon = bu.icon;
                                         return (
                                             <tr key={bu.id} className="border-b border-zinc-50 hover:bg-zinc-50 transition-colors">
@@ -156,10 +250,29 @@ export default function BusinessUnitsPage() {
                                                         Active
                                                     </span>
                                                 </td>
-                                                <td className="py-2 px-3">
+                                                <td className="py-2 px-3 relative">
                                                     <div className="flex items-center justify-center gap-1 text-zinc-400">
-                                                        <button className="p-1 hover:text-zinc-600 transition-colors"><MoreVertical className="w-4 h-4" /></button>
+                                                        <button
+                                                            onClick={() => setOpenDropdownId(openDropdownId === bu.id ? null : bu.id)}
+                                                            className="p-1 hover:text-zinc-600 transition-colors"
+                                                        >
+                                                            <MoreVertical className="w-4 h-4" />
+                                                        </button>
                                                     </div>
+
+                                                    {openDropdownId === bu.id && (
+                                                        <div
+                                                            ref={dropdownRef}
+                                                            className="absolute right-6 top-8 w-32 bg-white border border-zinc-200 shadow-md rounded-md py-1 z-50 flex flex-col"
+                                                        >
+                                                            <button onClick={() => router.push(`/dashboard/bussiness-unit/add-new-bussiness-unit?edit=${bu.id}`)} className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors text-left">
+                                                                <Edit2 className="w-3.5 h-3.5 text-zinc-400" /> Edit
+                                                            </button>
+                                                            <button onClick={() => { setOpenDropdownId(null); handleDelete(bu.id); }} className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 transition-colors text-left">
+                                                                <Trash2 className="w-3.5 h-3.5 text-rose-400" /> Delete
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </td>
                                             </tr>
                                         );
@@ -170,7 +283,7 @@ export default function BusinessUnitsPage() {
 
                         {/* TABLE FOOTER */}
                         <div className="p-2 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-500">
-                            <div className="pl-2">Showing 1 to 4 of 4 business units</div>
+                            <div className="pl-2">Showing 1 to {mappedBusinessUnits.length} of {mappedBusinessUnits.length} business units</div>
                             <div className="flex items-center gap-1">
                                 <button className="p-1 border border-zinc-200 rounded-md bg-white hover:bg-zinc-50 text-zinc-400"><ChevronLeft className="w-3.5 h-3.5" /></button>
                                 <button className="w-6 h-6 flex items-center justify-center border border-indigo-600 bg-indigo-600 text-white rounded-md font-semibold">1</button>
@@ -246,35 +359,35 @@ export default function BusinessUnitsPage() {
                                     <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center"><Building className="w-3 h-3" /></div>
                                     <span className="text-[11px] font-semibold">Active Business Units</span>
                                 </div>
-                                <span className="text-[12px] font-bold text-zinc-800">4</span>
+                                <span className="text-[12px] font-bold text-zinc-800">{mappedBusinessUnits.length}</span>
                             </div>
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 text-zinc-600">
                                     <div className="w-6 h-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center"><Users className="w-3 h-3" /></div>
                                     <span className="text-[11px] font-semibold">Total Employees</span>
                                 </div>
-                                <span className="text-[12px] font-bold text-zinc-800">532</span>
+                                <span className="text-[12px] font-bold text-zinc-800">{totalEmployees}</span>
                             </div>
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 text-zinc-600">
                                     <div className="w-6 h-6 rounded-md bg-purple-50 text-purple-600 flex items-center justify-center"><PieChartIcon className="w-3 h-3" /></div>
                                     <span className="text-[11px] font-semibold">Total Departments</span>
                                 </div>
-                                <span className="text-[12px] font-bold text-zinc-800">28</span>
+                                <span className="text-[12px] font-bold text-zinc-800">{totalDepartments}</span>
                             </div>
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 text-zinc-600">
                                     <div className="w-6 h-6 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center"><Map className="w-3 h-3" /></div>
                                     <span className="text-[11px] font-semibold">Total Cost Centers</span>
                                 </div>
-                                <span className="text-[12px] font-bold text-zinc-800">12</span>
+                                <span className="text-[12px] font-bold text-zinc-800">{totalCostCenters}</span>
                             </div>
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 text-zinc-600">
                                     <div className="w-6 h-6 rounded-md bg-teal-50 text-teal-600 flex items-center justify-center"><BarChart2 className="w-3 h-3" /></div>
                                     <span className="text-[11px] font-semibold">Total Budget (FY 25-26)</span>
                                 </div>
-                                <span className="text-[12px] font-bold text-zinc-800">₹ 24,50,000</span>
+                                <span className="text-[12px] font-bold text-zinc-800">{formatCurrency(totalBudget)}</span>
                             </div>
                         </div>
                     </div>
@@ -302,7 +415,7 @@ export default function BusinessUnitsPage() {
                                     </PieChart>
                                 </ResponsiveContainer>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                    <span className="text-[16px] font-bold text-zinc-900">532</span>
+                                    <span className="text-[16px] font-bold text-zinc-900">{totalEmployees}</span>
                                     <span className="text-[10px] text-zinc-500 font-semibold">Total</span>
                                 </div>
                             </div>
