@@ -1,8 +1,10 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { getDepartmentById, updateDepartment } from '@/services/departmentService';
 import {
   ArrowLeft, Copy, Edit2, Info, ChevronDown, X, Building, HelpCircle,
   Target, Book, AlignLeft, Clock, Archive, Save,
@@ -16,27 +18,61 @@ const FileText = ({ className }: { className?: string }) => <svg xmlns="http://w
 const HierarchyIcon = ({ className }: { className?: string }) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={className}><path d="M7 11V7a5 5 0 0 1 10 0v4" /><rect x="4" y="11" width="16" height="10" rx="2" /><circle cx="12" cy="16" r="1" /></svg>;
 
 export default function DepartmentDetailsPage({ params }: { params: { id: string } }) {
+  const router = useRouter();
+  const id = params.id;
+
   const [formData, setFormData] = useState({
     name: 'Design Studio',
     code: 'DS',
-    shortName: 'Design Studio',
-    parent: '',
-    head: 'Aman Malhotra',
-    altHead: 'Neha Sethi',
-    bu: 'Design & Creative',
-    costCenter: 'CC-DS-1001',
-    location: 'Noida – Head Office',
-    budget: '₹ 1,20,00,000',
-    capacity: '60',
-    type: 'Core Department',
-    status: 'Active',
-    email: 'designstudio@designhouse.co.in',
-    phone: '+91 120 456 7890',
-    description: 'Responsible for conceptualization, space planning, 3D design and creative development for all projects and client requirements.'
+    shortName: '',
+    branchId: '',
+    hodEmployeeId: '',
+    reportingToId: '',
+    businessUnit: 'Design & Creative',
+    costCenter: '',
+    location: '',
+    budget: '',
+    employeeCapacity: '60',
+    departmentType: 'Core Department',
+    isActive: true,
+    email: '',
+    phone: '',
+    description: '',
+    keyResponsibilities: ''
   });
+  const [loading, setLoading] = useState(true);
 
-  const handleInputChange = (field: string, value: string) => {
+  useEffect(() => {
+    fetchDepartment();
+  }, [id]);
+
+  const fetchDepartment = async () => {
+    try {
+      setLoading(true);
+      const data = await getDepartmentById(id);
+      setFormData({
+        ...formData,
+        ...data,
+      });
+    } catch (error) {
+      console.error('Failed to fetch department details', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = async () => {
+    try {
+      await updateDepartment(id, formData);
+      router.push('/dashboard/departments');
+    } catch (error) {
+      console.error('Failed to update department', error);
+      alert('Failed to update department');
+    }
   };
 
   const tabs = [
@@ -63,7 +99,7 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
       </div>
 
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-3">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div className="flex items-start gap-4">
           <div className="mt-1 flex items-center justify-center w-9 h-9 rounded-md border border-slate-200 text-blue-600">
             <Share2 className="w-5 h-5" />
@@ -77,9 +113,12 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
           <Link href="/dashboard/departments" className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors shadow-sm">
             <ArrowLeft className="w-4 h-4" /> Back to List
           </Link>
-          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors shadow-sm">
+          <Link href="/dashboard/departments/sub-department-management" className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors shadow-sm">
+            <Users className="w-4 h-4" /> Sub Departments
+          </Link>
+          {/* <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors shadow-sm">
             <Copy className="w-4 h-4" /> Duplicate Department
-          </button>
+          </button> */}
           <button className="flex items-center gap-2 px-6 py-2 bg-blue-600 border border-blue-600 text-white rounded-md font-bold text-[12px] hover:bg-blue-700 transition-colors shadow-sm">
             <Edit2 className="w-4 h-4" /> Edit Department
           </button>
@@ -87,7 +126,7 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
       </div>
 
       {/* THREE COLUMN GRID */}
-      <div className="grid grid-cols-1 xl:grid-cols-[200px_minmax(0,1fr)_380px] gap-5 items-start mt-2">
+      <div className="grid grid-cols-1 xl:grid-cols-[200px_minmax(0,1fr)_380px] gap-2 items-start mt-2">
 
         {/* LEFT NAV PANEL */}
         <div className="flex flex-col gap-1 py-1">
@@ -148,7 +187,7 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Parent Department</label>
                 <div className="relative">
-                  <select value={formData.parent} onChange={(e) => handleInputChange('parent', e.target.value)} className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-500 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm pr-8">
+                  <select value={formData.branchId || ''} onChange={(e) => handleInputChange('branchId', e.target.value)} className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-500 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm pr-8">
                     <option value="">-- None (Top Level) --</option>
                   </select>
                   <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -162,7 +201,7 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
                   <div className="flex items-center gap-2 pl-1">
                     <img src="https://i.pravatar.cc/150?u=1" alt="Aman" className="w-7 h-7 rounded-full object-cover border border-slate-200" />
                     <div className="leading-tight">
-                      <p className="text-[11.5px] font-bold text-slate-900">{formData.head}</p>
+                      <p className="text-[11.5px] font-bold text-slate-900">{formData.hodEmployeeId || 'Aman Malhotra'}</p>
                       <p className="text-[9.5px] font-medium text-slate-500">Design Director</p>
                     </div>
                   </div>
@@ -179,7 +218,7 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
                   <div className="flex items-center gap-2 pl-1">
                     <img src="https://i.pravatar.cc/150?u=2" alt="Neha" className="w-7 h-7 rounded-full object-cover border border-slate-200" />
                     <div className="leading-tight">
-                      <p className="text-[11.5px] font-bold text-slate-900">{formData.altHead}</p>
+                      <p className="text-[11.5px] font-bold text-slate-900">{formData.reportingToId || 'Neha Sethi'}</p>
                       <p className="text-[9.5px] font-medium text-slate-500">GM – Retail</p>
                     </div>
                   </div>
@@ -196,8 +235,9 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Business Unit <span className="text-red-500">*</span></label>
                 <div className="relative">
-                  <select value={formData.bu} onChange={(e) => handleInputChange('bu', e.target.value)} className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm pr-8">
+                  <select value={formData.businessUnit || ''} onChange={(e) => handleInputChange('businessUnit', e.target.value)} className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm pr-8">
                     <option value="Design & Creative">Design & Creative</option>
+                    <option value="Retail Interiors & Exhibition">Retail Interiors & Exhibition</option>
                   </select>
                   <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
@@ -245,12 +285,12 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Employee Capacity</label>
-                <input type="text" value={formData.capacity} onChange={(e) => handleInputChange('capacity', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm" />
+                <input type="text" value={formData.employeeCapacity || ''} onChange={(e) => handleInputChange('employeeCapacity', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm" />
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Department Type</label>
                 <div className="relative">
-                  <select value={formData.type} onChange={(e) => handleInputChange('type', e.target.value)} className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm pr-8">
+                  <select value={formData.departmentType || ''} onChange={(e) => handleInputChange('departmentType', e.target.value)} className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm pr-8">
                     <option value="Core Department">Core Department</option>
                   </select>
                   <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -260,10 +300,11 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Status</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-[12px] font-bold text-emerald-600">Active</span>
+                    <span className={`text-[12px] font-bold ${formData.isActive ? 'text-emerald-600' : 'text-rose-600'}`}>{formData.isActive ? 'Active' : 'Inactive'}</span>
                   </div>
-                  <select value={formData.status} onChange={(e) => handleInputChange('status', e.target.value)} className="w-full appearance-none pl-12 pr-8 py-2 border border-slate-200 rounded-lg text-[12px] text-transparent font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm cursor-pointer">
-                    <option value="Active">Active</option>
+                  <select value={formData.isActive.toString()} onChange={(e) => handleInputChange('isActive', e.target.value === 'true')} className="w-full appearance-none pl-12 pr-8 py-2 border border-slate-200 rounded-lg text-[12px] text-transparent font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm cursor-pointer">
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
                   </select>
                   <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
@@ -299,10 +340,10 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
               <Archive className="w-4 h-4" /> Archive Department
             </button>
             <div className="flex items-center gap-3">
-              <button className="px-6 py-2.5 border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors bg-white shadow-sm">
+              <Link href="/dashboard/departments" className="px-6 py-2.5 border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors bg-white shadow-sm">
                 Cancel
-              </button>
-              <button className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 border border-blue-600 text-white rounded-md font-bold text-[12px] hover:bg-blue-700 transition-colors shadow-sm">
+              </Link>
+              <button onClick={handleSave} className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 border border-blue-600 text-white rounded-md font-bold text-[12px] hover:bg-blue-700 transition-colors shadow-sm">
                 <Save className="w-4 h-4" /> Save Changes
               </button>
             </div>
@@ -310,10 +351,10 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
         </div>
 
         {/* RIGHT INFORMATION PANEL */}
-        <div className="flex flex-col gap-5 sticky top-6">
+        <div className="flex flex-col gap-2 sticky top-6">
           {/* Understand Key Fields */}
           <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-2">
               <div className="text-amber-500"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.9 1.2 1.5 1.5 2.5" /><path d="M9 18h6" /><path d="M10 22h4" /></svg></div>
               <h3 className="text-[14px] font-bold text-slate-900">Understand Key Fields</h3>
             </div>
@@ -372,7 +413,7 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
 
           {/* Hierarchy Preview */}
           <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
-            <h3 className="text-[14px] font-bold text-slate-900 mb-4">Hierarchy Preview</h3>
+            <h3 className="text-[14px] font-bold text-slate-900 mb-2">Hierarchy Preview</h3>
             <div className="flex flex-col text-[11px] font-bold text-slate-800 relative z-0">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-6 h-6 rounded bg-[#E8F3EA] text-[#6CA97B] flex items-center justify-center shrink-0">

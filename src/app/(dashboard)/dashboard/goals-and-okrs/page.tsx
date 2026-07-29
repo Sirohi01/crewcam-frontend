@@ -274,6 +274,7 @@ const CreateGoalForm: React.FC<{ onDone: () => void }> = ({ onDone }) => {
 
 // ---------- Create OKR form ----------
 import { useFieldArray } from "react-hook-form" // add this import along with useForm
+import { Breadcrumb } from "@/components/ui/breadCrumb"
 
 // ---------- Zod schema (updated) ----------
 
@@ -562,11 +563,12 @@ const GoalsAndOkrs: React.FC = () => {
     
   <div className="flex h-[calc(100vh-48px)] min-h-[650px] flex-col gap-2 overflow-hidden bg-slate-50 p-2 text-slate-900">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1 text-xs ">
-        <span>Dashboard</span>
-        <span>›</span>
-        <span className="font-medium ">Goals & OKRs</span>
-      </div>
+    <Breadcrumb
+  items={[
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "Goals & OKRs" },
+  ]}
+/>
 
       {loading ? (
         <div className="flex-1 flex items-center justify-center">Loading...</div>

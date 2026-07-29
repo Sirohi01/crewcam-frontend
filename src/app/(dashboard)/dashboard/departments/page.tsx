@@ -1,13 +1,17 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Upload, Download, Sparkles, Plus, ChevronRight, Search, Filter,
   RotateCcw, Eye, Edit2, MoreVertical, X, ChevronDown, ChevronLeft,
-  Building, Users, User, PieChart as PieChartIcon, CheckCircle2, Circle, TrendingUp, Clock
+  Building, Users, User, PieChart as PieChartIcon, TrendingUp, Clock,
+  Delete,
+  Trash2
 } from 'lucide-react';
 import { LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Card } from '@/components/ui/card';
+import { getDepartments, deleteDepartment } from '@/services/departmentService';
+import { Breadcrumb } from '@/components/ui/breadCrumb';
 
 // --- MOCK DATA ---
 const topCards = [
@@ -21,18 +25,7 @@ const topCards = [
 
 const mockChartData = [{ v: 10 }, { v: 25 }, { v: 20 }, { v: 45 }, { v: 30 }, { v: 50 }, { v: 40 }];
 
-const departments = [
-  { id: 1, name: 'Design Studio', code: 'DS', headName: 'Aman Malhotra', headRole: 'Design Director', empTotal: 42, empManager: 28, empSupport: 14, budgetStr: '₹ 1,20,00,000', util: 80, active: true },
-  { id: 2, name: 'Retail Interiors', code: 'RI', headName: 'Neha Sethi', headRole: 'GM - Retail', empTotal: 68, empManager: 40, empSupport: 28, budgetStr: '₹ 2,45,00,000', util: 75, active: true },
-  { id: 3, name: 'Display Merchandising', code: 'DM', headName: 'Rohit Arora', headRole: 'GM - Display', empTotal: 55, empManager: 35, empSupport: 20, budgetStr: '₹ 1,75,00,000', util: 70, active: true },
-  { id: 4, name: 'Events & Exhibitions', code: 'EE', headName: 'Pooja Bansal', headRole: 'Events Director', empTotal: 38, empManager: 26, empSupport: 12, budgetStr: '₹ 1,10,00,000', util: 65, active: true },
-  { id: 5, name: 'Projects', code: 'PR', headName: 'Vivek Rana', headRole: 'VP - Projects', empTotal: 72, empManager: 48, empSupport: 24, budgetStr: '₹ 3,10,00,000', util: 78, active: true },
-  { id: 6, name: 'Production', code: 'PD', headName: 'Sandeep Yadav', headRole: 'Production Head', empTotal: 61, empManager: 50, empSupport: 11, budgetStr: '₹ 2,05,00,000', util: 72, active: true },
-  { id: 7, name: 'Procurement', code: 'PC', headName: 'Meena Joshi', headRole: 'Procurement Head', empTotal: 18, empManager: 12, empSupport: 6, budgetStr: '₹ 65,00,000', util: 60, active: true },
-  { id: 8, name: 'Sales & Business Dev.', code: 'SB', headName: 'Karan Wadhwa', headRole: 'Sales Director', empTotal: 46, empManager: 30, empSupport: 16, budgetStr: '₹ 1,90,00,000', util: 68, active: true },
-  { id: 9, name: 'Accounts & Finance', code: 'AF', headName: 'Anjali Gupta', headRole: 'Finance Manager', empTotal: 20, empManager: 12, empSupport: 8, budgetStr: '₹ 85,00,000', util: 55, active: true },
-  { id: 10, name: 'Human Resources', code: 'HR', headName: 'Priyanka Singh', headRole: 'HR Manager', empTotal: 15, empManager: 9, empSupport: 6, budgetStr: '₹ 60,00,000', util: 50, active: true },
-];
+// Real data will overwrite this.
 
 const compositionData = [
   { name: 'Managers', value: 10, color: '#3b82f6', percent: '24%' },
@@ -85,6 +78,35 @@ const CircularProgress = ({ value, color, hideText }: { value: number, color: st
 export default function DepartmentsPage() {
   const [activeLeftTab, setActiveLeftTab] = useState('Department List');
   const [activeRightTab, setActiveRightTab] = useState('Overview');
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
+
+  const fetchDepartments = async () => {
+    try {
+      setLoading(true);
+      const data = await getDepartments();
+      setDepartments(data);
+    } catch (error) {
+      console.error('Failed to fetch departments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this department?')) {
+      try {
+        await deleteDepartment(id);
+        fetchDepartments();
+      } catch (error) {
+        console.error('Failed to delete department:', error);
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col gap-2 animate-in fade-in duration-300 p-2 w-full font-sans text-slate-800">
@@ -92,11 +114,12 @@ export default function DepartmentsPage() {
       {/* PAGE HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-1">
         <div>
-          <div className="text-[11px] font-medium text-slate-500 mb-1 flex items-center gap-2">
-            <span className="cursor-pointer hover:text-slate-700">Organization Setup</span>
-            <ChevronRight className="w-3 h-3" />
-            <span className="text-blue-600 font-semibold cursor-pointer">Departments</span>
-          </div>
+        <Breadcrumb
+      items={[
+        { label: "Organization Setup", href: "/dashboard" },
+        { label: "Departments" },
+      ]}
+    />
           <h1 className="text-xl font-bold text-slate-900 mb-1">Departments</h1>
           <p className="text-[11px] text-slate-500">Manage, organize and track all departments across the organization.</p>
         </div>
@@ -125,18 +148,18 @@ export default function DepartmentsPage() {
       {/* STATS CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 mb-1">
         {topCards.map((card, idx) => (
-          <Card key={idx} className="p-3.5 flex flex-col justify-between bg-white border border-slate-200 shadow-sm rounded-lg min-h-[110px]">
-            <div className="flex items-start gap-3 mb-2">
+          <Card key={idx} className="p-2.5 flex flex-col justify-between bg-white border border-slate-200 shadow-sm rounded-lg min-h-[110px]">
+            <div className="flex items-start gap-2 mb-2">
               {card.isPie ? (
-                <div className="w-12 h-12 shrink-0 -mt-1"><CircularProgress value={parseInt(card.value)} color={card.color} hideText /></div>
+                <div className="w-10 h-10 shrink-0 -mt-1"><CircularProgress value={parseInt(card.value)} color={card.color} hideText /></div>
               ) : (
-                <div className="w-11 h-11 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${card.color}15`, color: card.color }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${card.color}15`, color: card.color }}>
                   {card.title.includes('DEPARTMENT') && !card.title.includes('HEADS') ? <Building className="w-5 h-5" /> : card.title.includes('EMPLOYEE') ? <Users className="w-5 h-5" /> : card.title.includes('HEADS') ? <User className="w-5 h-5" /> : <PieChartIcon className="w-5 h-5" />}
                 </div>
               )}
               <div className="flex flex-col pt-0.5">
                 <h3 className="text-[9px] font-bold text-slate-600 uppercase tracking-wider mb-0.5">{card.title}</h3>
-                <span className="text-xl font-bold text-slate-900 leading-none">{card.value}</span>
+                <span className="text-md font-bold text-slate-900 leading-none">{card.value}</span>
                 <p className="text-[10px] text-slate-500 mt-1 leading-tight">{card.subtitle}</p>
               </div>
             </div>
@@ -161,12 +184,12 @@ export default function DepartmentsPage() {
 
             {/* TABS & TOOLBAR */}
             <div className="flex items-center justify-between border-b border-slate-100 pl-2 pr-3 w-full">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 {['Department List', 'Hierarchy View', 'Analytics', 'Budget Overview'].map(tab => (
                   <button
                     key={tab}
                     onClick={() => setActiveLeftTab(tab)}
-                    className={`whitespace-nowrap py-4 text-[11px] font-semibold border-b-[3px] transition-colors flex items-center gap-2 ${activeLeftTab === tab ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-600 hover:text-slate-800'}`}
+                    className={`whitespace-nowrap py-2.5 text-[11px] font-semibold border-b-[3px] transition-colors flex items-center gap-2 ${activeLeftTab === tab ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-600 hover:text-slate-800'}`}
                   >
                     {tab === 'Hierarchy View' && <Users className="w-4 h-4 text-slate-500" />}
                     {tab === 'Analytics' && <TrendingUp className="w-4 h-4 text-slate-500" />}
@@ -195,73 +218,73 @@ export default function DepartmentsPage() {
 
             {/* TABLE */}
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse table-fixed">
+                <colgroup>
+                  <col style={{width:'22%'}} />
+                  <col style={{width:'7%'}} />
+                  <col style={{width:'20%'}} />
+                  <col style={{width:'13%'}} />
+                  <col style={{width:'18%'}} />
+                  <col style={{width:'10%'}} />
+                  <col style={{width:'10%'}} />
+                </colgroup>
                 <thead>
                   <tr className="border-b border-slate-100">
-                    <th className="py-1.5 px-2 w-10"></th>
-                    <th className="py-1.5 px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Department</th>
-                    <th className="py-1.5 px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Code</th>
-                    <th className="py-1.5 px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Department Head</th>
-                    <th className="py-1.5 px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider leading-tight">Employees <span className="block text-[9px] text-slate-400 font-normal normal-case tracking-normal">Count</span></th>
-                    <th className="py-1.5 px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider leading-tight">Budget (FY 2025-26) <span className="block text-[9px] text-slate-400 font-normal normal-case tracking-normal">Utilization</span></th>
-                    <th className="py-1.5 px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                    <th className="py-1.5 px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">Actions</th>
+                    <th className="py-1.5 px-2 text-[10px] text-align-center font-semibold text-slate-500 uppercase tracking-wider">Department</th>
+                    <th className="py-1.5 px-2 text-[10px] text-align-center font-semibold text-slate-500 uppercase tracking-wider">Code</th>
+                    <th className="py-1.5 px-2 text-[10px] text-align-center font-semibold text-slate-500 uppercase tracking-wider">Department Head</th>
+                    <th className="py-1.5 px-2 text-[10px] text-align-center font-semibold text-slate-500 uppercase tracking-wider leading-tight">Employees <span className="block text-[9px] text-slate-400 font-normal normal-case tracking-normal">Count</span></th>
+                    <th className="py-1.5 px-2 text-[10px] text-align-center font-semibold text-slate-500 uppercase tracking-wider leading-tight">Budget(FY 25-26) <span className="block text-[9px] text-slate-400 font-normal normal-case tracking-normal">Utilization</span></th>
+                    <th className="py-1.5 px-2 text-[10px] text-align-center font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                    <th className="py-1.5 px-2 text-[10px] text-align-center font-semibold text-slate-500 uppercase tracking-wider text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="text-[11px]">
-                  {departments.map((dept, i) => (
-                    <tr key={i} className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors group ${i === 0 ? 'bg-blue-50/20' : ''}`}>
-                      <td className="py-1.5 px-2 text-slate-400">
-                        <ChevronRight className="w-4 h-4 cursor-pointer hover:text-slate-600 transition-colors" />
+                  {loading ? (
+                    <tr><td colSpan={7} className="text-center py-4 text-slate-500">Loading departments...</td></tr>
+                  ) : departments.length === 0 ? (
+                    <tr><td colSpan={7} className="text-center py-4 text-slate-500">No departments found.</td></tr>
+                  ) : departments.map((dept, i) => (
+                    <tr key={dept._id || i} className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors group ${i === 0 ? 'bg-blue-50/20' : ''}`}>
+                      <td className="py-2 px-2 align-middle">
+                        <span className="font-semibold text-slate-800 truncate block">{dept.name}</span>
                       </td>
-                      <td className="py-1.5 px-2">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm ${i === 0 ? 'bg-blue-600' : 'bg-slate-700'}`}>
-                            <Building className="w-4 h-4" />
-                          </div>
-                          <span className="font-bold text-slate-800">{dept.name}</span>
-                        </div>
-                      </td>
-                      <td className="py-1.5 px-2 font-semibold text-slate-700">{dept.code}</td>
-                      <td className="py-1.5 px-2">
-                        <div className="flex items-center gap-3">
-                          <img src={`https://i.pravatar.cc/150?u=${dept.id}`} alt={dept.headName} className="w-8 h-8 rounded-full border border-slate-200" />
-                          <div className="leading-tight">
-                            <p className="font-bold text-slate-800 text-[11px]">{dept.headName}</p>
-                            <p className="text-[11px] text-slate-500 mt-0.5">{dept.headRole}</p>
+                      <td className="py-2 px-2 align-middle font-semibold text-slate-600 text-[10.5px]">{dept.code}</td>
+                      <td className="py-2 px-2 align-middle">
+                        <div className="flex items-center gap-2">
+                          <img src={`https://i.pravatar.cc/150?u=${dept._id || dept.id}`} alt={dept.headName || 'User'} className="w-6 h-6 rounded-full border border-slate-200 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="font-semibold text-slate-800 text-[11px] truncate">{dept.hodEmployeeId || 'Aman Malhotra'}</p>
+                            <p className="text-[10px] text-slate-400 truncate">Design Director</p>
                           </div>
                         </div>
                       </td>
-                      <td className="py-1.5 px-2">
-                        <div className="flex flex-col gap-1.5">
-                          <span className="font-bold text-slate-800">{dept.empTotal}</span>
-                          <div className="flex items-center gap-1.5 text-[10px] font-semibold">
-                            <span className="text-blue-600 flex items-center gap-1"><Users className="w-3 h-3 text-blue-400" /> {dept.empManager}</span>
-                            <span className="text-rose-500 flex items-center gap-1"><Users className="w-3 h-3 text-rose-400" /> {dept.empSupport}</span>
-                          </div>
+                      <td className="py-2 px-2 align-middle">
+                        <span className="font-semibold text-slate-800 block">{dept.employeeCapacity || dept.empTotal || 0}</span>
+                        <div className="flex items-center gap-1.5 text-[10px] font-medium mt-0.5">
+                          <span className="text-blue-600 flex items-center gap-0.5"><Users className="w-3 h-3" /> {dept.empManager || 0}</span>
+                          <span className="text-rose-500 flex items-center gap-0.5"><Users className="w-3 h-3" /> {dept.empSupport || 0}</span>
                         </div>
                       </td>
-                      <td className="py-1.5 px-2">
-                        <div className="flex flex-col gap-1.5 w-36">
-                          <div className="flex justify-between items-center text-[10px]">
-                            <span className="font-bold text-slate-800">{dept.budgetStr}</span>
-                            <span className="font-bold text-slate-500 text-[11px]">{dept.util}%</span>
-                          </div>
-                          <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-blue-600 rounded-full" style={{ width: `${dept.util}%` }} />
-                          </div>
+                      <td className="py-2 px-2 align-middle">
+                        <div className="flex items-center justify-between text-[10px] mb-1">
+                          <span className="font-semibold text-slate-800">{dept.budgetStr || '₹ 0'}</span>
+                          <span className="font-semibold text-slate-500">{dept.util || 0}%</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-blue-600 rounded-full" style={{ width: `${dept.util || 0}%` }} />
                         </div>
                       </td>
-                      <td className="py-1.5 px-2">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-wider border border-emerald-100">
-                          Active
+                      <td className="py-2 px-2 align-middle">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md ${dept.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'} text-[10px] font-bold uppercase tracking-wider border`}>
+                          {dept.isActive ? 'Active' : 'Inactive'}
                         </span>
                       </td>
-                      <td className="py-1.5 px-2">
-                        <div className="flex items-center justify-center gap-1">
-                          <Link href={`/dashboard/departments/${i + 1}`} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors block"><Eye className="w-4 h-4" /></Link>
-                          <button className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"><Edit2 className="w-4 h-4" /></button>
-                          <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors"><MoreVertical className="w-4 h-4" /></button>
+                      <td className="py-2 px-2 align-middle">
+                        <div className="flex items-center justify-center gap-0.5">
+                          <Link href={`/dashboard/departments/${dept._id || dept.id}`} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors block"><Eye className="w-3 h-3" /></Link>
+                          <Link href={`/dashboard/departments/add-department/init/${dept._id || dept.id}`} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors block"><Edit2 className="w-3 h-3" /></Link>
+                          <button onClick={() => handleDelete(dept._id || dept.id?.toString())} className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"><Trash2 className="w-3 h-3" /></button>
                         </div>
                       </td>
                     </tr>
@@ -298,7 +321,7 @@ export default function DepartmentsPage() {
 
             {/* DEPT HEADER */}
             <div className="p-3 pb-2 relative">
-              <button className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"><X className="w-4 h-4" /></button>
+              <button className="absolute top-4 right-2 text-slate-400 hover:text-slate-600 transition-colors"><X className="w-4 h-4" /></button>
               <div className="flex items-start gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-blue-100 border-4 border-blue-50 flex items-center justify-center shrink-0 shadow-sm relative">
                   <div className="absolute inset-0 bg-blue-600 rounded-xl m-0.5 flex items-center justify-center text-white"><Edit2 className="w-4 h-4" /></div>
@@ -360,7 +383,7 @@ export default function DepartmentsPage() {
                 <div className="font-bold text-slate-800">60</div>
 
                 <div className="flex items-center gap-2 text-slate-500 font-medium"><Upload className="w-4 h-4" /> Email</div>
-                <div className="font-semibold text-blue-600 hover:underline cursor-pointer">designstudio@designhouse.co.in</div>
+                <div className="font-semibold text-blue-600 hover:underline cursor-pointer">design@house.co.in</div>
 
                 <div className="flex items-start gap-2 text-slate-500 font-medium"><Edit2 className="w-4 h-4" /> Description</div>
                 <div className="text-slate-700 font-medium leading-relaxed text-[10px]">Responsible for conceptualization, space planning, 3D design and creative development for all projects and client requirements.</div>

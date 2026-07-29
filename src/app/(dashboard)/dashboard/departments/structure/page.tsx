@@ -296,9 +296,9 @@ export default function DepartmentStructurePage() {
                 <button className="flex items-center gap-1.5 justify-center py-2 border border-slate-200 rounded-lg text-[10.5px] font-bold text-blue-600 hover:bg-blue-50 transition-colors">
                   <Plus className="w-3.5 h-3.5" /> Add Business Unit
                 </button>
-                <button className="flex items-center gap-1.5 justify-center py-2 border border-slate-200 rounded-lg text-[10.5px] font-bold text-blue-600 hover:bg-blue-50 transition-colors">
+                <Link href={"/dashboard/divisions/add-division"} className="flex items-center gap-1.5 justify-center py-2 border border-slate-200 rounded-lg text-[10.5px] font-bold text-blue-600 hover:bg-blue-50 transition-colors">
                   <Plus className="w-3.5 h-3.5" /> Add Division
-                </button>
+                </Link>
                 <button className="flex items-center gap-1.5 justify-center py-2 border border-slate-200 rounded-lg text-[10.5px] font-bold text-blue-600 hover:bg-blue-50 transition-colors">
                   <Plus className="w-3.5 h-3.5" /> Add Department
                 </button>

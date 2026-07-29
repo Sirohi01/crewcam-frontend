@@ -9,6 +9,7 @@ import {
   FileText, Users, Monitor, Database, Calendar, BookOpen,
   Plus, CalendarPlus, Target, BarChart3, ArrowUpRight,
 } from 'lucide-react';
+import { Breadcrumb } from '@/components/ui/breadCrumb';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Mock data
@@ -153,11 +154,12 @@ function PageHeader() {
   return (
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
-        <p className="flex items-center gap-1.5 text-[12px] text-zinc-400">
-          <span className="text-zinc-400">Dashboard</span>
-          <span>›</span>
-          <span className="font-semibold text-zinc-700">My Tasks</span>
-        </p>
+       <Breadcrumb
+  items={[
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "My Tasks" },
+  ]}
+/>
         <h1 className="mt-1 text-[24px] font-bold text-zinc-900">My Tasks</h1>
         <p className="mt-0.5 text-[13px] text-zinc-400">View and manage your tasks. Stay organized and get things done.</p>
       </div>

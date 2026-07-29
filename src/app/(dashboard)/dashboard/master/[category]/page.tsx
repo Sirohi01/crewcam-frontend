@@ -166,7 +166,7 @@ export default function MasterDataCategoryPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-2">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-md tracking-tight text-zinc-900 dark:text-zinc-50">{active.title} Master Data</h1>
