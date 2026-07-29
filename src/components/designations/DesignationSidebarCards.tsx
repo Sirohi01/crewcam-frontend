@@ -5,12 +5,17 @@ import { UploadCloud, CheckCircle2, Info, User, Briefcase, Users, LayoutDashboar
 import { Card } from '@/components/divisions/FormHelpers';
 import { DivisionIconCard } from '@/components/divisions/DivisionIconCard';
 
-export default function DesignationSidebarCards() {
+export default function DesignationSidebarCards({ icon, onIconChange }: { icon?: string, onIconChange?: (icon: string) => void }) {
   return (
     <div className="space-y-3">
       
       {/* Designation Icon Card */}
-      <DivisionIconCard title="Designation Icon" entityName="designation" />
+      <DivisionIconCard 
+        title="Designation Icon" 
+        entityName="designation" 
+        value={icon}
+        onChange={onIconChange}
+      />
 
       {/* Why Add Designation? */}
       <Card title="Why Add Designation?">
