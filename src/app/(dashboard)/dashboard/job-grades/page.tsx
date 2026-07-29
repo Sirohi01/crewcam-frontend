@@ -63,13 +63,13 @@ export default function JobGradesPage() {
                 {topCards.map((card, idx) => {
                     const Icon = card.icon;
                     return (
-                        <div key={idx} className="p-3 flex items-center gap-3 bg-white border border-zinc-200 shadow-sm rounded-xl">
-                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${card.bg} ${card.text}`}>
+                        <div key={idx} className="p-3 flex items-center gap-2.5 bg-white border border-zinc-200 shadow-sm rounded-xl">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${card.bg} ${card.text}`}>
                                 <Icon className="w-4 h-4" />
                             </div>
                             <div className="flex flex-col">
-                                <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">{card.title}</h3>
-                                <span className="text-lg font-bold text-zinc-900 leading-tight">{card.value}</span>
+                                <h3 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wide">{card.title}</h3>
+                                <span className="text-md font-bold text-zinc-900 leading-tight">{card.value}</span>
                                 {card.subtitle && <p className="text-[10px] text-zinc-400">{card.subtitle}</p>}
                             </div>
                         </div>
@@ -106,44 +106,44 @@ export default function JobGradesPage() {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="border-b border-zinc-100 bg-zinc-50/50">
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase">Grade Level</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase">Grade Name</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase">Code</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase">Pay Range (Monthly)</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Mapped Designations</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Employees</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Status</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Actions</th>
+                                        <th className="py-2 px-2.5 text-[10px] font-semibold text-zinc-500 uppercase">Grade Level</th>
+                                        <th className="py-2 px-2.5 text-[10px] font-semibold text-zinc-500 uppercase">Grade Name</th>
+                                        <th className="py-2 px-2.5 text-[10px] font-semibold text-zinc-500 uppercase">Code</th>
+                                        <th className="py-2 px-2.5 text-[10px] font-semibold text-zinc-500 uppercase">Pay Range (Monthly)</th>
+                                        <th className="py-2 px-2.5 text-[10px] font-semibold text-zinc-500 uppercase text-center">Mapped Designations</th>
+                                        <th className="py-2 px-2.5 text-[10px] font-semibold text-zinc-500 uppercase text-center">Employees</th>
+                                        <th className="py-2 px-2.5 text-[10px] font-semibold text-zinc-500 uppercase text-center">Status</th>
+                                        <th className="py-2 px-2.5 text-[10px] font-semibold text-zinc-500 uppercase text-center">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-[11px]">
                                     {jobGrades.map((jg, idx) => (
                                         <tr key={idx} className="border-b border-zinc-50 hover:bg-zinc-50 transition-colors">
-                                            <td className="py-2 px-3 text-center w-16">
-                                                <div className={`w-full py-1.5 rounded font-bold text-[12px] flex items-center justify-center ${jg.levelBg} ${jg.levelText}`}>
+                                            <td className="py-1.5 px-3 text-center w-14">
+                                                <div className={`w-full py-1.5 rounded font-semibold text-[10px] flex items-center justify-center ${jg.levelBg} ${jg.levelText}`}>
                                                     {jg.level}
                                                 </div>
                                             </td>
-                                            <td className="py-2 px-3">
+                                            <td className="py-1.5 px-3">
                                                 <div className="flex flex-col">
-                                                    <span className="font-bold text-zinc-800 text-[11px]">{jg.name}</span>
+                                                    <span className="font-semibold text-zinc-800 text-[10px]">{jg.name}</span>
                                                     <span className="text-[10px] text-zinc-500">{jg.desc}</span>
                                                 </div>
                                             </td>
-                                            <td className="py-2 px-3">
-                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-blue-600 bg-blue-50 text-[10px] font-bold border border-blue-100">
+                                            <td className="py-1.5 px-2">
+                                                <span className="inline-flex items-center px-1 py-0.5 rounded-md text-blue-600 bg-blue-50 text-[9px] font-semibold border border-blue-100">
                                                     {jg.code}
                                                 </span>
                                             </td>
-                                            <td className="py-2 px-3 font-semibold text-zinc-800">{jg.payRange}</td>
-                                            <td className="py-2 px-3 text-center font-bold text-zinc-800">{jg.designations}</td>
-                                            <td className="py-2 px-3 text-center font-bold text-zinc-800">{jg.employees}</td>
-                                            <td className="py-2 px-3 text-center">
+                                            <td className="py-1.5 px-2 font-semibold text-zinc-800">{jg.payRange}</td>
+                                            <td className="py-1.5 px-2 text-center font-semibold text-zinc-800">{jg.designations}</td>
+                                            <td className="py-1.5 px-2 text-center font-semibold text-zinc-800">{jg.employees}</td>
+                                            <td className="py-1.5 px-2 text-center">
                                                 <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[10px] font-bold border border-emerald-100">
                                                     Active
                                                 </span>
                                             </td>
-                                            <td className="py-2 px-3">
+                                            <td className="py-1.5 px-3">
                                                 <div className="flex items-center justify-center gap-1 text-zinc-400">
                                                     <button className="p-1 hover:text-zinc-600 transition-colors"><FileText className="w-3.5 h-3.5" /></button>
                                                     <button className="p-1 hover:text-zinc-600 transition-colors"><MoreVertical className="w-3.5 h-3.5" /></button>
@@ -181,8 +181,8 @@ export default function JobGradesPage() {
                 <div className="xl:col-span-3 flex flex-col gap-2 h-full">
 
                     {/* Grade Structure Overview */}
-                    <div className="bg-white border border-zinc-200 shadow-sm rounded-xl p-4 2xl:p-5 flex-1 flex flex-col">
-                        <h2 className="text-[14px] font-bold text-zinc-800 mb-4 flex items-center gap-2">Grade Structure Overview</h2>
+                    <div className="bg-white border border-zinc-200 shadow-sm rounded-xl p-3 2xl:p-5 flex-1 flex flex-col">
+                        <h2 className="text-[14px] font-bold text-zinc-800 mb-3 flex items-center gap-2">Grade Structure Overview</h2>
                         <div className="flex items-center gap-3 mb-4">
                             <div className="w-28 h-28 shrink-0">
                                 <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm">
@@ -245,7 +245,7 @@ export default function JobGradesPage() {
                     </div>
 
                     {/* Quick Actions Card */}
-                    <div className="bg-white border border-zinc-200 shadow-sm rounded-xl p-5 2xl:p-6 flex-1 flex flex-col justify-center">
+                    <div className="bg-white border border-zinc-200 shadow-sm rounded-xl p-6 2xl:p-6 flex-1 flex flex-col justify-center">
                         <h2 className="text-[14px] font-bold text-zinc-800 mb-4 flex items-center gap-2">Quick Actions</h2>
                         <div className="grid grid-cols-2 gap-3">
                             <button className="flex items-center gap-2 p-2.5 border border-zinc-200 rounded-lg text-[11px] font-semibold text-indigo-600 hover:bg-indigo-50 transition-colors justify-center whitespace-nowrap">

@@ -106,7 +106,7 @@ export default function CreateCandidatePage() {
   };
 
   return (
-    <div className="w-full bg-slate-50 flex flex-col font-sans min-h-[650px] lg:h-[calc(100%-48px)] overflow-y-auto pb-6" id="create-page-root">
+    <div className="w-full bg-slate-50 flex flex-col font-sans min-h-[650px] pb-6" id="create-page-root">
       <div className="w-full mx-auto max-w-[1600px] px-2 pt-2">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-3">
@@ -137,7 +137,7 @@ export default function CreateCandidatePage() {
           </div>
 
           {/* Buttons */}
-          <div className="flex items-center justify-end gap-2 shrink-0 w-full lg:w-[380px]">
+          <div className="flex items-center justify-end gap-2 shrink-0 w-full lg:w-[310px]">
             <Link href="/dashboard/hiring/candidates" className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
               Cancel
             </Link>
@@ -222,7 +222,7 @@ export default function CreateCandidatePage() {
                   <button type="button" className="grid h-6 w-6 place-items-center rounded-none hover:bg-zinc-100 hover:text-zinc-600"><Download size={13} /></button>
                 </div>
               )}
-              className="max-h-[820px] overflow-y-auto"
+              className="max-h-[820px] overflow-y-visible"
             >
               <div className="flex items-start gap-3">
                 <span className="h-14 w-14 shrink-0 overflow-hidden rounded-none bg-zinc-200" />
