@@ -121,7 +121,7 @@ export default function DesignationsTable() {
       </div>
 
       {/* Toolbar */}
-      <div className="p-4 border-b border-zinc-100 flex flex-wrap items-center gap-2">
+      <div className="p-3 border-b border-zinc-100 flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4" />
           <input
@@ -129,9 +129,10 @@ export default function DesignationsTable() {
             placeholder="Search designations..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-lg border border-zinc-200 bg-white pl-9 pr-3 py-2 text-[12px] text-zinc-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors placeholder:text-zinc-400"
+            className="w-full rounded-md border border-zinc-200 bg-white pl-9 pr-3 py-2 text-[12px] text-zinc-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors placeholder:text-zinc-400"
           />
         </div>
+<<<<<<< Updated upstream
 
         <select
           value={filterGrade}
@@ -171,6 +172,25 @@ export default function DesignationsTable() {
           }}
           className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-semibold text-zinc-500 hover:text-zinc-700 transition-colors ml-auto"
         >
+=======
+        
+        <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 px-2 py-2 text-[12px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
+          <Filter size={14} /> Filters
+        </button>
+        <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 px-2 py-2 text-[12px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
+          Job Grade <ChevronDown size={14} />
+        </button>
+        <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 px-2 py-2 text-[12px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
+          Job Family <ChevronDown size={14} />
+        </button>
+        <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 px-2 py-2 text-[12px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
+          Status <ChevronDown size={14} />
+        </button>
+        <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 px-2 py-2 text-[12px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
+          <Settings2 size={14} /> More Filters
+        </button>
+        <button className="flex items-center gap-1.5 rounded-md px-2 py-2 text-[12px] font-semibold text-zinc-500 hover:text-zinc-700 transition-colors">
+>>>>>>> Stashed changes
           <RotateCcw size={14} /> Reset
         </button>
       </div>
