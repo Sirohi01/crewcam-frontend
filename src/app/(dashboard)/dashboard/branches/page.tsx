@@ -253,8 +253,8 @@ export default function BranchesPage() {
 
       {modal && (
         <Modal title={`${modalItem ? 'Edit' : 'Create'} Branch`} onClose={() => setModal(false)} onSubmit={submit} busy={saving}>
-          {error && <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 mb-4">{error}</div>}
-          <div className="grid grid-cols-2 gap-4">
+          {error && <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 mb-2">{error}</div>}
+          <div className="grid grid-cols-2 gap-2">
             <Input label="Branch Name" value={branchData.name} onChange={(e: any) => setBranchData((prev) => ({ ...prev, name: e.target.value }))} required />
             <Input label="Branch Code" value={branchData.code} onChange={(e: any) => setBranchData((prev) => ({ ...prev, code: e.target.value }))} required />
 
@@ -316,16 +316,18 @@ function Panel({ title, onAdd, loading, empty, children }: { title: string; onAd
 function Modal({ title, onClose, onSubmit, children, busy }: any) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 backdrop-blur-sm">
-      <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-zinc-200/50 dark:border-zinc-800">
-        <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
+      <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-md max-h-[85vh] flex flex-col overflow-hidden border border-zinc-200/50 dark:border-zinc-800">
+        <div className="px-4 py-2.5 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center shrink-0">
           <h2 className="text-sm font-md text-zinc-900 dark:text-zinc-100">{title}</h2>
           <button type="button" onClick={onClose} className="text-zinc-400 hover:text-zinc-600 p-1 rounded-md"><X size={16} /></button>
         </div>
-        <form onSubmit={onSubmit} className="p-5 space-y-5">
-          {children}
-          <div className="pt-3 flex justify-end gap-3">
-            <Button type="button" variant="outline" className="h-9 px-4 text-xs" onClick={onClose}>Cancel</Button>
-            <Button type="submit" disabled={busy} className="h-9 px-4 text-xs bg-indigo-600 hover:bg-indigo-700 text-white">{busy ? 'Saving...' : 'Save'}</Button>
+        <form onSubmit={onSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="overflow-y-auto flex-1 px-4 py-3 space-y-3">
+            {children}
+          </div>
+          <div className="px-4 py-2.5 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3 shrink-0">
+            <Button type="button" variant="outline" className="h-8 px-4 text-xs" onClick={onClose}>Cancel</Button>
+            <Button type="submit" disabled={busy} className="h-8 px-4 text-xs bg-indigo-600 hover:bg-indigo-700 text-white">{busy ? 'Saving...' : 'Save'}</Button>
           </div>
         </form>
       </div>
@@ -352,9 +354,9 @@ function ConfirmModal({ title, children, onCancel, onConfirm, busy }: any) {
 
 function Input({ label, ...props }: any) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1">
       <label className="block text-xs font-md text-zinc-700 dark:text-zinc-300">{label}</label>
-      <input className="w-full border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-transparent" {...props} />
+      <input className="w-full border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-transparent" {...props} />
     </div>
   );
 }
