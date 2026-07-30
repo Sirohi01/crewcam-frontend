@@ -18,6 +18,7 @@ import {
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Breadcrumb } from "@/components/ui/breadCrumb";
+import { FormInput } from "@/components/ui/form-input";
 
 const benefits = [
   "Organize roles into logical groups",
@@ -172,16 +173,16 @@ export default function AddNewJobFamilyPage() {
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Field label="Job Family Name" required helper="e.g., Information Technology">
-                <input
+                <FormInput
                   defaultValue="Information Technology"
-                  className="h-6 w-full rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
+                  placeholder="e.g., Information Technology"
                 />
               </Field>
 
               <Field label="Family Code" required helper="e.g., IT">
-                <input
+                <FormInput
                   defaultValue="IT"
-                  className="h-6 w-full rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
+                  placeholder="e.g., IT"
                 />
               </Field>
 

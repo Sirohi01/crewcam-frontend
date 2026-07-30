@@ -13,6 +13,7 @@ import { Card } from '@/components/ui/card';
 import { getDepartments, deleteDepartment } from '@/services/departmentService';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 import BulkUploadModal, { ColumnConfig } from '@/components/upload/bulkUploadModal';
+import { FormInput } from '@/components/ui/form-input';
 
 const topCards = [
   { title: 'TOTAL DEPARTMENTS', value: '10', subtitle: 'All departments', color: '#3b82f6', isChart: true, linkText: 'View all' },
@@ -282,7 +283,7 @@ export default function DepartmentsPage() {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <div className="relative">
-                  <input type="text" placeholder="Search departments..." className="pl-3 pr-7 py-2 bg-white border border-slate-200 rounded-md text-[12px] w-36 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-slate-400" />
+                  <FormInput variant="search" type="text" placeholder="Search departments..." className="w-36 pl-3 pr-7" />
                   <Search className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 </div>
                 <button className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 rounded-md text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition-colors">

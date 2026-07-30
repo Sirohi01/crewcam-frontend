@@ -40,6 +40,7 @@ const jobGradeColumns: ColumnConfig<JobGradeRow>[] = [
   { key: 'probationPeriod', label: 'Probation Period (Months)', sampleValue: '6' },
   { key: 'remarks', label: 'Remarks', sampleValue: 'Applicable for mid-level managers' },
 ];
+import { FormInput } from '@/components/ui/form-input';
 
 // --- MOCK DATA ---
 const topCards = [
@@ -127,7 +128,7 @@ export default function JobGradesPage() {
                             <h2 className="text-[13px] font-bold text-zinc-800 flex items-center gap-2">Job Grades List</h2>
                             <div className="flex items-center gap-2">
                                 <div className="relative">
-                                    <input type="text" placeholder="Search job grades..." className="pl-2.5 pr-7 h-8 bg-white border border-zinc-200 rounded-md text-[11px] w-48 focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-400" />
+                                    <FormInput variant="search" type="text" placeholder="Search job grades..." className="pl-2.5 pr-7 h-8 w-48" />
                                     <Search className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                                 </div>
                                 <button className="flex items-center gap-1.5 h-8 px-2.5 border border-zinc-200 rounded-md text-[11px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
