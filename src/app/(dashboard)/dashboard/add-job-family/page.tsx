@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   ArrowLeft,
   Save,
@@ -18,6 +18,8 @@ import {
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Breadcrumb } from "@/components/ui/breadCrumb";
+import toast from "react-hot-toast";
+import { createJobFamily, getJobFamilies } from "@/services/jobFamilyService";
 
 const benefits = [
   "Organize roles into logical groups",
@@ -120,6 +122,53 @@ function Field({
 
 export default function AddNewJobFamilyPage() {
   const router = useRouter();
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    code: "",
+    description: "",
+    parentFamilyId: "",
+    businessUnit: "",
+    status: "Active",
+    keyResponsibilities: "",
+  });
+  const [parentFamilies, setParentFamilies] = useState<any[]>([]);
+
+  useEffect(() => {
+    getJobFamilies({ limit: 100 })
+      .then((res) => setParentFamilies(res.data || []))
+      .catch(() => {});
+  }, []);
+
+  const handleChange = (field: string, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = async () => {
+    if (!form.name.trim() || !form.code.trim() || !form.description.trim()) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+    setSaving(true);
+    try {
+      await createJobFamily({
+        name: form.name.trim(),
+        code: form.code.trim().toUpperCase(),
+        description: form.description.trim(),
+        parentFamilyId: form.parentFamilyId || undefined,
+        businessUnit: form.businessUnit || undefined,
+        keyResponsibilities: form.keyResponsibilities || undefined,
+        isActive: form.status === "Active",
+      });
+      toast.success("Job family created successfully");
+      router.push("/dashboard/job-families");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to create job family");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <main className="mx-auto w-full max-w-[1600px] space-y-2 overflow-x-hidden bg-zinc-50/40 p-2 sm:p-2">
       {/* Breadcrumb */}
@@ -152,9 +201,13 @@ export default function AddNewJobFamilyPage() {
             Back to Job Families
           </button>
 
-          <button className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md bg-[#153ee7] px-3 text-[11px] font-semibold text-white shadow-[0_2px_5px_rgba(21,62,231,0.25)] sm:flex-none">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md bg-[#153ee7] px-3 text-[11px] font-semibold text-white shadow-[0_2px_5px_rgba(21,62,231,0.25)] disabled:opacity-50 sm:flex-none"
+          >
             <Save size={14} strokeWidth={2} />
-            Save Job Family
+            {saving ? "Saving..." : "Save Job Family"}
           </button>
         </div>
       </div>
@@ -173,14 +226,16 @@ export default function AddNewJobFamilyPage() {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Field label="Job Family Name" required helper="e.g., Information Technology">
                 <input
-                  defaultValue="Information Technology"
+                  value={form.name}
+                  onChange={(e) => handleChange("name", e.target.value)}
                   className="h-6 w-full rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
                 />
               </Field>
 
               <Field label="Family Code" required helper="e.g., IT">
                 <input
-                  defaultValue="IT"
+                  value={form.code}
+                  onChange={(e) => handleChange("code", e.target.value)}
                   className="h-6 w-full rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
                 />
               </Field>
@@ -188,12 +243,13 @@ export default function AddNewJobFamilyPage() {
               <Field label="Description" required>
                 <div className="relative">
                   <textarea
-                    defaultValue="Includes all roles related to technology, software development, infrastructure and IT support."
+                    value={form.description}
+                    onChange={(e) => handleChange("description", e.target.value)}
                     rows={3}
                     className="w-full resize-none rounded-md border border-[#e0e4eb] px-2.5 py-2 text-[11px] font-medium leading-[16px] text-[#101743] outline-none"
                   />
                   <span className="pointer-events-none absolute bottom-1.5 right-2 text-[9px] text-zinc-400">
-                    92/200
+                    {form.description.length}/200
                   </span>
                 </div>
               </Field>
@@ -202,8 +258,15 @@ export default function AddNewJobFamilyPage() {
             <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Field label="Parent Family (Optional)" helper="Select if this is a sub-family">
                 <div className="relative">
-                  <select className="h-6 w-full appearance-none rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none">
-                    <option>Select parent family</option>
+                  <select
+                    value={form.parentFamilyId}
+                    onChange={(e) => handleChange("parentFamilyId", e.target.value)}
+                    className="h-6 w-full appearance-none rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
+                  >
+                    <option value="">Select parent family</option>
+                    {parentFamilies.map((pf: any) => (
+                      <option key={pf._id} value={pf._id}>{pf.name} ({pf.code})</option>
+                    ))}
                   </select>
                   <ChevronDown
                     size={14}
@@ -214,8 +277,16 @@ export default function AddNewJobFamilyPage() {
 
               <Field label="Applicable Business Unit" helper="Select the applicable business unit">
                 <div className="relative">
-                  <select className="h-6 w-full appearance-none rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none">
-                    <option>Select business unit</option>
+                  <select
+                    value={form.businessUnit}
+                    onChange={(e) => handleChange("businessUnit", e.target.value)}
+                    className="h-6 w-full appearance-none rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
+                  >
+                    <option value="">Select business unit</option>
+                    <option value="All Business Units">All Business Units</option>
+                    <option value="Corporate">Corporate</option>
+                    <option value="Operations">Operations</option>
+                    <option value="Technology">Technology</option>
                   </select>
                   <ChevronDown
                     size={14}
@@ -226,7 +297,11 @@ export default function AddNewJobFamilyPage() {
 
               <Field label="Status" required helper="Choose current status">
                 <div className="relative">
-                  <select className="h-6 w-full appearance-none rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none">
+                  <select
+                    value={form.status}
+                    onChange={(e) => handleChange("status", e.target.value)}
+                    className="h-6 w-full appearance-none rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
+                  >
                     <option>Active</option>
                   </select>
                   <ChevronDown
@@ -241,14 +316,13 @@ export default function AddNewJobFamilyPage() {
               <Field label="Key Responsibilities (Optional)">
                 <div className="relative">
                   <textarea
-                    defaultValue={
-                      "• Design, develop and maintain technology solutions.\n• Ensure system security, performance and reliability.\n• Provide technical support and continuous improvement."
-                    }
+                    value={form.keyResponsibilities}
+                    onChange={(e) => handleChange("keyResponsibilities", e.target.value)}
                     rows={4}
                     className="w-full resize-none rounded-md border border-[#e0e4eb] px-2.5 py-2 text-[11px] font-medium leading-[18px] text-[#101743] outline-none"
                   />
                   <span className="pointer-events-none absolute bottom-1.5 right-2 text-[9px] text-zinc-400">
-                    0/300
+                    {form.keyResponsibilities.length}/300
                   </span>
                 </div>
               </Field>

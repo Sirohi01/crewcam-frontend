@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Download,
   Plus,
@@ -26,135 +26,8 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Breadcrumb } from "@/components/ui/breadCrumb";
-
-type JobFamily = {
-  id: number;
-  name: string;
-  code: string;
-  description: string;
-  designations: number;
-  employees: number;
-  icon: React.ReactNode;
-  iconBg: string;
-  iconColor: string;
-  codeBg: string;
-  codeColor: string;
-};
-
-const jobFamilies: JobFamily[] = [
-  {
-    id: 1,
-    name: "Human Resources",
-    code: "HR",
-    description:
-      "Includes all roles related to HR management, recruitment, employee relations and policies.",
-    designations: 8,
-    employees: 45,
-    icon: <Users size={16} strokeWidth={2} />,
-    iconBg: "bg-[#eeeaff]",
-    iconColor: "text-[#6246d9]",
-    codeBg: "bg-[#f1eaff]",
-    codeColor: "text-[#6246d9]",
-  },
-  {
-    id: 2,
-    name: "Finance & Accounts",
-    code: "FIN",
-    description:
-      "Includes roles for accounting, budgeting, finance, taxation and auditing.",
-    designations: 10,
-    employees: 58,
-    icon: <BarChart3 size={16} strokeWidth={2} />,
-    iconBg: "bg-[#e9f9ed]",
-    iconColor: "text-[#36a34a]",
-    codeBg: "bg-[#eaf8e9]",
-    codeColor: "text-[#369b42]",
-  },
-  {
-    id: 3,
-    name: "Marketing",
-    code: "MKT",
-    description:
-      "Includes brand management, digital marketing, market research and communications.",
-    designations: 7,
-    employees: 32,
-    icon: <Megaphone size={16} strokeWidth={2} />,
-    iconBg: "bg-[#f0eaff]",
-    iconColor: "text-[#5d42dc]",
-    codeBg: "bg-[#eef0ff]",
-    codeColor: "text-[#4b50c8]",
-  },
-  {
-    id: 4,
-    name: "Sales",
-    code: "SAL",
-    description:
-      "Includes business development, sales operations, key account management.",
-    designations: 9,
-    employees: 67,
-    icon: <ShoppingBag size={16} strokeWidth={2} />,
-    iconBg: "bg-[#fff3e3]",
-    iconColor: "text-[#e88b16]",
-    codeBg: "bg-[#fff4e6]",
-    codeColor: "text-[#d77e12]",
-  },
-  {
-    id: 5,
-    name: "Customer Support",
-    code: "CS",
-    description:
-      "Includes customer service, tech support, call center and client success roles.",
-    designations: 6,
-    employees: 48,
-    icon: <Headphones size={16} strokeWidth={2} />,
-    iconBg: "bg-[#e8f8fa]",
-    iconColor: "text-[#239aa8]",
-    codeBg: "bg-[#e7f7f8]",
-    codeColor: "text-[#268e98]",
-  },
-  {
-    id: 6,
-    name: "Information Technology",
-    code: "IT",
-    description:
-      "Includes all roles related to technology, software development, infrastructure and IT support.",
-    designations: 12,
-    employees: 86,
-    icon: <Laptop size={16} strokeWidth={2} />,
-    iconBg: "bg-[#eaf3ff]",
-    iconColor: "text-[#2474d5]",
-    codeBg: "bg-[#eaf2ff]",
-    codeColor: "text-[#3176c9]",
-  },
-  {
-    id: 7,
-    name: "Operations",
-    code: "OPS",
-    description:
-      "Includes production, supply chain, logistics and operations management.",
-    designations: 9,
-    employees: 71,
-    icon: <Wrench size={16} strokeWidth={2} />,
-    iconBg: "bg-[#ffeaf3]",
-    iconColor: "text-[#e32b83]",
-    codeBg: "bg-[#ffedf6]",
-    codeColor: "text-[#db2980]",
-  },
-  {
-    id: 8,
-    name: "Administration",
-    code: "ADM",
-    description:
-      "Includes office administration, facility, legal and compliance roles.",
-    designations: 7,
-    employees: 25,
-    icon: <Shield size={16} strokeWidth={2} />,
-    iconBg: "bg-[#fff7e4]",
-    iconColor: "text-[#eba817]",
-    codeBg: "bg-[#fff5df]",
-    codeColor: "text-[#e49a0c]",
-  },
-];
+import { getJobFamilies, JobFamily } from "@/services/jobFamilyService";
+import toast from "react-hot-toast";
 
 function SummaryCard({
   icon,
@@ -200,6 +73,32 @@ function SummaryCard({
 
 export default function JobFamiliesPage() {
   const router = useRouter()
+  const [families, setFamilies] = useState<JobFamily[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    loadFamilies();
+  }, []);
+
+  const loadFamilies = async () => {
+    try {
+      setLoading(true);
+      const res = await getJobFamilies({ limit: 100 });
+      setFamilies(res.data || []);
+    } catch {
+      toast.error("Failed to load job families");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredFamilies = families.filter(
+    (f) =>
+      f.name.toLowerCase().includes(search.toLowerCase()) ||
+      f.code.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <main className="mx-auto w-full max-w-[1600px] space-y-2 overflow-x-hidden bg-zinc-50/40 p-2 sm:p-2">
       {/* Breadcrumb */}
@@ -244,7 +143,7 @@ export default function JobFamiliesPage() {
         <SummaryCard
           icon={<BriefcaseBusiness size={18} />}
           title="Total Job Families"
-          value="8"
+          value={String(families.length)}
           subtitle="Active Families"
           iconBg="bg-[#eeeaff]"
           iconColor="text-[#6246d9]"
@@ -253,7 +152,7 @@ export default function JobFamiliesPage() {
         <SummaryCard
           icon={<Building2 size={18} />}
           title="Total Designations"
-          value="68"
+          value="—"
           subtitle="Under These Families"
           iconBg="bg-[#e6f8ec]"
           iconColor="text-[#2da348]"
@@ -262,7 +161,7 @@ export default function JobFamiliesPage() {
         <SummaryCard
           icon={<Users size={18} />}
           title="Total Employees"
-          value="432"
+          value="—"
           subtitle="Mapped to Families"
           iconBg="bg-[#fff4df]"
           iconColor="text-[#ec8a13]"
@@ -271,7 +170,7 @@ export default function JobFamiliesPage() {
         <SummaryCard
           icon={<UserRound size={18} />}
           title="Average Employees / Family"
-          value="54"
+          value="—"
           subtitle="Across All Families"
           iconBg="bg-[#eaf3ff]"
           iconColor="text-[#2672d0]"
@@ -290,6 +189,8 @@ export default function JobFamiliesPage() {
           <div className="flex h-6 w-full items-center gap-1.5 rounded-md border border-[#e0e4eb] px-2.5 sm:w-[200px]">
             <Search size={14} className="shrink-0 text-[#101743]" />
             <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Search job families..."
               className="w-full bg-transparent text-[11px] outline-none placeholder:text-[#101743]"
             />
@@ -310,19 +211,21 @@ export default function JobFamiliesPage() {
     <span className="text-center">Actions</span>
   </div>
 
-  {jobFamilies.map((family) => (
-    <Link href='/dashboard/job-family-detail'  key={family.id}>
+  {loading ? (
+    <div className="flex items-center justify-center py-8 text-xs text-zinc-400">Loading...</div>
+  ) : filteredFamilies.length === 0 ? (
+    <div className="flex items-center justify-center py-8 text-xs text-zinc-400">No job families found</div>
+  ) : (
+    filteredFamilies.map((family, idx) => (
+    <Link href={`/dashboard/job-family-detail?id=${family._id}`} key={family._id}>
     <div
-      key={family.id}
       className="grid min-h-[46px] grid-cols-[40px_240px_100px_300px_110px_100px_90px_1fr] items-center gap-2 border-b border-zinc-100 px-3 py-1.5 text-[11px] text-zinc-800"
     >
-      <span>{family.id}</span>
+      <span>{idx + 1}</span>
 
       <div className="flex items-center gap-2">
-        <div
-          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${family.iconBg} ${family.iconColor}`}
-        >
-          {family.icon}
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#eaf2ff] text-[#2474d5]">
+          <BriefcaseBusiness size={14} />
         </div>
 
         <span className="whitespace-nowrap font-semibold">
@@ -331,9 +234,7 @@ export default function JobFamiliesPage() {
       </div>
 
       <div>
-        <span
-          className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-semibold ${family.codeBg} ${family.codeColor}`}
-        >
+        <span className="inline-flex rounded bg-[#eaf2ff] px-1.5 py-0.5 text-[10px] font-semibold text-[#2474d5]">
           {family.code}
         </span>
       </div>
@@ -342,13 +243,8 @@ export default function JobFamiliesPage() {
         {family.description}
       </p>
 
-      <span className="text-center font-medium">
-        {family.designations}
-      </span>
-
-      <span className="text-center font-medium">
-        {family.employees}
-      </span>
+      <span className="text-center font-medium">—</span>
+      <span className="text-center font-medium">—</span>
 
       <div className="flex justify-center">
         <span className="rounded border border-[#c6ead0] bg-[#e9f8ec] px-2 py-0.5 text-[10px] font-semibold text-[#22923d]">
@@ -367,14 +263,15 @@ export default function JobFamiliesPage() {
       </div>
     </div>
     </Link>
-  ))}
+  ))
+  )}
 </div>
         </div>
 
         {/* Footer */}
         <div className="flex flex-col gap-2 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-[11px] font-medium">
-            Showing 1 to 8 of 8 entries
+            Showing {filteredFamilies.length} of {families.length} entries
           </span>
 
           <div className="flex items-center gap-1.5">
