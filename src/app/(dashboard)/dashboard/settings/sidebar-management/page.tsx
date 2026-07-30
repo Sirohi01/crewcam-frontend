@@ -76,6 +76,7 @@ export default function SidebarManagementPage() {
   const [filterStatus, setFilterStatus] = useState('');
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isAddingCustomMode, setIsAddingCustomMode] = useState(false);
 
   const uniqueSections = Array.from(new Set((items || []).map(i => i.section).filter(Boolean)));
   const uniqueParents = Array.from(new Set((items || []).map(i => i.label).filter(Boolean)));
@@ -100,6 +101,7 @@ export default function SidebarManagementPage() {
 
   const resetForm = () => {
     setEditId(null);
+    setIsAddingCustomMode(false);
     setFormData({
       label: '',
       href: '',
@@ -113,6 +115,7 @@ export default function SidebarManagementPage() {
 
   const handleEdit = (item: SidebarItem) => {
     setEditId(item._id);
+    setIsAddingCustomMode(false);
     setFormData({
       label: item.label,
       href: item.href,
@@ -132,7 +135,7 @@ export default function SidebarManagementPage() {
     }
   };
 
-  const isCustomSection = !uniqueSections.includes(formData.section) && formData.section !== '';
+  const isCustomSection = isAddingCustomMode || (!uniqueSections.includes(formData.section) && formData.section !== '');
 
   return (
     <div className="flex flex-col gap-2 animate-in fade-in duration-300 p-2 w-full font-sans text-slate-800">
@@ -185,12 +188,14 @@ export default function SidebarManagementPage() {
                     value={isCustomSection ? 'CUSTOM' : formData.section}
                     onChange={(e) => {
                       if (e.target.value === 'CUSTOM') {
+                        setIsAddingCustomMode(true);
                         setFormData({ ...formData, section: '' });
                       } else {
+                        setIsAddingCustomMode(false);
                         setFormData({ ...formData, section: e.target.value });
                       }
                     }}
-                    className="h-8 text-[12px] flex w-full rounded-md border border-zinc-200 bg-white px-3 py-1 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900/20"
+                    className="h-8 text-[11px] flex w-full rounded-md border border-zinc-200 bg-white px-3 py-1 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900/20"
                   >
                     <option value="" disabled>Select Section</option>
                     {uniqueSections.map((sec) => (
@@ -356,8 +361,8 @@ export default function SidebarManagementPage() {
               {isLoading ? (
                 <div className="p-12 text-center text-sm text-zinc-500">Loading sidebar items...</div>
               ) : (
-              <div className="w-full overflow-x-auto">
-  <table className="min-w-full text-[13px] text-left table-fixed">
+                <div className="w-full overflow-x-auto">
+                  <table className="min-w-full text-[13px] text-left table-fixed">
                     <thead className="bg-white border-b border-zinc-100">
                       <tr className="whitespace-nowrap">
                         <th className="px-3 py-2 font-semibold text-zinc-900 w-12">#</th>
