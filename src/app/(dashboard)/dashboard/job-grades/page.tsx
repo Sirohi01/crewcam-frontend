@@ -6,11 +6,8 @@ import {
     Users, UserCircle, IndianRupee, UserPlus, CheckCircle2, ChevronDown, ChevronLeft, MoreVertical,
     FileText, Lightbulb, MapPin, Briefcase, Info
 } from 'lucide-react';
-<<<<<<< Updated upstream
 import { Breadcrumb } from '@/components/ui/breadCrumb';
-=======
 import { FormInput } from '@/components/ui/form-input';
->>>>>>> Stashed changes
 
 // --- MOCK DATA ---
 const topCards = [

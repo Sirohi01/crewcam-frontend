@@ -1,4 +1,3 @@
-import React from 'react';
 import { Award, Users, Map, UserMinus, Shield } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
@@ -52,23 +51,15 @@ export default function SummaryCards() {
       icon: UserMinus,
       iconColor: 'text-teal-600',
       iconBg: 'bg-teal-50 border border-teal-100',
-    }
+    },
   ];
 
   return (
-<<<<<<< Updated upstream
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-      {summaryData.map((item, index) => (
-        <div key={index} className="bg-white rounded-xl border border-zinc-200 p-4 shadow-sm flex items-start gap-3">
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${item.iconBg} ${item.iconColor}`}>
-            <item.icon size={20} />
-=======
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
-      {SUMMARY_DATA.map((item, index) => (
+      {summaryData.map((item, index) => (
         <div key={index} className="bg-white rounded-xl border border-zinc-200 p-3 shadow-sm flex items-start gap-3">
           <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${item.iconBg} ${item.iconColor}`}>
             <item.icon size={16} />
->>>>>>> Stashed changes
           </div>
           <div>
             <p className="text-[11px] font-medium text-zinc-500 mb-0.5">{item.title}</p>

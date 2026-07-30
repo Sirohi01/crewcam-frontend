@@ -132,47 +132,6 @@ export default function DesignationsTable() {
             className="w-full rounded-md border border-zinc-200 bg-white pl-9 pr-3 py-2 text-[12px] text-zinc-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors placeholder:text-zinc-400"
           />
         </div>
-<<<<<<< Updated upstream
-
-        <select
-          value={filterGrade}
-          onChange={(e) => setFilterGrade(e.target.value)}
-          className="rounded-lg border border-zinc-200 px-3 py-2 text-[12px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors outline-none cursor-pointer bg-white"
-        >
-          <option value="All">Job Grade (All)</option>
-          {uniqueGrades.map(g => <option key={g} value={g}>{g}</option>)}
-        </select>
-
-        <select
-          value={filterFamily}
-          onChange={(e) => setFilterFamily(e.target.value)}
-          className="rounded-lg border border-zinc-200 px-3 py-2 text-[12px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors outline-none cursor-pointer bg-white"
-        >
-          <option value="All">Job Family (All)</option>
-          {uniqueFamilies.map(f => <option key={f} value={f}>{f}</option>)}
-        </select>
-
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="rounded-lg border border-zinc-200 px-3 py-2 text-[12px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors outline-none cursor-pointer bg-white"
-        >
-          <option value="All">Status (All)</option>
-          <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
-        </select>
-
-        <button
-          onClick={() => {
-            setSearchTerm('');
-            setFilterGrade('All');
-            setFilterFamily('All');
-            setFilterStatus('All');
-            setActiveTab('All Designations');
-          }}
-          className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-semibold text-zinc-500 hover:text-zinc-700 transition-colors ml-auto"
-        >
-=======
         
         <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 px-2 py-2 text-[12px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
           <Filter size={14} /> Filters
@@ -190,7 +149,6 @@ export default function DesignationsTable() {
           <Settings2 size={14} /> More Filters
         </button>
         <button className="flex items-center gap-1.5 rounded-md px-2 py-2 text-[12px] font-semibold text-zinc-500 hover:text-zinc-700 transition-colors">
->>>>>>> Stashed changes
           <RotateCcw size={14} /> Reset
         </button>
       </div>

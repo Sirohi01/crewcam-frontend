@@ -11,11 +11,8 @@ import {
 import { LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Card } from '@/components/ui/card';
 import { getDepartments, deleteDepartment } from '@/services/departmentService';
-<<<<<<< Updated upstream
 import { Breadcrumb } from '@/components/ui/breadCrumb';
-=======
 import { FormInput } from '@/components/ui/form-input';
->>>>>>> Stashed changes
 
 // --- MOCK DATA ---
 const topCards = [

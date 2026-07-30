@@ -22,33 +22,14 @@ export default function DesignationFormCards({ formData, setFormData }: { formDa
           <Field title="Designation Name" required helpText="e.g., Senior Manager">
             <input type="text" className={inputCls} placeholder="Enter designation name" value={formData?.name || ''} onChange={handleChange('name')} />
           </Field>
-<<<<<<< Updated upstream
-          <Field title="Short Code" required helpText="e.g., SR. MGR (max 10 characters)">
-            <input type="text" className={inputCls} placeholder="Enter short code" maxLength={10} value={formData?.code || ''} onChange={handleChange('code')} />
-=======
           <Field title="Short Code" required helpText="e.g., SR. MGR (10 characters)">
             <input type="text" className={inputCls} placeholder="Enter short code" maxLength={10} />
->>>>>>> Stashed changes
           </Field>
           <SelectField title="Job Grade" required options={['JG-10', 'JG-09', 'JG-08', 'JG-07']} value={formData?.jobGrade || ''} onChange={handleChange('jobGrade')} />
           <SelectField title="Job Family" required options={['Leadership', 'Management', 'Professional']} value={formData?.jobFamily || ''} onChange={handleChange('jobFamily')} />
         </div>
 
         {/* Row 2 */}
-<<<<<<< Updated upstream
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-3 mt-2">
-          <SelectField title="Business Unit" required options={['Retail Interiors', 'Corporate']} value={formData?.businessUnit || ''} onChange={handleChange('businessUnit')} />
-          <SelectField title="Division" required options={['Design Studio', 'Operations']} value={formData?.division || ''} onChange={handleChange('division')} />
-          <SelectField title="Department" required options={['Space Planning', '3D Visualisation']} value={formData?.department || ''} onChange={handleChange('department')} />
-          <SelectField title="Reports To (Designation / Role)" options={['Managing Director', 'General Manager']} helpText="Immediate reporting role / designation" value={formData?.reportsToDesignationId || ''} onChange={handleChange('reportsToDesignationId')} />
-        </div>
-
-        {/* Row 3 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-3 mt-2">
-          <SelectField title="Employment Type" options={['Full Time', 'Part Time', 'Contract']} helpText="e.g., Full Time, Part Time, Contract" value={formData?.employmentType || ''} onChange={handleChange('employmentType')} />
-          <SelectField title="FLSA / Overtime Type" options={['Exempt', 'Non-Exempt']} helpText="e.g., Exempt, Non-Exempt" value={formData?.flsaType || ''} onChange={handleChange('flsaType')} />
-          <SelectField title="Status" required options={['Active', 'Inactive']} helpText="Choose current status" value={formData?.isActive ? 'Active' : 'Inactive'} onChange={(e: any) => setFormData?.((p: any) => ({ ...p, isActive: e.target.value === 'Active' }))} />
-=======
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-1 gap-y-1 mt-2">
           <SelectField title="Business Unit" required options={['Retail Interiors', 'Corporate']} />
           <SelectField title="Division" required options={['Design Studio', 'Operations']} />
@@ -61,7 +42,6 @@ export default function DesignationFormCards({ formData, setFormData }: { formDa
           <SelectField title="Employment Type" options={['Full Time', 'Part Time', 'Contract']} helpText="e.g., Full, Part Time, Contract" />
           <SelectField title="FLSA / Overtime Type" options={['Exempt', 'Non-Exempt']} helpText="e.g., Exempt, Non-Exempt" />
           <SelectField title="Status" required options={['Active', 'Inactive']} helpText="Choose current status" value="Active" />
->>>>>>> Stashed changes
 
           <Field title="Effective From" required helpText="From when this designation is active">
             <div className="relative">
@@ -136,17 +116,10 @@ export default function DesignationFormCards({ formData, setFormData }: { formDa
 
       {/* Additional Details Card */}
       <Card title={<><LayoutList size={16} className="text-blue-600 mr-1" /> Additional Details (Optional)</>}>
-<<<<<<< Updated upstream
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-3 mt-2">
-          <SelectField title="CTC Range (₹)" options={['3-5 LPA', '5-10 LPA', '10-20 LPA']} value={formData?.ctcRange || ''} onChange={handleChange('ctcRange')} />
-          <SelectField title="Designation Level" options={['Executive', 'Managerial', 'Senior Management']} helpText="e.g., Executive, Managerial, Senior Management" value={formData?.designationLevel || ''} onChange={handleChange('designationLevel')} />
-          <SelectField title="Location" options={['Delhi (HQ)', 'Mumbai', 'Bangalore']} helpText="Primary work location" value={formData?.location || ''} onChange={handleChange('location')} />
-=======
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-1.5 gap-y-1 mt-2">
           <SelectField title="CTC Range (₹)" options={['3-5 LPA', '5-10 LPA', '10-20 LPA']} />
           <SelectField title="Designation Level" options={['Executive', 'Managerial', 'Senior Management']} helpText="e.g., Executive, Managerial, Senior Management" />
           <SelectField title="Location" options={['Delhi (HQ)', 'Mumbai', 'Bangalore']} helpText="Primary work location" />
->>>>>>> Stashed changes
           <Field title="Remarks">
             <div className="relative">
               <input type="text" className={inputCls} placeholder="Enter any additional remarks..." maxLength={200} value={formData?.remarks || ''} onChange={handleChange('remarks')} />
