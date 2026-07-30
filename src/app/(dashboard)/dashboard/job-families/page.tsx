@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Download,
   Plus,
+  Upload,
   ChevronDown,
   Search,
   Eye,
@@ -26,6 +27,27 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Breadcrumb } from "@/components/ui/breadCrumb";
+import BulkUploadModal, { ColumnConfig } from "@/components/upload/bulkUploadModal";
+
+interface JobFamilyRow {
+  jobFamilyName: string;
+  familyCode: string;
+  description: string;
+  parentFamily: string;
+  applicableBusinessUnit: string;
+  status: string;
+  keyResponsibilities: string;
+}
+
+const jobFamilyColumns: ColumnConfig<JobFamilyRow>[] = [
+  { key: "jobFamilyName", label: "Job Family Name", required: true, unique: true, sampleValue: "Information Technology" },
+  { key: "familyCode", label: "Family Code", required: true, unique: true, sampleValue: "IT" },
+  { key: "description", label: "Description", required: true, sampleValue: "Includes all roles related to technology and software development" },
+  { key: "parentFamily", label: "Parent Family", sampleValue: "Operations" },
+  { key: "applicableBusinessUnit", label: "Applicable Business Unit", sampleValue: "Retail Interiors" },
+  { key: "status", label: "Status", required: true, sampleValue: "Active", validate: (v) => (["active", "inactive"].includes(String(v).toLowerCase()) ? null : "Status must be Active or Inactive") },
+  { key: "keyResponsibilities", label: "Key Responsibilities", sampleValue: "Design, develop and maintain technology solutions" },
+];
 
 type JobFamily = {
   id: number;
@@ -200,6 +222,7 @@ function SummaryCard({
 
 export default function JobFamiliesPage() {
   const router = useRouter()
+  const [showImportModal, setShowImportModal] = useState(false);
   return (
     <main className="mx-auto w-full max-w-[1600px] space-y-2 overflow-x-hidden bg-zinc-50/40 p-2 sm:p-2">
       {/* Breadcrumb */}
@@ -224,6 +247,14 @@ export default function JobFamiliesPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md border border-[#e0e4eb] bg-white px-3 text-[11px] font-semibold text-[#101743] sm:flex-none"
+          >
+            <Upload size={14} strokeWidth={2} />
+            Import
+          </button>
+
           <button className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md border border-[#e0e4eb] bg-white px-3 text-[11px] font-semibold text-[#101743] sm:flex-none">
             <Download size={14} strokeWidth={2} />
             Export
@@ -397,6 +428,18 @@ export default function JobFamiliesPage() {
       <footer className="pt-2 text-center text-[10px] font-medium text-[#565b7b]">
         © 2025 Crewcam HRMS. All rights reserved.
       </footer>
+
+      <BulkUploadModal<JobFamilyRow>
+        open={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        title="Upload Job Family Data"
+        description="Upload an Excel file to import job families in bulk."
+        sampleFileName="JobFamily_Example.xlsx"
+        columns={jobFamilyColumns}
+        onImport={async (rows) => {
+          console.log("Importing job families:", rows);
+        }}
+      />
     </main>
   );
 }
