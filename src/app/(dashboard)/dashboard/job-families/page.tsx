@@ -226,7 +226,6 @@ function SummaryCard({
 }
 
 export default function JobFamiliesPage() {
-  const router = useRouter()
   const [showImportModal, setShowImportModal] = useState(false);
   const router = useRouter();
   const queryClient = useQueryClient();
