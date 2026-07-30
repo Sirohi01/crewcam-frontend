@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import {Briefcase, FileText, Clock3, Percent, UserCheck, Wallet, ChevronDown, Save, ListChecks, Target, BarChart3, Lightbulb, TrendingUp, RotateCcw, Plus, UploadCloud,Bold, Italic, Underline, List, ListOrdered, Indent, Link2, Eye, ArrowRight,CalendarDays, Sparkles,} from 'lucide-react';
+import { Breadcrumb } from '@/components/ui/breadCrumb';
+import { FormInput } from '@/components/ui/form-input';
 
 // Dummy data / static mockup — matches the approved design 1:1. No backend
 // wiring yet; this is a visual reference for the "Post New Job" flow.
@@ -81,9 +83,9 @@ function RangeField({ title, required, unit }: { title: string; required?: boole
   return (
     <Field title={title} required={required}>
       <div className="mt-1 flex items-center gap-1.5">
-        <input className={inputCls.replace('mt-1 ', '')} placeholder="Minimum" />
+        <FormInput variant="hiring" className="mt-0" placeholder="Minimum" />
         <span className="text-[10px] text-zinc-400">to</span>
-        <input className={inputCls.replace('mt-1 ', '')} placeholder="Maximum" />
+        <FormInput variant="hiring" className="mt-0" placeholder="Maximum" />
         {unit}
       </div>
     </Field>
@@ -98,9 +100,9 @@ function RichTextBox({
       <div className="mb-1 flex items-center justify-between">
         <span className={labelCls}>{title}<b className="text-rose-500"> *</b></span>
         {aiLabel && (
-          <button type="button" className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors">
-            <Sparkles size={11} /> {aiLabel}
-          </button>                                                 
+          <button type="button" className="flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1 text-[10.5px] font-semibold text-white hover:bg-indigo-700 shadow-sm transition-colors whitespace-nowrap">
+            ✦ {aiLabel}
+          </button>
         )}
       </div>
       <div className="rounded-none border border-zinc-200 bg-white">
@@ -117,8 +119,7 @@ function RichTextBox({
 }
 
 function Card({
-  title, action, children, className = '',
-}: { title?: string; action?: React.ReactNode; children?: React.ReactNode; className?: string }) {
+  title, action, children, className = '', }: { title?: string; action?: React.ReactNode; children?: React.ReactNode; className?: string }) {
   return (
     <div className={`rounded-none border border-zinc-200 bg-white shadow-sm ${className}`}>
       {title && (
@@ -127,7 +128,7 @@ function Card({
           {action}
         </div>
       )}
-      <div className="px-3 pb-2.5 pt-1">{children}</div>
+      <div className="px-3 pb-2 pt-1">{children}</div>
     </div>
   );
 }
@@ -158,25 +159,28 @@ export default function PostNewJobPage() {
             {/* Header */}
             <div>
               <h1 className="text-xl font-bold text-zinc-900">Post New Job</h1>
-              <p className="mt-0.5 flex items-center gap-1.5 text-[10.5px] text-zinc-500">
-                <span>Recruitment</span> <span>›</span> <span>Job Openings</span> <span>›</span>
-                <span className="font-semibold text-zinc-700">Post New Job</span>
-              </p>
+            <Breadcrumb
+  items={[
+    { label: "Recruitment", href: "/dashboard/hiring/pipeline" },
+    { label: "Job Openings", href: "/dashboard/hiring/jobs" },
+    { label: "Post New Job" },
+  ]}
+/>
             </div>
 
             {/* KPI strip */}
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
+            <div className="grid grid-cols-2 gap-1 sm:grid-cols-3 xl:grid-cols-6">
               {KPIS.map((s) => (
-                <div key={s.label} className="flex flex-col justify-between rounded-none border border-zinc-200 bg-white p-2.5 shadow-sm">
+                <div key={s.label} className="flex flex-col justify-between rounded-none border border-zinc-200 bg-white p-2 shadow-sm">
                   <div className="flex items-start justify-between gap-1">
                     <p className="text-[11px] font-medium text-zinc-500 leading-snug">{s.label}</p>
-                    <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-none ${s.accent}`}>
+                    <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full ${s.accent}`}>
                       <s.icon size={13} />
                     </span>
                   </div>
-                  <div className="mt-2.5">
-                    <p className="text-lg font-bold leading-none text-zinc-900">{s.value}</p>
-                    <p className={`mt-1.5 text-[9.5px] font-semibold leading-none ${s.up ? 'text-emerald-600' : 'text-rose-500'}`}>
+                  <div className="mt-1.5">
+                    <p className="text-md font-bold leading-none text-zinc-900">{s.value}</p>
+                    <p className={`mt-1 text-[9.5px] font-semibold leading-none ${s.up ? 'text-emerald-600' : 'text-rose-500'}`}>
                       {s.up ? '↗' : '↘'} {s.trend}
                     </p>
                   </div>
@@ -189,8 +193,8 @@ export default function PostNewJobPage() {
               <SectionCard number={1} title="Job Details">
                 <div className="grid grid-cols-1 gap-2 lg:grid-cols-[2fr_1fr]">
                   <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-3">
-                    <Field title="Job Title" required><input className={inputCls} placeholder="Enter job title" /></Field>
-                    <Field title="Job Code"><input className={`${inputCls} bg-zinc-50 text-zinc-400`} placeholder="Auto generated" readOnly /></Field>
+                    <Field title="Job Title" required><FormInput variant="hiring" placeholder="Enter job title" /></Field>
+                    <Field title="Job Code"><FormInput variant="hiring" className="bg-zinc-50 text-zinc-400" placeholder="Auto generated" readOnly /></Field>
                     <SelectField title="Department" required options={['Select Department', 'Sales & Marketing', 'IT', 'HR', 'Finance']} />
 
                     <SelectField title="Designation" required options={['Select Designation', 'Sales Executive', 'Sales Manager']} />
@@ -199,27 +203,29 @@ export default function PostNewJobPage() {
 
                     <SelectField title="Job Location" required options={['Select Location', 'Noida - Head Office', 'Delhi', 'Mumbai']} />
                     <SelectField title="Work Mode" required options={['Select Work Mode', 'On-site', 'Remote', 'Hybrid']} />
-                    <Field title="No. of Openings" required><input className={inputCls} placeholder="Enter number of openings" /></Field>
+                    <Field title="No. of Openings" required><FormInput variant="hiring" placeholder="Enter number of openings" /></Field>
 
-                    <Field title="Priority" required>
-                      <div className="mt-1 flex h-8 items-center gap-3">
-                        {['High', 'Medium', 'Low'].map((p) => (
-                          <label key={p} className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-700">
-                            <input type="radio" name="priority" checked={priority === p} onChange={() => setPriority(p)} className="h-3.5 w-3.5 accent-rose-500" />
-                            {p}
-                          </label>
-                        ))}
-                      </div>
-                    </Field>
-                    <RangeField title="Experience Required (Years)" required />
-                    <Field title="Expected Joining Date" required><input type="date" className={inputCls} placeholder="Select date" /></Field>
+                    <div className="sm:col-span-3 grid grid-cols-[auto_1fr] gap-x-4 items-start">
+                      <Field title="Priority" required>
+                        <div className="mt-1 flex h-8 items-center gap-2">
+                          {['High', 'Medium', 'Low'].map((p) => (
+                            <label key={p} className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-700 whitespace-nowrap">
+                              <input type="radio" name="priority" checked={priority === p} onChange={() => setPriority(p)} className="h-3.5 w-3.5 accent-rose-500" />
+                              {p}
+                            </label>
+                          ))}
+                        </div>
+                      </Field>
+                      <RangeField title="Experience Required (Years)" required />
+                    </div>
+                    <Field title="Expected Joining Date" required><FormInput variant="hiring" type="date" placeholder="Select date" /></Field>
 
                     <SelectField title="Notice Period" options={['Select Notice Period', 'Immediate', '15 Days', '30 Days', '60 Days']} />
                     <Field title="Salary Range (INR)" required>
                       <div className="mt-1 flex items-center gap-1.5">
-                        <input className={inputCls.replace('mt-1 ', '')} placeholder="Minimum" />
+                        <FormInput variant="hiring" className="mt-0" placeholder="Minimum" />
                         <span className="text-[10px] text-zinc-400">to</span>
-                        <input className={inputCls.replace('mt-1 ', '')} placeholder="Maximum" />
+                        <FormInput variant="hiring" className="mt-0" placeholder="Maximum" />
                       </div>
                     </Field>
                     <SelectField title="Currency" options={['Per Annum', 'Per Month']} />
@@ -251,7 +257,7 @@ export default function PostNewJobPage() {
                       </div>
                       <SelectField title="Employee Being Replaced" required options={['Select Employee', 'Amit Kumar (Sales Executive)']} />
                       <SelectField title="Replacement Reason" required options={['Select Reason', 'Resigned', 'Terminated', 'Transferred']} />
-                      <Field title="Last Working Date"><input type="date" className={inputCls} placeholder="Select date" /></Field>
+                      <Field title="Last Working Date"><FormInput variant="hiring" type="date" placeholder="Select date" /></Field>
                       <SelectField title="Impact of Vacancy" options={['Select Impact', 'Low', 'Medium', 'High']} />
                     </div>
                   </div>
@@ -261,13 +267,13 @@ export default function PostNewJobPage() {
               <SectionCard number={2} title="Job Description & Responsibilities">
                 <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
                   <div className="space-y-1.5">
-                    <RichTextBox title="Job Description (JD)" aiLabel="AI Generate JD" placeholder="Write a detailed job description..." hint="0 / 3000" />
-                    <button type="button" className="text-[10.5px] font-semibold text-indigo-600 hover:text-indigo-700">Add Responsibility</button>
+                    <RichTextBox title="Job Description(JD)" aiLabel="AI Generate JD" placeholder="Write a detailed job description..." hint="0 / 3000" />
+                    <button type="button" className="text-[9px] font-semibold text-indigo-600 hover:text-indigo-700">Add Responsibility</button>
                   </div>
                   <div className="space-y-1.5">
-                    <RichTextBox title="Key Responsibilities" aiLabel="AI Generate Responsibilities" placeholder="List the key responsibilities for this role..." hint="0 / 2000" />
+                    <RichTextBox title="Key Resp" aiLabel="AI Generate Resp" placeholder="List the key responsibilities for this role..." hint="0 / 2000" />
                     <div className="text-right">
-                      <button type="button" className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors">
+                      <button type="button" className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors">
                         <Plus size={11} /> Add More
                       </button>
                     </div>
@@ -311,34 +317,16 @@ export default function PostNewJobPage() {
               </div>
 
               <SectionCard number={4} title="Additional Information">
-                <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-3 xl:grid-cols-6">
+                <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-3">
                   <SelectField title="Who can Apply?" required options={['Select option', 'Internal Only', 'External Only', 'Both']} />
                   <SelectField title="Gender Preference" options={['No Preference', 'Male', 'Female']} />
                   <SelectField title="Relocation Assistance" options={['Select option', 'Yes', 'No']} />
                   <SelectField title="Travel Required" options={['Select option', 'Yes', 'No', 'Occasional']} />
                   <SelectField title="Shift Timings" options={['Select Shift', 'Day', 'Night', 'Rotational']} />
                   <SelectField title="Probation Period" options={['Select Period', '3 Months', '6 Months']} />
-                  <div className="sm:col-span-3 xl:col-span-6">
+                  <div className="sm:col-span-3">
                     <Field title="Other Notes (Optional)"><textarea className={`${textAreaCls} mt-1 h-12`} placeholder="Any additional information" /></Field>
                   </div>
-                </div>
-              </SectionCard>
-
-              <SectionCard number={5} title="Publish Settings">
-                <div>
-                  <span className={labelCls}>Publish On<b className="text-rose-500"> *</b></span>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1.5">
-                    {publishChannels.map((c) => (
-                      <label key={c.label} className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-700">
-                        <input type="checkbox" defaultChecked={c.checked} className="h-3.5 w-3.5 rounded-none accent-indigo-600" />
-                        {c.label}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <Field title="Application Last Date"><input type="date" className={inputCls} placeholder="Select date" /></Field>
-                  <Field title="Application Email"><input className={inputCls} defaultValue="careers@company.com" /></Field>
                 </div>
               </SectionCard>
             </form>
@@ -419,6 +407,24 @@ export default function PostNewJobPage() {
                     <span className="shrink-0 rounded-none bg-amber-50 px-1.5 py-0.5 text-[9px] font-semibold text-amber-600">{s.status}</span>
                   </div>
                 ))}
+              </div>
+            </Card>
+
+            <Card title="Publish Settings">
+              <div>
+                <span className={labelCls}>Publish On<b className="text-rose-500"> *</b></span>
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                  {publishChannels.map((c) => (
+                    <label key={c.label} className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-700">
+                      <input type="checkbox" defaultChecked={c.checked} className="h-3.5 w-3.5 rounded-none accent-indigo-600" />
+                      {c.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-1.5 mt-2">
+                <Field title="Application Last Date"><FormInput variant="hiring" type="date" placeholder="Select date" /></Field>
+                <Field title="Application Email"><FormInput variant="hiring" defaultValue="careers@company.com" /></Field>
               </div>
             </Card>
           </div>

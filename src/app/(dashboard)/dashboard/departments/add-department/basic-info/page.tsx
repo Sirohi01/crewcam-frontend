@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/ui/page-header';
+import { useDepartmentForm } from '@/context/DepartmentFormContext';
 import {
     Building2, ChevronRight, User, Calendar, Users, CheckCircle2,
     HelpCircle, Eye, MapPin, Building, Briefcase, UserCheck, ChevronDown,
@@ -33,12 +34,13 @@ function Field({
     );
 }
 
-function SelectField({ title, required, options, helpText, defaultValue }: { title: string; required?: boolean; options: string[]; helpText?: string; defaultValue?: string }) {
+function SelectField({ title, required, options, helpText, value, onChange }: { title: string; required?: boolean; options: string[]; helpText?: string; value?: string; onChange?: (e: any) => void }) {
     return (
         <Field title={title} required={required} helpText={helpText}>
             <div className="relative">
-                <select className={selectCls} defaultValue={defaultValue || options[0]}>
-                    {options.map((o) => <option key={o}>{o}</option>)}
+                <select className={selectCls} value={value} onChange={onChange}>
+                    <option value="" disabled>Select {title}</option>
+                    {options.map((o) => <option key={o} value={o}>{o}</option>)}
                 </select>
                 <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
             </div>
@@ -62,7 +64,19 @@ function Card({
     );
 }
 
-export default function AddDepartmentBasicInfo() {
+export default function BasicInformation() {
+    const { formData, updateFormData } = useDepartmentForm();
+
+    useEffect(() => {
+        if (formData.name && !formData.code) {
+            const words = formData.name.split(' ');
+            const code = words.length > 1
+                ? words.map(w => w[0]).join('').toUpperCase().substring(0, 5)
+                : formData.name.substring(0, 3).toUpperCase();
+            updateFormData({ code });
+        }
+    }, [formData.name]);
+
     return (
         <div className="w-full bg-[#f8f9fc] flex flex-col font-sans min-h-screen">
             <div className="w-full mx-auto p-2 sm:p-2 md:p-2 lg:p-2">
@@ -110,23 +124,23 @@ export default function AddDepartmentBasicInfo() {
                         <Card title={<><span className="flex items-center justify-center bg-indigo-600 text-white rounded-full w-4 h-4 text-[9px]">1</span> Basic Information</>}>
                             <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-3 mt-0.5 ">
                                 <Field title="Department Name" required helpText="e.g. Design Studio">
-                                    <input type="text" defaultValue="Design Studio" className={inputCls} placeholder="e.g. Design Studio" />
+                                    <input type="text" value={formData.name} onChange={e => updateFormData({ name: e.target.value })} className={inputCls} placeholder="e.g. Design Studio" />
                                 </Field>
                                 <Field title="Department Code" required helpText="Auto generated">
-                                    <input type="text" defaultValue="DS" className={inputCls} />
+                                    <input type="text" value={formData.code} onChange={e => updateFormData({ code: e.target.value })} className={inputCls} />
                                 </Field>
 
-                                <SelectField title="Parent Department" options={['Business Operations', 'IT', 'HR']} helpText="Select parent department (if any)" />
-                                <SelectField title="Department Type" required options={['Core Department', 'Support', 'Admin', 'Other']} helpText="Core / Support / Admin / Other" />
+                                <SelectField title="Parent Department" value={formData.branchId} onChange={e => updateFormData({ branchId: e.target.value })} options={['Business Operations', 'IT', 'HR']} helpText="Select parent department (if any)" />
+                                <SelectField title="Department Type" value={formData.departmentType} onChange={e => updateFormData({ departmentType: e.target.value })} required options={['Core Department', 'Support', 'Admin', 'Other']} helpText="Core / Support / Admin / Other" />
 
-                                <SelectField title="Business Unit" required options={['Retail Interiors & Exhibition', 'Corporate', 'Sales']} helpText="Select business unit" />
+                                <SelectField title="Business Unit" value={formData.businessUnit} onChange={e => updateFormData({ businessUnit: e.target.value })} required options={['Retail Interiors & Exhibition', 'Corporate', 'Sales']} helpText="Select business unit" />
 
                                 <Field title="Status" required helpText="Active departments are visible in system">
                                     <div className="relative">
                                         <div className="absolute left-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-emerald-500 z-10 pointer-events-none shadow-sm"></div>
-                                        <select className={`${selectCls} pl-7 text-zinc-900 font-medium`}>
-                                            <option>Active</option>
-                                            <option>Inactive</option>
+                                        <select value={formData.isActive ? 'Active' : 'Inactive'} onChange={e => updateFormData({ isActive: e.target.value === 'Active' })} className={`${selectCls} pl-7 text-zinc-900 font-medium`}>
+                                            <option value="Active">Active</option>
+                                            <option value="Inactive">Inactive</option>
                                         </select>
                                         <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
                                     </div>
@@ -137,7 +151,7 @@ export default function AddDepartmentBasicInfo() {
                         {/* Section 2: Department Head */}
                         <Card title={<><span className="flex items-center justify-center bg-indigo-600 text-white rounded-full w-4 h-4 text-[9px]">2</span> Department Head</>}>
                             <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-3 mt-0.5">
-                                <Field title="Department Head (HOD)" required>
+                                <Field title="Department Head (HOD)">
                                     <div className="relative flex items-center border border-indigo-200 bg-indigo-50/50 px-2 py-1 mt-1 cursor-pointer h-8 rounded-md transition-colors hover:border-indigo-300">
                                         <img src="https://i.pravatar.cc/150?u=aman" alt="User" className="w-5 h-5 rounded-full border border-white shrink-0 shadow-sm" />
                                         <div className="ml-2 flex-1 overflow-hidden leading-tight">
@@ -151,11 +165,11 @@ export default function AddDepartmentBasicInfo() {
                                     </div>
                                 </Field>
 
-                                <SelectField title="Reporting To" required options={['Rajesh Sharma']} helpText="Select reporting manager" />
+                                <SelectField title="Reporting To" value={formData.reportingToId} onChange={e => updateFormData({ reportingToId: e.target.value })} options={['Rajesh Sharma']} helpText="Select reporting manager" />
 
                                 <Field title="Effective Date" required helpText="From when this department will be active">
                                     <div className="relative">
-                                        <input type="text" defaultValue="01 May 2025" className={`${inputCls} pr-8`} />
+                                        <input type="date" value={formData.effectiveDate} onChange={e => updateFormData({ effectiveDate: e.target.value })} className={`${inputCls} pr-8`} />
                                         <Calendar size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
                                     </div>
                                 </Field>
@@ -168,26 +182,26 @@ export default function AddDepartmentBasicInfo() {
                                 <Field title="Department Purpose">
                                     <div className="relative">
                                         <textarea
+                                            value={formData.description} onChange={e => updateFormData({ description: e.target.value })}
                                             className={`${inputCls} h-[70px] py-2 leading-relaxed`}
-                                            defaultValue="To create innovative and functional design solutions for retail stores, exhibitions and corporate interiors."
                                         />
-                                        <div className="absolute bottom-1.5 left-2.5 text-[9px] text-zinc-400 font-medium">109 / 300</div>
+                                        <div className="absolute bottom-1.5 left-2.5 text-[9px] text-zinc-400 font-medium">{formData.description.length} / 300</div>
                                     </div>
                                 </Field>
 
                                 <Field title="Key Responsibilities" helpText="(comma separated)">
                                     <div className="relative">
                                         <textarea
+                                            value={formData.keyResponsibilities} onChange={e => updateFormData({ keyResponsibilities: e.target.value })}
                                             className={`${inputCls} h-[70px] py-2 leading-relaxed`}
-                                            defaultValue="Retail Design, Exhibition Design, 3D Visualization, Working Drawings, BOQ, Material Selection, Client Presentation, Site Design Support"
                                         />
-                                        <div className="absolute bottom-1.5 left-2.5 text-[9px] text-zinc-400 font-medium">102 / 300</div>
+                                        <div className="absolute bottom-1.5 left-2.5 text-[9px] text-zinc-400 font-medium">{formData.keyResponsibilities.length} / 300</div>
                                     </div>
                                 </Field>
 
                                 <Field title="Employee Capacity" helpText="Maximum number of employees">
                                     <div className="relative w-full sm:w-1/2">
-                                        <input type="text" defaultValue="50" className={`${inputCls} pr-8`} />
+                                        <input type="text" value={formData.employeeCapacity} onChange={e => updateFormData({ employeeCapacity: e.target.value })} className={`${inputCls} pr-8`} />
                                         <Users size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
                                     </div>
                                 </Field>
@@ -203,15 +217,17 @@ export default function AddDepartmentBasicInfo() {
                         <Card title={<><Eye size={14} className="text-indigo-600 mr-2" /> Department Preview</>}>
                             <div className="flex items-start gap-3 mt-1 mb-4">
                                 <div className="w-12 h-12 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-lg font-bold shrink-0 shadow-md shadow-indigo-600/20">
-                                    DS
+                                    {formData.code || 'DS'}
                                 </div>
                                 <div>
-                                    <h3 className="text-[14px] font-bold text-zinc-900 leading-tight">Design Studio</h3>
+                                    <h3 className="text-[14px] font-bold text-zinc-900 leading-tight">{formData.name || 'Department Name'}</h3>
                                     <div className="flex items-center gap-1.5 mt-1.5">
-                                        <span className="px-1.5 py-[2px] rounded bg-emerald-50 text-emerald-600 text-[9px] font-bold border border-emerald-100 uppercase tracking-wider">Active</span>
+                                        <span className={`px-1.5 py-[2px] rounded ${formData.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'} text-[9px] font-bold border uppercase tracking-wider`}>
+                                            {formData.isActive ? 'Active' : 'Inactive'}
+                                        </span>
                                     </div>
                                     <p className="text-[11px] text-zinc-500 mt-1.5 font-medium flex items-center gap-1">
-                                        <span className="font-semibold text-zinc-700">DS</span> &bull; Core Department
+                                        <span className="font-semibold text-zinc-700">{formData.code}</span> &bull; {formData.departmentType || 'Core Department'}
                                     </p>
                                 </div>
                             </div>
@@ -220,12 +236,12 @@ export default function AddDepartmentBasicInfo() {
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
                                     <div className="text-zinc-400 mt-0.5"><Building size={14} /></div>
                                     <div className="text-zinc-500 font-medium">Parent Department</div>
-                                    <div className="font-semibold text-zinc-800">Business Operations</div>
+                                    <div className="font-semibold text-zinc-800">{formData.branchId || '-'}</div>
                                 </div>
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
                                     <div className="text-zinc-400 mt-0.5"><Briefcase size={14} /></div>
                                     <div className="text-zinc-500 font-medium">Business Unit</div>
-                                    <div className="font-semibold text-zinc-800">Retail Interiors & Exhibition</div>
+                                    <div className="font-semibold text-zinc-800">{formData.businessUnit || '-'}</div>
                                 </div>
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px] mt-1">
@@ -234,7 +250,7 @@ export default function AddDepartmentBasicInfo() {
                                     <div className="flex items-center gap-2">
                                         <img src="https://i.pravatar.cc/150?u=aman" alt="Aman" className="w-7 h-7 rounded-full border border-zinc-200 shadow-sm" />
                                         <div className="leading-tight">
-                                            <div className="font-bold text-zinc-800 text-[11.5px]">Aman Malhotra</div>
+                                            <div className="font-bold text-zinc-800 text-[11.5px]">{formData.hodEmployeeId ? 'Aman Malhotra' : '-'}</div>
                                             <div className="text-[9.5px] text-zinc-500 font-medium mt-[1px]">Design Director</div>
                                         </div>
                                     </div>
@@ -246,7 +262,7 @@ export default function AddDepartmentBasicInfo() {
                                     <div className="flex items-center gap-2">
                                         <img src="https://i.pravatar.cc/150?u=rajesh" alt="Rajesh" className="w-7 h-7 rounded-full border border-zinc-200 shadow-sm" />
                                         <div className="leading-tight">
-                                            <div className="font-bold text-zinc-800 text-[11.5px]">Rajesh Sharma</div>
+                                            <div className="font-bold text-zinc-800 text-[11.5px]">{formData.reportingToId || '-'}</div>
                                             <div className="text-[9.5px] text-zinc-500 font-medium mt-[1px]">Managing Director</div>
                                         </div>
                                     </div>
@@ -261,13 +277,13 @@ export default function AddDepartmentBasicInfo() {
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
                                     <div className="text-zinc-400 mt-0.5"><Users size={14} /></div>
                                     <div className="text-zinc-500 font-medium">Employee Capacity</div>
-                                    <div className="font-semibold text-zinc-800">50</div>
+                                    <div className="font-semibold text-zinc-800">{formData.employeeCapacity || '-'}</div>
                                 </div>
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
                                     <div className="text-zinc-400 mt-0.5"><Calendar size={14} /></div>
                                     <div className="text-zinc-500 font-medium">Effective From</div>
-                                    <div className="font-semibold text-zinc-800">01 May 2025</div>
+                                    <div className="font-semibold text-zinc-800">{formData.effectiveDate || '-'}</div>
                                 </div>
                             </div>
                         </Card>

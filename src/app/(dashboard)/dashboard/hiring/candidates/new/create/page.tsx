@@ -6,6 +6,7 @@ import {
   CheckCircle2, Loader2, Minus, Plus, Maximize2, Download, Mail, Phone,
   MapPin, Link2, ChevronDown, X, RefreshCw, Calendar, ArrowRight, Sparkles,
 } from 'lucide-react';
+import { FormInput } from '@/components/ui/form-input';
 
 // Dummy data / static mockup — matches the approved design 1:1. The real,
 // backend-wired candidate form still lives at
@@ -106,7 +107,7 @@ export default function CreateCandidatePage() {
   };
 
   return (
-    <div className="w-full bg-slate-50 flex flex-col font-sans min-h-[650px] lg:h-[calc(100%-48px)] overflow-y-auto pb-6" id="create-page-root">
+    <div className="w-full bg-slate-50 flex flex-col font-sans min-h-[650px] pb-6" id="create-page-root">
       <div className="w-full mx-auto max-w-[1600px] px-2 pt-2">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-3">
@@ -137,7 +138,7 @@ export default function CreateCandidatePage() {
           </div>
 
           {/* Buttons */}
-          <div className="flex items-center justify-end gap-2 shrink-0 w-full lg:w-[380px]">
+          <div className="flex items-center justify-end gap-2 shrink-0 w-full lg:w-[310px]">
             <Link href="/dashboard/hiring/candidates" className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
               Cancel
             </Link>
@@ -222,7 +223,7 @@ export default function CreateCandidatePage() {
                   <button type="button" className="grid h-6 w-6 place-items-center rounded-none hover:bg-zinc-100 hover:text-zinc-600"><Download size={13} /></button>
                 </div>
               )}
-              className="max-h-[820px] overflow-y-auto"
+              className="max-h-[820px] overflow-y-visible"
             >
               <div className="flex items-start gap-3">
                 <span className="h-14 w-14 shrink-0 overflow-hidden rounded-none bg-zinc-200" />
@@ -328,13 +329,13 @@ export default function CreateCandidatePage() {
               <div>
                 <p className="mb-1.5 text-[11px] font-bold text-zinc-700">Personal Information</p>
                 <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-4">
-                  <Field title="Full Name" required><input className={inputCls} defaultValue="Amit Kumar Verma" /></Field>
-                  <Field title="Email Address" required><input className={inputCls} defaultValue="amit.verma@email.com" /></Field>
-                  <Field title="Mobile Number" required><input className={inputCls} defaultValue="+91 98765 43210" /></Field>
+                  <Field title="Full Name" required><FormInput variant="compact" defaultValue="Amit Kumar Verma" /></Field>
+                  <Field title="Email Address" required><FormInput variant="compact" defaultValue="amit.verma@email.com" /></Field>
+                  <Field title="Mobile Number" required><FormInput variant="compact" defaultValue="+91 98765 43210" /></Field>
 
-                  <Field title="Current Location" required><input className={inputCls} defaultValue="Noida, Uttar Pradesh" /></Field>
+                  <Field title="Current Location" required><FormInput variant="compact" defaultValue="Noida, Uttar Pradesh" /></Field>
                   <SelectField title="Preferred Location" options={['Noida, Delhi NCR', 'Mumbai', 'Bangalore']} />
-                  <Field title="LinkedIn Profile (Optional)"><input className={inputCls} defaultValue="https://linkedin.com/in/amitverma" /></Field>
+                  <Field title="LinkedIn Profile (Optional)"><FormInput variant="compact" defaultValue="https://linkedin.com/in/amitverma" /></Field>
                 </div>
               </div>
 
@@ -345,17 +346,17 @@ export default function CreateCandidatePage() {
                   <SelectField title="Department" required options={['Sales & Marketing', 'IT', 'HR']} />
                   <SelectField title="Employment Type" required options={['Full Time', 'Contract']} />
 
-                  <Field title="Total Experience (Years)" required><input className={inputCls} defaultValue="7" /></Field>
-                  <Field title="Relevant Experience (Years)" required><input className={inputCls} defaultValue="7" /></Field>
-                  <Field title="Current Company"><input className={inputCls} defaultValue="ABC Pvt. Ltd." /></Field>
+                  <Field title="Total Experience (Years)" required><FormInput variant="compact" defaultValue="7" /></Field>
+                  <Field title="Relevant Experience (Years)" required><FormInput variant="compact" defaultValue="7" /></Field>
+                  <Field title="Current Company"><FormInput variant="compact" defaultValue="ABC Pvt. Ltd." /></Field>
 
-                  <Field title="Current CTC (INR)"><input className={inputCls} defaultValue="₹ 8.50 LPA" /></Field>
-                  <Field title="Expected CTC (INR)" required><input className={inputCls} defaultValue="₹ 12.00 LPA" /></Field>
+                  <Field title="Current CTC (INR)"><FormInput variant="compact" defaultValue="₹ 8.50 LPA" /></Field>
+                  <Field title="Expected CTC (INR)" required><FormInput variant="compact" defaultValue="₹ 12.00 LPA" /></Field>
                   <SelectField title="Notice Period" required options={['30 Days', '15 Days', '60 Days', 'Immediate']} />
 
                   <Field title="Available From" required>
                     <div className="relative">
-                      <input className={`${inputCls} pl-7`} defaultValue="15 June 2026" />
+                      <FormInput variant="compact" className="pl-7" defaultValue="15 June 2026" />
                       <Calendar size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                     </div>
                   </Field>
@@ -367,10 +368,10 @@ export default function CreateCandidatePage() {
               <div>
                 <p className="mb-1.5 text-[11px] font-bold text-zinc-700">Education Details</p>
                 <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-4">
-                  <Field title="Highest Qualification" required><input className={inputCls} defaultValue="MBA - Marketing" /></Field>
-                  <Field title="University / Board" required><input className={inputCls} defaultValue="Amity University, Noida" /></Field>
-                  <Field title="Year of Passing" required><input className={inputCls} defaultValue="2017" /></Field>
-                  <Field title="Percentage / CGPA"><input className={inputCls} defaultValue="7.8 CGPA" /></Field>
+                  <Field title="Highest Qualification" required><FormInput variant="compact" defaultValue="MBA - Marketing" /></Field>
+                  <Field title="University / Board" required><FormInput variant="compact" defaultValue="Amity University, Noida" /></Field>
+                  <Field title="Year of Passing" required><FormInput variant="compact" defaultValue="2017" /></Field>
+                  <Field title="Percentage / CGPA"><FormInput variant="compact" defaultValue="7.8 CGPA" /></Field>
                 </div>
               </div>
 

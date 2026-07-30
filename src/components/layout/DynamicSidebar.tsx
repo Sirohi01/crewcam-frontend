@@ -164,10 +164,36 @@ export default function DynamicSidebar() {
     }
   });
 
+  const SECTION_ORDER = [
+    'Workspace',
+    'Company Setup',
+    'Employee Master',
+    'Hiring Process',
+    'Accounts Department',
+    'Agreement Section',
+    'PYMT Obligation',
+    'Developer Department',
+    'Support & Operations',
+    'Sidebar Section',
+    'Admin Section',
+    'Finance & Legal',
+    'Admin UI',
+    'Career Growth',
+    'Account'
+  ];
+
+  sections.sort((a, b) => {
+    const indexA = SECTION_ORDER.indexOf(a.section);
+    const indexB = SECTION_ORDER.indexOf(b.section);
+    const rankA = indexA === -1 ? 999 : indexA;
+    const rankB = indexB === -1 ? 999 : indexB;
+    return rankA - rankB;
+  });
+
   React.useEffect(() => {
     let matchedItem = allItems.find((i: SidebarItem) => pathname === i.href);
     if (!matchedItem) {
-      const matches = allItems.filter((i: SidebarItem) => i.href !== '/dashboard' && pathname.startsWith(i.href));
+      const matches = allItems.filter((i: SidebarItem) => i.href !== '/dashboard' && (pathname === i.href || pathname.startsWith(i.href + '/')));
       if (matches.length > 0) {
         matchedItem = matches.reduce((prev: SidebarItem, current: SidebarItem) => (prev.href.length > current.href.length ? prev : current));
       }
@@ -364,9 +390,9 @@ function NavGroup({ label, items, pathname, level = 0 }: { label: string; items:
   const setSidebarOpen = useUIStore((s) => s.setSidebarOpen);
   const isAnyChildActive = items.some(item => {
     if ('isGroup' in item) {
-      return item.children.some(child => !('isGroup' in child) && (pathname === child.href || (child.href !== '/dashboard' && pathname.startsWith(child.href))));
+      return item.children.some(child => !('isGroup' in child) && (pathname === child.href || (child.href !== '/dashboard' && pathname.startsWith(child.href + '/'))));
     }
-    return pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+    return pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'));
   });
   const [expanded, setExpanded] = React.useState(isAnyChildActive);
 
@@ -432,7 +458,7 @@ function NavGroup({ label, items, pathname, level = 0 }: { label: string; items:
               return <NavGroup key={item.label} label={item.label} items={item.children} pathname={pathname} level={level + 1} />;
             }
 
-            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'));
             return (
               <Link
                 key={item._id}

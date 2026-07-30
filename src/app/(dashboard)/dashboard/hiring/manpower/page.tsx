@@ -151,7 +151,7 @@ function FiltersBar({
             />
           </div>
           <button className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors">
-            <SlidersHorizontal size={13} className="text-indigo-700" />
+            <SlidersHorizontal size={13} className="" />
             Filters
             {activeCount > 0 && (
               <span className="ml-0.5 grid h-4 w-4 place-items-center rounded-full bg-indigo-700 text-white text-[9px] font-bold">{activeCount}</span>
