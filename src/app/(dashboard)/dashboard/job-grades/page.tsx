@@ -10,42 +10,41 @@ import { Breadcrumb } from '@/components/ui/breadCrumb';
 import BulkUploadModal, { ColumnConfig } from '@/components/upload/bulkUploadModal';
 
 interface JobGradeRow {
-  gradeName: string;
-  gradeCode: string;
-  gradeLevel: string;
-  payRangeMin: string;
-  payRangeMax: string;
-  jobFamily: string;
-  parentGrade: string;
-  status: string;
-  shortDescription: string;
-  ctcRangeMin: string;
-  ctcRangeMax: string;
-  probationPeriod: string;
-  remarks: string;
+    gradeName: string;
+    gradeCode: string;
+    gradeLevel: string;
+    payRangeMin: string;
+    payRangeMax: string;
+    jobFamily: string;
+    parentGrade: string;
+    status: string;
+    shortDescription: string;
+    ctcRangeMin: string;
+    ctcRangeMax: string;
+    probationPeriod: string;
+    remarks: string;
 }
 
 const jobGradeColumns: ColumnConfig<JobGradeRow>[] = [
-  { key: 'gradeName', label: 'Grade Name', required: true, sampleValue: 'Junior Manager' },
-  { key: 'gradeCode', label: 'Grade Code', required: true, unique: true, sampleValue: 'JG-05' },
-  { key: 'gradeLevel', label: 'Grade Level', required: true, sampleValue: '5-4', validate: (v) => (['10', '9-8', '7-6', '5-4', '3-1'].includes(String(v)) ? null : 'Grade Level must be 10, 9-8, 7-6, 5-4, or 3-1') },
-  { key: 'payRangeMin', label: 'Pay Range Min (Monthly)', required: true, sampleValue: '45,000' },
-  { key: 'payRangeMax', label: 'Pay Range Max (Monthly)', required: true, sampleValue: '70,000' },
-  { key: 'jobFamily', label: 'Job Family', required: true, sampleValue: 'Management', validate: (v) => (['management', 'operations', 'technical', 'support'].includes(String(v).toLowerCase()) ? null : 'Job Family must be Management, Operations, Technical, or Support') },
-  { key: 'parentGrade', label: 'Parent Grade', sampleValue: 'Manager (JG-06)' },
-  { key: 'status', label: 'Status', required: true, sampleValue: 'Active', validate: (v) => (['active', 'inactive', 'draft'].includes(String(v).toLowerCase()) ? null : 'Status must be Active, Inactive, or Draft') },
-  { key: 'shortDescription', label: 'Short Description', sampleValue: 'Mid-level management roles' },
-  { key: 'ctcRangeMin', label: 'CTC Range Min (Annual)', sampleValue: '6,00,000' },
-  { key: 'ctcRangeMax', label: 'CTC Range Max (Annual)', sampleValue: '9,00,000' },
-  { key: 'probationPeriod', label: 'Probation Period (Months)', sampleValue: '6' },
-  { key: 'remarks', label: 'Remarks', sampleValue: 'Applicable for mid-level managers' },
+    { key: 'gradeName', label: 'Grade Name', required: true, sampleValue: 'Junior Manager' },
+    { key: 'gradeCode', label: 'Grade Code', required: true, unique: true, sampleValue: 'JG-05' },
+    { key: 'gradeLevel', label: 'Grade Level', required: true, sampleValue: '5-4', validate: (v) => (['10', '9-8', '7-6', '5-4', '3-1'].includes(String(v)) ? null : 'Grade Level must be 10, 9-8, 7-6, 5-4, or 3-1') },
+    { key: 'payRangeMin', label: 'Pay Range Min (Monthly)', required: true, sampleValue: '45,000' },
+    { key: 'payRangeMax', label: 'Pay Range Max (Monthly)', required: true, sampleValue: '70,000' },
+    { key: 'jobFamily', label: 'Job Family', required: true, sampleValue: 'Management', validate: (v) => (['management', 'operations', 'technical', 'support'].includes(String(v).toLowerCase()) ? null : 'Job Family must be Management, Operations, Technical, or Support') },
+    { key: 'parentGrade', label: 'Parent Grade', sampleValue: 'Manager (JG-06)' },
+    { key: 'status', label: 'Status', required: true, sampleValue: 'Active', validate: (v) => (['active', 'inactive', 'draft'].includes(String(v).toLowerCase()) ? null : 'Status must be Active, Inactive, or Draft') },
+    { key: 'shortDescription', label: 'Short Description', sampleValue: 'Mid-level management roles' },
+    { key: 'ctcRangeMin', label: 'CTC Range Min (Annual)', sampleValue: '6,00,000' },
+    { key: 'ctcRangeMax', label: 'CTC Range Max (Annual)', sampleValue: '9,00,000' },
+    { key: 'probationPeriod', label: 'Probation Period (Months)', sampleValue: '6' },
+    { key: 'remarks', label: 'Remarks', sampleValue: 'Applicable for mid-level managers' },
 ];
 import { FormInput } from '@/components/ui/form-input';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { FormInput } from '@/components/shared/FormComponents';
 
 // --- MOCK DATA ---
 const topCards = [
