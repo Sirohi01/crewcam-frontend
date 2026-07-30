@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import {Briefcase, FileText, Clock3, Percent, UserCheck, Wallet, ChevronDown, Save, ListChecks, Target, BarChart3, Lightbulb, TrendingUp, RotateCcw, Plus, UploadCloud,Bold, Italic, Underline, List, ListOrdered, Indent, Link2, Eye, ArrowRight,CalendarDays, Sparkles,} from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
+import { FormInput } from '@/components/ui/form-input';
 
 // Dummy data / static mockup — matches the approved design 1:1. No backend
 // wiring yet; this is a visual reference for the "Post New Job" flow.
@@ -82,9 +83,9 @@ function RangeField({ title, required, unit }: { title: string; required?: boole
   return (
     <Field title={title} required={required}>
       <div className="mt-1 flex items-center gap-1.5">
-        <input className={inputCls.replace('mt-1 ', '')} placeholder="Minimum" />
+        <FormInput variant="hiring" className="mt-0" placeholder="Minimum" />
         <span className="text-[10px] text-zinc-400">to</span>
-        <input className={inputCls.replace('mt-1 ', '')} placeholder="Maximum" />
+        <FormInput variant="hiring" className="mt-0" placeholder="Maximum" />
         {unit}
       </div>
     </Field>
@@ -192,8 +193,8 @@ export default function PostNewJobPage() {
               <SectionCard number={1} title="Job Details">
                 <div className="grid grid-cols-1 gap-2 lg:grid-cols-[2fr_1fr]">
                   <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-3">
-                    <Field title="Job Title" required><input className={inputCls} placeholder="Enter job title" /></Field>
-                    <Field title="Job Code"><input className={`${inputCls} bg-zinc-50 text-zinc-400`} placeholder="Auto generated" readOnly /></Field>
+                    <Field title="Job Title" required><FormInput variant="hiring" placeholder="Enter job title" /></Field>
+                    <Field title="Job Code"><FormInput variant="hiring" className="bg-zinc-50 text-zinc-400" placeholder="Auto generated" readOnly /></Field>
                     <SelectField title="Department" required options={['Select Department', 'Sales & Marketing', 'IT', 'HR', 'Finance']} />
 
                     <SelectField title="Designation" required options={['Select Designation', 'Sales Executive', 'Sales Manager']} />
@@ -202,7 +203,7 @@ export default function PostNewJobPage() {
 
                     <SelectField title="Job Location" required options={['Select Location', 'Noida - Head Office', 'Delhi', 'Mumbai']} />
                     <SelectField title="Work Mode" required options={['Select Work Mode', 'On-site', 'Remote', 'Hybrid']} />
-                    <Field title="No. of Openings" required><input className={inputCls} placeholder="Enter number of openings" /></Field>
+                    <Field title="No. of Openings" required><FormInput variant="hiring" placeholder="Enter number of openings" /></Field>
 
                     <div className="sm:col-span-3 grid grid-cols-[auto_1fr] gap-x-4 items-start">
                       <Field title="Priority" required>
@@ -217,14 +218,14 @@ export default function PostNewJobPage() {
                       </Field>
                       <RangeField title="Experience Required (Years)" required />
                     </div>
-                    <Field title="Expected Joining Date" required><input type="date" className={inputCls} placeholder="Select date" /></Field>
+                    <Field title="Expected Joining Date" required><FormInput variant="hiring" type="date" placeholder="Select date" /></Field>
 
                     <SelectField title="Notice Period" options={['Select Notice Period', 'Immediate', '15 Days', '30 Days', '60 Days']} />
                     <Field title="Salary Range (INR)" required>
                       <div className="mt-1 flex items-center gap-1.5">
-                        <input className={inputCls.replace('mt-1 ', '')} placeholder="Minimum" />
+                        <FormInput variant="hiring" className="mt-0" placeholder="Minimum" />
                         <span className="text-[10px] text-zinc-400">to</span>
-                        <input className={inputCls.replace('mt-1 ', '')} placeholder="Maximum" />
+                        <FormInput variant="hiring" className="mt-0" placeholder="Maximum" />
                       </div>
                     </Field>
                     <SelectField title="Currency" options={['Per Annum', 'Per Month']} />
@@ -256,7 +257,7 @@ export default function PostNewJobPage() {
                       </div>
                       <SelectField title="Employee Being Replaced" required options={['Select Employee', 'Amit Kumar (Sales Executive)']} />
                       <SelectField title="Replacement Reason" required options={['Select Reason', 'Resigned', 'Terminated', 'Transferred']} />
-                      <Field title="Last Working Date"><input type="date" className={inputCls} placeholder="Select date" /></Field>
+                      <Field title="Last Working Date"><FormInput variant="hiring" type="date" placeholder="Select date" /></Field>
                       <SelectField title="Impact of Vacancy" options={['Select Impact', 'Low', 'Medium', 'High']} />
                     </div>
                   </div>
@@ -422,8 +423,8 @@ export default function PostNewJobPage() {
                 </div>
               </div>
               <div className="space-y-1.5 mt-2">
-                <Field title="Application Last Date"><input type="date" className={inputCls} placeholder="Select date" /></Field>
-                <Field title="Application Email"><input className={inputCls} defaultValue="careers@company.com" /></Field>
+                <Field title="Application Last Date"><FormInput variant="hiring" type="date" placeholder="Select date" /></Field>
+                <Field title="Application Email"><FormInput variant="hiring" defaultValue="careers@company.com" /></Field>
               </div>
             </Card>
           </div>

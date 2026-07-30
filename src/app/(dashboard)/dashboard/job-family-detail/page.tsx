@@ -218,20 +218,18 @@ export default function JobFamilyDetailsPage() {
         ))}
       </div>
 
-
-
       {/* Content */}
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-[minmax(0,1fr)_300px]">
         {/* ================= LEFT COLUMN ================= */}
         <div className="flex min-h-full flex-col gap-2">
           {/* Tabs */}
-          <div className="mb-2 flex w-full gap-4 overflow-x-auto border-b border-[#e7e9ee]">
+          <div className="mb-2 flex w-full border-b border-[#e7e9ee]">
             {tabs.map((tab) => (
               <button
                 key={tab.name}
-                className={`min-w-[140px] flex-1 whitespace-nowrap border-b-2 py-2 text-[12px] font-semibold ${tab.active
+                className={`flex-1 whitespace-nowrap border-b-2 py-1.5 text-[10px] font-semibold ${tab.active
                     ? "border-[#153ee7] text-[#153ee7]"
-                    : "border-transparent"
+                    : "border-transparent text-[#5c6178]"
                   }`}
               >
                 {tab.name}
