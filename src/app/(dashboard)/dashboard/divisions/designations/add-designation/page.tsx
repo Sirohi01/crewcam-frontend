@@ -104,8 +104,8 @@ function DesignationFormContent() {
       setFormData({
         name: designation.name || '',
         code: designation.code || '',
-        jobGrade: designation.jobGrade || '',
-        jobFamily: designation.jobFamily || '',
+        jobGrade: designation.jobGrade?._id || designation.jobGrade || '',
+        jobFamily: designation.jobFamily?._id || designation.jobFamily || '',
         businessUnit: designation.businessUnit || '',
         division: designation.division || '',
         department: designation.departmentId?._id || designation.department || '',
