@@ -5,6 +5,11 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useEffect, Suspense } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
+import api from '@/lib/axios';
 
 // ─── Static data ────────────────────────────────────────────────────────────
 const BREADCRUMB = ['Organization Setup', 'Job Grades', 'Add New Job Grade'];
@@ -54,112 +59,7 @@ function Field({ label, hint, required, children }: { label: string; hint?: stri
   );
 }
 
-// ─── Breadcrumb + heading ───────────────────────────────────────────────────
-function PageHeading() {
-  return (
-    <section className="flex items-start justify-between gap-3 flex-wrap">
-      <div className="space-y-1">
-        <div className="flex items-center gap-1.5 text-[12px] text-zinc-500 flex-wrap">
-         <Breadcrumb
-  items={[
-    { label: "Organization Setup", href: "/dashboard" },
-    { label: "Job Grades", href: "/dashboard/job-grades" },
-    { label: "Add New Job Grade" },
-  ]}
-/>
-        </div>
-        <h1 className="text-1xl font-bold text-zinc-900 leading-tight">Add New Job Grade</h1>
-        <p className="text-[13px] text-zinc-500">Create a new job grade and define its basic details.</p>
-      </div>
-      <div className="flex items-center gap-2 flex-wrap">
-        <Link href="/dashboard/job-grades" className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors">
-          <ArrowLeft size={14} /> Back to Job Grades
-        </Link>
-        <button className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-[12.5px] font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors">
-          <Save size={14} /> Save Job Grade
-        </button>
-      </div>
-    </section>
-  );
-}
-
-// ─── Job Grade Details card ─────────────────────────────────────────────────
-function JobGradeDetailsCard() {
-  return (
-    <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="grid h-6 w-6 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
-          <IdCard size={15} />
-        </span>
-        <h3 className="text-[14px] font-bold text-zinc-900">Job Grade Details</h3>
-      </div>
-
-      <div className="space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Field label="Grade Name" required hint="e.g., Junior Manager">
-            <input type="text" defaultValue="Junior Manager" className={inputClass} />
-          </Field>
-          <Field label="Grade Code" required hint="e.g., JG-05">
-            <input type="text" defaultValue="JG-05" className={inputClass} />
-          </Field>
-          <Field label="Grade Level" required hint="Select grade level">
-            <select className={inputClass} defaultValue="5-4">
-              <option value="10">10</option>
-              <option value="9-8">9 - 8</option>
-              <option value="7-6">7 - 6</option>
-              <option value="5-4">5 - 4</option>
-              <option value="3-1">3 - 1</option>
-            </select>
-          </Field>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Field label="Pay Range (Monthly)" required hint="Enter minimum and maximum monthly pay range">
-            <div className="flex items-center gap-1.5">
-              <div className="relative flex-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-zinc-400">₹</span>
-                <input type="text" defaultValue="45,000" className={`${inputClass} pl-6`} />
-              </div>
-              <span className="text-[11px] text-zinc-400">-</span>
-              <div className="relative flex-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-zinc-400">₹</span>
-                <input type="text" defaultValue="70,000" className={`${inputClass} pl-6`} />
-              </div>
-            </div>
-          </Field>
-          <Field label="Job Family" required hint="Choose job family">
-            <select className={inputClass} defaultValue="Management">
-              <option value="Management">Management</option>
-              <option value="Operations">Operations</option>
-              <option value="Technical">Technical</option>
-              <option value="Support">Support</option>
-            </select>
-          </Field>
-          <Field label="Parent Grade (Optional)" hint="Select if this grade has a parent">
-            <select className={inputClass} defaultValue="Manager (JG-06)">
-              <option value="">None</option>
-              <option value="Manager (JG-06)">Manager (JG-06)</option>
-              <option value="Director (JG-01)">Director (JG-01)</option>
-            </select>
-          </Field>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Field label="Status" required hint="Choose status">
-            <select className={inputClass} defaultValue="Active">
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-              <option value="Draft">Draft</option>
-            </select>
-          </Field>
-          <Field label="Short Description" hint="e.g., Mid-level management roles">
-            <input type="text" defaultValue="Mid-level management roles with functional ownership." className={inputClass} />
-          </Field>
-        </div>
-      </div>
-    </div>
-  );
-}
+// Note: PageHeading and JobGradeDetailsCard are integrated below into the main component.
 
 // ─── Examples of Job Grades card ────────────────────────────────────────────
 function ExampleGradesCard() {
@@ -187,8 +87,10 @@ function ExampleGradesCard() {
 }
 
 // ─── Additional Information card ────────────────────────────────────────────
-function AdditionalInfoCard() {
-  const [remarksLen, setRemarksLen] = useState(56);
+function AdditionalInfoCard({
+  formData, setFormData
+}: any) {
+  const [remarksLen, setRemarksLen] = useState((formData.description || '').length);
   return (
     <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
       <div className="flex items-center gap-2 mb-2">
@@ -200,23 +102,26 @@ function AdditionalInfoCard() {
           <div className="flex items-center gap-1.5">
             <div className="relative flex-1">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-zinc-400">₹</span>
-              <input type="text" defaultValue="6,00,000" className={`${inputClass} pl-6`} />
+              <input type="text" placeholder="6,00,000" className={`${inputClass} pl-6`} />
             </div>
             <span className="text-[11px] text-zinc-400">-</span>
             <div className="relative flex-1">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-zinc-400">₹</span>
-              <input type="text" defaultValue="9,00,000" className={`${inputClass} pl-6`} />
+              <input type="text" placeholder="9,00,000" className={`${inputClass} pl-6`} />
             </div>
           </div>
         </Field>
         <Field label="Probation Period (Months)" hint="e.g., 3, 6">
-          <input type="text" defaultValue="6" className={inputClass} />
+          <input type="text" placeholder="6" className={inputClass} />
         </Field>
         <Field label="Remarks">
           <div className="relative">
             <textarea
-              defaultValue="Applicable for mid-level managers managing teams and projects."
-              onChange={(e) => setRemarksLen(e.target.value.length)}
+              value={formData.description}
+              onChange={(e) => {
+                setFormData({ ...formData, description: e.target.value });
+                setRemarksLen(e.target.value.length);
+              }}
               rows={2}
               className={`${inputClass} resize-none pr-12`}
             />
@@ -288,28 +193,220 @@ function NoteCard() {
 }
 
 // ─── Page ───────────────────────────────────────────────────────────────────
-export default function AddNewJobGradePage() {
+// ─── Page ───────────────────────────────────────────────────────────────────
+function AddJobGradeContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const editId = searchParams.get('editId');
+
+  const queryClient = useQueryClient();
+
+  const [formData, setFormData] = useState({
+    name: '',
+    code: '',
+    level: '5-4',
+    payRange: '',
+    jobFamily: '',
+    parentGrade: '',
+    ctcRangeMin: '',
+    ctcRangeMax: '',
+    probationPeriod: '',
+    isActive: true,
+    description: ''
+  });
+
+  const { data: allJobGrades = [] } = useQuery({
+    queryKey: ['jobGrades'],
+    queryFn: async () => {
+      const res = await api.get('/job-grades');
+      return res.data;
+    }
+  });
+
+  const { data: jobFamilies = [] } = useQuery({
+    queryKey: ['jobFamilies'],
+    queryFn: async () => {
+      const res = await api.get('/job-families');
+      return res.data;
+    }
+  });
+
+  const { data: jobGrade, isLoading: isFetching } = useQuery({
+    queryKey: ['jobGrade', editId],
+    queryFn: async () => {
+      const res = await api.get(`/job-grades/${editId}`);
+      return res.data;
+    },
+    enabled: !!editId
+  });
+
+  useEffect(() => {
+    if (jobGrade) {
+      setFormData({
+        name: jobGrade.name || '',
+        code: jobGrade.code || '',
+        level: jobGrade.level || '5-4',
+        payRange: jobGrade.payRange || '',
+        jobFamily: jobGrade.jobFamily ? jobGrade.jobFamily._id : '',
+        parentGrade: jobGrade.parentGrade ? jobGrade.parentGrade._id : '',
+        ctcRangeMin: jobGrade.ctcRangeMin || '',
+        ctcRangeMax: jobGrade.ctcRangeMax || '',
+        probationPeriod: jobGrade.probationPeriod || '',
+        isActive: jobGrade.isActive !== undefined ? jobGrade.isActive : true,
+        description: jobGrade.description || ''
+      });
+    }
+  }, [jobGrade]);
+
+  const saveMutation = useMutation({
+    mutationFn: async (data: any) => {
+      if (editId) {
+        const res = await api.put(`/job-grades/${editId}`, data);
+        return res.data;
+      } else {
+        const res = await api.post('/job-grades', data);
+        return res.data;
+      }
+    },
+    onSuccess: () => {
+      toast.success(editId ? 'Job Grade updated successfully!' : 'Job Grade created successfully!');
+      queryClient.invalidateQueries({ queryKey: ['jobGrades'] });
+      router.push('/dashboard/job-grades');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || `Failed to ${editId ? 'update' : 'create'} Job Grade`);
+    }
+  });
+
+  const handleSubmit = () => {
+    if (!formData.name || !formData.code || !formData.level) {
+      toast.error('Name, Code and Level are required');
+      return;
+    }
+    const payload = { ...formData };
+    if (!payload.jobFamily) delete (payload as any).jobFamily;
+    if (!payload.parentGrade) delete (payload as any).parentGrade;
+    saveMutation.mutate(payload);
+  };
+
   return (
     <div className="space-y-2 font-sans text-zinc-900 p-2">
-      <PageHeading />
-
-      <div className="grid grid-cols-1 xl:grid-cols-[2.6fr_1fr] gap-2.5 items-start">
-        <div className="min-w-0 space-y-2">
-          <JobGradeDetailsCard />
-          <ExampleGradesCard />
-          <AdditionalInfoCard />
+      <section className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 text-[12px] text-zinc-500 flex-wrap">
+            <Breadcrumb
+              items={[
+                { label: "Organization Setup", href: "/dashboard" },
+                { label: "Job Grades", href: "/dashboard/job-grades" },
+                { label: editId ? "Edit Job Grade" : "Add New Job Grade" },
+              ]}
+            />
+          </div>
+          <h1 className="text-1xl font-bold text-zinc-900 leading-tight">{editId ? 'Edit Job Grade' : 'Add New Job Grade'}</h1>
+          <p className="text-[13px] text-zinc-500">{editId ? 'Update job grade details.' : 'Create a new job grade and define its basic details.'}</p>
         </div>
-
-        <div className="space-y-2 min-w-0 xl:sticky xl:top-[20px]">
-          <GradeLevelGuideCard />
-          <WhyAddCard />
-          <NoteCard />
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link href="/dashboard/job-grades" className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors">
+            <ArrowLeft size={14} /> Back to Job Grades
+          </Link>
+          <button
+            onClick={handleSubmit}
+            disabled={saveMutation.isPending}
+            className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-[12.5px] font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors disabled:opacity-50"
+          >
+            <Save size={14} /> {saveMutation.isPending ? 'Saving...' : 'Save Job Grade'}
+          </button>
         </div>
-      </div>
+      </section>
+
+      {isFetching ? (
+        <div className="p-8 text-center text-zinc-500">Loading...</div>
+      ) : (
+        <div className="grid grid-cols-1 xl:grid-cols-[2.6fr_1fr] gap-2.5 items-start">
+          <div className="min-w-0 space-y-2">
+            <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="grid h-6 w-6 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+                  <IdCard size={15} />
+                </span>
+                <h3 className="text-[14px] font-bold text-zinc-900">Job Grade Details</h3>
+              </div>
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <Field label="Grade Name" required hint="e.g., Junior Manager">
+                    <input type="text" placeholder="Junior Manager" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={inputClass} />
+                  </Field>
+                  <Field label="Grade Code" required hint="e.g., JG-05">
+                    <input type="text" placeholder="JG-05" value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} className={inputClass} />
+                  </Field>
+                  <Field label="Grade Level" required hint="Select grade level">
+                    <select className={inputClass} value={formData.level} onChange={(e) => setFormData({ ...formData, level: e.target.value })}>
+                      <option value="10">10</option>
+                      <option value="9-8">9 - 8</option>
+                      <option value="7-6">7 - 6</option>
+                      <option value="5-4">5 - 4</option>
+                      <option value="3-1">3 - 1</option>
+                    </select>
+                  </Field>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <Field label="Pay Range (Monthly)" required hint="Enter minimum and maximum monthly pay range">
+                    <input type="text" placeholder="e.g., ₹45,000 - ₹70,000" value={formData.payRange} onChange={(e) => setFormData({ ...formData, payRange: e.target.value })} className={inputClass} />
+                  </Field>
+                  <Field label="Job Family" required hint="Choose job family">
+                    <select className={inputClass} value={formData.jobFamily} onChange={(e) => setFormData({ ...formData, jobFamily: e.target.value })}>
+                      <option value="">Select a family...</option>
+                      {jobFamilies.map((jf: any) => (
+                        <option key={jf._id} value={jf._id}>{jf.name}</option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Parent Grade (Optional)" hint="Select if this grade has a parent">
+                    <select className={inputClass} value={formData.parentGrade} onChange={(e) => setFormData({ ...formData, parentGrade: e.target.value })}>
+                      <option value="">None</option>
+                      {allJobGrades.filter((jg: any) => jg.isActive && jg._id !== editId).map((jg: any) => (
+                        <option key={jg._id} value={jg._id}>{jg.name}</option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Field label="Status" required hint="Choose status">
+                    <select className={inputClass} value={formData.isActive ? 'Active' : 'Inactive'} onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'Active' })}>
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                  </Field>
+                  <Field label="Short Description" hint="e.g., Mid-level management roles">
+                    <input type="text" placeholder="Mid-level management roles with functional ownership." value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className={inputClass} />
+                  </Field>
+                </div>
+              </div>
+            </div>
+
+            <ExampleGradesCard />
+            <AdditionalInfoCard formData={formData} setFormData={setFormData} />
+          </div>
+
+          <div className="space-y-2 min-w-0 xl:sticky xl:top-[20px]">
+            <GradeLevelGuideCard />
+            <WhyAddCard />
+            <NoteCard />
+          </div>
+        </div>
+      )}
 
       <footer className="text-center text-[11px] text-zinc-400 py-3 flex items-center justify-center gap-2.5 flex-wrap">
         <span>© 2025 Crewcam HRMS. All Rights Reserved.</span>
       </footer>
     </div>
+  );
+}
+
+export default function AddNewJobGradePage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-zinc-500">Loading...</div>}>
+      <AddJobGradeContent />
+    </Suspense>
   );
 }

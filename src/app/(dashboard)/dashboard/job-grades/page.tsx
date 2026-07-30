@@ -4,10 +4,14 @@ import Link from 'next/link';
 import {
     Upload, Download, Plus, ChevronRight, Search, Filter,
     Users, UserCircle, IndianRupee, UserPlus, CheckCircle2, ChevronDown, ChevronLeft, MoreVertical,
-    FileText, Lightbulb, MapPin, Briefcase, Info
+    FileText, Lightbulb, MapPin, Briefcase, Info, Pencil, Trash2
 } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
-import { FormInput } from '@/components/ui/form-input';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "@/lib/axios";
+import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import { FormInput } from '@/components/shared/FormComponents';
 
 // --- MOCK DATA ---
 const topCards = [
@@ -31,18 +35,71 @@ const jobGrades = [
 ];
 
 export default function JobGradesPage() {
+    const router = useRouter();
+    const queryClient = useQueryClient();
+
+    const { data: apiJobGrades = [], isLoading } = useQuery({
+        queryKey: ["jobGrades"],
+        queryFn: async () => {
+            const res = await api.get("/job-grades");
+            return res.data;
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: async (id: string) => {
+            await api.delete(`/job-grades/${id}`);
+        },
+        onSuccess: () => {
+            toast.success("Job grade deleted successfully");
+            queryClient.invalidateQueries({ queryKey: ["jobGrades"] });
+        },
+        onError: (err: any) => {
+            toast.error(err.response?.data?.message || "Failed to delete job grade");
+        },
+    });
+
+    // Map backend data to UI format with default styles
+    const mappedGrades = apiJobGrades.map((jg: any, index: number) => {
+        const template = jobGrades[index % jobGrades.length];
+        return {
+            _id: jg._id,
+            level: jg.level || template.level,
+            levelBg: template.levelBg,
+            levelText: template.levelText,
+            name: jg.name,
+            desc: jg.description || template.desc,
+            code: jg.code,
+            payRange: template.payRange,
+            designations: 0,
+            employees: 0,
+            isActive: jg.isActive
+        };
+    });
+
+    const activeCount = apiJobGrades.filter((jg: any) => jg.isActive).length;
+
+    // We can also override topCards dynamically if we want, but keeping it mostly original as requested.
+    const dynamicCards = [
+        { title: 'Total Job Grades', value: apiJobGrades.length, subtitle: 'Total recorded', bg: 'bg-blue-50', text: 'text-blue-600', icon: Users },
+        { title: 'Active Grades', value: activeCount, subtitle: 'Currently active', bg: 'bg-emerald-50', text: 'text-emerald-600', icon: CheckCircle2 },
+        { title: 'Employees Mapped', value: '0', subtitle: 'Total Employees', bg: 'bg-purple-50', text: 'text-purple-600', icon: UserCircle },
+        { title: 'Avg. Pay Range (Min - Max)', value: '₹ 18,000 - ₹ 3,20,000', subtitle: '', bg: 'bg-blue-50', text: 'text-blue-600', icon: IndianRupee },
+        { title: 'Grades with Open Positions', value: '5', subtitle: 'Openings', bg: 'bg-purple-50', text: 'text-purple-600', icon: UserPlus },
+    ];
+
     return (
         <div className="flex flex-col gap-2 animate-in fade-in duration-300 p-2 w-full font-sans text-zinc-800 bg-[#f8f9fc] min-h-screen">
 
             {/* PAGE HEADER */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-1">
                 <div>
-                 <Breadcrumb
-  items={[
-    { label: "Organization Setup", href: "/dashboard" },
-    { label: "Job Grades" },
-  ]}
-/>
+                    <Breadcrumb
+                        items={[
+                            { label: "Organization Setup", href: "/dashboard" },
+                            { label: "Job Grades" },
+                        ]}
+                    />
                     <h1 className="text-lg font-bold text-zinc-900 mb-0.5">Job Grades</h1>
                     <p className="text-[11px] text-zinc-500">Create and manage job grades used across the organization for role hierarchy and pay structure.</p>
                 </div>
@@ -61,7 +118,7 @@ export default function JobGradesPage() {
 
             {/* STATS CARDS */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 mb-1">
-                {topCards.map((card, idx) => {
+                {dynamicCards.map((card, idx) => {
                     const Icon = card.icon;
                     return (
                         <div key={idx} className="p-3 flex items-center gap-2.5 bg-white border border-zinc-200 shadow-sm rounded-xl">
@@ -118,8 +175,12 @@ export default function JobGradesPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="text-[11px]">
-                                    {jobGrades.map((jg, idx) => (
-                                        <tr key={idx} className="border-b border-zinc-50 hover:bg-zinc-50 transition-colors">
+                                    {isLoading ? (
+                                        <tr><td colSpan={8} className="py-4 text-center text-zinc-500">Loading...</td></tr>
+                                    ) : mappedGrades.length === 0 ? (
+                                        <tr><td colSpan={8} className="py-4 text-center text-zinc-500">No job grades found.</td></tr>
+                                    ) : mappedGrades.map((jg: any, idx: number) => (
+                                        <tr key={jg._id} className="border-b border-zinc-50 hover:bg-zinc-50 transition-colors">
                                             <td className="py-1.5 px-3 text-center w-14">
                                                 <div className={`w-full py-1.5 rounded font-semibold text-[10px] flex items-center justify-center ${jg.levelBg} ${jg.levelText}`}>
                                                     {jg.level}
@@ -127,7 +188,7 @@ export default function JobGradesPage() {
                                             </td>
                                             <td className="py-1.5 px-3">
                                                 <div className="flex flex-col">
-                                                    <span className="font-semibold text-zinc-800 text-[10px]">{jg.name}</span>
+                                                    <span className="font-semibold text-zinc-800 text-[10px] hover:text-blue-600 cursor-pointer" onClick={() => router.push(`/dashboard/job-grades/add-new-job-grade?editId=${jg._id}`)}>{jg.name}</span>
                                                     <span className="text-[10px] text-zinc-500">{jg.desc}</span>
                                                 </div>
                                             </td>
@@ -140,14 +201,24 @@ export default function JobGradesPage() {
                                             <td className="py-1.5 px-2 text-center font-semibold text-zinc-800">{jg.designations}</td>
                                             <td className="py-1.5 px-2 text-center font-semibold text-zinc-800">{jg.employees}</td>
                                             <td className="py-1.5 px-2 text-center">
-                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[10px] font-bold border border-emerald-100">
-                                                    Active
+                                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold border ${jg.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
+                                                    {jg.isActive ? 'Active' : 'Inactive'}
                                                 </span>
                                             </td>
                                             <td className="py-1.5 px-3">
-                                                <div className="flex items-center justify-center gap-1 text-zinc-400">
-                                                    <button className="p-1 hover:text-zinc-600 transition-colors"><FileText className="w-3.5 h-3.5" /></button>
-                                                    <button className="p-1 hover:text-zinc-600 transition-colors"><MoreVertical className="w-3.5 h-3.5" /></button>
+                                                <div className="flex items-center justify-center gap-1.5">
+                                                    <button
+                                                        onClick={() => router.push(`/dashboard/job-grades/add-new-job-grade?editId=${jg._id}`)}
+                                                        className="flex h-7 w-7 items-center justify-center rounded-full border border-zinc-200 bg-white text-blue-600 hover:bg-zinc-50"
+                                                    ><Pencil size={14} /></button>
+                                                    <button
+                                                        onClick={() => {
+                                                            if (confirm('Are you sure you want to delete this job grade?')) {
+                                                                deleteMutation.mutate(jg._id);
+                                                            }
+                                                        }}
+                                                        className="flex h-7 w-7 items-center justify-center rounded-full border border-zinc-200 bg-white text-red-600 hover:bg-zinc-50"
+                                                    ><Trash2 size={14} /></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -247,7 +318,7 @@ export default function JobGradesPage() {
 
                     {/* Quick Actions Card */}
                     <div className="bg-white border border-zinc-200 shadow-sm rounded-xl p-6 2xl:p-6 flex-1 flex flex-col justify-center">
-                        <h2 className="text-[14px] font-bold text-zinc-800 mb-4 flex items-center gap-2">Quick Actions</h2>
+                        <h2 className="text-[14px] font-bold text-zinc-800 mb-2 flex items-center gap-2">Quick Actions</h2>
                         <div className="grid grid-cols-2 gap-3">
                             <button className="flex items-center gap-2 p-2.5 border border-zinc-200 rounded-lg text-[11px] font-semibold text-indigo-600 hover:bg-indigo-50 transition-colors justify-center whitespace-nowrap">
                                 <Plus className="w-4 h-4" /> Add New Job Grade
