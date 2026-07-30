@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import {
     Upload, Download, Plus, ChevronRight, Search, Filter,
@@ -7,6 +7,40 @@ import {
     FileText, Lightbulb, MapPin, Briefcase, Info, Pencil, Trash2
 } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
+import BulkUploadModal, { ColumnConfig } from '@/components/upload/bulkUploadModal';
+
+interface JobGradeRow {
+  gradeName: string;
+  gradeCode: string;
+  gradeLevel: string;
+  payRangeMin: string;
+  payRangeMax: string;
+  jobFamily: string;
+  parentGrade: string;
+  status: string;
+  shortDescription: string;
+  ctcRangeMin: string;
+  ctcRangeMax: string;
+  probationPeriod: string;
+  remarks: string;
+}
+
+const jobGradeColumns: ColumnConfig<JobGradeRow>[] = [
+  { key: 'gradeName', label: 'Grade Name', required: true, sampleValue: 'Junior Manager' },
+  { key: 'gradeCode', label: 'Grade Code', required: true, unique: true, sampleValue: 'JG-05' },
+  { key: 'gradeLevel', label: 'Grade Level', required: true, sampleValue: '5-4', validate: (v) => (['10', '9-8', '7-6', '5-4', '3-1'].includes(String(v)) ? null : 'Grade Level must be 10, 9-8, 7-6, 5-4, or 3-1') },
+  { key: 'payRangeMin', label: 'Pay Range Min (Monthly)', required: true, sampleValue: '45,000' },
+  { key: 'payRangeMax', label: 'Pay Range Max (Monthly)', required: true, sampleValue: '70,000' },
+  { key: 'jobFamily', label: 'Job Family', required: true, sampleValue: 'Management', validate: (v) => (['management', 'operations', 'technical', 'support'].includes(String(v).toLowerCase()) ? null : 'Job Family must be Management, Operations, Technical, or Support') },
+  { key: 'parentGrade', label: 'Parent Grade', sampleValue: 'Manager (JG-06)' },
+  { key: 'status', label: 'Status', required: true, sampleValue: 'Active', validate: (v) => (['active', 'inactive', 'draft'].includes(String(v).toLowerCase()) ? null : 'Status must be Active, Inactive, or Draft') },
+  { key: 'shortDescription', label: 'Short Description', sampleValue: 'Mid-level management roles' },
+  { key: 'ctcRangeMin', label: 'CTC Range Min (Annual)', sampleValue: '6,00,000' },
+  { key: 'ctcRangeMax', label: 'CTC Range Max (Annual)', sampleValue: '9,00,000' },
+  { key: 'probationPeriod', label: 'Probation Period (Months)', sampleValue: '6' },
+  { key: 'remarks', label: 'Remarks', sampleValue: 'Applicable for mid-level managers' },
+];
+import { FormInput } from '@/components/ui/form-input';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { toast } from "react-hot-toast";
@@ -35,6 +69,7 @@ const jobGrades = [
 ];
 
 export default function JobGradesPage() {
+    const [showImportModal, setShowImportModal] = useState(false);
     const router = useRouter();
     const queryClient = useQueryClient();
 
@@ -104,7 +139,10 @@ export default function JobGradesPage() {
                     <p className="text-[11px] text-zinc-500">Create and manage job grades used across the organization for role hierarchy and pay structure.</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-1.5 h-8 px-2.5 bg-white border border-zinc-200 rounded-md text-[11px] font-semibold hover:bg-zinc-50 transition-colors shadow-sm text-zinc-700">
+                    <button
+                        onClick={() => setShowImportModal(true)}
+                        className="flex items-center gap-1.5 h-8 px-2.5 bg-white border border-zinc-200 rounded-md text-[11px] font-semibold hover:bg-zinc-50 transition-colors shadow-sm text-zinc-700"
+                    >
                         <Upload className="w-3.5 h-3.5" /> Import Grades
                     </button>
                     <button className="flex items-center gap-1.5 h-8 px-2.5 bg-white border border-zinc-200 rounded-md text-[11px] font-semibold hover:bg-zinc-50 transition-colors shadow-sm text-zinc-700">
@@ -350,6 +388,18 @@ export default function JobGradesPage() {
 
                 </div>
             </div>
+
+            <BulkUploadModal<JobGradeRow>
+                open={showImportModal}
+                onClose={() => setShowImportModal(false)}
+                title="Upload Job Grade Data"
+                description="Upload an Excel file to import job grades in bulk."
+                sampleFileName="JobGrade_Example.xlsx"
+                columns={jobGradeColumns}
+                onImport={async (rows) => {
+                    console.log('Importing job grades:', rows);
+                }}
+            />
 
         </div>
     );
