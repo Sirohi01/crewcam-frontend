@@ -19,7 +19,7 @@ export interface FormInputProps
 
 const variantClasses: Record<NonNullable<FormInputProps["variant"]>, string> = {
   default:
-    "h-6 w-full rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none bg-white placeholder:text-zinc-400 focus:border-[#153ee7] focus:ring-1 focus:ring-[#153ee7]/20 disabled:cursor-not-allowed disabled:opacity-50",
+    "mt-1 h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-[12px] text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50",
   hiring:
     "mt-1 h-8 w-full rounded-none border border-zinc-200 bg-white px-2.5 text-[11.5px] text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-50",
   compact:

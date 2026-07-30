@@ -108,7 +108,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-[11px] font-semibold text-[#101743]">
+      <label className="block text-[11px] font-semibold text-zinc-700">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       {children}
@@ -191,7 +191,7 @@ export default function AddNewJobFamilyPage() {
                   <textarea
                     defaultValue="Includes all roles related to technology, software development, infrastructure and IT support."
                     rows={3}
-                    className="w-full resize-none rounded-md border border-[#e0e4eb] px-2.5 py-2 text-[11px] font-medium leading-[16px] text-[#101743] outline-none"
+                    className="mt-1 w-full resize-none rounded-md border border-zinc-200 bg-white px-2.5 py-1.5 text-[12px] text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                   />
                   <span className="pointer-events-none absolute bottom-1.5 right-2 text-[9px] text-zinc-400">
                     92/200
@@ -203,36 +203,36 @@ export default function AddNewJobFamilyPage() {
             <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Field label="Parent Family (Optional)" helper="Select if this is a sub-family">
                 <div className="relative">
-                  <select className="h-6 w-full appearance-none rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none">
+                  <select className="mt-1 h-8 w-full appearance-none rounded-md border border-zinc-200 bg-white px-2.5 text-[12px] text-zinc-800 outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
                     <option>Select parent family</option>
                   </select>
                   <ChevronDown
                     size={14}
-                    className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#101743]"
+                    className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500"
                   />
                 </div>
               </Field>
 
               <Field label="Applicable Business Unit" helper="Select the applicable business unit">
                 <div className="relative">
-                  <select className="h-6 w-full appearance-none rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none">
+                  <select className="mt-1 h-8 w-full appearance-none rounded-md border border-zinc-200 bg-white px-2.5 text-[12px] text-zinc-800 outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
                     <option>Select business unit</option>
                   </select>
                   <ChevronDown
                     size={14}
-                    className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#101743]"
+                    className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500"
                   />
                 </div>
               </Field>
 
               <Field label="Status" required helper="Choose current status">
                 <div className="relative">
-                  <select className="h-6 w-full appearance-none rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none">
+                  <select className="mt-1 h-8 w-full appearance-none rounded-md border border-zinc-200 bg-white px-2.5 text-[12px] text-zinc-800 outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
                     <option>Active</option>
                   </select>
                   <ChevronDown
                     size={14}
-                    className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#101743]"
+                    className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500"
                   />
                 </div>
               </Field>
@@ -246,7 +246,7 @@ export default function AddNewJobFamilyPage() {
                       "• Design, develop and maintain technology solutions.\n• Ensure system security, performance and reliability.\n• Provide technical support and continuous improvement."
                     }
                     rows={4}
-                    className="w-full resize-none rounded-md border border-[#e0e4eb] px-2.5 py-2 text-[11px] font-medium leading-[18px] text-[#101743] outline-none"
+                    className="mt-1 w-full resize-none rounded-md border border-zinc-200 bg-white px-2.5 py-1.5 text-[12px] text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                   />
                   <span className="pointer-events-none absolute bottom-1.5 right-2 text-[9px] text-zinc-400">
                     0/300

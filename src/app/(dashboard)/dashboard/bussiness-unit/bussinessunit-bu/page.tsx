@@ -1,12 +1,16 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+<<<<<<< Updated upstream
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import {
     Upload, Download, Plus, ChevronRight, Search, Filter,
     Eye, Edit2, MoreVertical, Building, Users, User, PieChart as PieChartIcon, CheckCircle2, ChevronDown, ChevronLeft, Map, FileText, CheckCircle, Lightbulb, MapPin, BarChart2, Armchair, PenTool, LayoutDashboard, Briefcase, Trash2
 } from 'lucide-react';
+=======
+import {Upload, Download, Plus, ChevronRight, Search, Filter, Eye, Edit2, MoreVertical, Building, Users, User, PieChart as PieChartIcon, CheckCircle2, ChevronDown, ChevronLeft, Map, FileText, CheckCircle, Lightbulb, MapPin, BarChart2, Armchair, PenTool, LayoutDashboard, Briefcase} from 'lucide-react';
+>>>>>>> Stashed changes
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Card } from '@/components/ui/card';
 import api from '@/lib/axios';
@@ -168,7 +172,7 @@ export default function BusinessUnitsPage() {
 
                 {/* LEFT SECTION (70%) */}
                 <div className="xl:col-span-7 flex flex-col gap-2 h-full">
-                    <div className="bg-white border border-zinc-200 shadow-sm rounded-xl overflow-hidden flex flex-col flex-1">
+                    <div className="bg-white border border-zinc-200 shadow-sm rounded-md overflow-hidden flex flex-col flex-1">
 
                         {/* TABLE HEADER */}
                         <div className="flex items-center justify-between p-3 border-b border-zinc-100">
@@ -176,13 +180,13 @@ export default function BusinessUnitsPage() {
                             <div className="flex items-center gap-2">
                                 <div className="relative">
                                     <input type="text" placeholder="Search business units..." className="pl-2.5 pr-7 h-8 bg-white border border-zinc-200 rounded-md text-[11px] w-48 focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-400" />
-                                    <Search className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                                    <Search className="w-3 h-3 absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                                 </div>
                                 <button className="flex items-center gap-1.5 h-8 px-2.5 border border-zinc-200 rounded-md text-[11px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
-                                    <Filter className="w-3.5 h-3.5" /> Filters
+                                    <Filter className="w-3 h-3" /> Filters
                                 </button>
                                 <div className="flex items-center gap-1.5 h-8 px-2.5 border border-zinc-200 rounded-md text-[11px] font-semibold text-zinc-700 cursor-pointer hover:bg-zinc-50 transition-colors">
-                                    Sort by: Name (A-Z) <ChevronDown className="w-3.5 h-3.5" />
+                                    Sort by: Name (A-Z) <ChevronDown className="w-3 h-3" />
                                 </div>
                             </div>
                         </div>
@@ -191,19 +195,20 @@ export default function BusinessUnitsPage() {
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
-                                    <tr className="border-b border-zinc-100 bg-zinc-50/50">
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase">Business Unit</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase">BU Code</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase">Head / Owner</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Total Employees</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Departments</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Cost Centers</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-right">Budget (FY 25-26)</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Status</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Actions</th>
+                                    <tr className="border-b border-zinc-200 bg-zinc-50">
+                                        <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide whitespace-nowrap">Business Unit</th>
+                                        <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide text-center whitespace-nowrap">BU Code</th>
+                                        <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide whitespace-nowrap">Owner</th>
+                                        <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide text-center whitespace-nowrap">Total Employees</th>
+                                        <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide text-center whitespace-nowrap">Departments</th>
+                                        <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide text-center whitespace-nowrap">Cost Centers</th>
+                                        <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide text-center whitespace-nowrap">Budget (FY 25-26)</th>
+                                        <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide text-center whitespace-nowrap">Status</th>
+                                        <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide text-center whitespace-nowrap">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-[11px]">
+<<<<<<< Updated upstream
                                     {isLoading ? (
                                         <tr>
                                             <td colSpan={9} className="py-8 text-center text-zinc-500 font-medium">
@@ -218,38 +223,39 @@ export default function BusinessUnitsPage() {
                                         </tr>
                                     ) : mappedBusinessUnits.map((bu) => {
                                         const BuIcon = bu.icon;
+=======
+                                    {businessUnits.map((bu) => {
+>>>>>>> Stashed changes
                                         return (
                                             <tr key={bu.id} className="border-b border-zinc-50 hover:bg-zinc-50 transition-colors">
-                                                <td className="py-2 px-3">
-                                                    <div className="flex items-center gap-2.5">
-                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${bu.iconBg} ${bu.iconColor}`}>
-                                                            <BuIcon className="w-4 h-4" />
-                                                        </div>
-                                                        <div className="flex flex-col">
-                                                            <span className="font-bold text-zinc-800 text-[11px]">{bu.name}</span>
-                                                            <span className="text-[10px] text-zinc-500 w-36 truncate" title={bu.desc}>{bu.desc}</span>
-                                                        </div>
+                                                <td className="py-2.5 px-3">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-semibold text-zinc-800 text-[11px]">{bu.name}</span>
+                                                        <span className="text-[10px] text-zinc-500 max-w-[160px] truncate" title={bu.desc}>{bu.desc}</span>
                                                     </div>
                                                 </td>
-                                                <td className="py-2 px-3 font-semibold text-zinc-700">{bu.code}</td>
-                                                <td className="py-2 px-3">
+                                                <td className="py-2.5 px-3 text-center">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded bg-zinc-100 text-zinc-600 text-[10px] font-semibold">{bu.code}</span>
+                                                </td>
+                                                <td className="py-2.5 px-3">
                                                     <div className="flex items-center gap-2">
-                                                        <img src={`https://i.pravatar.cc/150?u=${bu.id + 10}`} alt={bu.headName} className="w-7 h-7 rounded-full border border-zinc-200" />
+                                                        <img src={`https://i.pravatar.cc/150?u=${bu.id + 10}`} alt={bu.headName} className="w-6 h-6 rounded-full border border-zinc-200 shrink-0" />
                                                         <div className="leading-tight">
-                                                            <p className="font-bold text-zinc-800 text-[11px]">{bu.headName}</p>
+                                                            <p className="font-semibold text-zinc-800 text-[10px] whitespace-nowrap">{bu.headName}</p>
                                                             <p className="text-[10px] text-zinc-500">{bu.headRole}</p>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="py-2 px-3 text-center font-bold text-zinc-800">{bu.employees}</td>
-                                                <td className="py-2 px-3 text-center font-bold text-zinc-800">{bu.depts}</td>
-                                                <td className="py-2 px-3 text-center font-bold text-zinc-800">{bu.costCenters}</td>
-                                                <td className="py-2 px-3 text-right font-bold text-zinc-800">{bu.budget}</td>
-                                                <td className="py-2 px-3 text-center">
-                                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[10px] font-bold border border-emerald-100">
+                                                <td className="py-2.5 px-3 text-center font-semibold text-zinc-800 text-[11px]">{bu.employees}</td>
+                                                <td className="py-2.5 px-3 text-center font-semibold text-zinc-800 text-[11px]">{bu.depts}</td>
+                                                <td className="py-2.5 px-3 text-center font-semibold text-zinc-800 text-[11px]">{bu.costCenters}</td>
+                                                <td className="py-2.5 px-3 text-center font-semibold text-zinc-800 text-[11px]">{bu.budget}</td>
+                                                <td className="py-2.5 px-3 text-center">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[10px] font-bold border border-emerald-100">
                                                         Active
                                                     </span>
                                                 </td>
+<<<<<<< Updated upstream
                                                 <td className="py-2 px-3 relative">
                                                     <div className="flex items-center justify-center gap-1 text-zinc-400">
                                                         <button
@@ -258,6 +264,11 @@ export default function BusinessUnitsPage() {
                                                         >
                                                             <MoreVertical className="w-4 h-4" />
                                                         </button>
+=======
+                                                <td className="py-2.5 px-3 text-center">
+                                                    <div className="flex items-center justify-center text-zinc-400">
+                                                        <button className="p-1 hover:text-zinc-600 transition-colors"><MoreVertical className="w-4 h-4" /></button>
+>>>>>>> Stashed changes
                                                     </div>
 
                                                     {openDropdownId === bu.id && (
