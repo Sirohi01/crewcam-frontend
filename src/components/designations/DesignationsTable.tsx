@@ -78,8 +78,8 @@ export default function DesignationsTable() {
       name: d.name,
       subtitle: d.summary || d.keyResponsibilities || '',
       code: d.code,
-      jg: d.jobGrade || 'N/A',
-      family: d.jobFamily || 'N/A',
+      jg: d.jobGrade?.name || d.jobGrade || 'N/A',
+      family: d.jobFamily?.name || d.jobFamily || 'N/A',
       emp: 0, // Mock for now
       vac: 0, // Mock for now
       status: d.isActive ? 'Active' : 'Inactive',
@@ -95,8 +95,8 @@ export default function DesignationsTable() {
     return tabMatch && searchMatch && gradeMatch && familyMatch && statusMatch;
   });
 
-  const uniqueGrades = Array.from(new Set(designations.map((d: any) => d.jobGrade))).filter(Boolean) as string[];
-  const uniqueFamilies = Array.from(new Set(designations.map((d: any) => d.jobFamily))).filter(Boolean) as string[];
+  const uniqueGrades = Array.from(new Set(designations.map((d: any) => d.jobGrade?.name || d.jobGrade))).filter(Boolean) as string[];
+  const uniqueFamilies = Array.from(new Set(designations.map((d: any) => d.jobFamily?.name || d.jobFamily))).filter(Boolean) as string[];
 
   const totalPages = Math.ceil(filtered.length / rowsPerPage) || 1;
   const paginatedData = filtered.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);

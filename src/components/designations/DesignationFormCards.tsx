@@ -3,6 +3,8 @@
 import React from 'react';
 import { FileText, User, LayoutList, Calendar as CalendarIcon, ChevronDown } from 'lucide-react';
 import { Card, Field, SelectField, inputCls, textareaCls } from '@/components/divisions/FormHelpers';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/axios';
 
 export default function DesignationFormCards({ formData, setFormData }: { formData?: any, setFormData?: any }) {
   const handleChange = (field: string) => (e: any) => {
@@ -10,6 +12,22 @@ export default function DesignationFormCards({ formData, setFormData }: { formDa
       setFormData((prev: any) => ({ ...prev, [field]: e.target.value }));
     }
   };
+
+  const { data: jobGrades = [] } = useQuery({
+    queryKey: ['job-grades'],
+    queryFn: async () => {
+      const res = await api.get('/job-grades');
+      return res.data;
+    }
+  });
+
+  const { data: jobFamilies = [] } = useQuery({
+    queryKey: ['job-families'],
+    queryFn: async () => {
+      const res = await api.get('/job-families');
+      return res.data;
+    }
+  });
 
   return (
     <div className="space-y-3">
@@ -25,8 +43,22 @@ export default function DesignationFormCards({ formData, setFormData }: { formDa
           <Field title="Short Code" required helpText="e.g., SR. MGR (max 10 characters)">
             <input type="text" className={inputCls} placeholder="Enter short code" maxLength={10} value={formData?.code || ''} onChange={handleChange('code')} />
           </Field>
-          <SelectField title="Job Grade" required options={['JG-10', 'JG-09', 'JG-08', 'JG-07']} value={formData?.jobGrade || ''} onChange={handleChange('jobGrade')} />
-          <SelectField title="Job Family" required options={['Leadership', 'Management', 'Professional']} value={formData?.jobFamily || ''} onChange={handleChange('jobFamily')} />
+          <Field title="Job Grade" required>
+            <select className={inputCls} value={formData?.jobGrade || ''} onChange={handleChange('jobGrade')}>
+              <option value="">Select Job Grade</option>
+              {jobGrades.map((jg: any) => (
+                <option key={jg._id} value={jg._id}>{jg.name} ({jg.code})</option>
+              ))}
+            </select>
+          </Field>
+          <Field title="Job Family" required>
+            <select className={inputCls} value={formData?.jobFamily || ''} onChange={handleChange('jobFamily')}>
+              <option value="">Select Job Family</option>
+              {jobFamilies.map((jf: any) => (
+                <option key={jf._id} value={jf._id}>{jf.name} ({jf.code})</option>
+              ))}
+            </select>
+          </Field>
         </div>
 
         {/* Row 2 */}
