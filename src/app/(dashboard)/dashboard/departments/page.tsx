@@ -12,8 +12,9 @@ import { LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer, AreaChart, A
 import { Card } from '@/components/ui/card';
 import { getDepartments, deleteDepartment } from '@/services/departmentService';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
+import BulkUploadModal, { ColumnConfig } from '@/components/upload/bulkUploadModal';
+import { FormInput } from '@/components/ui/form-input';
 
-// --- MOCK DATA ---
 const topCards = [
   { title: 'TOTAL DEPARTMENTS', value: '10', subtitle: 'All departments', color: '#3b82f6', isChart: true, linkText: 'View all' },
   { title: 'ACTIVE DEPARTMENTS', value: '10', subtitle: '100% of total', color: '#10b981', isChart: true, linkText: 'View all' },
@@ -24,8 +25,6 @@ const topCards = [
 ];
 
 const mockChartData = [{ v: 10 }, { v: 25 }, { v: 20 }, { v: 45 }, { v: 30 }, { v: 50 }, { v: 40 }];
-
-// Real data will overwrite this.
 
 const compositionData = [
   { name: 'Managers', value: 10, color: '#3b82f6', percent: '24%' },
@@ -40,7 +39,6 @@ const activities = [
   { id: 3, text: 'Department created', by: 'Vijay Sharma', time: '12 Jan 2024, 10:00 AM' },
 ];
 
-// --- COMPONENTS ---
 const MicroLineChart = ({ color }: { color: string }) => {
   const chartId = color.replace('#', '');
   return (
@@ -75,11 +73,62 @@ const CircularProgress = ({ value, color, hideText }: { value: number, color: st
   );
 };
 
+interface DepartmentRow {
+  name: string;
+  code: string;
+  branchId: string;
+  departmentType: string;
+  businessUnit: string;
+  isActive: string;
+  hodEmployeeId: string;
+  reportingToId: string;
+  effectiveDate: string;
+  description: string;
+  keyResponsibilities: string;
+  employeeCapacity: string;
+  location: string;
+  costCenter: string;
+  probationPeriod: string;
+  departmentEmail: string;
+  budgetOwner: string;
+  assistantCoHead: string;
+  workingDays: string;
+  defaultShift: string;
+  departmentKeywords: string;
+  budgetStr: string;
+}
+
+const departmentColumns: ColumnConfig<DepartmentRow>[] = [
+  { key: 'name', label: 'Department Name', required: true, unique: true, sampleValue: 'Design Studio' },
+  { key: 'code', label: 'Department Code', required: true, unique: true, sampleValue: 'DS' },
+  { key: 'branchId', label: 'Parent Department', sampleValue: 'Business Operations' },
+  { key: 'departmentType', label: 'Department Type', required: true, sampleValue: 'Core Department' },
+  { key: 'businessUnit', label: 'Business Unit', required: true, sampleValue: 'Retail Interiors & Exhibition' },
+  { key: 'isActive', label: 'Status', required: true, sampleValue: 'Active', validate: (v) => (['active', 'inactive'].includes(String(v).toLowerCase()) ? null : 'Status must be Active or Inactive') },
+  { key: 'hodEmployeeId', label: 'Department Head (HOD)', required: true, sampleValue: 'EMP1023' },
+  { key: 'reportingToId', label: 'Reporting To', required: true, sampleValue: 'EMP1001' },
+  { key: 'effectiveDate', label: 'Effective Date', required: true, sampleValue: '2026-01-01' },
+  { key: 'description', label: 'Department Purpose', required: true, sampleValue: 'Handles design and creative operations' },
+  { key: 'keyResponsibilities', label: 'Key Responsibilities', required: true, sampleValue: 'Design, Creative direction, Client handling' },
+  { key: 'employeeCapacity', label: 'Employee Capacity', required: true, sampleValue: '50', validate: (v) => (isNaN(Number(v)) ? 'Employee Capacity must be a number' : null) },
+  { key: 'location', label: 'Location', required: true, sampleValue: 'Noida - Head Office' },
+  { key: 'costCenter', label: 'Cost Center', required: true, sampleValue: 'CC-DS-1001' },
+  { key: 'probationPeriod', label: 'Probation Period (Months)', sampleValue: '3' },
+  { key: 'departmentEmail', label: 'Department Email', sampleValue: 'designstudio@designhouse.co.in' },
+  { key: 'budgetOwner', label: 'Budget Owner', sampleValue: 'EMP1050' },
+  { key: 'assistantCoHead', label: 'Assistant / Co-Head', sampleValue: 'EMP1040' },
+  { key: 'workingDays', label: 'Working Days', sampleValue: 'Monday - Saturday' },
+  { key: 'defaultShift', label: 'Default Shift', sampleValue: 'General Shift (09:30 AM - 06:30 PM)' },
+  { key: 'departmentKeywords', label: 'Department Keywords', sampleValue: 'Design, Creative, Interior' },
+  { key: 'budgetStr', label: 'Budget (FY 25-26)', required: true, sampleValue: '₹ 1.5 Cr' },
+];
+
 export default function DepartmentsPage() {
   const [activeLeftTab, setActiveLeftTab] = useState('Department List');
   const [activeRightTab, setActiveRightTab] = useState('Overview');
   const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   useEffect(() => {
     fetchDepartments();
@@ -108,10 +157,45 @@ export default function DepartmentsPage() {
     }
   };
 
+  const handleImportDepartments = async (rows: DepartmentRow[]) => {
+    await Promise.all(
+      rows.map((row) =>
+        fetch('/api/departments/bulk-import-row', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: row.name,
+            code: row.code,
+            branchId: row.branchId,
+            departmentType: row.departmentType,
+            businessUnit: row.businessUnit,
+            isActive: row.isActive?.toLowerCase() === 'active',
+            hodEmployeeId: row.hodEmployeeId,
+            reportingToId: row.reportingToId,
+            effectiveDate: row.effectiveDate,
+            description: row.description,
+            keyResponsibilities: row.keyResponsibilities,
+            employeeCapacity: row.employeeCapacity,
+            location: row.location,
+            costCenter: row.costCenter,
+            probationPeriod: row.probationPeriod,
+            departmentEmail: row.departmentEmail,
+            budgetOwner: row.budgetOwner,
+            assistantCoHead: row.assistantCoHead,
+            workingDays: row.workingDays,
+            defaultShift: row.defaultShift,
+            departmentKeywords: row.departmentKeywords,
+            budgetStr: row.budgetStr,
+          }),
+        })
+      )
+    );
+    await fetchDepartments();
+  };
+
   return (
     <div className="flex flex-col gap-2 animate-in fade-in duration-300 p-2 w-full font-sans text-slate-800">
 
-      {/* PAGE HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-1">
         <div>
         <Breadcrumb
@@ -124,7 +208,10 @@ export default function DepartmentsPage() {
           <p className="text-[11px] text-slate-500">Manage, organize and track all departments across the organization.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-md text-[11px] font-medium hover:bg-slate-50 transition-colors shadow-sm text-slate-700">
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-md text-[11px] font-medium hover:bg-slate-50 transition-colors shadow-sm text-slate-700"
+          >
             <Upload className="w-4 h-4" /> Import
           </button>
           <button className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-md text-[11px] font-medium hover:bg-slate-50 transition-colors shadow-sm text-slate-700">
@@ -145,7 +232,6 @@ export default function DepartmentsPage() {
         </div>
       </div>
 
-      {/* STATS CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 mb-1">
         {topCards.map((card, idx) => (
           <Card key={idx} className="p-2.5 flex flex-col justify-between bg-white border border-slate-200 shadow-sm rounded-lg min-h-[110px]">
@@ -175,14 +261,11 @@ export default function DepartmentsPage() {
         ))}
       </div>
 
-      {/* MAIN TWO-COLUMN LAYOUT */}
       <div className="grid grid-cols-1 xl:grid-cols-10 gap-2 items-start">
 
-        {/* LEFT SECTION (70%) */}
         <div className="xl:col-span-7 flex flex-col gap-1 min-w-0">
           <Card className="bg-white border border-slate-100 shadow-sm rounded-lg overflow-hidden flex flex-col">
 
-            {/* TABS & TOOLBAR */}
             <div className="flex items-center justify-between border-b border-slate-100 pl-2 pr-3 w-full">
               <div className="flex items-center gap-3">
                 {['Department List', 'Hierarchy View', 'Analytics', 'Budget Overview'].map(tab => (
@@ -200,7 +283,7 @@ export default function DepartmentsPage() {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <div className="relative">
-                  <input type="text" placeholder="Search departments..." className="pl-3 pr-7 py-2 bg-white border border-slate-200 rounded-md text-[12px] w-36 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-slate-400" />
+                  <FormInput variant="search" type="text" placeholder="Search departments..." className="w-36 pl-3 pr-7" />
                   <Search className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 </div>
                 <button className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 rounded-md text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition-colors">
@@ -216,7 +299,6 @@ export default function DepartmentsPage() {
               </div>
             </div>
 
-            {/* TABLE */}
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse table-fixed">
                 <colgroup>
@@ -293,7 +375,6 @@ export default function DepartmentsPage() {
               </table>
             </div>
 
-            {/* TABLE FOOTER */}
             <div className="mt-auto border-t border-slate-100 p-2 flex items-center justify-between text-[11px] text-slate-500 bg-white">
               <div className="flex-1">Showing 1 to 10 of 10 departments</div>
               <div className="flex-1 flex justify-center items-center gap-1">
@@ -315,11 +396,9 @@ export default function DepartmentsPage() {
           </Card>
         </div>
 
-        {/* RIGHT SECTION (30%) */}
         <div className="xl:col-span-3 min-w-0">
           <Card className="bg-white border border-slate-100 shadow-sm rounded-lg flex flex-col">
 
-            {/* DEPT HEADER */}
             <div className="p-3 pb-2 relative">
               <button className="absolute top-4 right-2 text-slate-400 hover:text-slate-600 transition-colors"><X className="w-4 h-4" /></button>
               <div className="flex items-start gap-3">
@@ -338,7 +417,6 @@ export default function DepartmentsPage() {
               </div>
             </div>
 
-            {/* TABS */}
             <div className="flex items-center border-b border-slate-100 px-3">
               {['Overview', 'Employees', 'Budget', 'Documents'].map(tab => (
                 <button
@@ -351,7 +429,6 @@ export default function DepartmentsPage() {
               ))}
             </div>
 
-            {/* DETAILS */}
             <div className="p-3 pb-3 border-b border-slate-100">
               <div className="grid grid-cols-[125px_1fr] gap-y-2.5 gap-x-2 text-[10.5px]">
 
@@ -390,7 +467,6 @@ export default function DepartmentsPage() {
               </div>
             </div>
 
-            {/* COMPOSITION CHART */}
             <div className="p-4 border-b border-slate-100">
               <h3 className="text-[11.5px] font-bold text-slate-800 mb-4">Department Composition</h3>
               <div className="flex items-center gap-8">
@@ -419,7 +495,6 @@ export default function DepartmentsPage() {
               </div>
             </div>
 
-            {/* RECENT ACTIVITY */}
             <div className="p-3 pb-3">
               <h3 className="text-[11px] font-bold text-slate-800 mb-2.5">Recent Activity</h3>
               <div className="flex flex-col gap-2.5">
@@ -448,6 +523,17 @@ export default function DepartmentsPage() {
 
 
       </div>
+
+      <BulkUploadModal<DepartmentRow>
+        open={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        title="Upload Department Data"
+        description="Upload an Excel file to import departments in bulk."
+        sampleFileName="Department_Example.xlsx"
+        columns={departmentColumns}
+        existingData={departments}
+        onImport={handleImportDepartments}
+      />
 
       <style dangerouslySetInnerHTML={{
         __html: `
