@@ -376,7 +376,7 @@ export default function CompanyProfilePage() {
 
       {/* Edit Modal */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex justify-center items-center bg-zinc-900/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex justify-center items-center bg-zinc-900/60 backdrop-blur-sm p-3">
           <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
             <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-zinc-50/50 dark:bg-zinc-900/50">
               <h2 className="text-lg font-md text-zinc-900 dark:text-zinc-100">Edit Company Profile</h2>
@@ -404,7 +404,7 @@ export default function CompanyProfilePage() {
               {/* BASIC INFO TAB */}
               {activeTab === 'basic' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 animate-in fade-in duration-300">
-                  <div className="col-span-1 sm:col-span-2 space-y-2 mb-2 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+                  <div className="col-span-1 sm:col-span-2 space-y-2 mb-2 pb-0.5 border-b border-zinc-100 dark:border-zinc-800">
                     <Label className="text-xs font-md">Company Logo</Label>
                     <div className="flex items-center gap-4">
                       {formData.logoUrl ? (
@@ -424,7 +424,7 @@ export default function CompanyProfilePage() {
                       </div>
                     </div>
                   </div>
-                  <div className="col-span-1 sm:col-span-2 space-y-1.5 mb-2 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+                  <div className="col-span-1 sm:col-span-2 space-y-1.5 mb-2 pb-0.5 border-b border-zinc-100 dark:border-zinc-800">
                     <Label className="text-xs font-md">Corporate ID</Label>
                     <Input name="corporateId" value={formData.corporateId || ''} onChange={handleChange} className="h-9 text-sm bg-white max-w-sm" placeholder="e.g. DESIGNHOUSE001" />
                     <p className="text-[10px] text-zinc-500">Required on the Employer Login screen as an extra check, in addition to the OTP. Leave empty to leave Employer Login unavailable for now.</p>
@@ -434,7 +434,7 @@ export default function CompanyProfilePage() {
                     <Input name="documentFooterText" value={formData.documentFooterText || ''} onChange={handleChange} className="h-9 text-sm bg-white" placeholder="e.g. This is a system-generated document." />
                     <p className="text-[10px] text-zinc-500">This footer is printed on all hiring PDFs. Leave empty to use the system default.</p>
                   </div>
-                  <div className="col-span-1 sm:col-span-2 space-y-2 mb-2 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+                  <div className="col-span-1 sm:col-span-2 space-y-1 mb-2 pb-0.5 border-b border-zinc-100 dark:border-zinc-800">
                     <Label className="text-xs font-md">Hiring PDF Header Image</Label>
                     <p className="text-[10px] text-zinc-500">This wide banner appears on every generated hiring document. Your logo is used if no banner is uploaded.</p>
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -498,10 +498,10 @@ export default function CompanyProfilePage() {
 
               {/* LOCATION TAB */}
               {activeTab === 'location' && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  <div className="space-y-4">
+                <div className="space-y-3 animate-in fade-in duration-300">
+                  <div className="space-y-2">
                     <h3 className="text-sm font-md text-zinc-900 border-b pb-2">Headquarters Address</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div className="col-span-1 sm:col-span-2 space-y-1.5">
                         <Label className="text-xs font-md">Address Line 1</Label>
                         <Input name="addressLine1" value={formData.addressLine1 || ''} onChange={handleChange} className="h-9 text-sm bg-white" />
@@ -529,9 +529,9 @@ export default function CompanyProfilePage() {
                     </div>
                   </div>
 
-                  <div className="space-y-4 pt-4">
+                  <div className="space-y-1 pt-1">
                     <h3 className="text-sm font-md text-zinc-900 border-b pb-2">Regional Settings</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <div className="space-y-1.5">
                         <Label className="text-xs font-md">Base Currency</Label>
                         <select name="baseCurrency" value={formData.baseCurrency || 'INR'} onChange={handleChange} className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-zinc-950">
@@ -559,10 +559,10 @@ export default function CompanyProfilePage() {
 
               {/* COMPLIANCE TAB */}
               {activeTab === 'compliance' && (
-                <div className="space-y-8 animate-in fade-in duration-300">
-                  <div className="space-y-4">
+                <div className="space-y-3 animate-in fade-in duration-300">
+                  <div className="space-y-1">
                     <h3 className="text-sm font-md text-zinc-900 border-b pb-2">Taxation & Corporate</h3>
-                    <div className="grid grid-cols-2 gap-5">
+                    <div className="grid grid-cols-3 gap-2">
                       <div className="space-y-1.5">
                         <Label className="text-xs font-md">PAN Number</Label>
                         <Input name="panNumber" value={formData.panNumber || ''} onChange={handleChange} className="h-9 text-sm uppercase bg-white" />
@@ -581,7 +581,7 @@ export default function CompanyProfilePage() {
               )}
             </form>
 
-            <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 flex justify-end gap-3">
+            <div className="px-6 py-2 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 flex justify-end gap-3">
               <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
               <Button onClick={handleSave} disabled={saving} className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6">
                 {saving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}

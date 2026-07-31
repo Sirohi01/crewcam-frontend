@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import {
     Upload, Download, Plus, ChevronRight, Search, Filter, Check,
-    Eye, Edit2, MoreVertical, Building, Users, User, PieChart as PieChartIcon, CheckCircle2, ChevronDown, ChevronLeft, Map, FileText, CheckCircle, Lightbulb, MapPin, BarChart2, Armchair, PenTool, LayoutDashboard, Briefcase, Trash2
+    Eye, Edit2, MoreVertical, Building, Users, User, PieChart as PieChartIcon, CheckCircle2, ChevronDown, ChevronLeft, Map, FileText, CheckCircle, MapPin, BarChart2, Briefcase, Trash2
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Card } from '@/components/ui/card';
@@ -237,7 +237,7 @@ export default function BusinessUnitsPage() {
 
                 {/* LEFT SECTION (70%) */}
                 <div className="xl:col-span-7 flex flex-col gap-2 h-full">
-                    <div className="bg-white border border-zinc-200 shadow-sm rounded-xl overflow-hidden flex flex-col flex-1">
+                    <div className="bg-white border border-zinc-200 shadow-sm rounded-md overflow-hidden flex flex-col flex-1">
 
                         {/* TABLE HEADER */}
                         <div className="flex items-center justify-between p-3 border-b border-zinc-100">
@@ -251,7 +251,7 @@ export default function BusinessUnitsPage() {
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         className="pl-2.5 pr-7 h-8 bg-white border border-zinc-200 rounded-md text-[11px] w-48 focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-400" 
                                     />
-                                    <Search className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                                    <Search className="w-3 h-3 absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                                 </div>
                                 <button 
                                     onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -305,16 +305,16 @@ export default function BusinessUnitsPage() {
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
-                                    <tr className="border-b border-zinc-100 bg-zinc-50/50">
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase">Business Unit</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase">BU Code</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase">Head / Owner</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Total Employees</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Departments</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Cost Centers</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-right">Budget (FY 25-26)</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Status</th>
-                                        <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Actions</th>
+                                    <tr className="border-b border-zinc-200 bg-zinc-50">
+                                        <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide whitespace-nowrap">Business Unit</th>
+                                        <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide text-center whitespace-nowrap">BU Code</th>
+                                        <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide whitespace-nowrap">Owner</th>
+                                        <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide text-center whitespace-nowrap">Total Employees</th>
+                                        <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide text-center whitespace-nowrap">Departments</th>
+                                        <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide text-center whitespace-nowrap">Cost Centers</th>
+                                        <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide text-center whitespace-nowrap">Budget (FY 25-26)</th>
+                                        <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide text-center whitespace-nowrap">Status</th>
+                                        <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide text-center whitespace-nowrap">Actions</th>
                                     </tr>
                                     {isFilterOpen && (
                                         <tr className="border-b border-zinc-100 bg-zinc-50/30">
@@ -428,37 +428,39 @@ export default function BusinessUnitsPage() {
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="py-2 px-3 font-semibold text-zinc-700">{bu.code}</td>
-                                                <td className="py-2 px-3">
+                                                <td className="py-2.5 px-3 text-center">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded bg-zinc-100 text-zinc-600 text-[10px] font-semibold">{bu.code}</span>
+                                                </td>
+                                                <td className="py-2.5 px-3">
                                                     <div className="flex items-center gap-2">
-                                                        <img src={`https://i.pravatar.cc/150?u=${bu.id + 10}`} alt={bu.headName} className="w-7 h-7 rounded-full border border-zinc-200" />
+                                                        <img src={`https://i.pravatar.cc/150?u=${bu.id}`} alt={bu.headName} className="w-6 h-6 rounded-full border border-zinc-200 shrink-0" />
                                                         <div className="leading-tight">
-                                                            <p className="font-bold text-zinc-800 text-[11px]">{bu.headName}</p>
+                                                            <p className="font-semibold text-zinc-800 text-[10px] whitespace-nowrap">{bu.headName}</p>
                                                             <p className="text-[10px] text-zinc-500">{bu.headRole}</p>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="py-2 px-3 text-center font-bold text-zinc-800">{bu.employees}</td>
-                                                <td className="py-2 px-3 text-center font-bold text-zinc-800">{bu.depts}</td>
-                                                <td className="py-2 px-3 text-center font-bold text-zinc-800">{bu.costCenters}</td>
-                                                <td className="py-2 px-3 text-right font-bold text-zinc-800">{bu.budget}</td>
-                                                <td className="py-2 px-3 text-center">
-                                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[10px] font-bold border border-emerald-100">
-                                                        Active
+                                                <td className="py-2.5 px-3 text-center font-semibold text-zinc-800 text-[11px]">{bu.employees}</td>
+                                                <td className="py-2.5 px-3 text-center font-semibold text-zinc-800 text-[11px]">{bu.depts}</td>
+                                                <td className="py-2.5 px-3 text-center font-semibold text-zinc-800 text-[11px]">{bu.costCenters}</td>
+                                                <td className="py-2.5 px-3 text-center font-semibold text-zinc-800 text-[11px]">{bu.budget}</td>
+                                                <td className="py-2.5 px-3 text-center">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[10px] font-bold border border-emerald-100">
+                                                        {bu.status}
                                                     </span>
                                                 </td>
-                                                <td className="py-2 px-3">
-                                                    <div className="flex items-center justify-center gap-2">
-                                                        <button 
-                                                            onClick={() => router.push(`/dashboard/bussiness-unit/add-new-bussiness-unit?edit=${bu.id}`)} 
-                                                            className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-indigo-50 hover:text-indigo-600 border border-zinc-200 hover:border-indigo-200 rounded-md transition-colors shadow-sm"
+                                                <td className="py-2 px-3 text-center">
+                                                    <div className="flex items-center justify-center gap-1.5">
+                                                        <button
+                                                            onClick={() => router.push(`/dashboard/bussiness-unit/add-new-bussiness-unit?edit=${bu.id}`)}
+                                                            className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-indigo-50 hover:text-indigo-600 border border-zinc-200 hover:border-indigo-200 rounded-md transition-colors"
                                                             title="Edit"
                                                         >
                                                             <Edit2 className="w-3.5 h-3.5" />
                                                         </button>
-                                                        <button 
-                                                            onClick={() => handleDelete(bu.id)} 
-                                                            className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-rose-50 hover:text-rose-600 border border-zinc-200 hover:border-rose-200 rounded-md transition-colors shadow-sm"
+                                                        <button
+                                                            onClick={() => handleDelete(bu.id)}
+                                                            className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-rose-50 hover:text-rose-600 border border-zinc-200 hover:border-rose-200 rounded-md transition-colors"
                                                             title="Delete"
                                                         >
                                                             <Trash2 className="w-3.5 h-3.5" />
