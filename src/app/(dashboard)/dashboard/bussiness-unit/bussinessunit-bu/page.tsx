@@ -29,7 +29,16 @@ export default function BusinessUnitsPage() {
     const [isLoading, setIsLoading] = useState(true);
 
     const [searchQuery, setSearchQuery] = useState('');
-    const [filterColumn, setFilterColumn] = useState('all');
+    const [columnFilters, setColumnFilters] = useState({
+        name: '',
+        code: '',
+        head: '',
+        employees: '',
+        depts: '',
+        costCenters: '',
+        budget: '',
+        status: ''
+    });
     const [sortOption, setSortOption] = useState('name-asc');
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [isSortOpen, setIsSortOpen] = useState(false);
@@ -65,9 +74,6 @@ export default function BusinessUnitsPage() {
         function handleClickOutside(event: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setOpenDropdownId(null);
-            }
-            if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-                setIsFilterOpen(false);
             }
             if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
                 setIsSortOpen(false);
@@ -134,25 +140,31 @@ export default function BusinessUnitsPage() {
     let processedBusinessUnits = [...mappedBusinessUnits];
 
     // Filter
-    if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        processedBusinessUnits = processedBusinessUnits.filter((bu) => {
-            if (filterColumn === 'all') {
-                return (
-                    bu.name.toLowerCase().includes(query) ||
-                    bu.code.toLowerCase().includes(query) ||
-                    bu.headName.toLowerCase().includes(query)
-                );
-            } else if (filterColumn === 'name') {
-                return bu.name.toLowerCase().includes(query);
-            } else if (filterColumn === 'code') {
-                return bu.code.toLowerCase().includes(query);
-            } else if (filterColumn === 'head') {
-                return bu.headName.toLowerCase().includes(query);
-            }
-            return true;
-        });
-    }
+    processedBusinessUnits = processedBusinessUnits.filter((bu) => {
+        let isValid = true;
+        
+        // Global search
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            const matchesGlobal = 
+                bu.name.toLowerCase().includes(query) ||
+                bu.code.toLowerCase().includes(query) ||
+                bu.headName.toLowerCase().includes(query);
+            if (!matchesGlobal) isValid = false;
+        }
+
+        // Column-wise filters
+        if (columnFilters.name.trim() && !bu.name.toLowerCase().includes(columnFilters.name.toLowerCase())) isValid = false;
+        if (columnFilters.code.trim() && !bu.code.toLowerCase().includes(columnFilters.code.toLowerCase())) isValid = false;
+        if (columnFilters.head.trim() && !bu.headName.toLowerCase().includes(columnFilters.head.toLowerCase())) isValid = false;
+        if (columnFilters.employees.trim() && !String(bu.employees).toLowerCase().includes(columnFilters.employees.toLowerCase())) isValid = false;
+        if (columnFilters.depts.trim() && !String(bu.depts).toLowerCase().includes(columnFilters.depts.toLowerCase())) isValid = false;
+        if (columnFilters.costCenters.trim() && !String(bu.costCenters).toLowerCase().includes(columnFilters.costCenters.toLowerCase())) isValid = false;
+        if (columnFilters.budget.trim() && !String(bu.budget).toLowerCase().includes(columnFilters.budget.toLowerCase())) isValid = false;
+        if (columnFilters.status.trim() && !bu.status.toLowerCase().includes(columnFilters.status.toLowerCase())) isValid = false;
+        
+        return isValid;
+    });
 
     // Sort
     const [sortCol, sortDir] = sortOption.split('-');
@@ -234,39 +246,19 @@ export default function BusinessUnitsPage() {
                                 <div className="relative">
                                     <input 
                                         type="text" 
-                                        placeholder={filterColumn === 'all' ? "Search business units..." : `Search in ${filterColumn === 'name' ? 'Name' : filterColumn === 'code' ? 'Code' : 'Head'}...`}
+                                        placeholder="Search business units..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         className="pl-2.5 pr-7 h-8 bg-white border border-zinc-200 rounded-md text-[11px] w-48 focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-400" 
                                     />
                                     <Search className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                                 </div>
-                                
-                                <div className="relative" ref={filterRef}>
-                                    <button 
-                                        onClick={() => setIsFilterOpen(!isFilterOpen)}
-                                        className={`flex items-center gap-1.5 h-8 px-2.5 border border-zinc-200 rounded-md text-[11px] font-semibold transition-colors ${isFilterOpen || filterColumn !== 'all' ? 'bg-indigo-50 text-indigo-600 border-indigo-200' : 'text-zinc-700 hover:bg-zinc-50'}`}
-                                    >
-                                        <Filter className="w-3.5 h-3.5" /> {filterColumn === 'all' ? 'Filters' : 'Filtered'}
-                                    </button>
-                                    {isFilterOpen && (
-                                        <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-zinc-200 shadow-lg rounded-md py-1 z-50">
-                                            <div className="px-3 py-1.5 text-[10px] font-bold text-zinc-500 uppercase">Search Column</div>
-                                            <button onClick={() => { setFilterColumn('all'); setIsFilterOpen(false); }} className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50">
-                                                All Columns {filterColumn === 'all' && <Check className="w-3.5 h-3.5 text-indigo-600" />}
-                                            </button>
-                                            <button onClick={() => { setFilterColumn('name'); setIsFilterOpen(false); }} className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50">
-                                                Business Unit Name {filterColumn === 'name' && <Check className="w-3.5 h-3.5 text-indigo-600" />}
-                                            </button>
-                                            <button onClick={() => { setFilterColumn('code'); setIsFilterOpen(false); }} className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50">
-                                                BU Code {filterColumn === 'code' && <Check className="w-3.5 h-3.5 text-indigo-600" />}
-                                            </button>
-                                            <button onClick={() => { setFilterColumn('head'); setIsFilterOpen(false); }} className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50">
-                                                Head / Owner {filterColumn === 'head' && <Check className="w-3.5 h-3.5 text-indigo-600" />}
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
+                                <button 
+                                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                                    className={`flex items-center gap-1.5 h-8 px-2.5 border border-zinc-200 rounded-md text-[11px] font-semibold transition-colors ${isFilterOpen ? 'bg-indigo-50 text-indigo-600 border-indigo-200' : 'text-zinc-700 hover:bg-zinc-50'}`}
+                                >
+                                    <Filter className="w-3.5 h-3.5" /> Filters
+                                </button>
 
                                 <div className="relative" ref={sortRef}>
                                     <button 
@@ -324,6 +316,83 @@ export default function BusinessUnitsPage() {
                                         <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Status</th>
                                         <th className="py-2 px-3 text-[10px] font-bold text-zinc-500 uppercase text-center">Actions</th>
                                     </tr>
+                                    {isFilterOpen && (
+                                        <tr className="border-b border-zinc-100 bg-zinc-50/30">
+                                            <th className="py-2 px-3">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search BU Name..."
+                                                    value={columnFilters.name}
+                                                    onChange={(e) => setColumnFilters({ ...columnFilters, name: e.target.value })}
+                                                    className="w-full h-7 px-2 border border-zinc-200 rounded-md text-[11px] focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-400 font-normal"
+                                                />
+                                            </th>
+                                            <th className="py-2 px-3">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search Code..."
+                                                    value={columnFilters.code}
+                                                    onChange={(e) => setColumnFilters({ ...columnFilters, code: e.target.value })}
+                                                    className="w-full h-7 px-2 border border-zinc-200 rounded-md text-[11px] focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-400 font-normal"
+                                                />
+                                            </th>
+                                            <th className="py-2 px-3">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search Head..."
+                                                    value={columnFilters.head}
+                                                    onChange={(e) => setColumnFilters({ ...columnFilters, head: e.target.value })}
+                                                    className="w-full h-7 px-2 border border-zinc-200 rounded-md text-[11px] focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-400 font-normal"
+                                                />
+                                            </th>
+                                            <th className="py-2 px-3">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search Employees..."
+                                                    value={columnFilters.employees}
+                                                    onChange={(e) => setColumnFilters({ ...columnFilters, employees: e.target.value })}
+                                                    className="w-full h-7 px-2 border border-zinc-200 rounded-md text-[11px] focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-400 font-normal"
+                                                />
+                                            </th>
+                                            <th className="py-2 px-3">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search Depts..."
+                                                    value={columnFilters.depts}
+                                                    onChange={(e) => setColumnFilters({ ...columnFilters, depts: e.target.value })}
+                                                    className="w-full h-7 px-2 border border-zinc-200 rounded-md text-[11px] focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-400 font-normal"
+                                                />
+                                            </th>
+                                            <th className="py-2 px-3">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search Cost Centers..."
+                                                    value={columnFilters.costCenters}
+                                                    onChange={(e) => setColumnFilters({ ...columnFilters, costCenters: e.target.value })}
+                                                    className="w-full h-7 px-2 border border-zinc-200 rounded-md text-[11px] focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-400 font-normal"
+                                                />
+                                            </th>
+                                            <th className="py-2 px-3">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search Budget..."
+                                                    value={columnFilters.budget}
+                                                    onChange={(e) => setColumnFilters({ ...columnFilters, budget: e.target.value })}
+                                                    className="w-full h-7 px-2 border border-zinc-200 rounded-md text-[11px] focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-400 font-normal"
+                                                />
+                                            </th>
+                                            <th className="py-2 px-3">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search Status..."
+                                                    value={columnFilters.status}
+                                                    onChange={(e) => setColumnFilters({ ...columnFilters, status: e.target.value })}
+                                                    className="w-full h-7 px-2 border border-zinc-200 rounded-md text-[11px] focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-400 font-normal"
+                                                />
+                                            </th>
+                                            <th className="py-2 px-3"></th>
+                                        </tr>
+                                    )}
                                 </thead>
                                 <tbody className="text-[11px]">
                                     {isLoading ? (
