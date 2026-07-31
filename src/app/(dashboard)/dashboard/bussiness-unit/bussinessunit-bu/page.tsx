@@ -1,16 +1,13 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-<<<<<<< Updated upstream
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import {
     Upload, Download, Plus, ChevronRight, Search, Filter,
     Eye, Edit2, MoreVertical, Building, Users, User, PieChart as PieChartIcon, CheckCircle2, ChevronDown, ChevronLeft, Map, FileText, CheckCircle, Lightbulb, MapPin, BarChart2, Armchair, PenTool, LayoutDashboard, Briefcase, Trash2
 } from 'lucide-react';
-=======
 import {Upload, Download, Plus, ChevronRight, Search, Filter, Eye, Edit2, MoreVertical, Building, Users, User, PieChart as PieChartIcon, CheckCircle2, ChevronDown, ChevronLeft, Map, FileText, CheckCircle, Lightbulb, MapPin, BarChart2, Armchair, PenTool, LayoutDashboard, Briefcase} from 'lucide-react';
->>>>>>> Stashed changes
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Card } from '@/components/ui/card';
 import api from '@/lib/axios';
@@ -208,7 +205,6 @@ export default function BusinessUnitsPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="text-[11px]">
-<<<<<<< Updated upstream
                                     {isLoading ? (
                                         <tr>
                                             <td colSpan={9} className="py-8 text-center text-zinc-500 font-medium">
@@ -223,9 +219,7 @@ export default function BusinessUnitsPage() {
                                         </tr>
                                     ) : mappedBusinessUnits.map((bu) => {
                                         const BuIcon = bu.icon;
-=======
                                     {businessUnits.map((bu) => {
->>>>>>> Stashed changes
                                         return (
                                             <tr key={bu.id} className="border-b border-zinc-50 hover:bg-zinc-50 transition-colors">
                                                 <td className="py-2.5 px-3">
@@ -255,7 +249,6 @@ export default function BusinessUnitsPage() {
                                                         Active
                                                     </span>
                                                 </td>
-<<<<<<< Updated upstream
                                                 <td className="py-2 px-3 relative">
                                                     <div className="flex items-center justify-center gap-1 text-zinc-400">
                                                         <button
@@ -264,11 +257,9 @@ export default function BusinessUnitsPage() {
                                                         >
                                                             <MoreVertical className="w-4 h-4" />
                                                         </button>
-=======
                                                 <td className="py-2.5 px-3 text-center">
                                                     <div className="flex items-center justify-center text-zinc-400">
                                                         <button className="p-1 hover:text-zinc-600 transition-colors"><MoreVertical className="w-4 h-4" /></button>
->>>>>>> Stashed changes
                                                     </div>
 
                                                     {openDropdownId === bu.id && (
