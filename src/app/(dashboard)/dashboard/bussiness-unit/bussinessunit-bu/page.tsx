@@ -5,9 +5,8 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import {
     Upload, Download, Plus, ChevronRight, Search, Filter, Check,
-    Eye, Edit2, MoreVertical, Building, Users, User, PieChart as PieChartIcon, CheckCircle2, ChevronDown, ChevronLeft, Map, FileText, CheckCircle, Lightbulb, MapPin, BarChart2, Armchair, PenTool, LayoutDashboard, Briefcase, Trash2
+    Eye, Edit2, MoreVertical, Building, Users, User, PieChart as PieChartIcon, CheckCircle2, ChevronDown, ChevronLeft, Map, FileText, CheckCircle, MapPin, BarChart2, Briefcase, Trash2
 } from 'lucide-react';
-import {Upload, Download, Plus, ChevronRight, Search, Filter, Eye, Edit2, MoreVertical, Building, Users, User, PieChart as PieChartIcon, CheckCircle2, ChevronDown, ChevronLeft, Map, FileText, CheckCircle, Lightbulb, MapPin, BarChart2, Armchair, PenTool, LayoutDashboard, Briefcase} from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Card } from '@/components/ui/card';
 import api from '@/lib/axios';
@@ -341,7 +340,6 @@ export default function BusinessUnitsPage() {
                                         </tr>
                                     ) : processedBusinessUnits.map((bu) => {
                                         const BuIcon = bu.icon;
-                                    {businessUnits.map((bu) => {
                                         return (
                                             <tr key={bu.id} className="border-b border-zinc-50 hover:bg-zinc-50 transition-colors">
                                                 <td className="py-2 px-3">
@@ -366,7 +364,7 @@ export default function BusinessUnitsPage() {
                                                 </td>
                                                 <td className="py-2.5 px-3">
                                                     <div className="flex items-center gap-2">
-                                                        <img src={`https://i.pravatar.cc/150?u=${bu.id + 10}`} alt={bu.headName} className="w-6 h-6 rounded-full border border-zinc-200 shrink-0" />
+                                                        <img src={`https://i.pravatar.cc/150?u=${bu.id}`} alt={bu.headName} className="w-6 h-6 rounded-full border border-zinc-200 shrink-0" />
                                                         <div className="leading-tight">
                                                             <p className="font-semibold text-zinc-800 text-[10px] whitespace-nowrap">{bu.headName}</p>
                                                             <p className="text-[10px] text-zinc-500">{bu.headRole}</p>
@@ -379,24 +377,21 @@ export default function BusinessUnitsPage() {
                                                 <td className="py-2.5 px-3 text-center font-semibold text-zinc-800 text-[11px]">{bu.budget}</td>
                                                 <td className="py-2.5 px-3 text-center">
                                                     <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[10px] font-bold border border-emerald-100">
-                                                        Active
+                                                        {bu.status}
                                                     </span>
                                                 </td>
-                                                <td className="py-2 px-3">
-                                                    <div className="flex items-center justify-center gap-2">
-                                                        <button 
-                                                            onClick={() => router.push(`/dashboard/bussiness-unit/add-new-bussiness-unit?edit=${bu.id}`)} 
-                                                            className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-indigo-50 hover:text-indigo-600 border border-zinc-200 hover:border-indigo-200 rounded-md transition-colors shadow-sm"
+                                                <td className="py-2 px-3 text-center">
+                                                    <div className="flex items-center justify-center gap-1.5">
+                                                        <button
+                                                            onClick={() => router.push(`/dashboard/bussiness-unit/add-new-bussiness-unit?edit=${bu.id}`)}
+                                                            className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-indigo-50 hover:text-indigo-600 border border-zinc-200 hover:border-indigo-200 rounded-md transition-colors"
                                                             title="Edit"
                                                         >
                                                             <Edit2 className="w-3.5 h-3.5" />
                                                         </button>
-                                                <td className="py-2.5 px-3 text-center">
-                                                    <div className="flex items-center justify-center text-zinc-400">
-                                                        <button className="p-1 hover:text-zinc-600 transition-colors"><MoreVertical className="w-4 h-4" /></button>
-                                                        <button 
-                                                            onClick={() => handleDelete(bu.id)} 
-                                                            className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-rose-50 hover:text-rose-600 border border-zinc-200 hover:border-rose-200 rounded-md transition-colors shadow-sm"
+                                                        <button
+                                                            onClick={() => handleDelete(bu.id)}
+                                                            className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-rose-50 hover:text-rose-600 border border-zinc-200 hover:border-rose-200 rounded-md transition-colors"
                                                             title="Delete"
                                                         >
                                                             <Trash2 className="w-3.5 h-3.5" />
