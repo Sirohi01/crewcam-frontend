@@ -76,6 +76,8 @@ export default function EmployeesPage() {
   const [formData, setFormData] = useState(emptyForm);
   const [employeeTab, setEmployeeTab] = useState<'profile' | 'organization' | 'address' | 'reporting' | 'rules' | 'assets'>('profile');
   const [statusFilter, setStatusFilter] = useState<'active' | 'ex'>('active');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -148,7 +150,7 @@ export default function EmployeesPage() {
     setError('');
     try {
       const endpoint = statusFilter === 'ex' ? '/employees/ex' : '/employees';
-      const res = await api.get(endpoint);
+      const res = await api.get(endpoint, { params: { page, limit } });
       setEmployees(res.data.data || []);
     } catch (e: any) {
       setError(e.response?.data?.message || 'Failed to load employees');

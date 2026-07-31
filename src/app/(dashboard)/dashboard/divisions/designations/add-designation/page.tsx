@@ -3,67 +3,17 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Save, Loader2, Upload } from 'lucide-react';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import api from '@/lib/axios';
 import DesignationFormCards from '@/components/designations/DesignationFormCards';
 import DesignationSidebarCards from '@/components/designations/DesignationSidebarCards';
-import BulkUploadModal, { ColumnConfig } from '@/components/upload/bulkUploadModal';
-
-interface DesignationRow {
-  name: string;
-  code: string;
-  jobGrade: string;
-  jobFamily: string;
-  businessUnit: string;
-  division: string;
-  department: string;
-  reportsToDesignationId: string;
-  employmentType: string;
-  flsaType: string;
-  isActive: string;
-  effectiveFrom: string;
-  summary: string;
-  keyResponsibilities: string;
-  keySkills: string;
-  qualification: string;
-  experienceRequired: string;
-  ctcRange: string;
-  designationLevel: string;
-  location: string;
-  remarks: string;
-}
-
-const designationColumns: ColumnConfig<DesignationRow>[] = [
-  { key: 'name', label: 'Designation Name', required: true, sampleValue: 'Senior Manager' },
-  { key: 'code', label: 'Short Code', required: true, sampleValue: 'SR. MGR' },
-  { key: 'jobGrade', label: 'Job Grade', required: true, sampleValue: 'JG-10' },
-  { key: 'jobFamily', label: 'Job Family', required: true, sampleValue: 'Leadership' },
-  { key: 'businessUnit', label: 'Business Unit', required: true, sampleValue: 'Retail Interiors' },
-  { key: 'division', label: 'Division', required: true, sampleValue: 'Design Studio' },
-  { key: 'department', label: 'Department', required: true, sampleValue: 'Space Planning' },
-  { key: 'reportsToDesignationId', label: 'Reports To (Designation / Role)', sampleValue: 'Managing Director' },
-  { key: 'employmentType', label: 'Employment Type', sampleValue: 'Full Time' },
-  { key: 'flsaType', label: 'FLSA / Overtime Type', sampleValue: 'Exempt' },
-  { key: 'isActive', label: 'Status', required: true, sampleValue: 'Active', validate: (v) => (['active', 'inactive'].includes(String(v).toLowerCase()) ? null : 'Status must be Active or Inactive') },
-  { key: 'effectiveFrom', label: 'Effective From', required: true, sampleValue: '2026-01-01' },
-  { key: 'summary', label: 'Designation Summary', sampleValue: 'Brief summary of the designation' },
-  { key: 'keyResponsibilities', label: 'Key Responsibilities', sampleValue: 'Lead team, manage projects' },
-  { key: 'keySkills', label: 'Key Skills / Competencies', sampleValue: 'Leadership, Communication' },
-  { key: 'qualification', label: 'Qualification', sampleValue: 'MBA, B.Tech' },
-  { key: 'experienceRequired', label: 'Experience Required', sampleValue: '5+ years' },
-  { key: 'ctcRange', label: 'CTC Range (₹)', sampleValue: '10-20 LPA' },
-  { key: 'designationLevel', label: 'Designation Level', sampleValue: 'Managerial' },
-  { key: 'location', label: 'Location', sampleValue: 'Delhi (HQ)' },
-  { key: 'remarks', label: 'Remarks', sampleValue: 'Any additional remarks' },
-];
 
 function DesignationFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get('editId');
-  const [showImportModal, setShowImportModal] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -186,12 +136,6 @@ function DesignationFormContent() {
             >
               <ArrowLeft size={14} /> Back to Designations
             </Link>
-            <button
-              onClick={() => setShowImportModal(true)}
-              className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors"
-            >
-              <Upload size={14} /> Bulk Import
-            </button>
             <button 
               onClick={handleSubmit}
               disabled={saveMutation.isPending}
@@ -222,43 +166,6 @@ function DesignationFormContent() {
         </form>
 
       </div>
-
-      <BulkUploadModal<DesignationRow>
-        open={showImportModal}
-        onClose={() => setShowImportModal(false)}
-        title="Upload Designation Data"
-        description="Upload an Excel file to import designations in bulk."
-        sampleFileName="Designation_Example.xlsx"
-        columns={designationColumns}
-        onImport={async (rows) => {
-          for (const row of rows) {
-            await api.post('/designations', {
-              name: row.name,
-              code: row.code,
-              jobGrade: row.jobGrade,
-              jobFamily: row.jobFamily,
-              businessUnit: row.businessUnit,
-              division: row.division,
-              department: row.department,
-              reportsToDesignationId: row.reportsToDesignationId,
-              employmentType: row.employmentType,
-              flsaType: row.flsaType,
-              isActive: row.isActive?.toLowerCase() === 'active',
-              effectiveFrom: row.effectiveFrom,
-              summary: row.summary,
-              keyResponsibilities: row.keyResponsibilities,
-              keySkills: row.keySkills,
-              qualification: row.qualification,
-              experienceRequired: row.experienceRequired,
-              ctcRange: row.ctcRange,
-              designationLevel: row.designationLevel,
-              location: row.location,
-              remarks: row.remarks,
-            });
-          }
-          toast.success(`${rows.length} designation(s) imported successfully!`);
-        }}
-      />
     </div>
   );
 }
