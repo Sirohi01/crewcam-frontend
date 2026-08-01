@@ -18,13 +18,13 @@ export function CompanyProfileContact({ company }: CompanyProfileContactProps) {
   const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`;
 
   return (
-    <div className="space-y-4 flex">
-      <div className="space-y-4 text-sm flex-1">
+    <div className="space-y-4 flex space-x-2">
+      <div className="space-y-4 text-xs flex-1">
         <div className="flex gap-3">
           <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-blue-700" />
           <div>
             <div className="font-medium text-slate-900">Registered Office</div>
-            <div className="text-slate-500 line-clamp-2">
+            <div className="text-slate-500 line-clamp-6">
               {address?.registeredOffice || 'N/A'}, {address?.city || ''}, {address?.state || ''} - {address?.pincode || ''}, {address?.country || ''}
             </div>
           </div>
