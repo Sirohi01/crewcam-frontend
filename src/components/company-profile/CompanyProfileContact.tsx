@@ -18,8 +18,8 @@ export function CompanyProfileContact({ company }: CompanyProfileContactProps) {
   const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`;
 
   return (
-    <div className="space-y-4 flex">
-      <div className="space-y-4 text-sm flex-1">
+    <div className="space-y-4 flex space-x-2">
+      <div className="space-y-4 text-xs flex-1">
         <div className="flex gap-3">
           <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-blue-700" />
           <div>
