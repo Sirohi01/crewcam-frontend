@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Edit2, Trash2 } from 'lucide-react';
+import { Loader2, Edit2, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/axios';
 
@@ -25,6 +25,7 @@ interface SidebarItem {
 export default function RoleRightsPage() {
   const queryClient = useQueryClient();
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
 
   const { data: rolesRes, isLoading: loadingRoles } = useQuery({
     queryKey: ['companies', 'roles'],
@@ -162,7 +163,34 @@ export default function RoleRightsPage() {
         <div className="w-full flex flex-col gap-3">
           <Card className="border-zinc-200/80 shadow-sm overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between py-3 border-b border-zinc-100">
-              <CardTitle className="text-[13px] font-semibold text-zinc-900">Add Role Rights</CardTitle>
+              <div className="flex items-center gap-4">
+                <CardTitle className="text-[13px] font-semibold text-zinc-900">Add Role Rights</CardTitle>
+                <div className="flex items-center gap-1 border-l border-zinc-200 pl-4">
+                  <button 
+                    className="text-[11px] font-medium text-blue-600 hover:text-blue-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!selectedRoleId}
+                    onClick={() => {
+                      const newState: Record<string, boolean> = {};
+                      sections.forEach(s => newState[s] = false);
+                      setCollapsedSections(newState);
+                    }}
+                  >
+                    Expand All
+                  </button>
+                  <span className="text-zinc-300 text-[10px]">|</span>
+                  <button 
+                    className="text-[11px] font-medium text-blue-600 hover:text-blue-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!selectedRoleId}
+                    onClick={() => {
+                      const newState: Record<string, boolean> = {};
+                      sections.forEach(s => newState[s] = true);
+                      setCollapsedSections(newState);
+                    }}
+                  >
+                    Collapse All
+                  </button>
+                </div>
+              </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <span className="text-[12px] font-medium text-zinc-700">Select Role <span className="text-red-500">*</span></span>
@@ -222,11 +250,17 @@ export default function RoleRightsPage() {
                     <tbody className="divide-y divide-zinc-100">
                       {sections.map((section) => (
                         <React.Fragment key={section}>
-                          <tr className="bg-zinc-50/50">
-                            <td colSpan={4} className="px-3 py-2 font-semibold text-zinc-900 uppercase text-[11px] tracking-wider">
-                              {section}
+                          <tr 
+                            className="bg-zinc-50/50 cursor-pointer hover:bg-zinc-100/50 transition-colors"
+                            onClick={() => setCollapsedSections(prev => ({...prev, [section]: !prev[section]}))}
+                          >
+                            <td colSpan={4} className="px-3 py-2 font-semibold text-zinc-900 uppercase text-[11px] tracking-wider select-none">
+                              <div className="flex items-center gap-1.5">
+                                {collapsedSections[section] ? <ChevronRight size={14} className="text-zinc-500" /> : <ChevronDown size={14} className="text-zinc-500" />}
+                                {section}
+                              </div>
                             </td>
-                            <td className="px-3 py-2 text-center">
+                            <td className="px-3 py-2 text-center" onClick={(e) => e.stopPropagation()}>
                               <input
                                 type="checkbox"
                                 className="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
@@ -237,7 +271,7 @@ export default function RoleRightsPage() {
                               />
                             </td>
                           </tr>
-                          {groupedItems[section]
+                          {!collapsedSections[section] && groupedItems[section]
                             .sort((a, b) => a.order - b.order)
                             .map((item) => {
                               const basePerm = getBasePerm(item);
