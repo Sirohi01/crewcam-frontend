@@ -82,7 +82,7 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
     { name: 'Budget & Costing', icon: PieChartIcon, href: "/dashboard/departments/buget-and-costing" },
     { name: 'Documents (3)', icon: FileText },
     { name: 'KPIs & Goals', icon: Target },
-    { name: 'Policies', icon: Book },
+    { name: 'Policies', icon: Book, href: `/dashboard/departments/${id}/policies` },
     { name: 'Custom Fields', icon: AlignLeft },
     { name: 'Audit Trail', icon: Clock },
   ];
