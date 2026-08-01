@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import Link from 'next/link';
 import {
   ChevronRight, ArrowLeft, Plus, Building2, Users, GitBranch, Calendar,
   Eye, Pencil, Trash2, CheckCircle2, Check, FileText, BarChart3,
@@ -51,9 +52,9 @@ export default function BusinessMappingPage() {
           <button className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 bg-white rounded-md text-[11px] font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back to Department Details
           </button>
-          <button className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 border border-blue-600 text-white rounded-md text-[11px] font-medium hover:bg-blue-700 shadow-sm transition-colors">
+          <Link href="/dashboard/departments/business-mapping/add-mapping" className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 border border-blue-600 text-white rounded-md text-[11px] font-medium hover:bg-blue-700 shadow-sm transition-colors">
             <Plus className="w-4 h-4" /> Add Mapping
-          </button>
+          </Link>
         </div>
       </div>
 

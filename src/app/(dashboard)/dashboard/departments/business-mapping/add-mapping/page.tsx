@@ -40,7 +40,7 @@ export default function AddBusinessMappingPage() {
           <h1 className="text-[20px] font-bold text-slate-900 tracking-tight leading-none mb-1.5">Add Business Mapping</h1>
           <p className="text-[12px] text-slate-500 font-medium">Map this sub department with business units, cost centers, projects and processes.</p>
         </div>
-        <div className="flex items-center gap-2 mt-2 md:mt-0">
+        <div className="flex items-center gap-2 mt-2 md:mt-4">
           <Link href="/dashboard/departments/business-mapping" className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors shadow-sm">
             <ArrowLeft className="w-4 h-4" /> Back to Business Mapping
           </Link>
