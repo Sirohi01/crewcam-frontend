@@ -11,8 +11,7 @@ import {
   Download,
   Info,
   UploadCloud,
-  Loader2,
-} from "lucide-react";
+  Loader2,} from "lucide-react";
 
 export interface ColumnConfig<T = Record<string, any>> {
   key: keyof T & string;
@@ -260,7 +259,7 @@ export default function BulkUploadModal<T = Record<string, any>>({
     sheet.columns = columns.map((c) => ({ header: c.label, key: c.key, width: 22 }));
 
     const headerRow = sheet.getRow(1);
-    headerRow.eachCell((cell) => {
+    headerRow.eachCell((cell: any) => {
       cell.font = { bold: true };
       cell.alignment = { vertical: "middle", horizontal: "left" };
     });
@@ -276,7 +275,7 @@ export default function BulkUploadModal<T = Record<string, any>>({
       { header: "Row", key: "row", width: 10 },
       { header: "Error", key: "error", width: 60 },
     ];
-    sheet.getRow(1).eachCell((cell) => {
+    sheet.getRow(1).eachCell((cell: any) => {
       cell.font = { bold: true };
     });
 
@@ -377,7 +376,7 @@ export default function BulkUploadModal<T = Record<string, any>>({
                   ref={fileInputRef}
                   type="file"
                   accept=".xlsx,.xls"
-                  className="hidden"
+                  className="hidden h-8"
                   onChange={onFileInputChange}
                 />
               </div>

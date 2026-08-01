@@ -19,7 +19,8 @@ const HierarchyIcon = ({ className }: { className?: string }) => <svg viewBox="0
 
 export default function DepartmentDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const { id } = use(params);
+  const resolvedParams = use(params);
+  const id = resolvedParams.id;
 
   const [formData, setFormData] = useState({
     name: 'Design Studio',
@@ -82,7 +83,7 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
     { name: 'Budget & Costing', icon: PieChartIcon, href: "/dashboard/departments/buget-and-costing" },
     { name: 'Documents (3)', icon: FileText },
     { name: 'KPIs & Goals', icon: Target },
-    { name: 'Policies', icon: Book },
+    { name: 'Policies', icon: Book, href: `/dashboard/departments/${id}/policies` },
     { name: 'Custom Fields', icon: AlignLeft },
     { name: 'Audit Trail', icon: Clock },
   ];

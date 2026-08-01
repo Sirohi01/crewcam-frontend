@@ -394,12 +394,12 @@ export default function JobFamiliesPage() {
       <section className="overflow-hidden rounded-xl border border-[#e7e9ee] bg-white">
         {/* Filters */}
         <div className="flex flex-col gap-2 border-b border-[#edf0f4] px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
-          <button className="flex h-6 w-full items-center justify-between rounded-md border border-[#e0e4eb] bg-white px-2.5 text-[11px] font-semibold text-[#101743] sm:w-[120px]">
+          <button className="flex h-8 w-full items-center justify-between rounded-md border border-[#e0e4eb] bg-white px-2.5 text-[11px] font-semibold text-[#101743] sm:w-[120px]">
             All Status
             <ChevronDown size={14} />
           </button>
 
-          <div className="flex h-6 w-full items-center gap-1.5 rounded-md border border-[#e0e4eb] px-2.5 sm:w-[200px]">
+          <div className="flex h-8 w-full items-center gap-1.5 rounded-md border border-[#e0e4eb] px-2.5 sm:w-[200px]">
             <Search size={14} className="shrink-0 text-[#101743]" />
             <input
               placeholder="Search job families..."

@@ -1,0 +1,558 @@
+'use client';
+import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
+import {
+    Upload, Download, Plus, ChevronRight, Search, Filter, Check,
+    Eye, Edit2, MoreVertical, Building, Users, User, ChevronDown, ChevronLeft,
+    MapPin, Briefcase, Trash2, Network, Building2, ShieldCheck
+} from 'lucide-react';
+import api from '@/lib/axios';
+import { Breadcrumb } from '@/components/ui/breadCrumb';
+
+// ---- DUMMY / MOCK DATA (used as fallback when the API is unavailable) ----
+const MOCK_BRANCHES = [
+    {
+        _id: 'br1',
+        name: 'Head Office – Noida',
+        code: 'BR001',
+        isRegisteredOffice: true,
+        businessUnit: { name: 'Projects' },
+        head: { firstName: 'Amit', lastName: 'Verma', designation: 'Head – Projects', avatarUrl: 'https://i.pravatar.cc/150?u=br1' },
+        city: 'Noida',
+        state: 'Uttar Pradesh',
+        totalEmployees: 124,
+        totalDepartments: 5,
+        activePositions: 12,
+        status: 'Active',
+    },
+    {
+        _id: 'br2',
+        name: 'Bengaluru Branch',
+        code: 'BR002',
+        isRegisteredOffice: false,
+        businessUnit: { name: 'Design & Build' },
+        head: { firstName: 'Rahul', lastName: 'Nair', designation: 'Branch Manager', avatarUrl: 'https://i.pravatar.cc/150?u=br2' },
+        city: 'Bengaluru',
+        state: 'Karnataka',
+        totalEmployees: 68,
+        totalDepartments: 4,
+        activePositions: 8,
+        status: 'Active',
+    },
+    {
+        _id: 'br3',
+        name: 'Mumbai Branch',
+        code: 'BR003',
+        isRegisteredOffice: false,
+        businessUnit: { name: 'Interior Solutions' },
+        head: { firstName: 'Neha', lastName: 'Joshi', designation: 'Branch Manager', avatarUrl: 'https://i.pravatar.cc/150?u=br3' },
+        city: 'Mumbai',
+        state: 'Maharashtra',
+        totalEmployees: 56,
+        totalDepartments: 3,
+        activePositions: 6,
+        status: 'Active',
+    },
+    {
+        _id: 'br4',
+        name: 'Delhi Branch',
+        code: 'BR004',
+        isRegisteredOffice: false,
+        businessUnit: { name: 'Projects' },
+        head: { firstName: 'Sandeep', lastName: 'Singh', designation: 'Branch Manager', avatarUrl: 'https://i.pravatar.cc/150?u=br4' },
+        city: 'New Delhi',
+        state: 'Delhi',
+        totalEmployees: 44,
+        totalDepartments: 3,
+        activePositions: 5,
+        status: 'Active',
+    },
+    {
+        _id: 'br5',
+        name: 'Hyderabad Branch',
+        code: 'BR005',
+        isRegisteredOffice: false,
+        businessUnit: { name: 'Retail Solutions' },
+        head: { firstName: 'Karthik', lastName: 'Reddy', designation: 'Branch Manager', avatarUrl: 'https://i.pravatar.cc/150?u=br5' },
+        city: 'Hyderabad',
+        state: 'Telangana',
+        totalEmployees: 22,
+        totalDepartments: 2,
+        activePositions: 3,
+        status: 'Active',
+    },
+    {
+        _id: 'br6',
+        name: 'Pune Branch',
+        code: 'BR006',
+        isRegisteredOffice: false,
+        businessUnit: { name: 'Design & Build' },
+        head: { firstName: 'Priya', lastName: 'Patil', designation: 'Branch Manager', avatarUrl: 'https://i.pravatar.cc/150?u=br6' },
+        city: 'Pune',
+        state: 'Maharashtra',
+        totalEmployees: 10,
+        totalDepartments: 1,
+        activePositions: 8,
+        status: 'Inactive',
+    },
+];
+
+const MOCK_BUSINESS_UNITS = [
+    { _id: 'bu1', name: 'Projects' },
+    { _id: 'bu2', name: 'Design & Build' },
+    { _id: 'bu3', name: 'Interior Solutions' },
+    { _id: 'bu4', name: 'Retail Solutions' },
+];
+// ---------------------------------------------------------------------------
+
+export default function ManageBranchPage() {
+    const router = useRouter();
+    const filterRef = useRef<HTMLDivElement>(null);
+
+    const [branchesData, setBranchesData] = useState<any[]>([]);
+    const [businessUnitsData, setBusinessUnitsData] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const [searchQuery, setSearchQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState('All Status');
+    const [buFilter, setBuFilter] = useState('All Business Units');
+    const [headFilter, setHeadFilter] = useState('All Branch Heads');
+
+    const [isStatusOpen, setIsStatusOpen] = useState(false);
+    const [isBuOpen, setIsBuOpen] = useState(false);
+    const [isHeadOpen, setIsHeadOpen] = useState(false);
+
+    const [appliedFilters, setAppliedFilters] = useState({
+        search: '',
+        status: 'All Status',
+        bu: 'All Business Units',
+        head: 'All Branch Heads',
+    });
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const rowsPerPage = 10;
+
+    // Fetch branches
+    useEffect(() => {
+        const fetchBranches = async () => {
+            try {
+                const response = await api.get('/branches');
+                const data = response.data.data || [];
+                // Fallback to dummy data if API returns nothing (e.g. during development/preview)
+                setBranchesData(data.length > 0 ? data : MOCK_BRANCHES);
+            } catch (error) {
+                console.error('Error fetching branches:', error);
+                toast.error('Failed to load branches, showing sample data');
+                setBranchesData(MOCK_BRANCHES);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        const fetchBusinessUnits = async () => {
+            try {
+                const response = await api.get('/business-units');
+                const data = response.data.data || [];
+                setBusinessUnitsData(data.length > 0 ? data : MOCK_BUSINESS_UNITS);
+            } catch (error) {
+                console.error('Error fetching business units:', error);
+                setBusinessUnitsData(MOCK_BUSINESS_UNITS);
+            }
+        };
+        fetchBranches();
+        fetchBusinessUnits();
+    }, []);
+
+    // Close dropdowns on outside click
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+                setIsStatusOpen(false);
+                setIsBuOpen(false);
+                setIsHeadOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleDelete = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this branch?')) return;
+
+        try {
+            await api.delete(`/branches/${id}`);
+            setBranchesData((prev) => prev.filter((b) => b._id !== id));
+            toast.success('Branch deleted successfully');
+        } catch (error: any) {
+            console.error('Error deleting branch:', error);
+            toast.error(error.response?.data?.message || 'Failed to delete branch');
+        }
+    };
+
+    // Derived stats
+    const totalBranches = branchesData.length;
+    const totalEmployees = branchesData.reduce((acc, b) => acc + (b.totalEmployees || 0), 0);
+    const totalDepartments = new Set(
+        branchesData.flatMap((b) => (b.departments || []).map((d: any) => d._id || d))
+    ).size || branchesData.reduce((acc, b) => acc + (b.totalDepartments || 0), 0);
+    const totalLocations = new Set(branchesData.map((b) => b.city || b.location)).size;
+    const activePositions = branchesData.reduce((acc, b) => acc + (b.activePositions || 0), 0);
+
+    const topCards = [
+        { title: 'Total Branches', value: totalBranches.toString(), subtitle: 'Active Branches', icon: Building2, bg: 'bg-blue-50', text: 'text-blue-600' },
+        { title: 'Total Employees', value: totalEmployees.toString(), subtitle: 'Across All Branches', icon: Users, bg: 'bg-emerald-50', text: 'text-emerald-600' },
+        { title: 'Departments', value: totalDepartments.toString(), subtitle: 'Across All Branches', icon: Network, bg: 'bg-purple-50', text: 'text-purple-600' },
+        { title: 'Locations', value: totalLocations.toString(), subtitle: 'Across All Branches', icon: MapPin, bg: 'bg-orange-50', text: 'text-orange-600' },
+        { title: 'Active Positions', value: activePositions.toString(), subtitle: 'Across All Branches', icon: Briefcase, bg: 'bg-cyan-50', text: 'text-cyan-600' },
+    ];
+
+    const mappedBranches = branchesData.map((b) => ({
+        id: b._id,
+        name: b.name || '-',
+        isRegisteredOffice: !!b.isRegisteredOffice,
+        code: b.code || '-',
+        businessUnit: b.businessUnit?.name || b.businessUnitName || '-',
+        headName: b.head ? `${b.head.firstName} ${b.head.lastName}` : (b.headName || 'Unassigned'),
+        headRole: b.head?.designation || 'Branch Manager',
+        headAvatar: b.head?.avatarUrl || `https://i.pravatar.cc/150?u=${b._id}`,
+        location: b.city && b.state ? `${b.city}, ${b.state}` : (b.location || '-'),
+        employees: b.totalEmployees || 0,
+        status: b.status || 'Active',
+    }));
+
+    // Unique options for filter dropdowns
+    const statusOptions = ['All Status', ...Array.from(new Set(mappedBranches.map((b) => b.status)))];
+    const buOptions = ['All Business Units', ...Array.from(new Set(mappedBranches.map((b) => b.businessUnit)))];
+    const headOptions = ['All Branch Heads', ...Array.from(new Set(mappedBranches.map((b) => b.headName)))];
+
+    // Filtering (applied)
+    let processedBranches = mappedBranches.filter((b) => {
+        let isValid = true;
+
+        if (appliedFilters.search.trim()) {
+            const q = appliedFilters.search.toLowerCase();
+            const matchesGlobal =
+                b.name.toLowerCase().includes(q) ||
+                b.code.toLowerCase().includes(q) ||
+                b.location.toLowerCase().includes(q);
+            if (!matchesGlobal) isValid = false;
+        }
+
+        if (appliedFilters.status !== 'All Status' && b.status !== appliedFilters.status) isValid = false;
+        if (appliedFilters.bu !== 'All Business Units' && b.businessUnit !== appliedFilters.bu) isValid = false;
+        if (appliedFilters.head !== 'All Branch Heads' && b.headName !== appliedFilters.head) isValid = false;
+
+        return isValid;
+    });
+
+    const handleApply = () => {
+        setAppliedFilters({
+            search: searchQuery,
+            status: statusFilter,
+            bu: buFilter,
+            head: headFilter,
+        });
+        setCurrentPage(1);
+    };
+
+    const handleClear = () => {
+        setSearchQuery('');
+        setStatusFilter('All Status');
+        setBuFilter('All Business Units');
+        setHeadFilter('All Branch Heads');
+        setAppliedFilters({ search: '', status: 'All Status', bu: 'All Business Units', head: 'All Branch Heads' });
+        setCurrentPage(1);
+    };
+
+    // Pagination
+    const totalPages = Math.max(1, Math.ceil(processedBranches.length / rowsPerPage));
+    const paginatedBranches = processedBranches.slice(
+        (currentPage - 1) * rowsPerPage,
+        currentPage * rowsPerPage
+    );
+
+    return (
+        <div className="flex flex-col gap-2 animate-in fade-in duration-300 p-2 w-full font-sans text-zinc-800 bg-[#f8f9fc] min-h-screen">
+
+            {/* PAGE HEADER */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-1">
+                <div>
+                    <Breadcrumb
+                        items={[
+                            { label: 'Organization Setup', href: '/dashboard' },
+                            { label: 'Manage Branch' },
+                        ]}
+                    />
+                    <h1 className="text-lg font-bold text-zinc-900 mb-0.5">Manage Branch</h1>
+                    <p className="text-[11px] text-zinc-500">View, add, edit and manage all company branches.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <button className="flex items-center gap-1.5 h-8 px-2.5 bg-white border border-zinc-200 rounded-md text-[11px] font-semibold hover:bg-zinc-50 transition-colors shadow-sm text-zinc-700">
+                        <Download className="w-3.5 h-3.5" /> Export
+                    </button>
+                    <Link
+                        href="/dashboard/branches/add-new-branch"
+                        prefetch={true}
+                        className="flex items-center gap-1.5 h-8 px-2.5 bg-indigo-600 text-white rounded-md text-[11px] font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
+                    >
+                        <Plus className="w-3.5 h-3.5" /> Add New Branch
+                    </Link>
+                </div>
+            </div>
+
+            {/* STATS CARDS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 mb-1">
+                {topCards.map((card, idx) => {
+                    const Icon = card.icon;
+                    return (
+                        <div key={idx} className="p-3 flex items-center gap-3 bg-white border border-zinc-200 shadow-sm rounded-xl">
+                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${card.bg} ${card.text}`}>
+                                <Icon className="w-4 h-4" />
+                            </div>
+                            <div className="flex flex-col">
+                                <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">{card.title}</h3>
+                                <span className="text-lg font-bold text-zinc-900 leading-tight">{card.value}</span>
+                                <p className="text-[10px] text-zinc-400">{card.subtitle}</p>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* FILTER BAR */}
+            <div ref={filterRef} className="bg-white border border-zinc-200 shadow-sm rounded-md p-2.5 flex flex-col md:flex-row items-stretch md:items-center gap-2">
+                <div className="relative flex-1">
+                    <input
+                        type="text"
+                        placeholder="Search branch name, code, city..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleApply(); }}
+                        className="pl-2.5 pr-7 h-8 w-full bg-white border border-zinc-200 rounded-md text-[11px] focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-400"
+                    />
+                    <Search className="w-3 h-3 absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                </div>
+
+                {/* All Status */}
+                <div className="relative">
+                    <button
+                        onClick={() => { setIsStatusOpen(!isStatusOpen); setIsBuOpen(false); setIsHeadOpen(false); }}
+                        className="flex items-center justify-between gap-1.5 h-8 px-2.5 w-full md:w-40 border border-zinc-200 rounded-md text-[11px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
+                    >
+                        {statusFilter} <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
+                    </button>
+                    {isStatusOpen && (
+                        <div className="absolute left-0 top-full mt-1 w-44 bg-white border border-zinc-200 shadow-lg rounded-md py-1 z-50 max-h-56 overflow-y-auto">
+                            {statusOptions.map((opt) => (
+                                <button
+                                    key={opt}
+                                    onClick={() => { setStatusFilter(opt); setIsStatusOpen(false); }}
+                                    className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50"
+                                >
+                                    {opt} {statusFilter === opt && <Check className="w-3.5 h-3.5 text-indigo-600" />}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* All Business Units */}
+                <div className="relative">
+                    <button
+                        onClick={() => { setIsBuOpen(!isBuOpen); setIsStatusOpen(false); setIsHeadOpen(false); }}
+                        className="flex items-center justify-between gap-1.5 h-8 px-2.5 w-full md:w-48 border border-zinc-200 rounded-md text-[11px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
+                    >
+                        <span className="truncate">{buFilter}</span> <ChevronDown className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                    </button>
+                    {isBuOpen && (
+                        <div className="absolute left-0 top-full mt-1 w-56 bg-white border border-zinc-200 shadow-lg rounded-md py-1 z-50 max-h-56 overflow-y-auto">
+                            {buOptions.map((opt) => (
+                                <button
+                                    key={opt}
+                                    onClick={() => { setBuFilter(opt); setIsBuOpen(false); }}
+                                    className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50"
+                                >
+                                    <span className="truncate">{opt}</span> {buFilter === opt && <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* All Branch Heads */}
+                <div className="relative">
+                    <button
+                        onClick={() => { setIsHeadOpen(!isHeadOpen); setIsStatusOpen(false); setIsBuOpen(false); }}
+                        className="flex items-center justify-between gap-1.5 h-8 px-2.5 w-full md:w-48 border border-zinc-200 rounded-md text-[11px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
+                    >
+                        <span className="truncate">{headFilter}</span> <ChevronDown className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                    </button>
+                    {isHeadOpen && (
+                        <div className="absolute left-0 top-full mt-1 w-56 bg-white border border-zinc-200 shadow-lg rounded-md py-1 z-50 max-h-56 overflow-y-auto">
+                            {headOptions.map((opt) => (
+                                <button
+                                    key={opt}
+                                    onClick={() => { setHeadFilter(opt); setIsHeadOpen(false); }}
+                                    className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50"
+                                >
+                                    <span className="truncate">{opt}</span> {headFilter === opt && <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={handleClear}
+                        className="h-8 px-3 border border-zinc-200 rounded-md text-[11px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
+                    >
+                        Clear
+                    </button>
+                    <button
+                        onClick={handleApply}
+                        className="h-8 px-3 bg-indigo-600 text-white rounded-md text-[11px] font-semibold hover:bg-indigo-700 transition-colors"
+                    >
+                        Apply
+                    </button>
+                </div>
+            </div>
+
+            {/* TABLE */}
+            <div className="bg-white border border-zinc-200 shadow-sm rounded-md overflow-hidden flex flex-col">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="border-b border-zinc-200 bg-zinc-50">
+                                <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide whitespace-nowrap">#</th>
+                                <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide whitespace-nowrap">Branch Name</th>
+                                <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide whitespace-nowrap">Branch Code</th>
+                                <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide whitespace-nowrap">Business Unit</th>
+                                <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide whitespace-nowrap">Branch Head</th>
+                                <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide whitespace-nowrap">Location</th>
+                                <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide text-center whitespace-nowrap">Employees</th>
+                                <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide text-center whitespace-nowrap">Status</th>
+                                <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide text-center whitespace-nowrap">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="text-[11px]">
+                            {isLoading ? (
+                                <tr>
+                                    <td colSpan={9} className="py-8 text-center text-zinc-500 font-medium">
+                                        Loading branches...
+                                    </td>
+                                </tr>
+                            ) : paginatedBranches.length === 0 ? (
+                                <tr>
+                                    <td colSpan={9} className="py-8 text-center text-zinc-500 font-medium">
+                                        No branches found
+                                    </td>
+                                </tr>
+                            ) : paginatedBranches.map((b, idx) => (
+                                <tr key={b.id} className="border-b border-zinc-50 hover:bg-zinc-50 transition-colors">
+                                    <td className="py-2.5 px-3 text-zinc-500 font-semibold">{(currentPage - 1) * rowsPerPage + idx + 1}</td>
+                                    <td className="py-2.5 px-3">
+                                        <div className="flex flex-col">
+                                            <span className="font-bold text-zinc-800 text-[11px]">{b.name}</span>
+                                            {b.isRegisteredOffice && (
+                                                <span className="inline-flex items-center gap-1 mt-0.5 text-[9px] font-semibold text-indigo-600">
+                                                    <ShieldCheck className="w-2.5 h-2.5" /> Registered Office
+                                                </span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="py-2.5 px-3">
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded bg-zinc-100 text-zinc-600 text-[10px] font-semibold">{b.code}</span>
+                                    </td>
+                                    <td className="py-2.5 px-3 text-zinc-700 font-medium">{b.businessUnit}</td>
+                                    <td className="py-2.5 px-3">
+                                        <div className="flex items-center gap-2">
+                                            <img src={b.headAvatar} alt={b.headName} className="w-6 h-6 rounded-full border border-zinc-200 shrink-0" />
+                                            <div className="leading-tight">
+                                                <p className="font-semibold text-zinc-800 text-[10px] whitespace-nowrap">{b.headName}</p>
+                                                <p className="text-[10px] text-zinc-500">{b.headRole}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="py-2.5 px-3 text-zinc-700">{b.location}</td>
+                                    <td className="py-2.5 px-3 text-center font-semibold text-zinc-800 text-[11px]">{b.employees}</td>
+                                    <td className="py-2.5 px-3 text-center">
+                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border ${
+                                            b.status === 'Active'
+                                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                                : 'bg-zinc-100 text-zinc-500 border-zinc-200'
+                                        }`}>
+                                            {b.status}
+                                        </span>
+                                    </td>
+                                    <td className="py-2 px-3 text-center">
+                                        <div className="flex items-center justify-center gap-1.5">
+                                            <button
+                                                onClick={() => router.push(`/dashboard/branches/${b.id}`)}
+                                                className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-blue-50 hover:text-blue-600 border border-zinc-200 hover:border-blue-200 rounded-md transition-colors"
+                                                title="View"
+                                            >
+                                                <Eye className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                                onClick={() => router.push(`/dashboard/branches/add-new-branch?edit=${b.id}`)}
+                                                className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-indigo-50 hover:text-indigo-600 border border-zinc-200 hover:border-indigo-200 rounded-md transition-colors"
+                                                title="Edit"
+                                            >
+                                                <Edit2 className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(b.id)}
+                                                className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-rose-50 hover:text-rose-600 border border-zinc-200 hover:border-rose-200 rounded-md transition-colors"
+                                                title="Delete"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* TABLE FOOTER */}
+                <div className="p-2 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-500">
+                    <div className="pl-2">
+                        Showing {processedBranches.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1} to{' '}
+                        {Math.min(currentPage * rowsPerPage, processedBranches.length)} of {processedBranches.length} entries
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                            disabled={currentPage === 1}
+                            className="p-1 border border-zinc-200 rounded-md bg-white hover:bg-zinc-50 text-zinc-400 disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                            <ChevronLeft className="w-3.5 h-3.5" />
+                        </button>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                            <button
+                                key={page}
+                                onClick={() => setCurrentPage(page)}
+                                className={`w-6 h-6 flex items-center justify-center border rounded-md font-semibold ${
+                                    currentPage === page
+                                        ? 'border-indigo-600 bg-indigo-600 text-white'
+                                        : 'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50'
+                                }`}
+                            >
+                                {page}
+                            </button>
+                        ))}
+                        <button
+                            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                            disabled={currentPage === totalPages}
+                            className="p-1 border border-zinc-200 rounded-md bg-white hover:bg-zinc-50 text-zinc-400 disabled:opacity-40 disabled:cursor-not-allowed">
+                            <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

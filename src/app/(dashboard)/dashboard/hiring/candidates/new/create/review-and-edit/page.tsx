@@ -417,7 +417,7 @@ export default function ReviewPage({
                         type="text"
                         value={candidate.fullName}
                         onChange={(e) => handleInputChange('fullName', e.target.value)}
-                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       />
                     </div>
                     <div className="space-y-0.5">
@@ -426,7 +426,7 @@ export default function ReviewPage({
                         type="email"
                         value={candidate.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
-                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       />
                     </div>
                     <div className="space-y-0.5">
@@ -435,7 +435,7 @@ export default function ReviewPage({
                         type="text"
                         value={candidate.mobile}
                         onChange={(e) => handleInputChange('mobile', e.target.value)}
-                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       />
                     </div>
                     <div className="space-y-0.5">
@@ -444,7 +444,7 @@ export default function ReviewPage({
                         type="text"
                         value={candidate.currentLocation}
                         onChange={(e) => handleInputChange('currentLocation', e.target.value)}
-                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       />
                     </div>
                     <div className="space-y-0.5">
@@ -452,7 +452,7 @@ export default function ReviewPage({
                       <select
                         value={candidate.preferredLocation}
                         onChange={(e) => handleInputChange('preferredLocation', e.target.value)}
-                        className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-1.5 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       >
                         <option value="Noida, Delhi NCR">Noida, Delhi NCR</option>
                         <option value="Bangalore, Karnataka">Bangalore, Karnataka</option>
@@ -467,7 +467,7 @@ export default function ReviewPage({
                           type="text"
                           value={candidate.linkedin}
                           onChange={(e) => handleInputChange('linkedin', e.target.value)}
-                          className="w-full pl-1.5 pr-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none  truncate"
+                          className="w-full pl-1.5 pr-1.5 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none  truncate"
                         />
                       </div>
                     </div>
@@ -488,7 +488,7 @@ export default function ReviewPage({
                       <select
                         value={candidate.appliedFor}
                         onChange={(e) => handleInputChange('appliedFor', e.target.value)}
-                        className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-1.5 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       >
                         <option value="Sales Manager">Sales Manager</option>
                         <option value="Senior Sales Executive">Senior Sales Executive</option>
@@ -500,7 +500,7 @@ export default function ReviewPage({
                       <select
                         value={candidate.department}
                         onChange={(e) => handleInputChange('department', e.target.value)}
-                        className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-1.5 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       >
                         <option value="Sales & Marketing">Sales & Marketing</option>
                         <option value="Engineering">Engineering</option>
@@ -512,7 +512,7 @@ export default function ReviewPage({
                       <select
                         value={candidate.employmentType}
                         onChange={(e) => handleInputChange('employmentType', e.target.value)}
-                        className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-1.5 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       >
                         <option value="Full Time">Full Time</option>
                         <option value="Contract">Contract</option>
@@ -525,7 +525,7 @@ export default function ReviewPage({
                         type="text"
                         value={candidate.totalExperience}
                         onChange={(e) => handleInputChange('totalExperience', e.target.value)}
-                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       />
                     </div>
                     <div className="space-y-0.5">
@@ -534,7 +534,7 @@ export default function ReviewPage({
                         type="text"
                         value={candidate.relevantExperience}
                         onChange={(e) => handleInputChange('relevantExperience', e.target.value)}
-                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       />
                     </div>
                     <div className="space-y-0.5">
@@ -543,7 +543,7 @@ export default function ReviewPage({
                         type="text"
                         value={candidate.currentCompany}
                         onChange={(e) => handleInputChange('currentCompany', e.target.value)}
-                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       />
                     </div>
                     <div className="space-y-0.5">
@@ -553,7 +553,7 @@ export default function ReviewPage({
                           type="text"
                           value={candidate.currentCTC}
                           onChange={(e) => handleInputChange('currentCTC', e.target.value)}
-                          className="w-full pl-6 pr-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                          className="w-full pl-6 pr-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                         />
                         <span className="text-[10px] font-semibold text-indigo-900 absolute left-2 top-1/2 -translate-y-1/2">₹</span>
                       </div>
@@ -565,7 +565,7 @@ export default function ReviewPage({
                           type="text"
                           value={candidate.expectedCTC}
                           onChange={(e) => handleInputChange('expectedCTC', e.target.value)}
-                          className="w-full pl-6 pr-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                          className="w-full pl-6 pr-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                         />
                         <span className="text-[10px] font-semibold text-indigo-900 absolute left-2 top-1/2 -translate-y-1/2">₹</span>
                       </div>
@@ -575,7 +575,7 @@ export default function ReviewPage({
                       <select
                         value={candidate.noticePeriod}
                         onChange={(e) => handleInputChange('noticePeriod', e.target.value)}
-                        className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-1.5 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       >
                         <option value="Immediate">Immediate</option>
                         <option value="15 Days">15 Days</option>
@@ -602,7 +602,7 @@ export default function ReviewPage({
                         type="text"
                         value={candidate.highestQualification}
                         onChange={(e) => handleInputChange('highestQualification', e.target.value)}
-                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       />
                     </div>
                     <div className="space-y-0.5">
@@ -611,7 +611,7 @@ export default function ReviewPage({
                         type="text"
                         value={candidate.university}
                         onChange={(e) => handleInputChange('university', e.target.value)}
-                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       />
                     </div>
                     <div className="space-y-0.5">
@@ -620,7 +620,7 @@ export default function ReviewPage({
                         type="text"
                         value={candidate.yearOfPassing}
                         onChange={(e) => handleInputChange('yearOfPassing', e.target.value)}
-                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       />
                     </div>
                     <div className="space-y-0.5">
@@ -629,7 +629,7 @@ export default function ReviewPage({
                         type="text"
                         value={candidate.cgpa}
                         onChange={(e) => handleInputChange('cgpa', e.target.value)}
-                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       />
                     </div>
                   </div>
@@ -681,7 +681,7 @@ export default function ReviewPage({
                               type="text"
                               value={exp.role}
                               onChange={(e) => handleExperienceChange(exp.id, 'role', e.target.value)}
-                              className="w-full px-2 py-1.5 sm:py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
+                              className="w-full px-2 h-8 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
                             />
                           </div>
                           <div className="space-y-0.5">
@@ -690,7 +690,7 @@ export default function ReviewPage({
                               type="text"
                               value={exp.company}
                               onChange={(e) => handleExperienceChange(exp.id, 'company', e.target.value)}
-                              className="w-full px-2 py-1.5 sm:py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
+                              className="w-full px-2 h-8 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
                             />
                           </div>
                           <div className="space-y-0.5">
@@ -698,7 +698,7 @@ export default function ReviewPage({
                             <select
                               value={exp.employmentType}
                               onChange={(e) => handleExperienceChange(exp.id, 'employmentType', e.target.value)}
-                              className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
+                              className="w-full px-1.5 h-8 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
                             >
                               <option value="Full Time">Full Time</option>
                               <option value="Contract">Contract</option>
@@ -713,7 +713,7 @@ export default function ReviewPage({
                                 value={exp.startDate}
                                 onChange={(e) => handleExperienceChange(exp.id, 'startDate', e.target.value)}
                                 placeholder="e.g. Jun 2021"
-                                className="w-full px-2 py-1.5 sm:py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
+                                className="w-full px-2 h-8 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
                               />
                             </div>
                             <div className="space-y-0.5">
@@ -723,7 +723,7 @@ export default function ReviewPage({
                                 value={exp.endDate}
                                 onChange={(e) => handleExperienceChange(exp.id, 'endDate', e.target.value)}
                                 placeholder="Present"
-                                className="w-full px-2 py-1.5 sm:py-1 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
+                                className="w-full px-2 h-8 text-xs bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
                               />
                             </div>
                           </div>
@@ -737,7 +737,7 @@ export default function ReviewPage({
                                 type="text"
                                 value={bullet}
                                 onChange={(e) => handleBulletChange(exp.id, bulletIdx, e.target.value)}
-                                className="flex-1 min-w-0 px-2 py-1.5 sm:py-1 text-[11px] bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
+                                className="flex-1 min-w-0 px-2 h-8 text-[11px] bg-white border border-slate-200 rounded focus:border-indigo-500 focus:outline-none "
                               />
                               <button
                                 onClick={() => removeBullet(exp.id, bulletIdx)}
@@ -784,7 +784,7 @@ export default function ReviewPage({
                         type="text"
                         value={candidate.availableFrom}
                         onChange={(e) => handleInputChange('availableFrom', e.target.value)}
-                        className="w-full px-2 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       />
                     </div>
                     <div className="space-y-0.5">
@@ -792,7 +792,7 @@ export default function ReviewPage({
                       <select
                         value={candidate.relocation}
                         onChange={(e) => handleInputChange('relocation', e.target.value)}
-                        className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-1.5 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       >
                         <option value="Yes, I am open to relocate">Yes, open to relocate</option>
                         <option value="No">No</option>
@@ -804,7 +804,7 @@ export default function ReviewPage({
                       <select
                         value={candidate.willingToTravel}
                         onChange={(e) => handleInputChange('willingToTravel', e.target.value)}
-                        className="w-full px-1.5 py-1.5 sm:py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className="w-full px-1.5 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       >
                         <option value="Yes">Yes</option>
                         <option value="No">No</option>
@@ -823,7 +823,7 @@ export default function ReviewPage({
                   <button
                     onClick={handleDiscard}
                     disabled={!hasUnsavedChanges}
-                    className="flex-1 sm:flex-none justify-center px-3 py-1.5 sm:py-1 text-xs border border-slate-300  rounded font-medium hover:bg-slate-100 disabled:opacity-50 transition-colors flex items-center"
+                    className="flex-1 sm:flex-none justify-center px-3 h-8 text-xs border border-slate-300  rounded font-medium hover:bg-slate-100 disabled:opacity-50 transition-colors flex items-center"
                   >
                     Discard
                   </button>
@@ -848,7 +848,7 @@ export default function ReviewPage({
 
                   <button
                     onClick={handleSave}
-                    className="flex-1 sm:flex-none justify-center px-3 py-1.5 sm:py-1 text-xs bg-indigo-600 text-white rounded font-semibold hover:bg-indigo-700 shadow-xs hover:shadow-md transition-all flex items-center gap-1"
+                    className="flex-1 sm:flex-none justify-center px-3 h-8 text-xs bg-indigo-600 text-white rounded font-semibold hover:bg-indigo-700 shadow-xs hover:shadow-md transition-all flex items-center gap-1"
                   >
                     Save Progress
                   </button>
@@ -1047,7 +1047,7 @@ export default function ReviewPage({
 
                 <button
                   onClick={() => setShowSuggestions(true)}
-                  className="w-full py-1.5 sm:py-1 text-[10px] bg-white text-indigo-700 border border-indigo-200 rounded font-semibold hover:bg-indigo-50 transition-colors mt-4"
+                  className="w-full h-8 text-[10px] bg-white text-indigo-700 border border-indigo-200 rounded font-semibold hover:bg-indigo-50 transition-colors mt-4"
                 >
                   Review Suggestions
                 </button>
@@ -1107,13 +1107,13 @@ export default function ReviewPage({
               <div className="flex flex-col sm:flex-row justify-end gap-x-4 gap-y-2 pt-1.5 border-t border-slate-100">
                 <button
                   onClick={handleAcceptSuggestions}
-                  className="px-2.5 py-1.5 sm:py-1 text-[10px] bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded animate-pulse"
+                  className="px-2.5 h-8 text-[10px] bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded animate-pulse"
                 >
                   Accept & Update Form
                 </button>
                 <button
                   onClick={() => setShowSuggestions(false)}
-                  className="px-2.5 py-1.5 sm:py-1 text-[10px] border border-slate-200  rounded font-medium hover:bg-slate-50"
+                  className="px-2.5 h-8 text-[10px] border border-slate-200  rounded font-medium hover:bg-slate-50"
                 >
                   Close Suggestions
                 </button>
