@@ -251,12 +251,12 @@ export default function RoleRightsPage() {
                       {sections.map((section) => (
                         <React.Fragment key={section}>
                           <tr 
-                            className="bg-zinc-50/50 cursor-pointer hover:bg-zinc-100/50 transition-colors"
+                            className="bg-gray-100/60 cursor-pointer hover:bg-gray-200/60 transition-colors border-y border-gray-200"
                             onClick={() => setCollapsedSections(prev => ({...prev, [section]: !prev[section]}))}
                           >
-                            <td colSpan={4} className="px-3 py-2 font-semibold text-zinc-900 uppercase text-[11px] tracking-wider select-none">
+                            <td colSpan={4} className="px-3 py-2 font-semibold text-gray-700 uppercase text-[11px] tracking-wider select-none">
                               <div className="flex items-center gap-1.5">
-                                {collapsedSections[section] ? <ChevronRight size={14} className="text-zinc-500" /> : <ChevronDown size={14} className="text-zinc-500" />}
+                                {collapsedSections[section] ? <ChevronRight size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
                                 {section}
                               </div>
                             </td>
