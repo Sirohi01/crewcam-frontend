@@ -664,8 +664,8 @@ export default function ManageBranchPage() {
                                             >
                                                 <Eye className="w-3.5 h-3.5" />
                                             </button>
-                                            <button
-                                                onClick={() => openEdit(b)}
+                                       <button
+                                                onClick={() => router.push(`/dashboard/update-branch?id=${b.id}`)}
                                                 className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-indigo-50 hover:text-indigo-600 border border-zinc-200 hover:border-indigo-200 rounded-md transition-colors"
                                                 title="Edit"
                                             >
