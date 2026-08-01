@@ -4,7 +4,7 @@ import { getDepartmentById } from '@/services/departmentService';
 import Link from 'next/link';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 import {
-  ShieldCheck, ArrowLeft, Plus, Building2, UserCircle, Users, Calendar, MapPin, Search, ChevronDown, Download, Eye, MoreVertical,
+  ShieldCheck, ArrowLeft, Plus, Building2, UserCircle, Users, Calendar, MapPin, Search, ChevronDown, Download, Eye, Edit2, MoreVertical,
   Shield, Laptop, Gift, Clock, FileText, Settings, Upload, ChevronRight, Trash2
 } from 'lucide-react';
 import { deleteCompanyPolicy, getCompanyPolicies } from '@/services/companyPolicyService';
@@ -292,7 +292,7 @@ export default function PoliciesPage({ params }: { params: Promise<{ id: string 
                     </td>
                     <td className="py-2 px-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <button className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-blue-600 transition-colors"><Eye className="w-3.5 h-3.5" /></button>
+                        <Link href={`/dashboard/departments/${id}/policies/add?edit=${pol._id}`} className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-blue-600 transition-colors"><Edit2 className="w-3.5 h-3.5" /></Link>
                         <button className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-blue-600 transition-colors"><Download className="w-3.5 h-3.5" /></button>
                         <button onClick={() => handleDelete(pol._id)} className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-red-600 transition-colors" title="Delete Policy"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
