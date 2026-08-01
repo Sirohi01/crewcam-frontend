@@ -1,10 +1,13 @@
 'use client';
 import React, { useState } from 'react';
+import NextLink from 'next/link';
 import {
   ChevronRight, Building2, GitBranch, Plus, ChevronDown, Search, Filter,
   Download, Pencil, MoreVertical, Users, FolderKanban, LayoutGrid, Palette,
   Box, FileText, Layers, ArrowUpRight, UserPlus, Repeat, UserCog, Upload,
   Info,
+  Route,
+  Link,
 } from 'lucide-react';
 
 // ─── Static data ────────────────────────────────────────────────────────────
@@ -73,10 +76,10 @@ function PageHeading() {
           <button className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors">
             <GitBranch size={14} /> Hierarchy View
           </button>
-          <button className="flex items-center gap-1.5 rounded-lg bg-indigo-600 pl-4 pr-2 py-2.5 text-[12.5px] font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors">
+          <NextLink href="/dashboard/departments/add-sub-department" className="flex items-center gap-1.5 rounded-lg bg-indigo-600 pl-4 pr-2 py-2.5 text-[12.5px] font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors">
             <Plus size={14} /> Add Sub Department
             <span className="ml-1 border-l border-white/30 pl-2"><ChevronDown size={13} /></span>
-          </button>
+          </NextLink>
         </div>
       </div>
     </section>
