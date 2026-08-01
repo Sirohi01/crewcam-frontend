@@ -275,7 +275,7 @@ function AddJobFamilyContent() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Information Technology"
-                className="h-6 w-full rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
+                className="h-8 w-full rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
               />
             </Field>
 
@@ -284,7 +284,7 @@ function AddJobFamilyContent() {
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                 placeholder="IT"
-                className="h-6 w-full rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
+                className="h-8 w-full rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
               />
             </Field>
 
@@ -308,7 +308,7 @@ function AddJobFamilyContent() {
             <Field label="Parent Family (Optional)" helper="Select if this is a sub-family">
               <div className="relative">
                 <select 
-                  className="h-6 w-full appearance-none rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
+                  className="h-8 w-full appearance-none rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
                   value={formData.parentFamily}
                   onChange={(e) => setFormData({ ...formData, parentFamily: e.target.value })}
                 >
@@ -327,7 +327,7 @@ function AddJobFamilyContent() {
             <Field label="Applicable Business Unit" helper="Select the applicable business unit">
               <div className="relative">
                 <select 
-                  className="h-6 w-full appearance-none rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
+                  className="h-8 w-full appearance-none rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
                   value={formData.businessUnitId}
                   onChange={(e) => setFormData({ ...formData, businessUnitId: e.target.value })}
                 >
@@ -348,7 +348,7 @@ function AddJobFamilyContent() {
                 <select
                   value={formData.isActive ? 'Active' : 'Inactive'}
                   onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'Active' })}
-                  className="h-6 w-full appearance-none rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
+                  className="h-8 w-full appearance-none rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>

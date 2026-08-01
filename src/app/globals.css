@@ -61,6 +61,12 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Force all standard input and select fields to size 8 (h-8) as requested */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="file"]):not([type="hidden"]),
+  select {
+    @apply h-8 !important;
+  }
 }
 
 .custom-scrollbar {
