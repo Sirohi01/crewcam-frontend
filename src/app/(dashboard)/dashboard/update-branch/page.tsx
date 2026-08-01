@@ -74,25 +74,25 @@ const emptyForm = {
   lng: undefined as number | undefined,
 };
 
-export default function AddNewBranch() {
+export default function UpdateBranch() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const editId = searchParams.get("edit");
+  const branchId = searchParams.get("id");
 
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(!!editId);
+  const [loading, setLoading] = useState(!!branchId);
   const [error, setError] = useState("");
   const [detecting, setDetecting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!editId) return;
+    if (!branchId) return;
     const fetchBranch = async () => {
       setLoading(true);
       try {
-        const res = await api.get(`/companies/branches/${editId}`);
+        const res = await api.get(`/companies/branches/${branchId}`);
         const data = res.data.data || res.data || {};
         setForm({
           name: data.name || "",
@@ -109,9 +109,10 @@ export default function AddNewBranch() {
           reportingTo: data.reportingTo || "",
           effectiveDate: data.effectiveDate || "",
           timezone: data.timezone || "Asia/Kolkata",
-          workingDays: Array.isArray(data.workingDays) && data.workingDays.length > 0
-            ? data.workingDays
-            : ["mon", "tue", "wed", "thu", "fri"],
+          workingDays:
+            Array.isArray(data.workingDays) && data.workingDays.length > 0
+              ? data.workingDays
+              : ["mon", "tue", "wed", "thu", "fri"],
           workStart: data.workStart || "09:30",
           workEnd: data.workEnd || "18:30",
           logoUrl: data.logoUrl || "",
@@ -126,7 +127,7 @@ export default function AddNewBranch() {
       }
     };
     fetchBranch();
-  }, [editId]);
+  }, [branchId]);
 
   const set = (key: string, value: string | number | undefined) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -217,7 +218,7 @@ export default function AddNewBranch() {
     }
     setSaving(true);
     try {
-      await api.post("/companies/branches", {
+      const payload = {
         name: form.name,
         code: form.code,
         location: form.location,
@@ -239,8 +240,14 @@ export default function AddNewBranch() {
         lat: form.lat,
         lng: form.lng,
         isActive: form.isActive === "Active",
-      });
-      toast.success("Branch created successfully");
+      };
+      if (branchId) {
+        await api.put(`/companies/branches/${branchId}`, payload);
+        toast.success("Branch updated successfully");
+      } else {
+        await api.post("/companies/branches", payload);
+        toast.success("Branch created successfully");
+      }
       router.push("/dashboard/branches");
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to save branch");
@@ -254,13 +261,13 @@ export default function AddNewBranch() {
       <div className="flex justify-between">
       
       <PageHeader
-        title="Add New Branch"
-        description="Create a new branch for your organization."
+        title="Update Branch"
+        description="Update branch information for your organization."
         icon={<Building2 size={16} />}
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
           { label: "Branches", href: "/dashboard/branches" },
-          { label: "Add New Branch" },
+          { label: "Update Branch" },
         ]}
       />
    <div className="flex items-center justify-end gap-3">
@@ -272,13 +279,19 @@ export default function AddNewBranch() {
             <ArrowLeft className="h-4 w-4 mr-1.5" />
             Back to Branch List
           </Button>
-          <Button type="submit" form="add-branch-form" disabled={saving} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+          <Button type="submit" form="update-branch-form" disabled={saving} className="bg-indigo-600 hover:bg-indigo-700 text-white">
             <Save className="h-4 w-4 mr-1.5" />
-            {saving ? "Saving..." : "Save Branch"}
+            {saving ? "Saving..." : "Update Branch"}
           </Button>
         </div>
       </div>
-      <form id="add-branch-form" onSubmit={handleSubmit} className="space-y-4">
+      {loading ? (
+        <div className="flex items-center justify-center rounded-xl border border-zinc-200 bg-white py-20 text-sm text-zinc-500">
+          <Loader2 className="h-5 w-5 animate-spin text-indigo-600 mr-2" />
+          Loading branch details...
+        </div>
+      ) : (
+      <form id="update-branch-form" onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-2 text-sm text-red-600">
             {error}
@@ -566,6 +579,7 @@ export default function AddNewBranch() {
 
        
       </form>
+      )}
     </PageLayout>
   );
 }
