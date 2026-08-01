@@ -28,7 +28,7 @@ export function CompanyProfileQuickLinks({ links = DEFAULT_LINKS }: CompanyProfi
         <button
           key={link.label}
           onClick={link.onClick}
-          className="flex w-full items-center justify-between rounded-lg px-2 py-1 text-sm text-slate-700 hover:bg-slate-50"
+          className="flex w-full items-center justify-between rounded-lg px-2 py-1 text-xs text-slate-700 hover:bg-slate-50"
         >
           <span className="flex items-center gap-2">
             <span className="text-indigo-500">{link.icon}</span>

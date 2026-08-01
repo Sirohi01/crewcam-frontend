@@ -24,7 +24,7 @@ export function CompanyProfileContact({ company }: CompanyProfileContactProps) {
           <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-blue-700" />
           <div>
             <div className="font-medium text-slate-900">Registered Office</div>
-            <div className="text-slate-500 line-clamp-2">
+            <div className="text-slate-500 line-clamp-6">
               {address?.registeredOffice || 'N/A'}, {address?.city || ''}, {address?.state || ''} - {address?.pincode || ''}, {address?.country || ''}
             </div>
           </div>

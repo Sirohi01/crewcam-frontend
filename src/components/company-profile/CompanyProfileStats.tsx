@@ -27,8 +27,8 @@ export function CompanyProfileStats({ company }: CompanyProfileStatsProps) {
   return (
     <div className="grid grid-cols-2 gap-3">
       {stats.map((stat) => (
-        <div key={stat.label} className="rounded-lg border border-slate-200 p-3 flex">
-          <span className={`mb-2 flex h-9 w-9 items-center justify-center rounded-lg ${stat.iconBg} ${stat.iconColor}`}>
+        <div key={stat.label} className="rounded-lg border border-slate-200 p-2 flex">
+          <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${stat.iconBg} ${stat.iconColor}`}>
             {stat.icon}
           </span>
           <div className="ml-3">
