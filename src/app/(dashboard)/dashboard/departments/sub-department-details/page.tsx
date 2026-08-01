@@ -185,6 +185,8 @@ export function Tabs({ active, onChange }: { active: string; onChange?: (t: stri
           onClick={() => {
             if (t === 'Team Members') {
               router.push('/dashboard/departments/sub-department-details/team-members');
+            } else if (t === 'Expense Tracking') {
+              window.open('/dashboard/expense-tracking', '_blank');
             } else if (onChange) {
               onChange(t);
             }
