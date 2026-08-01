@@ -5,101 +5,9 @@ import Link from 'next/link';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 import {
   ShieldCheck, ArrowLeft, Plus, Building2, UserCircle, Users, Calendar, MapPin, Search, ChevronDown, Download, Eye, MoreVertical,
-  Shield, Laptop, Gift, Clock, FileText, Settings, Upload, ChevronRight
+  Shield, Laptop, Gift, Clock, FileText, Settings, Upload, ChevronRight, Trash2
 } from 'lucide-react';
-
-const policies = [
-  {
-    id: 1,
-    name: 'Attendance & Punctuality Policy',
-    desc: 'Guidelines for working hours, attendance marking and punctuality.',
-    category: 'Attendance',
-    catColor: 'text-blue-600 bg-blue-50 border-blue-200',
-    type: 'Department Policy',
-    typeColor: 'text-emerald-600 bg-emerald-50 border-emerald-200',
-    version: '1.2',
-    effective: '01 Apr 2025',
-    updatedDate: '10 May 2025',
-    updatedBy: 'Rahul Nair',
-    icon: <ShieldCheck size={16} className="text-blue-500" />,
-    iconBg: 'bg-blue-50',
-  },
-  {
-    id: 2,
-    name: 'Leave Policy',
-    desc: 'Rules for applying, approval and encashment of leaves.',
-    category: 'Leave',
-    catColor: 'text-purple-600 bg-purple-50 border-purple-200',
-    type: 'Company Policy',
-    typeColor: 'text-blue-600 bg-blue-50 border-blue-200',
-    version: '2.0',
-    effective: '01 Jan 2025',
-    updatedDate: '05 May 2025',
-    updatedBy: 'HR Team',
-    icon: <Users size={16} className="text-purple-500" />,
-    iconBg: 'bg-purple-50',
-  },
-  {
-    id: 3,
-    name: 'Code of Conduct',
-    desc: 'Expected behaviour, ethics and professional standards.',
-    category: 'HR Policies',
-    catColor: 'text-orange-600 bg-orange-50 border-orange-200',
-    type: 'Company Policy',
-    typeColor: 'text-blue-600 bg-blue-50 border-blue-200',
-    version: '3.1',
-    effective: '01 Jan 2025',
-    updatedDate: '02 May 2025',
-    updatedBy: 'HR Team',
-    icon: <Shield size={16} className="text-orange-500" />,
-    iconBg: 'bg-orange-50',
-  },
-  {
-    id: 4,
-    name: 'IT & Data Security Policy',
-    desc: 'Guidelines for information security and acceptable use of IT resources.',
-    category: 'IT Policies',
-    catColor: 'text-emerald-600 bg-emerald-50 border-emerald-200',
-    type: 'Company Policy',
-    typeColor: 'text-blue-600 bg-blue-50 border-blue-200',
-    version: '1.5',
-    effective: '15 Feb 2025',
-    updatedDate: '28 Apr 2025',
-    updatedBy: 'IT Team',
-    icon: <Laptop size={16} className="text-emerald-500" />,
-    iconBg: 'bg-emerald-50',
-  },
-  {
-    id: 5,
-    name: 'Leave Travel Concession (LTC) Policy',
-    desc: 'Rules and eligibility for LTC for employees.',
-    category: 'Benefits',
-    catColor: 'text-yellow-600 bg-yellow-50 border-yellow-200',
-    type: 'Company Policy',
-    typeColor: 'text-blue-600 bg-blue-50 border-blue-200',
-    version: '1.0',
-    effective: '01 Apr 2025',
-    updatedDate: '15 Apr 2025',
-    updatedBy: 'HR Team',
-    icon: <Gift size={16} className="text-yellow-500" />,
-    iconBg: 'bg-yellow-50',
-  },
-  {
-    id: 6,
-    name: 'Grievance Redressal Policy',
-    desc: 'Process for raising and resolving employee grievances.',
-    category: 'HR Policies',
-    catColor: 'text-orange-600 bg-orange-50 border-orange-200',
-    type: 'Department Policy',
-    typeColor: 'text-emerald-600 bg-emerald-50 border-emerald-200',
-    version: '1.1',
-    effective: '01 Mar 2025',
-    updatedDate: '12 Apr 2025',
-    updatedBy: 'Rahul Nair',
-    icon: <FileText size={16} className="text-red-500" />,
-    iconBg: 'bg-red-50',
-  }
-];
+import { deleteCompanyPolicy, getCompanyPolicies } from '@/services/companyPolicyService';
 
 export default function PoliciesPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = React.use(params);
@@ -107,6 +15,57 @@ export default function PoliciesPage({ params }: { params: Promise<{ id: string 
   const [activeTab, setActiveTab] = useState('All Policies');
   const [department, setDepartment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [companyPolicies, setCompanyPolicies] = useState<any[]>([]);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All Categories');
+  const [selectedType, setSelectedType] = useState('All Policy Types');
+  const [selectedStatus, setSelectedStatus] = useState('All Status');
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('All Categories');
+    setSelectedType('All Policy Types');
+    setSelectedStatus('All Status');
+  };
+
+  const filteredPolicies = companyPolicies.filter((pol) => {
+    if (searchQuery && !pol.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (selectedCategory !== 'All Categories' && pol.category?.name !== selectedCategory) return false;
+    if (selectedType !== 'All Policy Types' && pol.type !== selectedType) return false;
+    if (selectedStatus !== 'All Status' && pol.status !== selectedStatus) return false;
+    
+    if (activeTab === 'Department Policies' && pol.type !== 'Department Policy') return false;
+    if (activeTab === 'Company Policies' && pol.type !== 'Company Policy') return false;
+    if (activeTab === 'Archived Policies' && pol.status !== 'Archived') return false;
+    
+    return true;
+  });
+
+  const fetchPolicies = async () => {
+    try {
+      const res = await getCompanyPolicies({ departmentId: id });
+      setCompanyPolicies(res?.data || res || []);
+    } catch (error) {
+      console.error('Failed to fetch policies', error);
+    }
+  };
+
+  const handleDelete = async (policyId: string) => {
+    if (confirm('Are you sure you want to delete this policy?')) {
+      try {
+        await deleteCompanyPolicy(policyId);
+        fetchPolicies(); // refresh list
+      } catch (error) {
+        console.error('Failed to delete policy', error);
+        alert('Error deleting policy');
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchPolicies();
+  }, [id]);
 
   useEffect(() => {
     const fetchDepartment = async () => {
@@ -237,32 +196,43 @@ export default function PoliciesPage({ params }: { params: Promise<{ id: string 
           {/* CONTROLS */}
           <div className="p-2 px-4 border-b border-slate-100 flex flex-wrap items-center gap-2">
             <div className="relative">
-              <input type="text" placeholder="Search policies..." className="pl-8 pr-3 py-1 border border-slate-200 rounded-md text-[11px] font-medium w-48 focus:outline-none focus:border-indigo-400 bg-white shadow-sm" />
+              <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search policies..." className="pl-8 pr-3 py-1 border border-slate-200 rounded-md text-[11px] font-medium w-48 focus:outline-none focus:border-indigo-400 bg-white shadow-sm" />
               <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             </div>
 
             <div className="relative">
-              <select className="appearance-none pl-3 pr-8 py-1 border border-slate-200 rounded-md text-[11px] font-semibold text-slate-700 bg-white shadow-sm w-36 focus:outline-none focus:border-indigo-400">
-                <option>All Categories</option>
+              <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="appearance-none pl-3 pr-8 py-1 border border-slate-200 rounded-md text-[11px] font-semibold text-slate-700 bg-white shadow-sm w-36 focus:outline-none focus:border-indigo-400">
+                <option value="All Categories">All Categories</option>
+                <option value="HR Policies">HR Policies</option>
+                <option value="Attendance">Attendance</option>
+                <option value="Leave">Leave</option>
+                <option value="IT Policies">IT Policies</option>
+                <option value="Benefits">Benefits</option>
+                <option value="Others">Others</option>
               </select>
               <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
 
             <div className="relative">
-              <select className="appearance-none pl-3 pr-8 py-1 border border-slate-200 rounded-md text-[11px] font-semibold text-slate-700 bg-white shadow-sm w-36 focus:outline-none focus:border-indigo-400">
-                <option>All Policy Types</option>
+              <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)} className="appearance-none pl-3 pr-8 py-1 border border-slate-200 rounded-md text-[11px] font-semibold text-slate-700 bg-white shadow-sm w-36 focus:outline-none focus:border-indigo-400">
+                <option value="All Policy Types">All Policy Types</option>
+                <option value="Company Policy">Company Policy</option>
+                <option value="Department Policy">Department Policy</option>
               </select>
               <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
 
             <div className="relative">
-              <select className="appearance-none pl-3 pr-8 py-1 border border-slate-200 rounded-md text-[11px] font-semibold text-slate-700 bg-white shadow-sm w-28 focus:outline-none focus:border-indigo-400">
-                <option>All Status</option>
+              <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)} className="appearance-none pl-3 pr-8 py-1 border border-slate-200 rounded-md text-[11px] font-semibold text-slate-700 bg-white shadow-sm w-28 focus:outline-none focus:border-indigo-400">
+                <option value="All Status">All Status</option>
+                <option value="Published">Published</option>
+                <option value="Draft">Draft</option>
+                <option value="Archived">Archived</option>
               </select>
               <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
 
-            <button className="px-3 py-1 border border-slate-200 rounded-md text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors bg-white shadow-sm">
+            <button onClick={handleClearFilters} className="px-3 py-1 border border-slate-200 rounded-md text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors bg-white shadow-sm">
               Clear
             </button>
           </div>
@@ -284,42 +254,47 @@ export default function PoliciesPage({ params }: { params: Promise<{ id: string 
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {policies.map((pol) => (
-                  <tr key={pol.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-2 px-3 text-[11px] font-bold text-slate-700">{pol.id}</td>
+                {filteredPolicies.length === 0 && (
+                  <tr>
+                    <td colSpan={9} className="text-center py-4 text-slate-500 text-[11px]">No policies found matching your filters.</td>
+                  </tr>
+                )}
+                {filteredPolicies.map((pol: any, idx: number) => (
+                  <tr key={pol._id || idx} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="py-2 px-3 text-[11px] font-bold text-slate-700">{idx + 1}</td>
                     <td className="py-2 px-2">
                       <div className="flex items-start gap-3">
-                        <div className={`w-7 h-7 mt-0.5 rounded-lg flex items-center justify-center shrink-0 border ${pol.catColor.replace('text-', 'border-').replace('600', '100')} ${pol.iconBg}`}>
-                          {pol.icon}
+                        <div className={`w-7 h-7 mt-0.5 rounded-lg flex items-center justify-center shrink-0 border border-slate-200 bg-slate-50`}>
+                          <FileText size={14} className="text-slate-500" />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[12px] font-bold text-slate-900">{pol.name}</span>
-                          <span className="text-[10px] font-medium text-slate-500 mt-0.5 max-w-[200px] leading-tight">{pol.desc}</span>
+                          <span className="text-[12px] font-bold text-slate-900">{pol.title}</span>
+                          <span className="text-[10px] font-medium text-slate-500 mt-0.5 max-w-[200px] leading-tight truncate">{pol.shortDescription}</span>
                         </div>
                       </div>
                     </td>
                     <td className="py-2 px-2 text-center">
-                      <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md border ${pol.catColor}`}>{pol.category}</span>
+                      <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md border text-blue-600 bg-blue-50 border-blue-200`}>{pol.category?.name || 'Uncategorized'}</span>
                     </td>
                     <td className="py-2 px-2 text-center">
-                      <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md border ${pol.typeColor}`}>{pol.type}</span>
+                      <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md border text-emerald-600 bg-emerald-50 border-emerald-200`}>{pol.type}</span>
                     </td>
-                    <td className="py-2 px-2 text-center text-[11px] font-semibold text-slate-700">{pol.version}</td>
-                    <td className="py-2 px-2 text-center text-[11px] font-medium text-slate-600">{pol.effective}</td>
+                    <td className="py-2 px-2 text-center text-[11px] font-semibold text-slate-700">v{pol.version}</td>
+                    <td className="py-2 px-2 text-center text-[11px] font-medium text-slate-600">{new Date(pol.effectiveFrom).toLocaleDateString()}</td>
                     <td className="py-2 px-2">
                       <div className="flex flex-col">
-                        <span className="text-[10px] font-semibold text-slate-700">{pol.updatedDate}</span>
-                        <span className="text-[9px] font-medium text-slate-500">{pol.updatedBy}</span>
+                        <span className="text-[10px] font-semibold text-slate-700">{new Date(pol.updatedAt).toLocaleDateString()}</span>
+                        <span className="text-[9px] font-medium text-slate-500">{pol.updatedBy?.firstName || 'Admin'}</span>
                       </div>
                     </td>
                     <td className="py-2 px-2 text-center">
-                      <span className="px-1.5 py-0.5 text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 rounded uppercase tracking-wide">Active</span>
+                      <span className="px-1.5 py-0.5 text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 rounded uppercase tracking-wide">{pol.status}</span>
                     </td>
                     <td className="py-2 px-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-blue-600 transition-colors"><Eye className="w-3.5 h-3.5" /></button>
                         <button className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-blue-600 transition-colors"><Download className="w-3.5 h-3.5" /></button>
-                        <button className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-700 transition-colors"><MoreVertical className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => handleDelete(pol._id)} className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-red-600 transition-colors" title="Delete Policy"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     </td>
                   </tr>
@@ -330,7 +305,7 @@ export default function PoliciesPage({ params }: { params: Promise<{ id: string 
 
           {/* PAGINATION */}
           <div className="p-2 px-4 border-t border-slate-100 flex items-center justify-between">
-            <span className="text-[10px] font-semibold text-slate-600">Showing 1 to 6 of 18 policies</span>
+            <span className="text-[10px] font-semibold text-slate-600">Showing {filteredPolicies.length} policies</span>
             <div className="flex items-center gap-1">
               <button className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-50 text-[10px] font-medium">&lt;</button>
               <button className="w-6 h-6 flex items-center justify-center rounded border border-indigo-600 bg-indigo-600 text-white text-[10px] font-bold">1</button>

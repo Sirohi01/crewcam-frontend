@@ -1,7 +1,9 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useMasterDataStore } from '@/store/masterDataStore';
+import { createCompanyPolicy } from '@/services/companyPolicyService';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 import {
   FileText, ArrowLeft, Save, Info, UploadCloud, File, Bold, Italic, Underline, AlignLeft, List, Link as LinkIcon,
@@ -11,16 +13,58 @@ import {
 export default function AddNewPolicyPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = React.use(params);
   const { id } = resolvedParams;
+  const router = useRouter();
   const [policyType, setPolicyType] = useState('Mandatory');
   const [requireAck, setRequireAck] = useState(true);
   const [showInPortal, setShowInPortal] = useState(true);
   const [includeInTraining, setIncludeInTraining] = useState(false);
+
+  const [title, setTitle] = useState('');
+  const [code, setCode] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [subCategoryId, setSubCategoryId] = useState('');
+  const [status, setStatus] = useState('Published');
+  const [effectiveFrom, setEffectiveFrom] = useState('');
+  const [version, setVersion] = useState('1.0');
+  const [shortDescription, setShortDescription] = useState('');
+  const [detailedDescription, setDetailedDescription] = useState('');
+  const [reviewDate, setReviewDate] = useState('');
+
+  const [allEmployees, setAllEmployees] = useState(true);
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
+  const [selectedDesignations, setSelectedDesignations] = useState<string[]>([]);
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
 
   const { departments, designations, locations, categories, subCategories, employees, fetchMasterData } = useMasterDataStore();
 
   useEffect(() => {
     fetchMasterData();
   }, [fetchMasterData]);
+
+  const handleSave = async () => {
+    if (!title || !code || !categoryId || !effectiveFrom || !version || !shortDescription) {
+      alert('Please fill out all required fields.');
+      return;
+    }
+    try {
+      const payload = {
+        title, code, category: categoryId, subCategory: subCategoryId || undefined,
+        type: policyType, status, effectiveFrom, version, shortDescription, detailedDescription,
+        applicability: {
+          allEmployees,
+          departments: selectedDepartments,
+          designations: selectedDesignations,
+          locations: selectedLocations
+        },
+        settings: { requireAck, showInPortal, includeInTraining, reviewDate: reviewDate || undefined }
+      };
+      await createCompanyPolicy(payload);
+      router.push(`/dashboard/departments/${id}/policies`);
+    } catch (error: any) {
+      console.error('Error saving policy', error);
+      alert(error?.response?.data?.message || 'Error saving policy');
+    }
+  };
 
   return (
     <div className="flex flex-col gap-1 p-2 w-full font-sans text-slate-800 animate-in fade-in duration-300">
@@ -49,7 +93,7 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
           <Link href={`/dashboard/departments/${id}/policies`} className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 bg-white rounded-md text-[11px] font-semibold text-slate-700 hover:bg-slate-50 shadow-sm transition-colors">
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Policies
           </Link>
-          <button className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 border border-indigo-600 text-white rounded-md text-[11px] font-semibold hover:bg-indigo-700 shadow-sm transition-colors">
+          <button onClick={handleSave} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 border border-indigo-600 text-white rounded-md text-[11px] font-semibold hover:bg-indigo-700 shadow-sm transition-colors">
             <Save className="w-3.5 h-3.5" /> Save Policy
           </button>
         </div>
@@ -68,13 +112,13 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-slate-700">Policy Title <span className="text-red-500">*</span></label>
                 <div className="relative">
-                  <input type="text" placeholder="Enter policy title" className="w-full px-3 py-2 border border-slate-200 rounded-md text-[11px] focus:outline-none focus:border-indigo-400 placeholder:text-slate-400" />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-slate-400">0/120</span>
+                  <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Enter policy title" className="w-full px-3 py-2 border border-slate-200 rounded-md text-[11px] focus:outline-none focus:border-indigo-400 placeholder:text-slate-400" />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-slate-400">{title.length}/120</span>
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-slate-700">Policy Code <span className="text-red-500">*</span></label>
-                <input type="text" placeholder="Enter unique policy code" className="w-full px-3 py-2 border border-slate-200 rounded-md text-[11px] focus:outline-none focus:border-indigo-400 placeholder:text-slate-400" />
+                <input type="text" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Enter unique policy code" className="w-full px-3 py-2 border border-slate-200 rounded-md text-[11px] focus:outline-none focus:border-indigo-400 placeholder:text-slate-400" />
                 <span className="text-[9px] text-slate-500">Example: HR-POL-001</span>
               </div>
             </div>
@@ -83,11 +127,14 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-slate-700">Category <span className="text-red-500">*</span></label>
                 <div className="relative">
-                  <select className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-md text-[11px] text-slate-700 focus:outline-none focus:border-indigo-400">
-                    <option>Select Category</option>
-                    {categories.map((c: any, idx) => (
-                      <option key={c.id || idx} value={c.id}>{c.name || c.title}</option>
-                    ))}
+                  <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-md text-[11px] text-slate-700 focus:outline-none focus:border-indigo-400">
+                    <option value="">Select Category</option>
+                    <option value="HR Policies">HR Policies</option>
+                    <option value="Attendance">Attendance</option>
+                    <option value="Leave">Leave</option>
+                    <option value="IT Policies">IT Policies</option>
+                    <option value="Benefits">Benefits</option>
+                    <option value="Others">Others</option>
                   </select>
                   <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
@@ -95,11 +142,11 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-slate-700">Sub Category (Optional)</label>
                 <div className="relative">
-                  <select className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-md text-[11px] text-slate-700 focus:outline-none focus:border-indigo-400">
-                    <option>Select Sub Category</option>
-                    {subCategories.map((sc: any, idx) => (
-                      <option key={sc.id || idx} value={sc.id}>{sc.name || sc.title}</option>
-                    ))}
+                  <select value={subCategoryId} onChange={(e) => setSubCategoryId(e.target.value)} className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-md text-[11px] text-slate-700 focus:outline-none focus:border-indigo-400">
+                    <option value="">Select Sub Category</option>
+                    <option value="General">General</option>
+                    <option value="Compliance">Compliance</option>
+                    <option value="Guidelines">Guidelines</option>
                   </select>
                   <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
@@ -127,8 +174,10 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-slate-700">Status <span className="text-red-500">*</span></label>
                 <div className="relative">
-                  <select className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-md text-[11px] text-slate-700 focus:outline-none focus:border-indigo-400">
-                    <option>Draft</option>
+                  <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-md text-[11px] font-bold text-slate-800 focus:outline-none focus:border-indigo-400">
+                    <option value="Published">Published</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Archived">Archived</option>
                   </select>
                   <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
@@ -136,12 +185,12 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-slate-700">Effective From <span className="text-red-500">*</span></label>
                 <div className="relative">
-                  <input type="date" defaultValue="2025-05-15" className="w-full px-3 py-2 border border-slate-200 rounded-md text-[11px] focus:outline-none focus:border-indigo-400 font-medium text-slate-800" />
+                  <input type="date" value={effectiveFrom} onChange={(e) => setEffectiveFrom(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-md text-[11px] focus:outline-none focus:border-indigo-400 font-medium text-slate-800" />
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-slate-700">Version <span className="text-red-500">*</span></label>
-                <input type="text" defaultValue="v1.0" className="w-full px-3 py-2 border border-slate-200 rounded-md text-[11px] focus:outline-none focus:border-indigo-400 font-medium" />
+                <input type="text" value={version} onChange={(e) => setVersion(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-md text-[11px] focus:outline-none focus:border-indigo-400 font-medium" />
               </div>
             </div>
           </div>
@@ -152,8 +201,8 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
             <div className="flex flex-col gap-1.5 mb-3">
               <label className="text-[11px] font-bold text-slate-700">Short Description <span className="text-red-500">*</span></label>
               <div className="relative">
-                <input type="text" placeholder="Enter a short summary of the policy" className="w-full px-3 py-2 border border-slate-200 rounded-md text-[11px] focus:outline-none focus:border-indigo-400 placeholder:text-slate-400" />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-slate-400">0/250</span>
+                <input type="text" value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} placeholder="Enter a short summary of the policy" className="w-full px-3 py-2 border border-slate-200 rounded-md text-[11px] focus:outline-none focus:border-indigo-400 placeholder:text-slate-400" />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-slate-400">{shortDescription.length}/250</span>
               </div>
             </div>
             
@@ -179,8 +228,8 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
                   <button type="button" className="p-1 hover:bg-slate-200 rounded text-slate-600 transition-colors focus:bg-indigo-100 focus:text-indigo-600"><LinkIcon className="w-3.5 h-3.5" /></button>
                 </div>
                 <div className="relative">
-                  <textarea rows={5} placeholder="Write detailed policy description..." className="w-full p-2.5 text-[11px] focus:outline-none placeholder:text-slate-400 resize-none"></textarea>
-                  <span className="absolute bottom-2 right-3 text-[9px] text-slate-400">0/5000</span>
+                  <textarea rows={5} value={detailedDescription} onChange={(e) => setDetailedDescription(e.target.value)} placeholder="Write detailed policy description..." className="w-full p-2.5 text-[11px] focus:outline-none placeholder:text-slate-400 resize-none"></textarea>
+                  <span className="absolute bottom-2 right-3 text-[9px] text-slate-400">{detailedDescription.length}/5000</span>
                 </div>
               </div>
             </div>
@@ -243,11 +292,9 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-slate-700">Applies To <span className="text-red-500">*</span></label>
                 <div className="relative">
-                  <select className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-md text-[11px] font-medium text-slate-800 focus:outline-none focus:border-indigo-400">
-                    <option>All Employees</option>
-                    {employees.map((emp: any, idx) => (
-                      <option key={emp.id || idx} value={emp.id}>{emp.firstName} {emp.lastName}</option>
-                    ))}
+                  <select value={allEmployees ? 'all' : 'specific'} onChange={(e) => setAllEmployees(e.target.value === 'all')} className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-md text-[11px] font-medium text-slate-800 focus:outline-none focus:border-indigo-400">
+                    <option value="all">All Employees</option>
+                    <option value="specific">Specific Groups</option>
                   </select>
                   <ChevronDown className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
@@ -255,10 +302,10 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-slate-700">Department (Optional)</label>
                 <div className="relative">
-                  <select className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-md text-[11px] text-slate-500 focus:outline-none focus:border-indigo-400">
-                    <option>Select Departments</option>
+                  <select disabled={allEmployees} value={selectedDepartments[0] || ''} onChange={(e) => setSelectedDepartments(e.target.value ? [e.target.value] : [])} className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-md text-[11px] text-slate-500 focus:outline-none focus:border-indigo-400 disabled:opacity-50">
+                    <option value="">Select Departments</option>
                     {departments.map((dept: any, idx) => (
-                      <option key={dept.id || idx} value={dept.id}>{dept.name}</option>
+                      <option key={dept.id || idx} value={dept.id || dept._id}>{dept.name}</option>
                     ))}
                   </select>
                   <ChevronDown className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -267,10 +314,10 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-slate-700">Designation (Optional)</label>
                 <div className="relative">
-                  <select className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-md text-[11px] text-slate-500 focus:outline-none focus:border-indigo-400">
-                    <option>Select Designations</option>
+                  <select disabled={allEmployees} value={selectedDesignations[0] || ''} onChange={(e) => setSelectedDesignations(e.target.value ? [e.target.value] : [])} className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-md text-[11px] text-slate-500 focus:outline-none focus:border-indigo-400 disabled:opacity-50">
+                    <option value="">Select Designations</option>
                     {designations.map((desg: any, idx) => (
-                      <option key={desg.id || idx} value={desg.id}>{desg.title || desg.name}</option>
+                      <option key={desg.id || idx} value={desg.id || desg._id}>{desg.title || desg.name}</option>
                     ))}
                   </select>
                   <ChevronDown className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -279,10 +326,10 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-slate-700">Location (Optional)</label>
                 <div className="relative">
-                  <select className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-md text-[11px] text-slate-500 focus:outline-none focus:border-indigo-400">
-                    <option>Select Locations</option>
+                  <select disabled={allEmployees} value={selectedLocations[0] || ''} onChange={(e) => setSelectedLocations(e.target.value ? [e.target.value] : [])} className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-md text-[11px] text-slate-500 focus:outline-none focus:border-indigo-400 disabled:opacity-50">
+                    <option value="">Select Locations</option>
                     {locations.map((loc: any, idx) => (
-                      <option key={loc.id || idx} value={loc.id}>{loc.city || loc.name || loc.locality}</option>
+                      <option key={loc.id || idx} value={loc.id || loc._id}>{loc.city || loc.name || loc.locality}</option>
                     ))}
                   </select>
                   <ChevronDown className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -330,7 +377,7 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
             <div className="flex flex-col gap-1.5 pt-3 border-t border-slate-100">
               <label className="text-[10px] font-bold text-slate-700">Review Date (Optional)</label>
               <div className="relative">
-                <input type="date" className="w-full px-3 py-2 border border-slate-200 rounded-md text-[11px] focus:outline-none focus:border-indigo-400 text-slate-800" />
+                <input type="date" value={reviewDate} onChange={(e) => setReviewDate(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-md text-[11px] focus:outline-none focus:border-indigo-400 text-slate-800" />
               </div>
               <span className="text-[9px] text-slate-500 mt-0.5">Set date for next review and update</span>
             </div>
@@ -450,7 +497,7 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
         <button className="px-4 py-1.5 border border-slate-300 rounded-md text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition-colors">
           Cancel
         </button>
-        <button className="flex items-center gap-2 px-4 py-1.5 bg-indigo-600 border border-indigo-600 text-white rounded-md text-[11px] font-bold hover:bg-indigo-700 shadow-sm transition-colors">
+        <button onClick={handleSave} className="flex items-center gap-2 px-4 py-1.5 bg-indigo-600 border border-indigo-600 text-white rounded-md text-[11px] font-bold hover:bg-indigo-700 shadow-sm transition-colors">
           <Save className="w-3.5 h-3.5" /> Save Policy
         </button>
       </div>
