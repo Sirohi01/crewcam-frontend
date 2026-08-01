@@ -232,14 +232,27 @@ export default function ManageBranchPage() {
         try {
             const targetId = modalItem?.id || modalItem?._id;
             if (targetId) {
-                await api.put(`/branches/${targetId}`, branchData);
+                try {
+                    await api.put(`/companies/branches/${targetId}`, branchData);
+                } catch {
+                    await api.put(`/branches/${targetId}`, branchData);
+                }
                 toast.success('Branch updated successfully');
             } else {
-                await api.post('/branches', branchData);
+                try {
+                    await api.post('/companies/branches', branchData);
+                } catch {
+                    await api.post('/branches', branchData);
+                }
                 toast.success('Branch created successfully');
             }
             setModal(false);
-            const response = await api.get('/branches');
+            let response;
+            try {
+                response = await api.get('/companies/branches');
+            } catch {
+                response = await api.get('/branches');
+            }
             if (response.data?.data && response.data.data.length > 0) {
                 setBranchesData(response.data.data);
             }
@@ -279,13 +292,16 @@ export default function ManageBranchPage() {
     useEffect(() => {
         const fetchBranches = async () => {
             try {
-                const response = await api.get('/branches');
-                const data = response.data.data || [];
-                // Fallback to dummy data if API returns nothing (e.g. during development/preview)
+                let response;
+                try {
+                    response = await api.get('/companies/branches');
+                } catch {
+                    response = await api.get('/branches');
+                }
+                const data = response.data?.data || response.data || [];
                 setBranchesData(data.length > 0 ? data : MOCK_BRANCHES);
             } catch (error) {
                 console.error('Error fetching branches:', error);
-                toast.error('Failed to load branches, showing sample data');
                 setBranchesData(MOCK_BRANCHES);
             } finally {
                 setIsLoading(false);
@@ -293,8 +309,17 @@ export default function ManageBranchPage() {
         };
         const fetchBusinessUnits = async () => {
             try {
-                const response = await api.get('/business-units');
-                const data = response.data.data || [];
+                let response;
+                try {
+                    response = await api.get('/companies/business-units');
+                } catch {
+                    try {
+                        response = await api.get('/business-units');
+                    } catch {
+                        response = await api.get('/master-data/business-units');
+                    }
+                }
+                const data = response.data?.data || response.data || [];
                 setBusinessUnitsData(data.length > 0 ? data : MOCK_BUSINESS_UNITS);
             } catch (error) {
                 console.error('Error fetching business units:', error);
@@ -322,7 +347,11 @@ export default function ManageBranchPage() {
         if (!confirm('Are you sure you want to delete this branch?')) return;
 
         try {
-            await api.delete(`/branches/${id}`);
+            try {
+                await api.delete(`/companies/branches/${id}`);
+            } catch {
+                await api.delete(`/branches/${id}`);
+            }
             setBranchesData((prev) => prev.filter((b) => b._id !== id));
             toast.success('Branch deleted successfully');
         } catch (error: any) {
