@@ -1,9 +1,9 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useMasterDataStore } from '@/store/masterDataStore';
-import { createCompanyPolicy } from '@/services/companyPolicyService';
+import { createCompanyPolicy, getCompanyPolicyById, updateCompanyPolicy } from '@/services/companyPolicyService';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 import {
   FileText, ArrowLeft, Save, Info, UploadCloud, File, Bold, Italic, Underline, AlignLeft, List, Link as LinkIcon,
@@ -14,6 +14,8 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
   const resolvedParams = React.use(params);
   const { id } = resolvedParams;
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
   const [policyType, setPolicyType] = useState('Mandatory');
   const [requireAck, setRequireAck] = useState(true);
   const [showInPortal, setShowInPortal] = useState(true);
@@ -39,7 +41,43 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
 
   useEffect(() => {
     fetchMasterData();
-  }, [fetchMasterData]);
+    if (editId) {
+      const fetchPolicy = async () => {
+        try {
+          const res = await getCompanyPolicyById(editId);
+          const policy = res.data || res;
+          if (policy) {
+            setTitle(policy.title || '');
+            setCode(policy.code || '');
+            setCategoryId(policy.category || '');
+            setSubCategoryId(policy.subCategory || '');
+            setPolicyType(policy.type || 'Mandatory');
+            setStatus(policy.status || 'Published');
+            setEffectiveFrom(policy.effectiveFrom ? new Date(policy.effectiveFrom).toISOString().split('T')[0] : '');
+            setVersion(policy.version || '1.0');
+            setShortDescription(policy.shortDescription || '');
+            setDetailedDescription(policy.detailedDescription || '');
+            
+            if (policy.settings) {
+              setRequireAck(policy.settings.requireAck ?? true);
+              setShowInPortal(policy.settings.showInPortal ?? true);
+              setIncludeInTraining(policy.settings.includeInTraining ?? false);
+              setReviewDate(policy.settings.reviewDate ? new Date(policy.settings.reviewDate).toISOString().split('T')[0] : '');
+            }
+            if (policy.applicability) {
+              setAllEmployees(policy.applicability.allEmployees ?? true);
+              setSelectedDepartments(policy.applicability.departments || []);
+              setSelectedDesignations(policy.applicability.designations || []);
+              setSelectedLocations(policy.applicability.locations || []);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch policy for editing', error);
+        }
+      };
+      fetchPolicy();
+    }
+  }, [fetchMasterData, editId]);
 
   const handleSave = async () => {
     if (!title || !code || !categoryId || !effectiveFrom || !version || !shortDescription) {
@@ -58,7 +96,11 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
         },
         settings: { requireAck, showInPortal, includeInTraining, reviewDate: reviewDate || undefined }
       };
-      await createCompanyPolicy(payload);
+      if (editId) {
+        await updateCompanyPolicy(editId, payload);
+      } else {
+        await createCompanyPolicy(payload);
+      }
       router.push(`/dashboard/departments/${id}/policies`);
     } catch (error: any) {
       console.error('Error saving policy', error);
@@ -75,7 +117,7 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
         { label: 'Organization Setup' },
         { label: 'Policies & Documents', href: `/dashboard/departments/${id}/policies` },
         { label: 'Add Policies' },
-        { label: 'Add New Policy' }
+        { label: editId ? 'Edit Policy' : 'Add New Policy' }
       ]} />
 
       {/* HEADER */}
@@ -85,8 +127,8 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
             <FileText size={18} className="text-purple-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Add New Policy</h1>
-            <p className="text-[12px] text-slate-500 font-medium mt-0.5">Create a new company policy and define its applicability and rules.</p>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">{editId ? 'Edit Policy' : 'Add New Policy'}</h1>
+            <p className="text-[12px] text-slate-500 font-medium mt-0.5">{editId ? 'Update an existing company policy and its rules.' : 'Create a new company policy and define its applicability and rules.'}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
