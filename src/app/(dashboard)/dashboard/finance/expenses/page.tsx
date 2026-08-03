@@ -59,14 +59,28 @@ export default function ExpensesPage() {
   });
 
   const [form, setForm] = useState({ type: 'Travel', amount: '', date: '', description: '' });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  const validateExpense = (f: typeof form) => {
+    const errs: Record<string, string> = {};
+    if (!f.amount || Number(f.amount) <= 0) errs.amount = 'Enter a valid amount greater than 0.';
+    if (!f.date) errs.date = 'Date is required.';
+    else if (new Date(f.date) > new Date()) errs.date = 'Date cannot be in the future.';
+    if (!f.description.trim()) errs.description = 'Description is required.';
+    else if (f.description.trim().length < 5) errs.description = 'Description must be at least 5 characters.';
+    return errs;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    submitExpenseMutation.mutate({
-      ...form,
-      amount: Number(form.amount)
-    });
+    const errs = validateExpense(form);
+    setFormErrors(errs);
+    if (Object.keys(errs).length > 0) return;
+    submitExpenseMutation.mutate({ ...form, amount: Number(form.amount) });
   };
+
+  const fieldCls = (field: string) =>
+    `w-full rounded-md border ${formErrors[field] ? 'border-rose-400 focus:ring-rose-100' : 'border-zinc-300'} px-3 py-2 text-sm focus:outline-none focus:ring-2 transition-colors`;
 
   const handleAction = (id: string, status: string) => {
     const comments = prompt(`Enter comments for ${status}:`, '');

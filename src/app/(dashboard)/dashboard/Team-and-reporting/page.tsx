@@ -136,21 +136,50 @@ function Avatar({ initials, bg, size = 8 }: { initials: string; bg: string; size
 
 // ─── Team Members table card ────────────────────────────────────────────────
 function TeamMembersCard() {
+  const [search, setSearch] = useState('');
+  const [searchError, setSearchError] = useState('');
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearch(val);
+    if (val.length === 1) {
+      setSearchError('Enter at least 2 characters to search.');
+    } else if (/[^a-zA-Z0-9 \-_]/.test(val)) {
+      setSearchError('Special characters are not allowed.');
+    } else {
+      setSearchError('');
+    }
+  };
+
+  const filtered = search.trim().length >= 2 && !searchError
+    ? TEAM_MEMBERS.filter(
+        (m) =>
+          m.name.toLowerCase().includes(search.toLowerCase()) ||
+          m.empId.toLowerCase().includes(search.toLowerCase()) ||
+          m.designation.toLowerCase().includes(search.toLowerCase())
+      )
+    : TEAM_MEMBERS;
+
   return (
     <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h3 className="text-[15px] font-normal text-zinc-900">Team Members (12)</h3>
+          <h3 className="text-[15px] font-normal text-zinc-900">Team Members ({filtered.length})</h3>
           <p className="text-[12px] text-zinc-400 mt-0.5">List of employees working in this sub department.</p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
-            <input
-              type="text"
-              placeholder="Search employee..."
-              className="w-52 rounded-lg border border-zinc-200 bg-white pl-8 pr-3 py-2 text-[12px] text-zinc-800 shadow-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors placeholder:text-zinc-400"
-            />
+          <div className="flex flex-col gap-0.5">
+            <div className="relative">
+              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={handleSearch}
+                placeholder="Search employee..."
+                className={`w-52 rounded-lg border ${searchError ? 'border-rose-400 focus:ring-rose-100' : 'border-zinc-200 focus:ring-indigo-100'} bg-white pl-8 pr-3 py-2 text-[12px] text-zinc-800 shadow-sm outline-none focus:border-indigo-400 focus:ring-2 transition-colors placeholder:text-zinc-400`}
+              />
+            </div>
+            {searchError && <p className="text-[10px] text-rose-500">{searchError}</p>}
           </div>
           <button className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] font-normal text-zinc-600 shadow-sm hover:bg-zinc-50 transition-colors">
             <Filter size={13} /> Filters
@@ -186,7 +215,9 @@ function TeamMembersCard() {
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
-            {TEAM_MEMBERS.map((m) => (
+            {filtered.length === 0 ? (
+              <tr><td colSpan={8} className="py-6 text-center text-[12px] text-zinc-400">No employees found matching &quot;{search}&quot;.</td></tr>
+            ) : filtered.map((m) => (
               <tr key={m.id} className="hover:bg-zinc-50/60 transition-colors">
                 <td className="py-2 pr-2"><input type="checkbox" className="h-3 w-3 rounded border-zinc-300 text-indigo-600" /></td>
                 <td className="py-2 pr-2">
