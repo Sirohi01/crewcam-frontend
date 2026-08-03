@@ -83,6 +83,62 @@ export default function ApplyLeavePage() {
   const [mobile, setMobile] = useState('');
   const [email, setEmail] = useState('');
 
+  // ─── Validation errors ──────────────────────────────────────────────────────
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitted, setSubmitted] = useState(false);
+
+  // Auto-calculate days
+  React.useEffect(() => {
+    if (fromDate && toDate) {
+      const from = new Date(fromDate);
+      const to = new Date(toDate);
+      const diff = Math.max(0, Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+      setNumDays(halfDay ? 0.5 : diff);
+    } else {
+      setNumDays(0);
+    }
+  }, [fromDate, toDate, halfDay]);
+
+  const validate = () => {
+    const errs: Record<string, string> = {};
+    if (!leaveType) errs.leaveType = 'Please select a leave type.';
+    if (!fromDate) errs.fromDate = 'From date is required.';
+    if (!toDate) errs.toDate = 'To date is required.';
+    if (fromDate && toDate && new Date(toDate) < new Date(fromDate))
+      errs.toDate = 'To date cannot be before from date.';
+    if (!reason.trim()) errs.reason = 'Reason is required.';
+    else if (reason.trim().length < 10) errs.reason = 'Reason must be at least 10 characters.';
+    if (!mobile.trim()) errs.mobile = 'Mobile number is required.';
+    else if (!/^[6-9]\d{9}$/.test(mobile.replace(/\s/g, '')))
+      errs.mobile = 'Enter a valid 10-digit Indian mobile number.';
+    if (email && !/^\S+@\S+\.\S+$/.test(email)) errs.email = 'Enter a valid email address.';
+    return errs;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitted(true);
+    const errs = validate();
+    setErrors(errs);
+    if (Object.keys(errs).length === 0) {
+      alert('Leave request submitted successfully!');
+    }
+  };
+
+  const handleBlur = (field: string) => () => {
+    if (submitted) setErrors(validate());
+    else {
+      const errs = validate();
+      setErrors((prev) => ({ ...prev, [field]: errs[field] || '' }));
+    }
+  };
+
+  const ic = (field: string) =>
+    `w-full rounded-lg border ${errors[field] ? 'border-rose-400 focus:border-rose-400 focus:ring-rose-100' : 'border-zinc-200 focus:border-blue-500'} bg-white px-2.5 py-1.5 text-[12px] text-zinc-600 outline-none focus:ring-2 transition-colors`;
+
+  const ErrorMsg = ({ field }: { field: string }) =>
+    errors[field] ? <p className="mt-1 text-[10.5px] text-rose-500">{errors[field]}</p> : null;
+
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#F7F8FA]">
       <div className="mx-auto w-full max-w-[1300px] space-y-1 p-2">
@@ -111,13 +167,14 @@ export default function ApplyLeavePage() {
                 <StepBadge n={1} /> Leave Details
               </h2>
 
-              <div className="space-y-1.5">
+              <form onSubmit={handleSubmit} noValidate className="space-y-1.5">
                 <div>
                   <Label required>Leave Type</Label>
                   <select
                     value={leaveType}
-                    onChange={(e) => setLeaveType(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[12px] text-zinc-600 outline-none focus:border-blue-500"
+                    onChange={(e) => { setLeaveType(e.target.value); }}
+                    onBlur={handleBlur('leaveType')}
+                    className={ic('leaveType')}
                   >
                     <option value="">-- Select Leave Type --</option>
                     <option value="CL">Casual Leave (CL)</option>
@@ -126,6 +183,7 @@ export default function ApplyLeavePage() {
                     <option value="WFH">Work From Home (WFH)</option>
                     <option value="CO">Comp Off</option>
                   </select>
+                  <ErrorMsg field="leaveType" />
                   <p className="mt-1 text-[11px] text-zinc-400">Choose the type of leave you want to apply for.</p>
                 </div>
 
@@ -137,11 +195,12 @@ export default function ApplyLeavePage() {
                         type="date"
                         value={fromDate}
                         onChange={(e) => setFromDate(e.target.value)}
-                        placeholder="Select From Date"
-                        className="w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 pr-8 text-[12px] text-zinc-600 outline-none focus:border-blue-500"
+                        onBlur={handleBlur('fromDate')}
+                        className={ic('fromDate') + ' pr-8'}
                       />
                       <CalendarIcon size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                     </div>
+                    <ErrorMsg field="fromDate" />
                   </div>
                   <div>
                     <Label required>To Date</Label>
@@ -150,11 +209,12 @@ export default function ApplyLeavePage() {
                         type="date"
                         value={toDate}
                         onChange={(e) => setToDate(e.target.value)}
-                        placeholder="Select To Date"
-                        className="w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 pr-8 text-[12px] text-zinc-600 outline-none focus:border-blue-500"
+                        onBlur={handleBlur('toDate')}
+                        className={ic('toDate') + ' pr-8'}
                       />
                       <CalendarIcon size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                     </div>
+                    <ErrorMsg field="toDate" />
                   </div>
                 </div>
 
@@ -175,23 +235,11 @@ export default function ApplyLeavePage() {
                   <p className="mb-1 text-[13px] font-semibold text-zinc-700">Session</p>
                   <div className="flex flex-wrap gap-6">
                     <label className="flex items-center gap-2 text-[13px] text-zinc-600">
-                      <input
-                        type="radio"
-                        name="session"
-                        checked={session === 'first'}
-                        onChange={() => setSession('first')}
-                        className="h-4 w-4 border-zinc-300 text-blue-600 focus:ring-blue-500"
-                      />
+                      <input type="radio" name="session" checked={session === 'first'} onChange={() => setSession('first')} className="h-4 w-4 border-zinc-300 text-blue-600 focus:ring-blue-500" />
                       First Half (Before 1:00 PM)
                     </label>
                     <label className="flex items-center gap-2 text-[13px] text-zinc-600">
-                      <input
-                        type="radio"
-                        name="session"
-                        checked={session === 'second'}
-                        onChange={() => setSession('second')}
-                        className="h-4 w-4 border-zinc-300 text-blue-600 focus:ring-blue-500"
-                      />
+                      <input type="radio" name="session" checked={session === 'second'} onChange={() => setSession('second')} className="h-4 w-4 border-zinc-300 text-blue-600 focus:ring-blue-500" />
                       Second Half (After 1:00 PM)
                     </label>
                   </div>
@@ -199,12 +247,7 @@ export default function ApplyLeavePage() {
 
                 <div>
                   <Label>Number of Days</Label>
-                  <input
-                    type="text"
-                    readOnly
-                    value={numDays}
-                    className="w-full cursor-not-allowed rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 text-[12px] text-zinc-500 outline-none"
-                  />
+                  <input type="text" readOnly value={numDays} className="w-full cursor-not-allowed rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 text-[12px] text-zinc-500 outline-none" />
                   <p className="mt-1 text-[11px] text-zinc-400">Total leave days will be calculated automatically.</p>
                 </div>
 
@@ -213,71 +256,77 @@ export default function ApplyLeavePage() {
                   <textarea
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
+                    onBlur={handleBlur('reason')}
                     placeholder="Enter reason for leave application"
                     rows={2}
-                    className="w-full resize-none rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[12px] text-zinc-600 outline-none focus:border-blue-500"
+                    className={ic('reason').replace('rounded-lg', 'rounded-lg resize-none')}
                   />
+                  <ErrorMsg field="reason" />
                   <p className="mt-1 text-[11px] text-zinc-400">Minimum 10 characters</p>
                 </div>
-              </div>
 
-              {/* Contact During Leave */}
-              <div className="mt-1.5">
-                <h2 className="mb-1.5 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
-                  <StepBadge n={2} /> Contact During Leave
-                </h2>
-                <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
-                  <div>
-                    <Label required>Mobile Number</Label>
-                    <input
-                      type="tel"
-                      value={mobile}
-                      onChange={(e) => setMobile(e.target.value)}
-                      placeholder="Enter mobile number"
-                      className="w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[12px] text-zinc-600 outline-none focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <Label>Email Address</Label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter email address"
-                      className="w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[12px] text-zinc-600 outline-none focus:border-blue-500"
-                    />
+                {/* Contact During Leave */}
+                <div className="mt-1.5">
+                  <h2 className="mb-1.5 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
+                    <StepBadge n={2} /> Contact During Leave
+                  </h2>
+                  <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+                    <div>
+                      <Label required>Mobile Number</Label>
+                      <input
+                        type="tel"
+                        value={mobile}
+                        onChange={(e) => setMobile(e.target.value)}
+                        onBlur={handleBlur('mobile')}
+                        placeholder="e.g. 9876543210"
+                        className={ic('mobile')}
+                      />
+                      <ErrorMsg field="mobile" />
+                    </div>
+                    <div>
+                      <Label>Email Address</Label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        onBlur={handleBlur('email')}
+                        placeholder="Enter email address"
+                        className={ic('email')}
+                      />
+                      <ErrorMsg field="email" />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Upload Document */}
-              <div className="mt-1.5">
-                <h2 className="mb-1 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
-                  <StepBadge n={3} /> Upload Document (Optional)
-                </h2>
-                <p className="mb-1 text-[11px] text-zinc-400">Upload supporting document if required (e.g., medical certificate)</p>
-                <label className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-zinc-200 bg-zinc-50/50 py-3 text-center hover:bg-zinc-50">
-                  <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" />
-                  <div className="flex items-center gap-1.5">
-                    <UploadCloud size={16} className="text-zinc-400" />
-                    <p className="text-[12px] text-zinc-600">
-                      Drag and drop or <span className="font-semibold text-blue-600">click to browse</span>
-                    </p>
-                  </div>
-                  <p className="text-[10.5px] text-zinc-400">Supported formats: PDF, JPG, PNG (Max. 5MB)</p>
-                </label>
-              </div>
+                {/* Upload Document */}
+                <div className="mt-1.5">
+                  <h2 className="mb-1 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
+                    <StepBadge n={3} /> Upload Document (Optional)
+                  </h2>
+                  <p className="mb-1 text-[11px] text-zinc-400">Upload supporting document if required (e.g., medical certificate)</p>
+                  <label className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-zinc-200 bg-zinc-50/50 py-3 text-center hover:bg-zinc-50">
+                    <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" />
+                    <div className="flex items-center gap-1.5">
+                      <UploadCloud size={16} className="text-zinc-400" />
+                      <p className="text-[12px] text-zinc-600">
+                        Drag and drop or <span className="font-semibold text-blue-600">click to browse</span>
+                      </p>
+                    </div>
+                    <p className="text-[10.5px] text-zinc-400">Supported formats: PDF, JPG, PNG (Max. 5MB)</p>
+                  </label>
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <button type="submit" className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-[13px] font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors">
+                    <Send size={14} /> Submit Leave Request
+                  </button>
+                  <button type="button" className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-[13px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
+                    <Save size={14} /> Save as Draft
+                  </button>
+                </div>
+              </form>
             </Card>
-
-            {/* Actions */}
-            <div className="flex flex-wrap items-center gap-1.5">
-              <button className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-[13px] font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors">
-                <Send size={14} /> Submit Leave Request
-              </button>
-              <button className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-[13px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
-                <Save size={14} /> Save as Draft
-              </button>
-            </div>
           </div>
 
           {/* Right column */}

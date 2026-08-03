@@ -45,7 +45,7 @@ export default function BusinessUnitsPage() {
 
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this business unit?')) return;
-        
+
         try {
             await api.delete(`/business-units/${id}`);
             setBusinessUnitsData((prev) => prev.filter((bu) => bu._id !== id));
@@ -190,13 +190,13 @@ export default function BusinessUnitsPage() {
             {/* PAGE HEADER */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-1">
                 <div>
-                  <Breadcrumb
-  items={[
-    { label: "Organization Setup", href: "/dashboard" },
-    { label: "Departments", href: "/dashboard/departments" },
-    { label: "Business Units" },
-  ]}
-/>
+                    <Breadcrumb
+                        items={[
+                            { label: "Organization Setup", href: "/dashboard" },
+                            { label: "Departments", href: "/dashboard/departments" },
+                            { label: "Business Units" },
+                        ]}
+                    />
                     <h1 className="text-lg font-bold text-zinc-900 mb-0.5">Business Units (BU)</h1>
                     <p className="text-[11px] text-zinc-500">Create, manage and organize your business units.</p>
                 </div>
@@ -650,7 +650,6 @@ export default function BusinessUnitsPage() {
                             <FileText className="w-3.5 h-3.5" /> View Business Unit Reports
                         </button>
                     </div>
-
                 </div>
             </div>
 

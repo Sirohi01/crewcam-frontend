@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import {
-  ChevronRight, ArrowLeft, Save, IdCard, Check, Info,
+  ArrowLeft, Save, IdCard, Check, Info,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
@@ -12,8 +12,6 @@ import { toast } from 'react-hot-toast';
 import api from '@/lib/axios';
 
 // ─── Static data ────────────────────────────────────────────────────────────
-const BREADCRUMB = ['Organization Setup', 'Job Grades', 'Add New Job Grade'];
-
 const EXAMPLE_GRADES = [
   { code: 'JG-01', level: 'Level 10', levelColor: 'bg-indigo-50 text-indigo-600', border: 'border-indigo-200', title: 'Director', pay: '₹ 2,00,000 - ₹ 3,20,000', family: 'Management', reports: 'CEO' },
   { code: 'JG-03', level: 'Level 7', levelColor: 'bg-blue-50 text-blue-600', border: 'border-blue-200', title: 'Deputy Manager', pay: '₹ 75,000 - ₹ 1,10,000', family: 'Management', reports: 'Manager' },
@@ -44,47 +42,53 @@ const NOTES = [
 ];
 
 // ─── Shared field styles ─────────────────────────────────────────────────────
-const inputClass =
-  'w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12.5px] text-zinc-800 shadow-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors placeholder:text-zinc-400';
+function inputCls(error?: string) {
+  return `w-full rounded-lg border ${error ? 'border-rose-400 focus:ring-rose-200' : 'border-zinc-200 focus:ring-indigo-100'} bg-white px-3 py-2 text-[12.5px] text-zinc-800 shadow-sm outline-none focus:border-indigo-400 focus:ring-2 transition-colors placeholder:text-zinc-400`;
+}
 
-function Field({ label, hint, required, children }: { label: string; hint?: string; required?: boolean; children: React.ReactNode }) {
+// ─── Field wrapper with error support ───────────────────────────────────────
+function Field({
+  label, hint, required, error, children,
+}: {
+  label: string; hint?: string; required?: boolean; error?: string; children: React.ReactNode;
+}) {
   return (
     <div>
       <label className="block text-[12px] font-semibold text-zinc-700 mb-1">
         {label} {required && <span className="text-rose-500">*</span>}
       </label>
       {children}
-      {hint && <p className="text-[10.5px] text-zinc-400 mt-1">{hint}</p>}
+      {error ? (
+        <p className="text-[10.5px] text-rose-500 mt-1">{error}</p>
+      ) : hint ? (
+        <p className="text-[10.5px] text-zinc-400 mt-1">{hint}</p>
+      ) : null}
     </div>
   );
 }
 
 // Note: PageHeading and JobGradeDetailsCard are integrated below into the main component.
 
-// ─── Examples of Job Grades card ────────────────────────────────────────────
-function ExampleGradesCard() {
-  return (
-    <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
-      <h3 className="text-[14px] font-bold text-zinc-900 mb-3">Examples of Job Grades in Your Organization</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
-        {EXAMPLE_GRADES.map((g) => (
-          <div key={g.code} className={`rounded-lg border ${g.border} bg-white p-1.5`}>
-            <div className="flex items-center justify-between gap-1">
-              <span className="text-[11px] font-bold text-zinc-500">{g.code}</span>
-              <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${g.levelColor}`}>{g.level}</span>
-            </div>
-            <p className="text-[12px] font-bold text-zinc-900 mt-1">{g.title}</p>
-            <p className="text-[10px] text-zinc-500 mt-1">{g.pay}</p>
-            <div className="mt-2 pt-2 border-t border-zinc-100 space-y-0.5">
-              <p className="text-[10px] text-zinc-400">Family: <span className="text-zinc-600">{g.family}</span></p>
-              <p className="text-[10px] text-zinc-400">Reports To: <span className="text-zinc-600">{g.reports}</span></p>
+          {/* Examples */}
+          <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
+            <h3 className="text-[14px] font-bold text-zinc-900 mb-3">Examples of Job Grades in Your Organization</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+              {EXAMPLE_GRADES.map((g) => (
+                <div key={g.code} className={`rounded-lg border ${g.border} bg-white p-1.5`}>
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[11px] font-bold text-zinc-500">{g.code}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${g.levelColor}`}>{g.level}</span>
+                  </div>
+                  <p className="text-[12px] font-bold text-zinc-900 mt-1">{g.title}</p>
+                  <p className="text-[10px] text-zinc-500 mt-1">{g.pay}</p>
+                  <div className="mt-2 pt-2 border-t border-zinc-100 space-y-0.5">
+                    <p className="text-[10px] text-zinc-400">Family: <span className="text-zinc-600">{g.family}</span></p>
+                    <p className="text-[10px] text-zinc-400">Reports To: <span className="text-zinc-600">{g.reports}</span></p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 // ─── Additional Information card ────────────────────────────────────────────
 function AdditionalInfoCard({
@@ -133,44 +137,34 @@ function AdditionalInfoCard({
   );
 }
 
-// ─── Right rail: Grade Level Guide ──────────────────────────────────────────
-function GradeLevelGuideCard() {
-  return (
-    <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
-      <h3 className="text-[14px] font-bold text-zinc-900 mb-3">Grade Level Guide</h3>
-      <div className="space-y-1.5">
-        {GRADE_LEVEL_GUIDE.map((g) => (
-          <div key={g.level} className="flex items-center gap-2.5">
-            <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-lg ${g.bg} text-[11px] font-bold text-white`}>
-              {g.level}
-            </span>
-            <div>
-              <p className="text-[12px] font-semibold text-zinc-900">{g.title}</p>
-              <p className="text-[10.5px] text-zinc-400">{g.sub}</p>
+        {/* Right rail */}
+        <div className="space-y-2 min-w-0 xl:sticky xl:top-[20px]">
+          <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
+            <h3 className="text-[14px] font-bold text-zinc-900 mb-3">Grade Level Guide</h3>
+            <div className="space-y-1.5">
+              {GRADE_LEVEL_GUIDE.map((g) => (
+                <div key={g.level} className="flex items-center gap-2.5">
+                  <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-lg ${g.bg} text-[11px] font-bold text-white`}>{g.level}</span>
+                  <div>
+                    <p className="text-[12px] font-semibold text-zinc-900">{g.title}</p>
+                    <p className="text-[10.5px] text-zinc-400">{g.sub}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
-// ─── Right rail: Why Add Job Grade ──────────────────────────────────────────
-function WhyAddCard() {
-  return (
-    <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
-      <h3 className="text-[14px] font-bold text-zinc-900 mb-3">Why Add Job Grade?</h3>
-      <div className="space-y-1.5">
-        {WHY_ADD.map((w) => (
-          <div key={w} className="flex items-start gap-2">
-            <Check size={14} className="mt-0.5 shrink-0 rounded-full bg-emerald-100 text-emerald-600 p-0.5" />
-            <p className="text-[12px] text-zinc-600 leading-snug">{w}</p>
+          <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
+            <h3 className="text-[14px] font-bold text-zinc-900 mb-3">Why Add Job Grade?</h3>
+            <div className="space-y-1.5">
+              {WHY_ADD.map((w) => (
+                <div key={w} className="flex items-start gap-2">
+                  <Check size={14} className="mt-0.5 shrink-0 rounded-full bg-emerald-100 text-emerald-600 p-0.5" />
+                  <p className="text-[12px] text-zinc-600 leading-snug">{w}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 // ─── Right rail: Note ────────────────────────────────────────────────────────
 function NoteCard() {
@@ -399,7 +393,7 @@ function AddJobGradeContent() {
       <footer className="text-center text-[11px] text-zinc-400 py-3 flex items-center justify-center gap-2.5 flex-wrap">
         <span>© 2025 Crewcam HRMS. All Rights Reserved.</span>
       </footer>
-    </div>
+    </form>
   );
 }
 
