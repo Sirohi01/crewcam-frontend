@@ -179,7 +179,7 @@ export default function LoginScreen({ variant }: { variant: Variant }) {
   const VariantIcon = copy.icon;
 
   return (
-    <div ref={brandRef} className="relative flex h-screen overflow-hidden bg-white dark:bg-zinc-950">
+    <div ref={brandRef} className="relative flex h-screen overflow-hidden bg-white dark:bg-zinc-950" suppressHydrationWarning>
       {/* Full-page background photo, shared behind both panels (desktop only — mobile keeps a plain background) */}
       <div className="absolute inset-0 z-0 hidden lg:block">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -258,7 +258,7 @@ export default function LoginScreen({ variant }: { variant: Variant }) {
 
       {/* Right: Login Form */}
       <div className="relative z-10 flex w-full flex-col justify-center h-full overflow-y-auto px-8 lg:w-1/2 xl:px-20 bg-white lg:bg-transparent dark:bg-zinc-950">
-        <div className="absolute right-6 top-6 z-10 flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
+        <div className="absolute right-6 top-6 z-10 flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400" suppressHydrationWarning>
           <button type="button" className="flex items-center gap-1.5 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors">
             <Globe size={15} /> English <ChevronDown size={13} />
           </button>
@@ -319,7 +319,7 @@ export default function LoginScreen({ variant }: { variant: Variant }) {
               <div className="mt-3 h-0.5 w-10 rounded-full bg-[var(--brand-secondary)]" />
             </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4" suppressHydrationWarning>
             {variant === 'employer' && (
               <div className="space-y-1.5">
                 <Label htmlFor="corporateId" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">

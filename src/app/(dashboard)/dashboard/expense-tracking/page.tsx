@@ -547,6 +547,7 @@
 
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import {
     Plus, Upload, Search, ChevronDown, Check, Calendar, ChevronLeft, ChevronRight,
@@ -651,9 +652,8 @@ const topExpenses = [
     { title: 'Outstation Travel', amount: 85400 },
     { title: 'Office Supplies', amount: 76200 },
 ];
-
 const quickActions = [
-    { label: 'New Expense', icon: Plus },
+    { label: 'New Expense', icon: Plus, href: '/dashboard/departments/INT-DSN/expense-tracking/add' },
     { label: 'Upload Bulk Expenses', icon: UploadIcon },
     { label: 'Expense Reports', icon: FileText },
     { label: 'Budget vs Actual', icon: BarChart2 },
@@ -1191,6 +1191,17 @@ export default function ExpenseTrackingPage() {
                     <div className="flex flex-col gap-1">
                         {quickActions.map((action, idx) => {
                             const ActionIcon = action.icon;
+                            if (action.href) {
+                                return (
+                                    <Link
+                                        key={idx}
+                                        href={action.href}
+                                        className="flex items-center gap-2.5 px-2 py-1 rounded-md text-[11px] font-medium text-zinc-700 hover:bg-zinc-50 transition-colors text-left"
+                                    >
+                                        <ActionIcon className="w-4 h-4 text-indigo-500" /> {action.label}
+                                    </Link>
+                                );
+                            }
                             return (
                                 <button
                                     key={idx}
