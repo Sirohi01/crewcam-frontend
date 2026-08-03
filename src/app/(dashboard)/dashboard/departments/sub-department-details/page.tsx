@@ -184,7 +184,11 @@ export function Tabs({ active, onChange }: { active: string; onChange?: (t: stri
           key={t}
           onClick={() => {
             if (t === 'Team Members') {
-              router.push('/dashboard/departments/sub-department-details/team-members');
+              router.push('/dashboard/team-member');
+            } else if (t === 'History') {
+              router.push('/dashboard/history');
+            } else if (t === 'Documents') {
+              router.push('/department-document');
             } else if (t === 'Expense Tracking') {
               window.open('/dashboard/expense-tracking', '_blank');
             } else if (onChange) {
