@@ -7,6 +7,8 @@ import {
     Building2, Network, UserCog, Landmark, Wallet, UserPlus, ShieldCheck,
     UploadCloud, Download, GitBranch
 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 
 // ---- DUMMY / MOCK DATA (used as fallback when the API is unavailable) ----
@@ -265,12 +267,12 @@ export default function TeamMembersPage() {
                     <p className="text-[12px] text-zinc-500">View and manage team members working in this sub department.</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-1.5 h-9 px-3 bg-white border border-zinc-200 rounded-md text-[12px] font-semibold hover:bg-zinc-50 transition-colors shadow-sm text-zinc-700">
+                    <Link href="/dashboard/departments/sub-department-details" className="flex items-center gap-1.5 h-9 px-3 bg-white border border-zinc-200 rounded-md text-[12px] font-semibold hover:bg-zinc-50 transition-colors shadow-sm text-zinc-700">
                         <ArrowLeft className="w-3.5 h-3.5" /> Back to Sub Departments
-                    </button>
-                    <button className="flex items-center gap-1.5 h-9 px-3 bg-indigo-600 text-white rounded-md text-[12px] font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
+                    </Link>
+                    <Link href="/dashboard/add-new-team-member" className="flex items-center gap-1.5 h-9 px-3 bg-indigo-600 text-white rounded-md text-[12px] font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
                         <Plus className="w-4 h-4" /> Add Team Member
-                    </button>
+                    </Link>
                 </div>
             </div>
 
@@ -580,7 +582,16 @@ export default function TeamMembersPage() {
                         <div className="flex flex-col gap-1">
                             {quickActions.map((action, idx) => {
                                 const ActionIcon = action.icon;
-                                return (
+                                const isAddMember = action.label === 'Add Team Member';
+                                return isAddMember ? (
+                                    <Link
+                                        key={idx}
+                                        href="/dashboard/add-new-team-member"
+                                        className="flex items-center gap-2.5 px-2 py-1.5 rounded-md text-[11.5px] font-medium text-zinc-700 hover:bg-zinc-50 transition-colors text-left"
+                                    >
+                                        <ActionIcon className="w-4 h-4 text-indigo-500" /> {action.label}
+                                    </Link>
+                                ) : (
                                     <button
                                         key={idx}
                                         className="flex items-center gap-2.5 px-2 py-1.5 rounded-md text-[11.5px] font-medium text-zinc-700 hover:bg-zinc-50 transition-colors text-left"
