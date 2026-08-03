@@ -22,6 +22,14 @@ export default function PoliciesPage({ params }: { params: Promise<{ id: string 
   const [selectedType, setSelectedType] = useState('All Policy Types');
   const [selectedStatus, setSelectedStatus] = useState('All Status');
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory, selectedType, selectedStatus, activeTab]);
+
   const handleClearFilters = () => {
     setSearchQuery('');
     setSelectedCategory('All Categories');
@@ -41,6 +49,9 @@ export default function PoliciesPage({ params }: { params: Promise<{ id: string 
     
     return true;
   });
+
+  const totalPages = Math.ceil(filteredPolicies.length / rowsPerPage);
+  const paginatedPolicies = filteredPolicies.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
   const fetchPolicies = async () => {
     try {
@@ -254,14 +265,14 @@ export default function PoliciesPage({ params }: { params: Promise<{ id: string 
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredPolicies.length === 0 && (
+                {paginatedPolicies.length === 0 && (
                   <tr>
                     <td colSpan={9} className="text-center py-4 text-slate-500 text-[11px]">No policies found matching your filters.</td>
                   </tr>
                 )}
-                {filteredPolicies.map((pol: any, idx: number) => (
+                {paginatedPolicies.map((pol: any, idx: number) => (
                   <tr key={pol._id || idx} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-2 px-3 text-[11px] font-bold text-slate-700">{idx + 1}</td>
+                    <td className="py-2 px-3 text-[11px] font-bold text-slate-700">{(currentPage - 1) * rowsPerPage + idx + 1}</td>
                     <td className="py-2 px-2">
                       <div className="flex items-start gap-3">
                         <div className={`w-7 h-7 mt-0.5 rounded-lg flex items-center justify-center shrink-0 border border-slate-200 bg-slate-50`}>
@@ -305,15 +316,22 @@ export default function PoliciesPage({ params }: { params: Promise<{ id: string 
 
           {/* PAGINATION */}
           <div className="p-2 px-4 border-t border-slate-100 flex items-center justify-between">
-            <span className="text-[10px] font-semibold text-slate-600">Showing {filteredPolicies.length} policies</span>
-            <div className="flex items-center gap-1">
-              <button className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-50 text-[10px] font-medium">&lt;</button>
-              <button className="w-6 h-6 flex items-center justify-center rounded border border-indigo-600 bg-indigo-600 text-white text-[10px] font-bold">1</button>
-              <button className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 text-slate-700 hover:bg-slate-50 text-[10px] font-bold">2</button>
-              <button className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 text-slate-700 hover:bg-slate-50 text-[10px] font-bold">3</button>
-              <button className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 text-slate-700 text-[10px] font-bold cursor-default">...</button>
-              <button className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 text-slate-700 hover:bg-slate-50 text-[10px] font-bold">4</button>
-              <button className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 text-slate-700 hover:bg-slate-50 text-[10px] font-medium">&gt;</button>
+            <span className="text-[10px] font-semibold text-slate-600">
+              Showing {filteredPolicies.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1} to {Math.min(currentPage * rowsPerPage, filteredPolicies.length)} of {filteredPolicies.length} policies
+            </span>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 mr-2">
+                <span className="text-[10px] font-medium text-slate-500">Rows per page:</span>
+                <select value={rowsPerPage} onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }} className="appearance-none border border-slate-200 bg-white px-2 py-0.5 rounded text-[10px] font-medium focus:outline-none">
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+              <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-50 text-[10px] font-medium">&lt;</button>
+              <span className="text-[10px] font-bold text-slate-700 px-1">Page {currentPage} of {totalPages || 1}</span>
+              <button disabled={currentPage >= totalPages || totalPages === 0} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-50 text-[10px] font-medium">&gt;</button>
             </div>
           </div>
 

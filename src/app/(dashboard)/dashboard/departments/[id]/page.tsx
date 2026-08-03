@@ -84,7 +84,7 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
     { name: 'Documents (3)', icon: FileText },
     { name: 'KPIs & Goals', icon: Target },
     { name: 'Policies', icon: Book, href: `/dashboard/departments/${id}/policies` },
-    { name: 'Custom Fields', icon: AlignLeft },
+    { name: 'Custom Fields', icon: AlignLeft, href: `/dashboard/departments/${id}/custom-fields` },
     { name: 'Audit Trail', icon: Clock },
   ];
 
