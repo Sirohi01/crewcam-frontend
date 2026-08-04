@@ -191,6 +191,8 @@ export function Tabs({ active, onChange }: { active: string; onChange?: (t: stri
               router.push('/department-document');
             } else if (t === 'Expense Tracking') {
               window.open('/dashboard/expense-tracking', '_blank');
+            } else if (t === 'Budget Allocation') {
+              router.push('/dashboard/budget-allocation');
             } else if (onChange) {
               onChange(t);
             }
@@ -443,6 +445,7 @@ function CostCenterMappingCard() {
 
 // ─── Right rail: Quick Actions ──────────────────────────────────────────────
 function QuickActionsCard() {
+  const router = useRouter();
   return (
     <div className="rounded-sm border border-zinc-200 bg-white shadow-sm p-3">
       <h3 className="text-[14px] font-bold text-zinc-900 mb-3">Quick Actions</h3>
@@ -450,17 +453,26 @@ function QuickActionsCard() {
         <button className="flex items-center gap-1.5 rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-2 text-[11.5px] font-semibold text-indigo-600 hover:bg-indigo-100 transition-colors">
           <Plus size={13} /> Add Sub Department
         </button>
-        <button className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[11.5px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
+        <button 
+          onClick={() => router.push('/dashboard/add-budget-allocation')}
+          className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[11.5px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
+        >
           <IndianRupee size={13} /> Allocate Budget
         </button>
         <button className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[11.5px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
           <Wallet size={13} /> Map Cost Center
         </button>
-        <button className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[11.5px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
+        <button 
+          onClick={() => router.push('/department-document')}
+          className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[11.5px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
+        >
           <Upload size={13} /> Upload Document
         </button>
       </div>
-      <button className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[11.5px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
+      <button 
+        onClick={() => router.push('/dashboard/team-member')}
+        className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[11.5px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
+      >
         <UserPlus size={13} /> View Team Members
       </button>
     </div>
