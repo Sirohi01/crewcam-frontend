@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { ChevronRight, ArrowLeft, GitBranch, Pencil, Users, Building2, Wallet, CalendarRange, Download, ChevronDown, MoreVertical, TrendingUp, ArrowRight, ShieldCheck, Plus, Receipt, CreditCard, Cpu, GraduationCap, Plane, Package, } from 'lucide-react';
 import Link from 'next/link';
 import CostCenterMappingTab from './CostCenterMappingTab';
+import BudgetAllocationTab from './BudgetAllocationTab';
 
 // ─── Static data ────────────────────────────────────────────────────────────
 const BREADCRUMB = ['Organization Setup', 'Departments', 'Department Structure', 'Sub Department Details', 'Budget & Costing'];
@@ -81,15 +82,15 @@ function PageHeading() {
           <p className="text-[13px] text-zinc-500">Plan, allocate and track budgets and costs for this sub department.</p>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          <Link href={'/dashboard/departments/sub-department-details'} className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors whitespace-nowrap">
-            <ArrowLeft size={13} /> Back to Sub Department
+          <Link href={'/dashboard/departments'} className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors whitespace-nowrap">
+            <ArrowLeft size={13} /> Back to Sub Departments
           </Link>
-          <Link href={'/dashboard/departments/structure/view-in-tree'} className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors whitespace-nowrap">
-            <GitBranch size={13} /> View in Tree
-          </Link>
-          <Link href={'/dashboard/departments/structure/edit-budget'} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors whitespace-nowrap">
-            <Pencil size={13} /> Edit Budget
-          </Link>
+          <button className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors whitespace-nowrap">
+            <Pencil size={13} /> Edit Details
+          </button>
+          <button className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors whitespace-nowrap">
+            More Actions <ChevronDown size={13} />
+          </button>
         </div>
       </div>
     </section>
@@ -367,6 +368,8 @@ export default function BudgetAndCostingPage() {
 
       {activeTab === 'Cost Center Mapping' ? (
         <CostCenterMappingTab />
+      ) : activeTab === 'Budget Allocation' ? (
+        <BudgetAllocationTab />
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-[2.6fr_1fr] gap-2.5 items-start">
           <div className="min-w-0 space-y-2.5">
