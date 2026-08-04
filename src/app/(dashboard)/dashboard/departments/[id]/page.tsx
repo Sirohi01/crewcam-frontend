@@ -51,10 +51,18 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
     try {
       setLoading(true);
       const data = await getDepartmentById(id);
-      setFormData({
-        ...formData,
+      // Safely resolve populated fields (backend returns objects, we need strings/IDs)
+      const resolveField = (field: any) => {
+        if (!field) return '';
+        if (typeof field === 'object') return field.firstName ? `${field.firstName} ${field.lastName}`.trim() : field._id || '';
+        return field;
+      };
+      setFormData(prev => ({
+        ...prev,
         ...data,
-      });
+        hodEmployeeId: resolveField(data.hodEmployeeId),
+        reportingToId: resolveField(data.reportingToId),
+      }));
     } catch (error) {
       console.error('Failed to fetch department details', error);
     } finally {

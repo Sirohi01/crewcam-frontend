@@ -83,7 +83,13 @@ export default function PoliciesPage({ params }: { params: Promise<{ id: string 
       try {
         setLoading(true);
         const data = await getDepartmentById(id);
-        setDepartment(data);
+        // Safely resolve populated fields so React never receives an object as a child
+        const resolveField = (field: any) => {
+          if (!field) return null;
+          if (typeof field === 'object') return field.firstName ? `${field.firstName} ${field.lastName}`.trim() : field._id || null;
+          return field;
+        };
+        setDepartment({ ...data, hodEmployeeId: resolveField(data.hodEmployeeId), reportingToId: resolveField(data.reportingToId) });
       } catch (error) {
         console.error('Failed to fetch department details', error);
       } finally {
