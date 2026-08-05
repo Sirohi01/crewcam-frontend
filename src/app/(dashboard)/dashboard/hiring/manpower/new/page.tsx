@@ -7,6 +7,8 @@ import {
   FileText, ListChecks, Target, TrendingUp, Lightbulb, RotateCcw, Plus,
   UploadCloud, MessageCircle, X,
 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/axios';
 
 // Dummy data / static mockup — matches the approved design 1:1. The real,
 // backend-wired requisition form still lives at
@@ -120,6 +122,21 @@ function SectionCard({
 }
 
 export default function CreateJobRequisitionPage() {
+  const { data: deptRes } = useQuery({ queryKey: ['departments'], queryFn: () => api.get('/departments') });
+  const activeDepartments = (deptRes?.data?.data || []).filter((d: any) => d.isActive).map((d: any) => d.name);
+
+  const { data: empRes } = useQuery({ queryKey: ['employees'], queryFn: () => api.get('/employees') });
+  const activeEmployees = (empRes?.data?.data || []).filter((e: any) => e.isActive !== false).map((e: any) => `${e.firstName} ${e.lastName}${e.designation ? ` (${e.designation})` : ''}`);
+
+  const { data: buRes } = useQuery({ queryKey: ['business-units'], queryFn: () => api.get('/business-units') });
+  const activeBusinessUnits = (buRes?.data?.data || []).filter((b: any) => b.status === 'Active').map((b: any) => b.name);
+
+  const { data: branchRes } = useQuery({ queryKey: ['branches'], queryFn: () => api.get('/branches') });
+  const activeBranches = (branchRes?.data?.data || []).filter((b: any) => b.status === 'Active').map((b: any) => b.name);
+
+  const { data: desigRes } = useQuery({ queryKey: ['designations'], queryFn: () => api.get('/designations') });
+  const activeDesignations = (desigRes?.data?.data || []).filter((d: any) => d.isActive !== false).map((d: any) => d.name);
+
   return (
     <div className="bg-[#fafbfc] font-sans">
       <div className="mx-auto max-w-[1500px] space-y-2 p-1">
@@ -164,11 +181,11 @@ export default function CreateJobRequisitionPage() {
             <SectionCard number={1} title="Requisition Details">
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
                 <Field title="Requisition Title" required><input className={inputCls} defaultValue="Sales Executive - North Region" /></Field>
-                <SelectField title="Department" required options={['Sales & Marketing', 'IT', 'HR', 'Finance']} />
-                <SelectField title="Reporting Manager" required options={['Reetika Singh (Sales Head)', 'Amit Kumar', 'Vikas Mittal']} />
-                <SelectField title="Business Unit" options={['Select Business Unit', 'Retail', 'Corporate', 'Enterprise']} />
+                <SelectField title="Department" required options={activeDepartments.length ? activeDepartments : ['Sales & Marketing', 'IT', 'HR', 'Finance']} />
+                <SelectField title="Reporting Manager" required options={activeEmployees.length ? activeEmployees : ['Reetika Singh (Sales Head)', 'Amit Kumar', 'Vikas Mittal']} />
+                <SelectField title="Business Unit" options={activeBusinessUnits.length ? ['Select Business Unit', ...activeBusinessUnits] : ['Select Business Unit', 'Retail', 'Corporate', 'Enterprise']} />
 
-                <SelectField title="Location" required options={['Noida - Head Office', 'Delhi', 'Mumbai', 'Bangalore']} />
+                <SelectField title="Location" required options={activeBranches.length ? activeBranches : ['Noida - Head Office', 'Delhi', 'Mumbai', 'Bangalore']} />
                 <SelectField title="Job Type" required options={['Full Time', 'Part Time', 'Contract', 'Internship']} />
                 <SelectField title="Employment Type" required options={['Permanent', 'Temporary', 'Probation']} />
                 <Field title="Expected Joining Date" required><input type="date" className={inputCls} defaultValue="2026-08-15" /></Field>
@@ -183,7 +200,7 @@ export default function CreateJobRequisitionPage() {
                     <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                   </div>
                 </Field>
-                <SelectField title="Requisition Raised By" required options={['Swati Verma (HR Manager)', 'Amit Kumar']} />
+                <SelectField title="Requisition Raised By" required options={activeEmployees.length ? activeEmployees : ['Swati Verma (HR Manager)', 'Amit Kumar']} />
                 <Field title="Requisition Date"><input type="date" className={`${inputCls} bg-zinc-50 text-zinc-500`} defaultValue="2026-05-21" readOnly /></Field>
 
                 <div className="sm:col-span-2 xl:col-span-4">
@@ -203,8 +220,8 @@ export default function CreateJobRequisitionPage() {
                   <div className="grid grid-cols-2 gap-2">
                     <Field title="Job Title" required><input className={inputCls} defaultValue="Sales Executive" /></Field>
                     <Field title="Job Code"><input className={inputCls} defaultValue="SE-001" /></Field>
-                    <SelectField title="Department" required options={['Sales & Marketing', 'IT', 'HR', 'Finance']} />
-                    <SelectField title="Designation" required options={['Sales Executive', 'Senior Sales Executive', 'Sales Manager']} />
+                    <SelectField title="Department" required options={activeDepartments.length ? activeDepartments : ['Sales & Marketing', 'IT', 'HR', 'Finance']} />
+                    <SelectField title="Designation" required options={activeDesignations.length ? activeDesignations : ['Sales Executive', 'Senior Sales Executive', 'Sales Manager']} />
                   </div>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <Field title="Job Description (JD)" required hint="176 / 1500">
@@ -251,7 +268,7 @@ export default function CreateJobRequisitionPage() {
                 <span className="text-[10.5px] font-semibold text-zinc-600">Yes</span>
               </div>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
-                <SelectField title="Employee Being Replaced" required options={['Amit Kumar (Sales Executive)', 'Rohit Sharma']} />
+                <SelectField title="Employee Being Replaced" required options={activeEmployees.length ? activeEmployees : ['Amit Kumar (Sales Executive)', 'Rohit Sharma']} />
                 <SelectField title="Replacement Reason" required options={['Resigned', 'Terminated', 'Transferred', 'Retired']} />
                 <Field title="Last Working Date"><input type="date" className={inputCls} defaultValue="2026-08-10" /></Field>
                 <SelectField title="Impact of Vacancy" options={['Low', 'Medium', 'High']} defaultValue="High" />
@@ -298,10 +315,10 @@ export default function CreateJobRequisitionPage() {
           {/* Sidebar */}
           <div className="space-y-2">
             <div className="flex gap-2">
-              <button type="button" className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
+              <button type="button" className="flex flex-1 h-8 items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
                 <Save size={13} /> Save as Draft
               </button>
-              <button type="button" className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700">
+              <button type="button" className="flex flex-1 h-8 items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-3 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700">
                 <Send size={13} /> Submit for Approval
               </button>
             </div>

@@ -326,10 +326,18 @@ export default function DepartmentsPage() {
                                             <td className="py-2 px-2 align-middle font-semibold text-slate-600 text-[10.5px]">{dept.code}</td>
                                             <td className="py-2 px-2 align-middle">
                                                 <div className="flex items-center gap-2">
-                                                    <img src={`https://i.pravatar.cc/150?u=${dept._id || dept.id}`} alt={dept.headName || 'User'} className="w-6 h-6 rounded-full border border-slate-200 shrink-0" />
+                                                    <img src={`https://i.pravatar.cc/150?u=${dept._id || dept.id}`} alt={(typeof dept.headName === 'string' ? dept.headName : dept.hodEmployeeId?.firstName) || 'User'} className="w-6 h-6 rounded-full border border-slate-200 shrink-0" />
                                                     <div className="min-w-0">
-                                                        <p className="font-semibold text-slate-800 text-[11px] truncate">{dept.hodEmployeeId || 'Aman Malhotra'}</p>
-                                                        <p className="text-[10px] text-slate-400 truncate">Design Director</p>
+                                                        <p className="font-semibold text-slate-800 text-[11px] truncate">
+                                                            {(dept.hodEmployeeId && typeof dept.hodEmployeeId === 'object') 
+                                                                ? `${dept.hodEmployeeId.firstName || ''} ${dept.hodEmployeeId.lastName || ''}`.trim() 
+                                                                : (typeof dept.hodEmployeeId === 'string' ? dept.hodEmployeeId : 'Aman Malhotra')}
+                                                        </p>
+                                                        <p className="text-[10px] text-slate-400 truncate">
+                                                            {(dept.hodEmployeeId && typeof dept.hodEmployeeId === 'object' && dept.hodEmployeeId.designation) 
+                                                                ? dept.hodEmployeeId.designation 
+                                                                : 'Design Director'}
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </td>
