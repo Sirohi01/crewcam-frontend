@@ -12,6 +12,7 @@ import {
   UploadCloud, MessageCircle, X,
 } from 'lucide-react';
 import api from '@/lib/axios';
+import ApiSelect from '@/components/common/ApiSelect';
 
 const KPIS = [
   { label: 'Open Positions', value: '42', icon: Briefcase, accent: 'bg-blue-50 text-blue-600', trend: '8 from last month', up: true },
@@ -235,40 +236,16 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
                   <input className={inputCls} placeholder="e.g. Sales Executive - North Region" {...register('jobTitle', { required: true })} />
                 </Field>
                 <Field title="Department" required error={errors.departmentId}>
-                  <div className="relative">
-                    <select className={selectCls} {...register('departmentId', { required: true })}>
-                      <option value="">Select Department</option>
-                      {activeDepartments.map((d: any) => <option key={d._id} value={d._id}>{d.name}</option>)}
-                    </select>
-                    <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                  </div>
+                  <ApiSelect apiType="department" className={selectCls} placeholderText="Select Department" {...register('departmentId', { required: true })} />
                 </Field>
                 <Field title="Reporting Manager" required error={errors.reportingTo}>
-                  <div className="relative">
-                    <select className={selectCls} {...register('reportingTo')}>
-                      <option value="">Select Manager</option>
-                      {activeEmployees.map((e: any) => <option key={e._id} value={e._id}>{e.firstName} {e.lastName}</option>)}
-                    </select>
-                    <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                  </div>
+                  <ApiSelect apiType="employee" className={selectCls} placeholderText="Select Manager" {...register('reportingTo')} />
                 </Field>
                 <Field title="Business Unit" error={errors.businessUnit}>
-                  <div className="relative">
-                    <select className={selectCls} {...register('businessUnit')}>
-                      <option value="">Select Business Unit</option>
-                      {activeBusinessUnits.map((b: any) => <option key={b._id} value={b.name}>{b.name}</option>)}
-                    </select>
-                    <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                  </div>
+                  <ApiSelect apiType="business-unit" className={selectCls} placeholderText="Select Business Unit" {...register('businessUnit')} />
                 </Field>
                 <Field title="Location" required error={errors.locationBranchId}>
-                  <div className="relative">
-                    <select className={selectCls} {...register('locationBranchId', { required: true })}>
-                      <option value="">Select Branch</option>
-                      {activeBranches.map((b: any) => <option key={b._id} value={b._id}>{b.name}</option>)}
-                    </select>
-                    <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                  </div>
+                  <ApiSelect apiType="branch" className={selectCls} placeholderText="Select Branch" {...register('locationBranchId', { required: true })} />
                 </Field>
                 <Field title="Job Type" required error={errors.employmentType}>
                   <div className="relative">
@@ -297,13 +274,7 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
                   </div>
                 </Field>
                 <Field title="Requisition Raised By" required error={errors.requestedBy}>
-                  <div className="relative">
-                    <select className={selectCls} {...register('requestedBy', { required: true })}>
-                      <option value="">Select Employee</option>
-                      {activeEmployees.map((e: any) => <option key={e._id} value={e._id}>{e.firstName} {e.lastName}</option>)}
-                    </select>
-                    <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                  </div>
+                  <ApiSelect apiType="employee" className={selectCls} placeholderText="Select Employee" {...register('requestedBy', { required: true })} />
                 </Field>
 
                 <div className="sm:col-span-2 xl:col-span-4">
