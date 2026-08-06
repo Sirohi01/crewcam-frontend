@@ -71,7 +71,9 @@ export default function DesignationsTable() {
     }
   });
 
-  const filtered = designations.map((d: any) => {
+  const designationsArray = Array.isArray(designations) ? designations : (designations?.data || []);
+
+  const filtered = designationsArray.map((d: any) => {
     const styling = getStyling(d.name);
     return {
       id: d._id,
@@ -95,8 +97,8 @@ export default function DesignationsTable() {
     return tabMatch && searchMatch && gradeMatch && familyMatch && statusMatch;
   });
 
-  const uniqueGrades = Array.from(new Set(designations.map((d: any) => d.jobGrade?.name || d.jobGrade))).filter(Boolean) as string[];
-  const uniqueFamilies = Array.from(new Set(designations.map((d: any) => d.jobFamily?.name || d.jobFamily))).filter(Boolean) as string[];
+  const uniqueGrades = Array.from(new Set(designationsArray.map((d: any) => d.jobGrade?.name || d.jobGrade))).filter(Boolean) as string[];
+  const uniqueFamilies = Array.from(new Set(designationsArray.map((d: any) => d.jobFamily?.name || d.jobFamily))).filter(Boolean) as string[];
 
   const totalPages = Math.ceil(filtered.length / rowsPerPage) || 1;
   const paginatedData = filtered.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
