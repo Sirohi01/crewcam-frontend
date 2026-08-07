@@ -2,15 +2,68 @@
 
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import api from '@/lib/axios';
+import { toast } from 'react-hot-toast';
 import {
-  CheckCircle2, Loader2, Minus, Plus, Maximize2, Download, Mail, Phone,
+  CheckCircle2, Loader2, Minus, Plus, Maximize2, Minimize2, Download, Mail, Phone,
   MapPin, Link2, ChevronDown, X, RefreshCw, Calendar, ArrowRight, Sparkles,
 } from 'lucide-react';
 import { FormInput } from '@/components/ui/form-input';
+import ApiSelect from '@/components/common/ApiSelect';
 
-// Dummy data / static mockup — matches the approved design 1:1. The real,
-// backend-wired candidate form still lives at
-// /dashboard/hiring/candidates/new/create/classic.
+export interface ExperienceEntry {
+  id: string;
+  role: string;
+  company: string;
+  employmentType: string;
+  startDate: string;
+  endDate: string;
+  bullets: string[];
+}
+
+export interface EducationEntry {
+  degree: string;
+  school: string;
+  period: string;
+}
+
+export interface CandidateInfo {
+  manpowerRequestId: string;
+  fullName: string;
+  email: string;
+  mobile: string;
+  currentLocation: string;
+  preferredLocation: string;
+  linkedin: string;
+  appliedFor: string;
+  department: string;
+  employmentType: string;
+  totalExperience: string;
+  relevantExperience: string;
+  currentCompany: string;
+  currentCTC: string;
+  expectedCTC: string;
+  noticePeriod: string;
+  availableFrom: string;
+  relocation: string;
+  willingToTravel: string;
+  highestQualification: string;
+  university: string;
+  yearOfPassing: string;
+  cgpa: string;
+  skills: string[];
+  experiences: ExperienceEntry[];
+  education: EducationEntry[];
+}
+
+const emptyCandidate: CandidateInfo = {
+  manpowerRequestId: '', fullName: '', email: '', mobile: '', currentLocation: '', preferredLocation: '', linkedin: '',
+  appliedFor: '', department: '', employmentType: 'Full Time', totalExperience: '',
+  relevantExperience: '', currentCompany: '', currentCTC: '', expectedCTC: '', noticePeriod: '',
+  availableFrom: '', relocation: '', willingToTravel: '', highestQualification: '',
+  university: '', yearOfPassing: '', cgpa: '', skills: [], experiences: [], education: []
+};
 
 const steps = [
   { num: 1, label: 'Upload CV', status: 'active' },
@@ -24,27 +77,6 @@ const extractionChecklist = [
   'Extracting Experience',
   'Extracting Education',
   'Extracting Skills',
-];
-
-const experience = [
-  { role: 'Sales Manager', company: 'ABC Pvt. Ltd.', period: 'Jun 2021 – Present', points: ['Leading a team of 10 sales executives and managing key enterprise accounts.', 'Achieved 125% of annual sales target for 2 consecutive years.', 'Developed strategic sales plans and increased market share by 18%.'] },
-  { role: 'Senior Sales Executive', company: 'XYZ Solutions Pvt. Ltd.', period: 'May 2019 – May 2021', points: ['Managed client acquisition and retention.', 'Consistently met quarterly sales targets.'] },
-  { role: 'Sales Executive', company: 'Techno Sales Pvt. Ltd.', period: 'Aug 2017 – Apr 2019', points: ['Generated leads and converted them into long-term clients.'] },
-];
-
-const education = [
-  { degree: 'MBA – Marketing', school: 'Amity University, Noida', period: '2017 – 2019' },
-  { degree: 'BBA', school: 'Delhi University', period: '2014 – 2017' },
-];
-
-const cvSkills = ['Sales Strategy', 'Team Leadership', 'Client Relationship', 'Negotiation', 'Business Development', 'CRM', 'Market Analysis'];
-const extractedSkills = ['Sales Strategy', 'Team Leadership', 'Client Relationship', 'Business Development', 'Negotiation', 'CRM', 'Market Analysis'];
-
-const extractionSummary = [
-  { label: 'Personal Information', value: 95 },
-  { label: 'Experience', value: 91 },
-  { label: 'Education', value: 92 },
-  { label: 'Skills', value: 88 },
 ];
 
 const inputCls = 'mt-1 h-7 w-full rounded-none border border-zinc-200 bg-white px-2 text-[11.5px] text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400';
@@ -62,11 +94,11 @@ function Field({
   );
 }
 
-function SelectField({ title, required, options }: { title: string; required?: boolean; options: string[] }) {
+function SelectField({ title, required, options, value, onChange }: { title: string; required?: boolean; options: string[]; value?: string; onChange?: (e: any) => void }) {
   return (
     <Field title={title} required={required}>
       <div className="relative">
-        <select className={selectCls} defaultValue={options[0]}>
+        <select className={selectCls} value={value} onChange={onChange}>
           {options.map((o) => <option key={o}>{o}</option>)}
         </select>
         <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
@@ -76,14 +108,17 @@ function SelectField({ title, required, options }: { title: string; required?: b
 }
 
 function Card({
-  title, action, children, className = '',
-}: { title?: React.ReactNode; action?: React.ReactNode; children?: React.ReactNode; className?: string }) {
+  title, action, headerRight, children, className = '',
+}: { title?: React.ReactNode; action?: React.ReactNode; headerRight?: React.ReactNode; children?: React.ReactNode; className?: string }) {
   return (
     <div className={`rounded-none border border-zinc-200 bg-white shadow-sm ${className}`}>
-      {title && (
+      {(title || action || headerRight) && (
         <div className="flex items-center justify-between gap-2 border-b border-zinc-100 px-2.5 py-1.5">
           <h3 className="text-[12.5px] font-bold text-zinc-800">{title}</h3>
-          {action}
+          <div className="flex items-center gap-2">
+            {action}
+            {headerRight}
+          </div>
         </div>
       )}
       <div className="px-2.5 pb-2 pt-1">{children}</div>
@@ -92,17 +127,100 @@ function Card({
 }
 
 export default function CreateCandidatePage() {
-  const [file, setFile] = useState<{ name: string, size: string } | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [candidate, setCandidate] = useState<CandidateInfo>(emptyCandidate);
+  const handleInputChange = (field: keyof CandidateInfo, value: string) => setCandidate(prev => ({ ...prev, [field]: value }));
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [file, setFile] = React.useState<File | null>(null);
+  const [cvZoom, setCvZoom] = React.useState<number>(100);
+  const [isMaximized, setIsMaximized] = React.useState<boolean>(false);
+  
+  const [showAddSkill, setShowAddSkill] = React.useState(false);
+  const [newSkill, setNewSkill] = React.useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [resumeUrl, setResumeUrl] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+
+  const handleNext = () => {
+    if (!candidate.fullName || !candidate.email || !candidate.mobile || !candidate.manpowerRequestId || !candidate.appliedFor || !candidate.department) {
+      toast.error('Please fill all mandatory fields (Full Name, Email, Mobile, Manpower Request, Position, Department).');
+      return;
+    }
+    sessionStorage.setItem('extractedCandidate', JSON.stringify({ ...candidate, resumeUrl }));
+    router.push('/dashboard/hiring/candidates/new/create/review-and-edit');
+  };
+
+  const handleReextract = () => {
+    if (file) {
+      handleUpload(file);
+    }
+  };
+
+  const handleAddSkill = () => {
+    if (newSkill.trim() && !candidate.skills.includes(newSkill.trim())) {
+      setCandidate(prev => ({ ...prev, skills: [...prev.skills, newSkill.trim()] }));
+    }
+    setNewSkill('');
+    setShowAddSkill(false);
+  };
+
+  const handleRemoveSkill = (skillToRemove: string) => {
+    setCandidate(prev => ({
+      ...prev,
+      skills: prev.skills.filter(s => s !== skillToRemove)
+    }));
+  };
+
+  const handleUpload = async (selectedFile: File) => {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      setIsUploading(true);
+      try {
+        const { data: uploadData } = await api.post('/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        const rUrl = uploadData.url || (typeof uploadData === 'string' ? uploadData : '');
+        setResumeUrl(rUrl);
+
+        if (!rUrl) throw new Error('File upload failed.');
+
+        toast.success('CV Uploaded. Extracting details via AI...');
+        setIsUploading(false);
+        setIsExtracting(true);
+
+        const { data: extractData } = await api.post('/ai/hiring/extract-resume-profile', { resumeUrl: rUrl });
+
+        sessionStorage.setItem('extractedCandidate', JSON.stringify({ ...extractData, resumeUrl: rUrl }));
+        setCandidate(prev => ({
+          ...prev,
+          fullName: extractData.name || extractData.fullName || '',
+          email: extractData.email || '',
+          mobile: extractData.phone || extractData.mobile || '',
+          currentLocation: extractData.location || extractData.currentLocation || '',
+          totalExperience: extractData.totalExperience || '',
+          highestQualification: extractData.education?.[0]?.degree || '',
+          university: extractData.education?.[0]?.institution || '',
+          yearOfPassing: extractData.education?.[0]?.year || '',
+          skills: extractData.skills || [],
+          experiences: extractData.experiences || [],
+          education: extractData.education || [],
+        }));
+        toast.success('Extraction complete!');
+        setIsExtracting(false);
+      } catch (err: any) {
+        setIsUploading(false);
+        setIsExtracting(false);
+        toast.error(err.response?.data?.message || 'Something went wrong during extraction.');
+      }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
-      const sizeInKb = (selectedFile.size / 1024).toFixed(0);
-      setFile({
-        name: selectedFile.name,
-        size: `${sizeInKb} KB`
-      });
+      setFile(selectedFile);
+      handleUpload(selectedFile);
     }
   };
 
@@ -142,8 +260,8 @@ export default function CreateCandidatePage() {
             <Link href="/dashboard/hiring/candidates" className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
               Cancel
             </Link>
-            <button type="button" onClick={() => window.open('/dashboard/hiring/candidates/new/create/review-and-edit', '_blank')} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
-              Next: Review &amp; Edit &rarr;
+            <button type="button" onClick={handleNext} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
+              {file ? 'Next: Review & Edit \u2192' : 'Skip & Fill Manually \u2192'}
             </button>
           </div>
         </div>
@@ -155,7 +273,7 @@ export default function CreateCandidatePage() {
               <h3 className="text-[12px] font-bold text-indigo-950">CV / Resume Uploaded</h3>
 
               <div className="flex items-start gap-4">
-                {/* PDF Icon exactly like the image */}
+                {/* PDF Icon */}
                 <div className="relative w-11 h-14 shrink-0">
                   <svg width="100%" height="100%" viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M4 1C2.34315 1 1 2.34315 1 4V48C1 49.6569 2.34315 51 4 51H36C37.6569 51 39 49.6569 39 48V14L26 1H4Z" fill="white" stroke="#E2E8F0" strokeWidth="2" />
@@ -170,10 +288,10 @@ export default function CreateCandidatePage() {
 
                 <div className="flex flex-col gap-1 min-w-0 mt-0.5">
                   <p className="truncate text-[11.5px] font-bold text-indigo-950">
-                    {file ? file.name : "Amit_Kumar_Verma_Resume.pdf"}
+                    {file ? file.name : "No file selected"}
                   </p>
                   <p className="text-[10px] font-medium text-slate-400">
-                    {file ? file.size : "245 KB"}
+                    {file ? `${(file.size / 1024).toFixed(0)} KB` : "Please upload a PDF"}
                   </p>
                   <input
                     type="file"
@@ -191,12 +309,22 @@ export default function CreateCandidatePage() {
               <div className="space-y-0.5">
                 {extractionChecklist.map((c) => (
                   <p key={c} className="flex items-center gap-1.5 text-[10.5px] text-zinc-600">
-                    <CheckCircle2 size={13} className="shrink-0 text-emerald-500" /> {c}
+                    <CheckCircle2 size={13} className={`shrink-0 ${isExtracting || file ? 'text-emerald-500' : 'text-zinc-300'}`} /> {c}
                   </p>
                 ))}
-                <p className="flex items-center gap-1.5 text-[10.5px] font-semibold text-indigo-600">
-                  <Loader2 size={13} className="shrink-0 animate-spin" /> AI extraction completed successfully
-                </p>
+                {isExtracting ? (
+                  <p className="flex items-center gap-1.5 text-[10.5px] font-semibold text-indigo-600 mt-2">
+                    <Loader2 size={13} className="shrink-0 animate-spin" /> AI extraction in progress...
+                  </p>
+                ) : isUploading ? (
+                  <p className="flex items-center gap-1.5 text-[10.5px] font-semibold text-indigo-600 mt-2">
+                    <Loader2 size={13} className="shrink-0 animate-spin" /> Uploading CV...
+                  </p>
+                ) : (
+                  <p className="flex items-center gap-1.5 text-[10.5px] font-semibold text-zinc-400 mt-2">
+                    Upload CV to start extraction
+                  </p>
+                )}
               </div>
             </Card>
 
@@ -211,97 +339,70 @@ export default function CreateCandidatePage() {
             </Card>
           </div>
 
-          {/* Original CV preview column starts here so it spans the full remaining height */}
           <div className="space-y-2 lg:row-span-2">
             <Card
               title="Original CV Preview"
-              action={(
+              headerRight={file && (
                 <div className="flex items-center gap-1 text-zinc-400">
-                  <button type="button" className="grid h-6 w-6 place-items-center rounded-none hover:bg-zinc-100 hover:text-zinc-600"><Minus size={13} /></button>
-                  <button type="button" className="grid h-6 w-6 place-items-center rounded-none hover:bg-zinc-100 hover:text-zinc-600"><Plus size={13} /></button>
-                  <button type="button" className="grid h-6 w-6 place-items-center rounded-none hover:bg-zinc-100 hover:text-zinc-600"><Maximize2 size={13} /></button>
-                  <button type="button" className="grid h-6 w-6 place-items-center rounded-none hover:bg-zinc-100 hover:text-zinc-600"><Download size={13} /></button>
+                  <button type="button" onClick={() => setCvZoom(prev => Math.min(prev + 20, 200))} className="grid h-6 w-6 place-items-center rounded-none hover:bg-zinc-100 hover:text-zinc-600"><Plus size={13} /></button>
+                  <button type="button" onClick={() => setCvZoom(prev => Math.max(prev - 20, 50))} className="grid h-6 w-6 place-items-center rounded-none hover:bg-zinc-100 hover:text-zinc-600"><Minus size={13} /></button>
+                  <button type="button" onClick={() => setIsMaximized(!isMaximized)} className="grid h-6 w-6 place-items-center rounded-none hover:bg-zinc-100 hover:text-zinc-600">
+                    {isMaximized ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+                  </button>
+                  <button type="button" onClick={() => window.open(resumeUrl, '_blank')} className="grid h-6 w-6 place-items-center rounded-none hover:bg-zinc-100 hover:text-zinc-600"><Download size={13} /></button>
                 </div>
               )}
-              className="max-h-[820px] overflow-y-visible"
+              className={`transition-all duration-300 ${isMaximized ? 'fixed inset-4 z-50 bg-white shadow-2xl overflow-y-auto' : 'max-h-[820px] overflow-y-visible'}`}
             >
-              <div className="flex items-start gap-3">
-                <span className="h-14 w-14 shrink-0 overflow-hidden rounded-none bg-zinc-200" />
-                <div className="min-w-0">
-                  <p className="text-[13px] font-bold uppercase text-zinc-900">Amit Kumar Verma</p>
-                  <p className="text-[10px] font-semibold text-zinc-500">Sales Manager</p>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[9.5px] text-zinc-500">
-                    <span className="flex items-center gap-1"><Phone size={10} /> +91 98765 43210</span>
-                    <span className="flex items-center gap-1"><Mail size={10} /> amit.verma@email.com</span>
-                    <span className="flex items-center gap-1"><MapPin size={10} /> Noida, Uttar Pradesh</span>
+              {file ? (
+                resumeUrl ? (
+                  <div className={`relative w-full overflow-hidden ${isMaximized ? 'h-[calc(100vh-100px)]' : 'h-[750px]'}`}>
+                    <div style={{ transform: `scale(${cvZoom / 100})`, transformOrigin: 'top center', width: `${100 / (cvZoom / 100)}%`, height: `${100 / (cvZoom / 100)}%` }} className="transition-transform duration-200">
+                      <iframe src={resumeUrl} className="absolute inset-0 w-full h-full border-0" title="Original CV Preview" />
+                    </div>
                   </div>
-                  <p className="mt-1 flex items-center gap-1 text-[9.5px] text-zinc-500"><Link2 size={10} /> linkedin.com/in/amitverma</p>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-64 text-zinc-400">
+                    <Loader2 className="animate-spin mb-2" />
+                    <p className="text-xs">Loading preview...</p>
+                  </div>
+                )
+              ) : (
+                <div className="flex flex-col items-center justify-center h-64 text-zinc-400">
+                  <p className="text-xs">No CV uploaded to preview.</p>
                 </div>
-              </div>
-
-              <div className="mt-3 border-t border-zinc-100 pt-2">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-zinc-700">Professional Summary</p>
-                <p className="mt-1 text-[10px] leading-snug text-zinc-500">
-                  Results-driven Sales Manager with 7+ years of experience in B2B sales, team leadership, and business development. Proven track record in achieving revenue targets, building strong client relationships and driving growth.
-                </p>
-              </div>
-
-              <div className="mt-1.5 border-t border-zinc-100 pt-1">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-zinc-700">Experience</p>
-                <div className="mt-1 space-y-1">
-                  {experience.map((e) => (
-                    <div key={e.role}>
-                      <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-                        <p className="text-[10.5px] font-semibold text-zinc-800">{e.role}</p>
-                        <p className="text-[9px] text-zinc-400">{e.period}</p>
-                      </div>
-                      <p className="text-[9.5px] text-zinc-500">{e.company}</p>
-                      <ul className="mt-0.5 list-disc space-y-0.5 pl-4 text-[9.5px] text-zinc-500">
-                        {e.points.map((p) => <li key={p}>{p}</li>)}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-1.5 border-t border-zinc-100 pt-1">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-zinc-700">Education</p>
-                <div className="mt-1 space-y-1">
-                  {education.map((e) => (
-                    <div key={e.degree} className="flex flex-wrap items-baseline justify-between gap-x-2">
-                      <div>
-                        <p className="text-[10.5px] font-semibold text-zinc-800">{e.degree}</p>
-                        <p className="text-[9.5px] text-zinc-500">{e.school}</p>
-                      </div>
-                      <p className="text-[9px] text-zinc-400">{e.period}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-1.5 border-t border-zinc-100 pt-1">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-zinc-700">Skills</p>
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {cvSkills.map((s) => (
-                    <span key={s} className="rounded-none bg-zinc-100 px-2 py-0.5 text-[9.5px] font-medium text-zinc-600">{s}</span>
-                  ))}
-                </div>
-              </div>
+              )}
             </Card>
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <Card title="AI Extraction Summary">
-                <div className="space-y-1">
-                  {extractionSummary.map((s) => (
-                    <div key={s.label} className="flex items-center justify-between text-[10.5px]">
-                      <span className="text-zinc-500">{s.label}</span>
-                      <span className="font-semibold text-emerald-600">{s.value}%</span>
+                {file && candidate.fullName ? (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[10.5px]">
+                      <span className="text-zinc-500">Personal Information</span>
+                      <span className="font-semibold text-emerald-600">98%</span>
                     </div>
-                  ))}
-                </div>
-                <Link href="#" className="mt-1.5 flex items-center gap-1 text-[10.5px] font-semibold text-indigo-600 hover:text-indigo-700">
-                  View Full AI Analysis <ArrowRight size={11} />
-                </Link>
+                    <div className="flex items-center justify-between text-[10.5px]">
+                      <span className="text-zinc-500">Experience</span>
+                      <span className="font-semibold text-emerald-600">92%</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[10.5px]">
+                      <span className="text-zinc-500">Education</span>
+                      <span className="font-semibold text-emerald-600">95%</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[10.5px]">
+                      <span className="text-zinc-500">Skills</span>
+                      <span className="font-semibold text-emerald-600">90%</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-zinc-400">Upload a CV to see extraction summary.</p>
+                )}
+                {file && (
+                  <Link href="#" className="mt-1.5 flex items-center gap-1 text-[10.5px] font-semibold text-indigo-600 hover:text-indigo-700">
+                    View Full AI Analysis <ArrowRight size={11} />
+                  </Link>
+                )}
               </Card>
 
               <Card>
@@ -309,19 +410,21 @@ export default function CreateCandidatePage() {
                   <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-emerald-500" />
                   <div>
                     <p className="text-[11px] font-bold text-zinc-800">AI Suggestion</p>
-                    <p className="mt-0.5 text-[10px] leading-snug text-zinc-500">Looks good! Please review all details. You can edit any information before proceeding.</p>
+                    <p className="mt-0.5 text-[10px] leading-snug text-zinc-500">
+                      {file ? "Looks good! Please review all details. You can edit any information before proceeding." : "Awaiting CV upload to generate suggestions."}
+                    </p>
                   </div>
                 </div>
               </Card>
             </div>
           </div>
 
-          {/* Application Information form (left column, below row 1) */}
+          {/* Application Information form */}
           <Card
-            title={<>Application Information <span className="font-normal text-zinc-400">(Review &amp; Edit)</span></>}
-            action={(
-              <button type="button" className="flex items-center gap-1.5 rounded-none border border-zinc-200 px-2.5 py-1 text-[10.5px] font-semibold text-zinc-700 hover:bg-zinc-50">
-                <RefreshCw size={11} /> Re-extract CV
+            title="Step 2: Verify & Add Application Details"
+            headerRight={file && (
+              <button type="button" onClick={handleReextract} disabled={isExtracting} className="flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:text-indigo-700 disabled:opacity-50">
+                {isExtracting ? <Loader2 size={11} className="animate-spin" /> : <RefreshCw size={11} />} Re-extract CV
               </button>
             )}
           >
@@ -329,63 +432,84 @@ export default function CreateCandidatePage() {
               <div>
                 <p className="mb-1.5 text-[11px] font-bold text-zinc-700">Personal Information</p>
                 <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-4">
-                  <Field title="Full Name" required><FormInput variant="compact" defaultValue="Amit Kumar Verma" /></Field>
-                  <Field title="Email Address" required><FormInput variant="compact" defaultValue="amit.verma@email.com" /></Field>
-                  <Field title="Mobile Number" required><FormInput variant="compact" defaultValue="+91 98765 43210" /></Field>
+                  <Field title="Full Name" required><FormInput variant="compact" value={candidate.fullName} onChange={(e) => handleInputChange('fullName', e.target.value)} placeholder="e.g. Amit Kumar Verma" /></Field>
+                  <Field title="Email Address" required><FormInput variant="compact" value={candidate.email} onChange={(e) => handleInputChange('email', e.target.value)} placeholder="e.g. amit.verma@email.com" /></Field>
+                  <Field title="Mobile Number" required><FormInput variant="compact" value={candidate.mobile} onChange={(e) => handleInputChange('mobile', e.target.value)} placeholder="e.g. +91 98765 43210" /></Field>
 
-                  <Field title="Current Location" required><FormInput variant="compact" defaultValue="Noida, Uttar Pradesh" /></Field>
-                  <SelectField title="Preferred Location" options={['Noida, Delhi NCR', 'Mumbai', 'Bangalore']} />
-                  <Field title="LinkedIn Profile (Optional)"><FormInput variant="compact" defaultValue="https://linkedin.com/in/amitverma" /></Field>
+                  <Field title="Current Location" required><FormInput variant="compact" value={candidate.currentLocation} onChange={(e) => handleInputChange('currentLocation', e.target.value)} placeholder="e.g. Noida, Uttar Pradesh" /></Field>
+                  <SelectField title="Preferred Location" options={['Noida, Delhi NCR', 'Mumbai', 'Bangalore']} value={candidate.preferredLocation} onChange={(e) => handleInputChange('preferredLocation', e.target.value)} />
+                  <Field title="LinkedIn Profile (Optional)"><FormInput variant="compact" value={candidate.linkedin} onChange={(e) => handleInputChange('linkedin', e.target.value)} placeholder="https://linkedin.com/in/..." /></Field>
                 </div>
               </div>
 
               <div>
                 <p className="mb-1.5 text-[11px] font-bold text-zinc-700">Application Details</p>
                 <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-4">
-                  <SelectField title="Position Applied For" required options={['Sales Manager', 'Sales Executive']} />
-                  <SelectField title="Department" required options={['Sales & Marketing', 'IT', 'HR']} />
-                  <SelectField title="Employment Type" required options={['Full Time', 'Contract']} />
+                  <Field title="Manpower Request (Requisition)" required>
+                    <ApiSelect apiType="manpower-request" className={selectCls} value={candidate.manpowerRequestId} onChange={(e) => handleInputChange('manpowerRequestId', e.target.value)} />
+                  </Field>
+                  <Field title="Position Applied For" required>
+                    <input type="text" className={inputCls} value={candidate.appliedFor} onChange={(e) => handleInputChange('appliedFor', e.target.value)} />
+                  </Field>
+                  <Field title="Department" required>
+                    <ApiSelect apiType="department" className={selectCls} value={candidate.department} onChange={(e) => handleInputChange('department', e.target.value)} />
+                  </Field>
+                  <SelectField title="Employment Type" required options={['Full Time', 'Contract']} value={candidate.employmentType} onChange={(e) => handleInputChange('employmentType', e.target.value)} />
 
-                  <Field title="Total Experience (Years)" required><FormInput variant="compact" defaultValue="7" /></Field>
-                  <Field title="Relevant Experience (Years)" required><FormInput variant="compact" defaultValue="7" /></Field>
-                  <Field title="Current Company"><FormInput variant="compact" defaultValue="ABC Pvt. Ltd." /></Field>
+                  <Field title="Total Experience (Years)" required><FormInput variant="compact" value={candidate.totalExperience} onChange={(e) => handleInputChange('totalExperience', e.target.value)} placeholder="e.g. 7" /></Field>
+                  <Field title="Relevant Experience (Years)" required><FormInput variant="compact" value={candidate.relevantExperience} onChange={(e) => handleInputChange('relevantExperience', e.target.value)} placeholder="e.g. 5" /></Field>
+                  <Field title="Current Company"><FormInput variant="compact" value={candidate.currentCompany} onChange={(e) => handleInputChange('currentCompany', e.target.value)} placeholder="e.g. ABC Pvt. Ltd." /></Field>
 
-                  <Field title="Current CTC (INR)"><FormInput variant="compact" defaultValue="₹ 8.50 LPA" /></Field>
-                  <Field title="Expected CTC (INR)" required><FormInput variant="compact" defaultValue="₹ 12.00 LPA" /></Field>
-                  <SelectField title="Notice Period" required options={['30 Days', '15 Days', '60 Days', 'Immediate']} />
+                  <Field title="Current CTC (INR)"><FormInput variant="compact" value={candidate.currentCTC} onChange={(e) => handleInputChange('currentCTC', e.target.value)} placeholder="e.g. ₹ 8.50 LPA" /></Field>
+                  <Field title="Expected CTC (INR)" required><FormInput variant="compact" value={candidate.expectedCTC} onChange={(e) => handleInputChange('expectedCTC', e.target.value)} placeholder="e.g. ₹ 12.00 LPA" /></Field>
+                  <SelectField title="Notice Period" required options={['30 Days', '15 Days', '60 Days', 'Immediate']} value={candidate.noticePeriod} onChange={(e) => handleInputChange('noticePeriod', e.target.value)} />
 
                   <Field title="Available From" required>
                     <div className="relative">
-                      <FormInput variant="compact" className="pl-7" defaultValue="15 June 2026" />
+                      <FormInput variant="compact" className="pl-7" value={candidate.availableFrom} onChange={(e) => handleInputChange('availableFrom', e.target.value)} placeholder="15 June 2026" />
                       <Calendar size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                     </div>
                   </Field>
-                  <SelectField title="Relocation" options={['Yes, I am open to relocate', 'No']} />
-                  <SelectField title="Willing to Travel" options={['Yes', 'No']} />
+                  <SelectField title="Relocation" options={['Yes, I am open to relocate', 'No']} value={candidate.relocation} onChange={(e) => handleInputChange('relocation', e.target.value)} />
+                  <SelectField title="Willing to Travel" options={['Yes', 'No']} value={candidate.willingToTravel} onChange={(e) => handleInputChange('willingToTravel', e.target.value)} />
                 </div>
               </div>
 
               <div>
                 <p className="mb-1.5 text-[11px] font-bold text-zinc-700">Education Details</p>
                 <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-4">
-                  <Field title="Highest Qualification" required><FormInput variant="compact" defaultValue="MBA - Marketing" /></Field>
-                  <Field title="University / Board" required><FormInput variant="compact" defaultValue="Amity University, Noida" /></Field>
-                  <Field title="Year of Passing" required><FormInput variant="compact" defaultValue="2017" /></Field>
-                  <Field title="Percentage / CGPA"><FormInput variant="compact" defaultValue="7.8 CGPA" /></Field>
+                  <Field title="Highest Qualification" required><FormInput variant="compact" value={candidate.highestQualification} onChange={(e) => handleInputChange('highestQualification', e.target.value)} placeholder="e.g. MBA - Marketing" /></Field>
+                  <Field title="University / Board" required><FormInput variant="compact" value={candidate.university} onChange={(e) => handleInputChange('university', e.target.value)} placeholder="e.g. Amity University" /></Field>
+                  <Field title="Year of Passing" required><FormInput variant="compact" value={candidate.yearOfPassing} onChange={(e) => handleInputChange('yearOfPassing', e.target.value)} placeholder="e.g. 2017" /></Field>
+                  <Field title="Percentage / CGPA"><FormInput variant="compact" value={candidate.cgpa} onChange={(e) => handleInputChange('cgpa', e.target.value)} placeholder="e.g. 7.8 CGPA" /></Field>
                 </div>
               </div>
 
               <div>
                 <p className={labelCls}>Skills (Extracted)</p>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                  {extractedSkills.map((s) => (
+                  {candidate.skills?.map((s) => (
                     <span key={s} className="flex items-center gap-1 rounded-none bg-indigo-50 px-2 py-1 text-[10px] font-semibold text-indigo-700">
-                      {s} <X size={10} className="cursor-pointer text-indigo-400" />
+                      {s} <X size={10} className="cursor-pointer text-indigo-400" onClick={() => handleRemoveSkill(s)} />
                     </span>
                   ))}
-                  <button type="button" className="flex items-center gap-1 rounded-none border border-dashed border-zinc-300 px-2 py-1 text-[10px] font-semibold text-zinc-500 hover:bg-zinc-50">
-                    <Sparkles size={10} /> Add Skill
-                  </button>
+                  {showAddSkill ? (
+                    <div className="flex items-center gap-1">
+                      <input 
+                        autoFocus
+                        type="text" 
+                        className="h-6 w-24 border border-indigo-200 px-1.5 text-[10px] outline-none focus:border-indigo-400" 
+                        value={newSkill} 
+                        onChange={e => setNewSkill(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleAddSkill()}
+                        onBlur={handleAddSkill}
+                      />
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => setShowAddSkill(true)} className="flex items-center gap-1 rounded-none border border-dashed border-zinc-300 px-2 py-1 text-[10px] font-semibold text-zinc-500 hover:bg-zinc-50">
+                      <Sparkles size={10} /> Add Skill
+                    </button>
+                  )}
                 </div>
               </div>
 

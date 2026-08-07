@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ChevronDown } from 'lucide-react';
 import api from '@/lib/axios';
 
-export type ApiSelectType = 'department' | 'employee' | 'branch' | 'business-unit' | 'designation';
+export type ApiSelectType = 'department' | 'employee' | 'branch' | 'business-unit' | 'designation' | 'manpower-request';
 
 interface ApiSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   apiType: ApiSelectType;
@@ -47,6 +47,13 @@ const apiConfigs = {
     filter: (d: any) => d.isActive !== false,
     label: (d: any) => d.name,
     value: (d: any) => d._id,
+  },
+  'manpower-request': {
+    key: ['manpower-requests'],
+    url: '/hiring/manpower-request',
+    filter: (m: any) => m.status === 'Approved',
+    label: (m: any) => `${m.jobCode || ''} - ${m.designationId?.name || m.jobTitle}`,
+    value: (m: any) => m._id,
   },
 };
 

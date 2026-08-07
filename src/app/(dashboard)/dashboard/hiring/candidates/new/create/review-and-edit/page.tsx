@@ -19,6 +19,10 @@ import {
   Sparkles,
   ZoomIn,
   ZoomOut,
+  Maximize2,
+  Minimize2,
+  X,
+  Loader2,
   ArrowRight,
   RefreshCw,
   Check,
@@ -31,70 +35,40 @@ import {
 } from "lucide-react";
 
 import { FaLinkedin, FaLinkedinIn } from "react-icons/fa";
-import { CandidateInfo, PortalView } from './types';
+import { CandidateInfo, PortalView, ExperienceEntry } from './types';
+import ApiSelect from '@/components/common/ApiSelect';
+import { useRouter } from 'next/navigation';
+import api from '@/lib/axios';
+import { toast } from 'react-hot-toast';
 
-const defaultCandidate: CandidateInfo = {
-  fullName: "Amit Kumar Verma",
-  email: "amit.verma@email.com",
-  mobile: "+91 98765 43210",
-  currentLocation: "Noida, Uttar Pradesh",
-  preferredLocation: "Noida, Delhi NCR",
-  linkedin: "https://linkedin.com/in/amitverma",
-  appliedFor: "Sales Manager",
-  department: "Sales & Marketing",
+const emptyCandidate: CandidateInfo = {
+  manpowerRequestId: "",
+  fullName: "",
+  email: "",
+  mobile: "",
+  currentLocation: "",
+  preferredLocation: "",
+  linkedin: "",
+  appliedFor: "",
+  department: "",
   employmentType: "Full Time",
-  totalExperience: "7",
-  relevantExperience: "7",
-  currentCompany: "ABC Pvt. Ltd.",
-  currentCTC: "8.50 LPA",
-  expectedCTC: "12.00 LPA",
-  noticePeriod: "30 Days",
-  availableFrom: "15 June 2026",
-  relocation: "Yes, I am open to relocate",
-  willingToTravel: "Yes",
-  highestQualification: "MBA - Marketing",
-  university: "Amity University, Noida",
-  yearOfPassing: "2017",
-  cgpa: "7.8 CGPA"
+  totalExperience: "",
+  relevantExperience: "",
+  currentCompany: "",
+  currentCTC: "",
+  expectedCTC: "",
+  noticePeriod: "",
+  availableFrom: "",
+  relocation: "",
+  willingToTravel: "",
+  highestQualification: "",
+  university: "",
+  yearOfPassing: "",
+  cgpa: "",
+  skills: [],
+  experiences: [],
+  education: []
 };
-
-interface ExperienceEntry {
-  id: string;
-  role: string;
-  company: string;
-  employmentType: string;
-  startDate: string;
-  endDate: string;
-  bullets: string[];
-}
-
-const defaultExperiences: ExperienceEntry[] = [
-  {
-    id: "exp-1",
-    role: "Sales Manager",
-    company: "ABC Pvt. Ltd.",
-    employmentType: "Full Time",
-    startDate: "Jun 2021",
-    endDate: "Present",
-    bullets: [
-      "Leading a team of 10 sales executives and managing key enterprise accounts.",
-      "Achieved 125% of annual sales target for 2 consecutive years.",
-      "Developed strategic sales plans and increased market share by 16%."
-    ]
-  },
-  {
-    id: "exp-2",
-    role: "Senior Sales Executive",
-    company: "XYZ Solutions Pvt. Ltd.",
-    employmentType: "Full Time",
-    startDate: "May 2019",
-    endDate: "May 2021",
-    bullets: [
-      "Managed client acquisition and retention across Delhi NCR.",
-      "Consistently met and exceeded quarterly sales targets."
-    ]
-  }
-];
 
 interface ReviewPageProps {
   setCurrentView: (view: PortalView) => void;
@@ -103,10 +77,50 @@ interface ReviewPageProps {
 export default function ReviewPage({
   setCurrentView
 }: ReviewPageProps) {
+  const router = useRouter();
   // Local Data State
-  const [candidate, setCandidate] = React.useState<CandidateInfo>(defaultCandidate);
+  const [candidate, setCandidate] = React.useState<CandidateInfo>(emptyCandidate);
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState<boolean>(false);
-  const [experiences, setExperiences] = React.useState<ExperienceEntry[]>(defaultExperiences);
+  const [experiences, setExperiences] = React.useState<ExperienceEntry[]>([]);
+  const [resumeUrl, setResumeUrl] = React.useState('');
+
+  React.useEffect(() => {
+    const data = sessionStorage.getItem('extractedCandidate');
+    if (data) {
+      try {
+        const parsed = JSON.parse(data);
+        setCandidate({ ...emptyCandidate, ...parsed });
+        if (parsed.experiences && parsed.experiences.length > 0) {
+          setExperiences(parsed.experiences);
+        }
+        if (parsed.resumeUrl) setResumeUrl(parsed.resumeUrl);
+      } catch (err) { }
+    }
+  }, []);
+
+  const handleSubmitApplication = async () => {
+    try {
+      await api.post('/hiring/candidates', {
+        manpowerRequestId: candidate.manpowerRequestId,
+        firstName: candidate.fullName.split(' ')[0] || '',
+        lastName: candidate.fullName.split(' ').slice(1).join(' ') || '.', // Fallback for required lastName
+        email: candidate.email,
+        phone: candidate.mobile,
+        jobRole: candidate.appliedFor,
+        departmentId: candidate.department,
+        status: 'Applied',
+        resumeUrl,
+        applicationDetails: {
+          ...candidate,
+          experiences
+        }
+      });
+      toast.success('Candidate successfully added!');
+      router.push('/dashboard/hiring/candidates');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to create candidate');
+    }
+  };
 
   const steps = [
     { num: 1, label: 'Upload CV', status: 'completed' },
@@ -118,6 +132,7 @@ export default function ReviewPage({
   const [showSuggestions, setShowSuggestions] = React.useState<boolean>(false);
   const [isReextracting, setIsReextracting] = React.useState<boolean>(false);
   const [cvZoom, setCvZoom] = React.useState<number>(100);
+  const [isMaximized, setIsMaximized] = React.useState<boolean>(false);
 
   // Auto-sync checks
   const handleInputChange = (field: keyof CandidateInfo, value: string) => {
@@ -179,9 +194,10 @@ export default function ReviewPage({
   };
 
   const handleDiscard = () => {
-    setCandidate(defaultCandidate);
-    setExperiences(defaultExperiences);
+    setCandidate(emptyCandidate);
+    setExperiences([]);
     setHasUnsavedChanges(false);
+    router.push('/dashboard/hiring/candidates');
   };
 
   const handleSave = () => {
@@ -254,12 +270,10 @@ export default function ReviewPage({
               Back
             </button>
             <button
-              onClick={() => {
-                window.open('/dashboard/hiring/candidates/new/create/submit-application-preview', '_blank');
-              }}
+              onClick={handleSubmitApplication}
               className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors"
             >
-              Next: Submit Application &rarr;
+              Submit Application &rarr;
             </button>
           </div>
         </div>
@@ -482,30 +496,34 @@ export default function ReviewPage({
                     </h3>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2 mt-3">
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] font-semibold text-indigo-950">Manpower Request (Requisition) <span className="text-rose-500">*</span></label>
+                      <ApiSelect
+                        apiType="manpower-request"
+                        value={candidate.manpowerRequestId}
+                        onChange={(e: any) => handleInputChange('manpowerRequestId', e.target.value)}
+                        className="w-full px-1.5 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none"
+                      />
+                    </div>
                     <div className="space-y-0.5">
                       <label className="text-[10px] font-semibold text-indigo-950">Position Applied For <span className="text-rose-500">*</span></label>
-                      <select
+                      <input
+                        type="text"
                         value={candidate.appliedFor}
                         onChange={(e) => handleInputChange('appliedFor', e.target.value)}
-                        className="w-full px-1.5 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                      >
-                        <option value="Sales Manager">Sales Manager</option>
-                        <option value="Senior Sales Executive">Senior Sales Executive</option>
-                        <option value="Marketing Director">Marketing Director</option>
-                      </select>
+                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                      />
                     </div>
                     <div className="space-y-0.5">
                       <label className="text-[10px] font-semibold text-indigo-950">Department <span className="text-rose-500">*</span></label>
-                      <select
+                      <ApiSelect
+                        apiType="department"
                         value={candidate.department}
-                        onChange={(e) => handleInputChange('department', e.target.value)}
-                        className="w-full px-1.5 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
-                      >
-                        <option value="Sales & Marketing">Sales & Marketing</option>
-                        <option value="Engineering">Engineering</option>
-                        <option value="Product Development">Product Development</option>
-                      </select>
+                        onChange={(e: any) => handleInputChange('department', e.target.value)}
+                        className="w-full px-1.5 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none"
+                        placeholderText="Select Department"
+                      />
                     </div>
                     <div className="space-y-0.5">
                       <label className="text-[10px] font-semibold text-indigo-950">Employment Type <span className="text-rose-500">*</span></label>
@@ -860,16 +878,16 @@ export default function ReviewPage({
           </div>
 
           {/* Right Column: Original CV Preview & AI Summary */}
-          <div className="w-full lg:w-[32%] h-auto lg:h-full flex flex-col gap-2 overflow-visible lg:overflow-hidden" id="cv-preview-and-ai-panel">
+          <div className={`w-full lg:w-[32%] flex flex-col gap-2 overflow-visible lg:overflow-hidden transition-all duration-300 ${isMaximized ? 'fixed inset-4 z-50 bg-white shadow-2xl lg:w-auto h-auto' : 'h-auto lg:h-full'}`} id="cv-preview-and-ai-panel">
 
             {/* 1. Original CV Preview - rendered document (matches uploaded resume look), no live iframe */}
-            <div className="h-[360px] sm:h-[420px] lg:h-auto lg:flex-[3] bg-white rounded-lg border border-slate-200 overflow-hidden flex flex-col shadow-sm shrink-0 lg:shrink" id="cv-pdf-viewer">
+            <div className={`bg-white rounded-lg border border-slate-200 overflow-hidden flex flex-col shadow-sm shrink-0 lg:shrink ${isMaximized ? 'flex-1 h-full' : 'h-[750px] lg:flex-[3]'}`} id="cv-pdf-viewer">
               {/* Toolbar */}
               <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between shrink-0">
                 <span className="text-xs font-semibold text-indigo-950">Original CV Preview</span>
                 <div className="flex items-center gap-1 ">
                   <button
-                    onClick={() => setCvZoom(z => Math.max(60, z - 10))}
+                    onClick={() => setCvZoom(z => Math.max(50, z - 20))}
                     className="p-0.5 hover:text-indigo-700"
                     title="Zoom out"
                   >
@@ -877,122 +895,43 @@ export default function ReviewPage({
                   </button>
                   <span className="text-[10px] font-mono w-8 text-center ">{cvZoom}%</span>
                   <button
-                    onClick={() => setCvZoom(z => Math.min(150, z + 10))}
+                    onClick={() => setCvZoom(z => Math.min(200, z + 20))}
                     className="p-0.5 hover:text-indigo-700"
                     title="Zoom in"
                   >
                     <Plus className="w-3 h-3" />
                   </button>
-                  <a
-                    href="https://drive.google.com/uc?export=download&id=1v9E-G1x-oau8y8te_QeluAIW7z5NHBpN"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => setIsMaximized(!isMaximized)}
+                    className="p-0.5 hover:text-indigo-700 ml-1"
+                    title={isMaximized ? "Minimize" : "Maximize"}
+                  >
+                    {isMaximized ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
+                  </button>
+                  <button
+                    onClick={() => { if (resumeUrl) window.open(resumeUrl, '_blank') }}
                     className="p-0.5 hover:text-indigo-700 ml-1"
                     title="Download PDF"
                   >
                     <Download className="w-3 h-3" />
-                  </a>
+                  </button>
+                  {isMaximized && (
+                    <button onClick={() => setIsMaximized(false)} className="ml-2 text-rose-500 hover:text-rose-600"><X size={16} /></button>
+                  )}
                 </div>
               </div>
 
               {/* Rendered resume content */}
-              <div className="flex-1 overflow-auto">
-                <div
-                  className="p-3 text-slate-800"
-                  style={{ transform: `scale(${cvZoom / 100})`, transformOrigin: 'top left', width: `${10000 / cvZoom}%` }}
-                >
-                  <div className="flex items-start gap-2 pb-2 mb-2 border-b border-slate-200">
-                    <img
-                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
-                      alt="Amit"
-                      className="w-16 h-16 rounded object-cover shrink-0"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="min-w-0">
-                      <h2 className="text-xs font-bold text-slate-900 leading-tight">AMIT KUMAR VERMA</h2>
-                      <p className="text-[8.5px] font-semibold  tracking-wide">SALES MANAGER</p>
-                      <div className="flex items-center gap-2 mt-1 text-[8px] ">
-                        <span className="flex items-center gap-0.5"><Phone className="w-2.5 h-2.5" />+91 98765 43210</span>
-                        <span className="flex items-center gap-0.5"><Mail className="w-2.5 h-2.5" />amit.verma@email.com</span>
-                        <span className="flex items-center gap-0.5 mt-0.5 text-[8px] ">
-                          <MapPin className="w-2.5 h-2.5" />{candidate.preferredLocation}
-                        </span>
-                      </div>
-                      {candidate.linkedin && (
-                        <div className="flex items-center gap-1 min-w-0 text-[8px] ">
-                          <FaLinkedinIn className="" />
-                          <span className="truncate">{candidate.linkedin}</span>
-                        </div>
-                      )}
-                    </div>
+              <div className="flex-1 overflow-hidden relative">
+                {resumeUrl ? (
+                  <div style={{ transform: `scale(${cvZoom / 100})`, transformOrigin: 'top center', width: `${100 / (cvZoom / 100)}%`, height: `${100 / (cvZoom / 100)}%` }} className="transition-transform duration-200">
+                    <iframe src={resumeUrl} className="w-full h-full border-0" title="Original CV Preview" />
                   </div>
-
-                  <div className="mb-2">
-                    <h3 className="text-[9px] font-bold text-slate-900 tracking-wide mb-1">PROFESSIONAL SUMMARY</h3>
-                    <p className="text-[8px]  leading-relaxed">
-                      Results-driven Sales Manager with 7+ years of experience in B2B sales, team leadership, and business development. Proven track record in achieving revenue targets, building strong client relationships and driving growth.
-                    </p>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-xs text-zinc-400 p-4 text-center">
+                    <p>No CV uploaded.</p>
                   </div>
-
-                  <div className="mb-2">
-                    <h3 className="text-[9px] font-bold text-slate-900 tracking-wide mb-1">EXPERIENCE</h3>
-                    <div className="space-y-1.5">
-                      <div>
-                        <div className="flex items-baseline justify-between gap-2">
-                          <span className="text-[8.5px] font-semibold text-slate-800">Sales Manager</span>
-                          <span className="text-[7.5px]  whitespace-nowrap">Jun 2021 – Present</span>
-                        </div>
-                        <p className="text-[8px] ">ABC Pvt. Ltd.</p>
-                        <ul className="list-disc list-inside text-[8px]  leading-relaxed">
-                          <li>Leading a team of 10 sales executives and managing key enterprise accounts.</li>
-                          <li>Achieved 125% of annual sales target for 2 consecutive years.</li>
-                          <li>Developed strategic sales plans and increased market share by 16%.</li>
-                        </ul>
-                      </div>
-                      <div>
-                        <div className="flex items-baseline justify-between gap-2">
-                          <span className="text-[8.5px] font-semibold text-slate-800">Senior Sales Executive</span>
-                          <span className="text-[7.5px]  whitespace-nowrap">May 2019 – May 2021</span>
-                        </div>
-                        <p className="text-[8px] ">XYZ Solutions Pvt. Ltd.</p>
-                        <ul className="list-disc list-inside text-[8px]  leading-relaxed">
-                          <li>Managed client acquisition and retention.</li>
-                          <li>Consistently met quarterly sales targets.</li>
-                        </ul>
-                      </div>
-                      <div>
-                        <div className="flex items-baseline justify-between gap-2">
-                          <span className="text-[8.5px] font-semibold text-slate-800">Sales Executive</span>
-                          <span className="text-[7.5px]  whitespace-nowrap">Aug 2017 – Apr 2019</span>
-                        </div>
-                        <p className="text-[8px] ">Techno Sales Pvt. Ltd.</p>
-                        <ul className="list-disc list-inside text-[8px]  leading-relaxed">
-                          <li>Generated leads and converted them into long-term clients.</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-[9px] font-bold text-slate-900 tracking-wide mb-1">EDUCATION</h3>
-                    <div className="space-y-1">
-                      <div>
-                        <div className="flex items-baseline justify-between gap-2">
-                          <span className="text-[8.5px] font-semibold text-slate-800">MBA - Marketing</span>
-                          <span className="text-[7.5px]  whitespace-nowrap">2017 – 2019</span>
-                        </div>
-                        <p className="text-[8px] ">Amity University, Noida</p>
-                      </div>
-                      <div>
-                        <div className="flex items-baseline justify-between gap-2">
-                          <span className="text-[8.5px] font-semibold text-slate-800">BBA</span>
-                          <span className="text-[7.5px]  whitespace-nowrap">2014 – 2017</span>
-                        </div>
-                        <p className="text-[8px] ">Delhi University</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
             <div className="flex gap-x-4 gap-y-2 flex-col md:flex-row">
