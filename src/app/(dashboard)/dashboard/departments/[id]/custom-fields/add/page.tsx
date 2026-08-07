@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { createCustomField, getCustomFieldById, updateCustomField } from '@/services/customFieldService';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 import {
   ArrowLeft, Save, Info, Check, X, HelpCircle, ExternalLink,
@@ -9,8 +11,23 @@ import {
 } from 'lucide-react';
 
 export default function AddCustomFieldPage({ params }: { params: Promise<{ id: string }> }) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AddCustomFieldContent params={params} />
+    </Suspense>
+  );
+}
+
+function AddCustomFieldContent({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = React.use(params);
   const { id } = resolvedParams;
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isEdit = searchParams.get('edit') === 'true';
+  const fieldId = searchParams.get('fieldId');
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(isEdit);
 
   const [label, setLabel] = useState('Project Specialization');
   const [apiKey, setApiKey] = useState('project_specialization');
@@ -29,6 +46,38 @@ export default function AddCustomFieldPage({ params }: { params: Promise<{ id: s
   const [fieldOrder, setFieldOrder] = useState('3');
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    if (isEdit && fieldId) {
+      setIsLoading(true);
+      getCustomFieldById(fieldId)
+        .then((res) => {
+          if (res.success && res.data) {
+            const data = res.data;
+            setLabel(data.label || '');
+            setApiKey(data.apiKey || '');
+            setGroup(data.group || '');
+            setDataType(data.dataType || '');
+            setOptions(data.options || []);
+            setDefaultValue(data.defaultValue || '');
+            setDescription(data.description || '');
+            setMandatory(data.mandatory ?? true);
+            setShowInReports(data.showInReports ?? true);
+            setShowInProfile(data.showInProfile ?? true);
+            setShowInDirectory(data.showInDirectory ?? false);
+            setApplicableFor(data.applicableFor || 'Departments');
+            setFieldOrder(data.fieldOrder?.toString() || '0');
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load field data", err);
+          alert("Failed to load field data");
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+  }, [isEdit, fieldId]);
 
   const handleLabelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newLabel = e.target.value;
@@ -67,7 +116,39 @@ export default function AddCustomFieldPage({ params }: { params: Promise<{ id: s
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       setErrors({});
-      alert('Custom field saved successfully! (Mock)');
+      setIsSaving(true);
+      
+      const payload = {
+        departmentId: id,
+        label,
+        apiKey,
+        group,
+        dataType,
+        options,
+        defaultValue,
+        description,
+        mandatory,
+        showInReports,
+        showInProfile,
+        showInDirectory,
+        applicableFor,
+        fieldOrder: Number(fieldOrder) || 0,
+        status: 'Active'
+      };
+
+      const savePromise = isEdit && fieldId 
+        ? updateCustomField(fieldId, payload)
+        : createCustomField(payload);
+
+      savePromise.then(() => {
+        alert(`Custom field ${isEdit ? 'updated' : 'saved'} successfully!`);
+        router.push(`/dashboard/departments/${id}/custom-fields`);
+      }).catch((err: any) => {
+        console.error(err);
+        alert(err?.response?.data?.message || `Failed to ${isEdit ? 'update' : 'save'} custom field`);
+      }).finally(() => {
+        setIsSaving(false);
+      });
     }
   };
 
@@ -80,21 +161,21 @@ export default function AddCustomFieldPage({ params }: { params: Promise<{ id: s
         { label: 'Departments', href: '/dashboard/departments' },
         { label: 'Department Details', href: `/dashboard/departments/${id}` },
         { label: 'Custom Fields', href: `/dashboard/departments/${id}/custom-fields` },
-        { label: 'Add Custom Field' }
+        { label: isEdit ? 'Edit Custom Field' : 'Add Custom Field' }
       ]} />
 
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Add Custom Field</h1>
-          <p className="text-[12px] text-slate-500 font-medium mt-0.5">Create a new custom field to capture additional information for this department.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">{isEdit ? 'Edit Custom Field' : 'Add Custom Field'}</h1>
+          <p className="text-[12px] text-slate-500 font-medium mt-0.5">{isEdit ? 'Update the custom field information for this department.' : 'Create a new custom field to capture additional information for this department.'}</p>
         </div>
         <div className="flex items-center gap-3">
           <Link href={`/dashboard/departments/${id}/custom-fields`} className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 bg-white rounded-md text-[11px] font-semibold text-slate-700 hover:bg-slate-50 shadow-sm transition-colors">
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Custom Fields
           </Link>
-          <button onClick={handleSave} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 border border-indigo-600 text-white rounded-md text-[11px] font-semibold hover:bg-indigo-700 shadow-sm transition-colors">
-            <Save className="w-3.5 h-3.5" /> Save Field
+          <button onClick={handleSave} disabled={isSaving || isLoading} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 border border-indigo-600 text-white rounded-md text-[11px] font-semibold hover:bg-indigo-700 shadow-sm transition-colors disabled:opacity-50">
+            <Save className="w-3.5 h-3.5" /> {isSaving ? (isEdit ? 'Updating...' : 'Saving...') : (isEdit ? 'Update Field' : 'Save Field')}
           </button>
         </div>
       </div>
@@ -498,8 +579,8 @@ export default function AddCustomFieldPage({ params }: { params: Promise<{ id: s
         <Link href={`/dashboard/departments/${id}/custom-fields`} className="px-4 py-2 bg-white border border-slate-200 rounded-md text-[12px] font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
           Cancel
         </Link>
-        <button onClick={handleSave} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 border border-indigo-600 rounded-md text-[12px] font-bold text-white hover:bg-indigo-700 transition-colors shadow-sm">
-          <Save className="w-3.5 h-3.5" /> Save Field
+        <button onClick={handleSave} disabled={isSaving || isLoading} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 border border-indigo-600 rounded-md text-[12px] font-bold text-white hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50">
+          <Save className="w-3.5 h-3.5" /> {isSaving ? (isEdit ? 'Updating...' : 'Saving...') : (isEdit ? 'Update Field' : 'Save Field')}
         </button>
       </div>
 

@@ -1,77 +1,89 @@
 'use client';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   ChevronRight, ArrowLeft, Plus, Building2, Users, MapPin, GitBranch,
   Target, Activity, Flag, Trophy, BarChart2, Eye, Pencil, MoreVertical,
-  LayoutDashboard, Download, ArrowRight, Goal
+  LayoutDashboard, Download, ArrowRight, Goal, Trash2
 } from 'lucide-react';
+
+import { getDepartmentKpis } from '@/services/kpiService';
 
 const BREADCRUMB = ['Organization Setup', 'Departments', 'Department Details', 'KPIs & Goals'];
 
 export default function KPIsAndGoalsPage() {
   const tabs = ['Overview', 'KPIs', 'Goals', 'Progress Tracking', 'History'];
 
-  const kpisData = [
-    {
-      id: 1, name: 'Project Delivery On-Time (%)', desc: 'Timely completion of projects',
-      ownerName: 'Amit Verma', ownerRole: 'Sr. Project Manager',
-      frequency: 'Monthly', target: '90%', current: '92%', progress: 102, status: 'On Track', statusColor: 'text-emerald-600 bg-emerald-50 border-emerald-100'
-    },
-    {
-      id: 2, name: 'Design Quality Score (Avg.)', desc: 'Average client quality rating',
-      ownerName: 'Neha Joshi', ownerRole: 'Design Lead',
-      frequency: 'Monthly', target: '4.5 / 5', current: '4.2 / 5', progress: 93, status: 'At Risk', statusColor: 'text-orange-600 bg-orange-50 border-orange-100'
-    },
-    {
-      id: 3, name: 'Client Satisfaction (%)', desc: 'Client satisfaction rate',
-      ownerName: 'Rahul Nair', ownerRole: 'Manager',
-      frequency: 'Monthly', target: '95%', current: '96%', progress: 101, status: 'On Track', statusColor: 'text-emerald-600 bg-emerald-50 border-emerald-100'
-    },
-    {
-      id: 4, name: 'Budget Adherence (%)', desc: 'Projects completed within budget',
-      ownerName: 'Pooja Mehta', ownerRole: 'Finance Executive',
-      frequency: 'Monthly', target: '95%', current: '88%', progress: 93, status: 'At Risk', statusColor: 'text-orange-600 bg-orange-50 border-orange-100'
-    },
-    {
-      id: 5, name: 'Revenue Growth (%)', desc: 'Year over year revenue growth',
-      ownerName: 'Rahul Nair', ownerRole: 'Manager',
-      frequency: 'Quarterly', target: '20%', current: '18%', progress: 90, status: 'Off Track', statusColor: 'text-red-600 bg-red-50 border-red-100'
-    },
-    {
-      id: 6, name: 'Employee Utilization (%)', desc: 'Billable utilization of team',
-      ownerName: 'Vikram Singh', ownerRole: 'HR Executive',
-      frequency: 'Monthly', target: '80%', current: '81%', progress: 101, status: 'On Track', statusColor: 'text-emerald-600 bg-emerald-50 border-emerald-100'
-    }
-  ];
+  const [kpisData, setKpisData] = useState<any[]>([]);
+  const [goalsData, setGoalsData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const goalsData = [
-    {
-      id: 1, title: 'Deliver 20+ Projects in FY 2025-26', kpis: '2 KPIs',
-      targetDate: '31 Mar 2026', progress: 80, status: 'On Track', statusColor: 'text-emerald-600 bg-emerald-50 border-emerald-100',
-      ownerName: 'Amit Verma'
-    },
-    {
-      id: 2, title: 'Increase Client Satisfaction to 95%', kpis: '1 KPI',
-      targetDate: '31 Mar 2026', progress: 96, status: 'On Track', statusColor: 'text-emerald-600 bg-emerald-50 border-emerald-100',
-      ownerName: 'Neha Joshi'
-    },
-    {
-      id: 3, title: 'Maintain 95% Budget Adherence', kpis: '1 KPI',
-      targetDate: '31 Mar 2026', progress: 88, status: 'In Progress', statusColor: 'text-amber-600 bg-amber-50 border-amber-100',
-      ownerName: 'Pooja Mehta'
-    },
-    {
-      id: 4, title: 'Achieve 20% Revenue Growth', kpis: '1 KPI',
-      targetDate: '31 Mar 2026', progress: 18, status: 'Off Track', statusColor: 'text-red-600 bg-red-50 border-red-100',
-      ownerName: 'Rahul Nair'
-    },
-    {
-      id: 5, title: 'Improve Team Utilization to 80%', kpis: '1 KPI',
-      targetDate: '31 Mar 2026', progress: 81, status: 'On Track', statusColor: 'text-emerald-600 bg-emerald-50 border-emerald-100',
-      ownerName: 'Vikram Singh'
+  useEffect(() => {
+    const fetchKpis = async () => {
+      try {
+        const res = await getDepartmentKpis('64a7c1e5f8b9a9d2a4f6e1b3');
+        if (res.success && res.data) {
+          // Map backend KPIs to frontend format
+          const mappedKpis = res.data.map((kpi: any, idx: number) => ({
+            id: kpi._id,
+            displayId: idx + 1,
+            name: kpi.title,
+            desc: kpi.description || 'No description',
+            ownerName: kpi.createdBy ? `${kpi.createdBy.firstName} ${kpi.createdBy.lastName}` : 'System',
+            ownerRole: 'N/A', // Role not in model currently
+            frequency: kpi.goalPeriod,
+            target: kpi.weightage + '%',
+            current: '0%', // Mock
+            progress: Math.floor(Math.random() * 100), // Mock progress
+            status: 'On Track',
+            statusColor: 'text-emerald-600 bg-emerald-50 border-emerald-100'
+          }));
+
+          // Extract all nested goals from all KPIs
+          const allGoals: any[] = [];
+          res.data.forEach((kpi: any) => {
+            if (kpi.goals && kpi.goals.length > 0) {
+              kpi.goals.forEach((goal: any, gIdx: number) => {
+                allGoals.push({
+                  id: goal._id || `${kpi._id}-${gIdx}`,
+                  kpiId: kpi._id,
+                  displayId: allGoals.length + 1,
+                  title: goal.name,
+                  kpis: '1 KPI',
+                  targetDate: kpi.goalPeriod,
+                  progress: Math.floor(Math.random() * 100), // Mock progress
+                  status: 'On Track',
+                  statusColor: 'text-emerald-600 bg-emerald-50 border-emerald-100',
+                  ownerName: kpi.createdBy ? `${kpi.createdBy.firstName} ${kpi.createdBy.lastName}` : 'System'
+                });
+              });
+            }
+          });
+
+          setKpisData(mappedKpis);
+          setGoalsData(allGoals);
+        }
+      } catch (error) {
+        console.error('Failed to load KPIs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchKpis();
+  }, []);
+
+  const handleDeleteKpi = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this KPI?")) {
+      setKpisData(prev => prev.filter(kpi => kpi.id !== id));
+      setGoalsData(prev => prev.filter(goal => goal.kpiId !== id));
     }
-  ];
+  };
+
+  const handleDeleteGoal = (goalId: string) => {
+    if (window.confirm("Are you sure you want to delete this Goal?")) {
+      setGoalsData(prev => prev.filter(goal => goal.id !== goalId));
+    }
+  };
 
   return (
     <div className="flex flex-col gap-2 p-2 w-full font-sans text-slate-800 bg-slate-50 min-h-screen overflow-hidden">
@@ -209,7 +221,7 @@ export default function KPIsAndGoalsPage() {
               </div>
               <div className="flex flex-col min-w-0">
                 <p className="text-[10px] font-semibold text-slate-800 leading-tight truncate">Total KPIs</p>
-                <p className="text-[16px] font-black text-slate-900 leading-tight my-0.5">6</p>
+                <p className="text-[16px] font-black text-slate-900 leading-tight my-0.5">{kpisData.length}</p>
                 <p className="text-[9px] font-medium text-slate-600 leading-tight">Active</p>
               </div>
             </div>
@@ -254,7 +266,7 @@ export default function KPIsAndGoalsPage() {
                 </div>
                 <div className="flex flex-col min-w-0">
                   <p className="text-[10px] font-semibold text-slate-800 leading-tight truncate">Total Goals</p>
-                  <p className="text-[16px] font-black text-slate-900 leading-tight my-0.5">5</p>
+                  <p className="text-[16px] font-black text-slate-900 leading-tight my-0.5">{goalsData.length}</p>
                   <p className="text-[9px] font-medium text-slate-600 leading-tight">Active</p>
                 </div>
               </div>
@@ -272,8 +284,8 @@ export default function KPIsAndGoalsPage() {
             <div className="p-3 border-b border-slate-100">
               <h3 className="text-[13px] font-bold text-slate-900">Key Performance Indicators (KPIs)</h3>
             </div>
-            <div className="overflow-hidden">
-              <table className="w-full text-left border-collapse whitespace-nowrap">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse whitespace-nowrap min-w-[900px]">
                 <thead>
                   <tr className="bg-slate-50/50 border-b border-slate-100">
                     <th className="px-2 py-2 text-[10px] font-bold text-slate-800 w-8">#</th>
@@ -290,8 +302,8 @@ export default function KPIsAndGoalsPage() {
                 <tbody className="divide-y divide-slate-100">
                   {kpisData.map((kpi, index) => (
                     <tr key={kpi.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-2 py-2 text-[11px] font-semibold text-slate-900">{kpi.id}</td>
-                      <td className="px-2 py-2">
+                      <td className="px-2 py-2 text-[11px] font-semibold text-slate-900">{kpi.displayId}</td>
+                      <td className="px-2 py-2 whitespace-normal min-w-[250px] max-w-[350px]">
                         <p className="text-[11px] font-bold text-slate-900 leading-tight">{kpi.name}</p>
                         <p className="text-[9px] text-slate-500 mt-0.5 leading-tight">{kpi.desc}</p>
                       </td>
@@ -325,9 +337,9 @@ export default function KPIsAndGoalsPage() {
                       </td>
                       <td className="px-2 py-2">
                         <div className="flex items-center justify-center gap-1">
-                          <button className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"><Eye className="w-3 h-3" /></button>
-                          <button className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"><Pencil className="w-3 h-3" /></button>
-                          <button className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"><MoreVertical className="w-3 h-3" /></button>
+                          <button disabled className="p-1 text-slate-400 cursor-not-allowed rounded"><Eye className="w-3 h-3" /></button>
+                          <Link href={`/dashboard/departments/kpi-and-goals/add-new?edit=true&id=${kpi.id}`} className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"><Pencil className="w-3 h-3" /></Link>
+                          <button onClick={() => handleDeleteKpi(kpi.id)} className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"><Trash2 className="w-3 h-3" /></button>
                         </div>
                       </td>
                     </tr>
@@ -347,8 +359,8 @@ export default function KPIsAndGoalsPage() {
             <div className="p-3 border-b border-slate-100">
               <h3 className="text-[13px] font-bold text-slate-900">Department Goals</h3>
             </div>
-            <div className="overflow-hidden flex-1">
-              <table className="w-full text-left border-collapse whitespace-nowrap">
+            <div className="overflow-x-auto flex-1">
+              <table className="w-full text-left border-collapse whitespace-nowrap min-w-[850px]">
                 <thead>
                   <tr className="bg-slate-50/50 border-b border-slate-100">
                     <th className="px-2 py-2 text-[10px] font-bold text-slate-800 w-8">#</th>
@@ -364,8 +376,8 @@ export default function KPIsAndGoalsPage() {
                 <tbody className="divide-y divide-slate-100">
                   {goalsData.map((goal, index) => (
                     <tr key={goal.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-2 py-2 text-[11px] font-semibold text-slate-900">{goal.id}</td>
-                      <td className="px-2 py-2">
+                      <td className="px-2 py-2 text-[11px] font-semibold text-slate-900">{goal.displayId}</td>
+                      <td className="px-2 py-2 whitespace-normal min-w-[200px] max-w-[300px]">
                         <p className="text-[11px] font-bold text-slate-900 leading-tight">{goal.title}</p>
                       </td>
                       <td className="px-2 py-2 text-[11px] font-medium text-slate-700">{goal.kpis}</td>
@@ -394,9 +406,9 @@ export default function KPIsAndGoalsPage() {
                       </td>
                       <td className="px-2 py-2">
                         <div className="flex items-center justify-center gap-1">
-                          <button className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"><Eye className="w-3 h-3" /></button>
-                          <button className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"><Pencil className="w-3 h-3" /></button>
-                          <button className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"><MoreVertical className="w-3 h-3" /></button>
+                          <button disabled className="p-1 text-slate-400 cursor-not-allowed rounded"><Eye className="w-3 h-3" /></button>
+                          <Link href={`/dashboard/departments/kpi-and-goals/add-new?edit=true&id=${goal.kpiId}`} className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"><Pencil className="w-3 h-3" /></Link>
+                          <button onClick={() => handleDeleteGoal(goal.id)} className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"><Trash2 className="w-3 h-3" /></button>
                         </div>
                       </td>
                     </tr>
