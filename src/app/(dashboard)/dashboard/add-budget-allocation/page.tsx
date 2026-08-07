@@ -1,26 +1,15 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import api from '@/lib/axios';
 import {
     FileText, ArrowLeft, Save, ChevronRight, ChevronDown, Building2, Calendar,
-    Users, MapPin, Plus, Edit2, Trash2, Info, Copy, Upload, Download, BarChart2
+    Users, MapPin, Plus, Trash2, Info, Copy, Upload, Download, BarChart2, Loader2
 } from 'lucide-react';
 
-// ---- DUMMY / MOCK DATA (used as fallback when the API is unavailable) ----
-const MOCK_DEPARTMENT = {
-    name: 'Interior Design',
-    status: 'Active',
-    code: 'INT-DSN',
-    parentDepartment: 'Design & Build',
-    head: { firstName: 'Rahul', lastName: 'Nair', designation: 'Manager', avatarUrl: 'https://i.pravatar.cc/150?u=deptHead1' },
-    financialYear: '2025 - 2026',
-    financialYearRange: '01 Apr 2025 - 31 Mar 2026',
-    totalEmployees: 12,
-    location: 'Noida, Uttar Pradesh',
-};
-
+// ---- TYPES ----
 interface BudgetHead {
     id: string;
     head: string;
@@ -32,21 +21,17 @@ interface BudgetHead {
     q4: number;
 }
 
-const MOCK_BUDGET_HEADS: BudgetHead[] = [
-    { id: 'bh1', head: 'Salaries & Wages', description: 'Salaries, allowances, bonuses', annual: 7200000, q1: 1800000, q2: 1800000, q3: 1800000, q4: 1800000 },
-    { id: 'bh2', head: 'Office Expenses', description: 'Office supplies, stationery, printing', annual: 600000, q1: 150000, q2: 150000, q3: 150000, q4: 150000 },
-    { id: 'bh3', head: 'Travel & Conveyance', description: 'Local/Outstation travel, fuel', annual: 400000, q1: 100000, q2: 100000, q3: 100000, q4: 100000 },
-    { id: 'bh4', head: 'Training & Development', description: 'Employee training, workshops', annual: 300000, q1: 75000, q2: 75000, q3: 75000, q4: 75000 },
-    { id: 'bh5', head: 'Marketing & Branding', description: 'Marketing, advertising, events', annual: 500000, q1: 125000, q2: 125000, q3: 125000, q4: 125000 },
-    { id: 'bh6', head: 'Software & Licenses', description: 'Software subscriptions, licenses', annual: 200000, q1: 50000, q2: 50000, q3: 50000, q4: 50000 },
-    { id: 'bh7', head: 'Miscellaneous', description: 'Other miscellaneous expenses', annual: 300000, q1: 75000, q2: 75000, q3: 75000, q4: 75000 },
+// Default/blank template used when no allocation exists yet for a given
+// department + financial year combination (server returns 404 in that case).
+const DEFAULT_BUDGET_HEADS: BudgetHead[] = [
+    { id: 'bh1', head: 'Salaries & Wages', description: 'Salaries, allowances, bonuses', annual: 0, q1: 0, q2: 0, q3: 0, q4: 0 },
+    { id: 'bh2', head: 'Office Expenses', description: 'Office supplies, stationery, printing', annual: 0, q1: 0, q2: 0, q3: 0, q4: 0 },
+    { id: 'bh3', head: 'Travel & Conveyance', description: 'Local/Outstation travel, fuel', annual: 0, q1: 0, q2: 0, q3: 0, q4: 0 },
 ];
 
 const financialYearOptions = ['2025 - 2026 (01 Apr 2025 - 31 Mar 2026)', '2024 - 2025 (01 Apr 2024 - 31 Mar 2025)', '2026 - 2027 (01 Apr 2026 - 31 Mar 2027)'];
 const budgetTypeOptions = ['Department Budget', 'Project Budget', 'Capital Budget'];
 const currencyOptions = ['INR - Indian Rupee (₹)', 'USD - US Dollar ($)', 'EUR - Euro (€)'];
-const budgetOwnerOptions = ['Rahul Nair (Department Head)', 'Amit Verma (Finance Head)'];
-const preparedByOptions = ['Vijay Sharma (Super Admin)', 'Neha Joshi (HR Executive)'];
 
 const quickActions = [
     { label: 'Copy from Previous Year', icon: Copy },
@@ -92,14 +77,47 @@ const numberToWordsIndian = (num: number): string => {
     return result.trim();
 };
 
+// Populated refs come back as objects ({ _id, firstName, ... }); unpopulated
+// ones come back as a plain ObjectId string. Normalize to just the id string
+// so it plugs straight into the <select>-style fields below.
+const extractId = (value: any): string => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    return value._id || '';
+};
+
 function SelectField({
     label, required, value, onChange, options, placeholder, className = '',
 }: {
-    label: string; required?: boolean; value: string; onChange: (v: string) => void; options: string[]; placeholder: string; className?: string;
+    label: string;
+    required?: boolean;
+    value: string;
+    onChange: (v: string) => void;
+    options: string[] | { label: string; value: string }[];
+    placeholder: string;
+    className?: string;
 }) {
     const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (ref.current && !ref.current.contains(event.target as Node)) {
+                setOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const normalizedOptions = options.map(opt =>
+        typeof opt === 'string' ? { label: opt, value: opt } : opt
+    );
+
+    const selectedOption = normalizedOptions.find(opt => opt.value === value);
+
     return (
-        <div className={`flex flex-col gap-1 ${className}`}>
+        <div className={`flex flex-col gap-1 ${className}`} ref={ref}>
             <label className="text-[12px] font-semibold text-zinc-700">
                 {label} {required && <span className="text-rose-500">*</span>}
             </label>
@@ -109,19 +127,24 @@ function SelectField({
                     onClick={() => setOpen(!open)}
                     className="w-full h-10 px-3 flex items-center justify-between border border-zinc-200 rounded-md text-[12.5px] bg-white hover:border-zinc-300 transition-colors focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 >
-                    <span className={`truncate ${value ? 'text-zinc-800' : 'text-zinc-400'}`}>{value || placeholder}</span>
+                    <span className={`truncate ${value ? 'text-zinc-800' : 'text-zinc-400'}`}>
+                        {selectedOption ? selectedOption.label : placeholder}
+                    </span>
                     <ChevronDown className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                 </button>
                 {open && (
                     <div className="absolute left-0 top-full mt-1 w-full bg-white border border-zinc-200 shadow-lg rounded-md py-1 z-30 max-h-52 overflow-y-auto">
-                        {options.map((opt) => (
+                        {normalizedOptions.length === 0 && (
+                            <div className="px-3 py-1.5 text-[12px] text-zinc-400">No options available</div>
+                        )}
+                        {normalizedOptions.map((opt) => (
                             <button
-                                key={opt}
+                                key={opt.value}
                                 type="button"
-                                onClick={() => { onChange(opt); setOpen(false); }}
+                                onClick={() => { onChange(opt.value); setOpen(false); }}
                                 className="w-full text-left px-3 py-1.5 text-[12px] font-medium text-zinc-700 hover:bg-zinc-50"
                             >
-                                {opt}
+                                {opt.label}
                             </button>
                         ))}
                     </div>
@@ -134,21 +157,132 @@ function SelectField({
 export default function AddBudgetAllocationPage() {
     const router = useRouter();
 
+    const [departments, setDepartments] = useState<any[]>([]);
+    const [selectedDeptId, setSelectedDeptId] = useState('');
+    const [employees, setEmployees] = useState<any[]>([]);
+    const [isLoadingRefData, setIsLoadingRefData] = useState(true);
+    const [isLoadingAllocation, setIsLoadingAllocation] = useState(false);
+
     const [financialYear, setFinancialYear] = useState(financialYearOptions[0]);
     const [budgetType, setBudgetType] = useState(budgetTypeOptions[0]);
     const [currency, setCurrency] = useState(currencyOptions[0]);
-    const [allocationDate, setAllocationDate] = useState('15 May 2025');
-    const [budgetOwner, setBudgetOwner] = useState(budgetOwnerOptions[0]);
-    const [preparedBy, setPreparedBy] = useState(preparedByOptions[0]);
+    const [allocationDate, setAllocationDate] = useState(new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }));
+    const [budgetOwner, setBudgetOwner] = useState('');
+    const [preparedBy, setPreparedBy] = useState('');
     const [notes, setNotes] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
 
-    const [budgetHeads, setBudgetHeads] = useState<BudgetHead[]>(MOCK_BUDGET_HEADS);
+    const [budgetHeads, setBudgetHeads] = useState<BudgetHead[]>(DEFAULT_BUDGET_HEADS);
 
-    const dept = MOCK_DEPARTMENT;
-    const createdBy = 'Vijay Sharma';
-    const createdOn = '15 May 2025 10:30 AM';
-    const lastUpdated = '15 May 2025 10:30 AM';
-    const totalSpent = 1845200;
+    // ---- Fetch departments + employees once on mount ----
+    useEffect(() => {
+        const fetchRefData = async () => {
+            setIsLoadingRefData(true);
+            try {
+                const [deptRes, empRes] = await Promise.all([
+                    api.get('/companies/departments', { params: { limit: 100 } }),
+                    api.get('/employees', { params: { limit: 200 } }),
+                ]);
+                const deptList = deptRes.data.data || [];
+                setDepartments(deptList);
+                setEmployees(empRes.data.data || []);
+
+                // Auto-select first department since dropdown is removed
+                if (deptList.length > 0) {
+                    setSelectedDeptId(deptList[0]._id);
+                } else {
+                    toast.error('No departments found. Please create a department first.');
+                }
+            } catch (err) {
+                console.error('Failed to fetch reference data:', err);
+                toast.error('Failed to load departments / employees');
+            } finally {
+                setIsLoadingRefData(false);
+            }
+        };
+        fetchRefData();
+    }, []);
+
+    // Reset the form back to a blank state (used before loading a new
+    // dept/year combo and as the fallback when the server has nothing saved).
+    const resetToBlankAllocation = () => {
+        setBudgetType(budgetTypeOptions[0]);
+        setCurrency(currencyOptions[0]);
+        setAllocationDate(new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }));
+        setBudgetOwner('');
+        setPreparedBy('');
+        setNotes('');
+        setBudgetHeads(DEFAULT_BUDGET_HEADS.map((b, idx) => ({ ...b, id: `bh_${Date.now()}_${idx}` })));
+    };
+
+    // ---- Fetch existing allocation whenever department or financial year changes ----
+    useEffect(() => {
+        if (!selectedDeptId || !financialYear) return;
+
+        const fetchExistingAllocation = async () => {
+            setIsLoadingAllocation(true);
+            try {
+                const cleanYear = financialYear.split(' (')[0];
+                const res = await api.get(
+                    `/companies/departments/${selectedDeptId}/budget-allocations`,
+                    { params: { financialYear: cleanYear } }
+                );
+                const alloc = res.data.data;
+                if (alloc) {
+                    setBudgetType(alloc.budgetType || budgetTypeOptions[0]);
+                    setCurrency(alloc.currency || currencyOptions[0]);
+                    setAllocationDate(
+                        alloc.allocationDate
+                            ? new Date(alloc.allocationDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                            : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                    );
+                    setBudgetOwner(extractId(alloc.budgetOwnerId));
+                    setPreparedBy(extractId(alloc.preparedById));
+                    setNotes(alloc.notes || '');
+                    setBudgetHeads(
+                        alloc.budgetHeads && alloc.budgetHeads.length > 0
+                            ? alloc.budgetHeads.map((bh: any, idx: number) => ({
+                                  id: bh._id || `bh_${idx}`,
+                                  head: bh.head,
+                                  description: bh.description || '',
+                                  annual: bh.annual,
+                                  q1: bh.q1,
+                                  q2: bh.q2,
+                                  q3: bh.q3,
+                                  q4: bh.q4,
+                              }))
+                            : DEFAULT_BUDGET_HEADS
+                    );
+                    toast.success('Loaded existing budget allocation');
+                } else {
+                    resetToBlankAllocation();
+                }
+            } catch (err: any) {
+                if (err.response?.status === 404) {
+                    // Nothing saved yet for this department + year — start fresh.
+                    resetToBlankAllocation();
+                } else {
+                    console.error('Failed to fetch budget allocation:', err);
+                    toast.error('Failed to load budget allocation');
+                }
+            } finally {
+                setIsLoadingAllocation(false);
+            }
+        };
+        fetchExistingAllocation();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedDeptId, financialYear]);
+
+    const selectedDept = departments.find(d => d._id === selectedDeptId);
+
+    const deptEmployeeCount = selectedDeptId
+        ? employees.filter(e => e.departmentId?._id === selectedDeptId || e.departmentId === selectedDeptId).length
+        : 0;
+
+    const employeesList = employees.map((e: any) => ({
+        label: `${e.firstName} ${e.lastName || ''}`.trim(),
+        value: e._id
+    }));
 
     const totals = budgetHeads.reduce(
         (acc, b) => ({
@@ -162,7 +296,8 @@ export default function AddBudgetAllocationPage() {
     );
 
     const quarterlyAverage = Math.round(totals.annual / 4);
-    const utilization = totals.annual > 0 ? ((totalSpent / totals.q1) * 100).toFixed(2) : '0.00';
+    const totalSpent = 1845200;
+    const utilization = totals.q1 > 0 ? ((totalSpent / totals.q1) * 100).toFixed(2) : '0.00';
 
     const updateField = (id: string, field: keyof BudgetHead, value: string) => {
         setBudgetHeads((prev) =>
@@ -189,15 +324,68 @@ export default function AddBudgetAllocationPage() {
         setBudgetHeads((prev) => [...prev, newRow]);
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
+        if (!selectedDeptId) {
+            toast.error('No department found to allocate budget');
+            return;
+        }
+        if (budgetHeads.length === 0) {
+            toast.error('Add at least one budget head');
+            return;
+        }
         if (budgetHeads.some((b) => !b.head.trim())) {
             toast.error('Please fill in all Budget Head names');
             return;
         }
-        toast.success('Budget allocation saved successfully');
+
+        setIsSaving(true);
+        const loadId = toast.loading('Saving budget allocation...');
+        try {
+            const cleanYear = financialYear.split(' (')[0];
+            const payload = {
+                departmentId: selectedDeptId,
+                financialYear: cleanYear,
+                budgetType,
+                currency,
+                allocationDate: new Date(allocationDate),
+                budgetOwnerId: budgetOwner || undefined,
+                preparedById: preparedBy || undefined,
+                notes,
+                budgetHeads: budgetHeads.map(b => ({
+                    head: b.head,
+                    description: b.description || undefined,
+                    annual: b.annual,
+                    q1: b.q1,
+                    q2: b.q2,
+                    q3: b.q3,
+                    q4: b.q4,
+                }))
+            };
+
+            await api.post('/companies/departments/budget-allocations', payload);
+            toast.dismiss(loadId);
+            toast.success('Budget allocation saved successfully!');
+            router.push('/dashboard/departments/budget-allocation');
+        } catch (error: any) {
+            toast.dismiss(loadId);
+            const msg = error.response?.data?.message || 'Failed to save budget allocation';
+            toast.error(msg);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const totalInWords = `${numberToWordsIndian(totals.annual)} Rupees Only`;
+
+    if (isLoadingRefData) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-[#f8f9fc]">
+                <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-medium">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Loading department data...
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col gap-2 animate-in fade-in duration-300 p-2 w-full font-sans text-zinc-800 bg-[#f8f9fc] min-h-screen">
@@ -235,9 +423,10 @@ export default function AddBudgetAllocationPage() {
                     </button>
                     <button
                         onClick={handleSave}
-                        className="flex items-center gap-1.5 h-9 px-3 bg-indigo-600 text-white rounded-md text-[12px] font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
+                        disabled={isSaving || isLoadingAllocation}
+                        className="flex items-center gap-1.5 h-9 px-3 bg-indigo-600 text-white rounded-md text-[12px] font-semibold hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                        <Save className="w-3.5 h-3.5" /> Save Budget Allocation
+                        <Save className="w-3.5 h-3.5" /> {isSaving ? 'Saving...' : 'Save Budget Allocation'}
                     </button>
                 </div>
             </div>
@@ -251,20 +440,22 @@ export default function AddBudgetAllocationPage() {
                     <div>
                         <p className="text-[10.5px] text-zinc-500">Department</p>
                         <div className="flex items-center gap-2">
-                            <h2 className="text-[14px] font-bold text-zinc-900">{dept.name}</h2>
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-semibold">{dept.status}</span>
+                            <h2 className="text-[14px] font-bold text-zinc-900">{selectedDept?.name || '—'}</h2>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-semibold">Active</span>
                         </div>
-                        <p className="text-[11px] text-zinc-500 mt-0.5">Department Code: {dept.code}</p>
-                        <p className="text-[11px] text-zinc-500">Parent Department: {dept.parentDepartment}</p>
+                        <p className="text-[11px] text-zinc-500 mt-0.5">Department Code: {selectedDept?.code || '—'}</p>
+                        <p className="text-[11px] text-zinc-500">Location: {selectedDept?.branchId?.name || '—'}</p>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-2.5">
-                    <img src={dept.head?.avatarUrl} alt="Department Head" className="w-9 h-9 rounded-full border border-zinc-200 shrink-0" />
+                    <img src={`https://ui-avatars.com/api/?name=${selectedDept?.hodEmployeeId?.firstName || 'Dept'}+${selectedDept?.hodEmployeeId?.lastName || 'Head'}&background=e0e7ff&color=4f46e5`} alt="Department Head" className="w-9 h-9 rounded-full border border-zinc-200 shrink-0" />
                     <div>
                         <p className="text-[10.5px] text-zinc-500">Department Head</p>
-                        <p className="text-[13px] font-bold text-zinc-800">{dept.head?.firstName} {dept.head?.lastName}</p>
-                        <p className="text-[10.5px] text-zinc-500">{dept.head?.designation}</p>
+                        <p className="text-[13px] font-bold text-zinc-800">
+                            {selectedDept?.hodEmployeeId ? `${selectedDept.hodEmployeeId.firstName} ${selectedDept.hodEmployeeId.lastName || ''}`.trim() : 'Not Assigned'}
+                        </p>
+                        <p className="text-[10.5px] text-zinc-500">{selectedDept?.hodEmployeeId?.email || '—'}</p>
                     </div>
                 </div>
 
@@ -274,8 +465,10 @@ export default function AddBudgetAllocationPage() {
                     </div>
                     <div>
                         <p className="text-[10.5px] text-zinc-500">Financial Year</p>
-                        <p className="text-[13px] font-bold text-zinc-800">{dept.financialYear}</p>
-                        <p className="text-[10px] text-zinc-400">{dept.financialYearRange}</p>
+                        <p className="text-[13px] font-bold text-zinc-800">{financialYear.split(' (')[0]}</p>
+                        <p className="text-[10px] text-zinc-400">
+                            {financialYear.includes(' (') ? financialYear.split(' (')[1].replace(')', '') : ''}
+                        </p>
                     </div>
                 </div>
 
@@ -285,7 +478,7 @@ export default function AddBudgetAllocationPage() {
                     </div>
                     <div>
                         <p className="text-[10.5px] text-zinc-500">Total Employees</p>
-                        <p className="text-[13px] font-bold text-zinc-800">{dept.totalEmployees}</p>
+                        <p className="text-[13px] font-bold text-zinc-800">{deptEmployeeCount}</p>
                     </div>
                 </div>
 
@@ -294,8 +487,8 @@ export default function AddBudgetAllocationPage() {
                         <MapPin className="w-4 h-4" />
                     </div>
                     <div>
-                        <p className="text-[10.5px] text-zinc-500">Location</p>
-                        <p className="text-[13px] font-bold text-zinc-800">{dept.location}</p>
+                        <p className="text-[10.5px] text-zinc-500">Branch Location</p>
+                        <p className="text-[13px] font-bold text-zinc-800">{selectedDept?.branchId?.name || '—'}</p>
                     </div>
                 </div>
             </div>
@@ -308,8 +501,15 @@ export default function AddBudgetAllocationPage() {
 
                     {/* BUDGET DETAILS */}
                     <div className="bg-white border border-zinc-200 shadow-sm rounded-md p-3">
-                        <h2 className="text-[13.5px] font-bold text-zinc-800 mb-3">Budget Details</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-1.5 mb-2">
+                        <div className="flex items-center justify-between mb-3">
+                            <h2 className="text-[13.5px] font-bold text-zinc-800">Budget Details</h2>
+                            {isLoadingAllocation && (
+                                <span className="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Checking existing allocation...
+                                </span>
+                            )}
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
                             <SelectField label="Financial Year" required value={financialYear} onChange={setFinancialYear} options={financialYearOptions} placeholder="Select Financial Year" />
                             <SelectField label="Budget Type" required value={budgetType} onChange={setBudgetType} options={budgetTypeOptions} placeholder="Select Budget Type" />
                             <SelectField label="Currency" required value={currency} onChange={setCurrency} options={currencyOptions} placeholder="Select Currency" />
@@ -326,10 +526,10 @@ export default function AddBudgetAllocationPage() {
                                 </div>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <SelectField label="Budget Owner" required value={budgetOwner} onChange={setBudgetOwner} options={budgetOwnerOptions} placeholder="Select Budget Owner" />
-                            <SelectField label="Prepared By" required value={preparedBy} onChange={setPreparedBy} options={preparedByOptions} placeholder="Select Preparer" />
-                            <div className="flex flex-col gap-1">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                            <SelectField label="Budget Owner" required value={budgetOwner} onChange={setBudgetOwner} options={employeesList} placeholder="Select Budget Owner" />
+                            <SelectField label="Prepared By" required value={preparedBy} onChange={setPreparedBy} options={employeesList} placeholder="Select Preparer" />
+                            <div className="flex flex-col gap-1 md:col-span-2">
                                 <label className="text-[12px] font-semibold text-zinc-700">Notes (Optional)</label>
                                 <input
                                     type="text"
@@ -379,7 +579,7 @@ export default function AddBudgetAllocationPage() {
                                                     value={b.head}
                                                     onChange={(e) => updateField(b.id, 'head', e.target.value)}
                                                     placeholder="Budget head"
-                                                    className="w-32 font-bold text-zinc-800 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-indigo-300 rounded px-1"/>
+                                                    className="w-32 font-bold text-zinc-800 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-indigo-300 rounded px-1" />
                                             </td>
                                             <td className="py-2 px-2 align-middle">
                                                 <input
@@ -387,48 +587,60 @@ export default function AddBudgetAllocationPage() {
                                                     value={b.description}
                                                     onChange={(e) => updateField(b.id, 'description', e.target.value)}
                                                     placeholder="Description"
-                                                    className="w-36 text-zinc-600 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-indigo-300 rounded px-1"/>
+                                                    className="w-36 text-zinc-600 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-indigo-300 rounded px-1" />
                                             </td>
                                             <td className="py-2 px-2 align-middle">
-                                                <input
-                                                    type="text"
-                                                    value={formatCurrency(b.annual)}
-                                                    onChange={(e) => updateField(b.id, 'annual', e.target.value)}
-                                                    className="w-24 font-semibold text-zinc-800 bg-white border border-zinc-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500"/>
+                                                <div className="flex items-center border border-zinc-200 rounded px-2 w-28 bg-white">
+                                                    <span className="text-zinc-400 mr-1">₹</span>
+                                                    <input
+                                                        type="text"
+                                                        value={b.annual}
+                                                        onChange={(e) => updateField(b.id, 'annual', e.target.value)}
+                                                        className="w-full font-semibold text-zinc-800 border-none focus:outline-none py-1" />
+                                                </div>
                                             </td>
                                             <td className="py-2 px-2 align-middle">
-                                                <input
-                                                    type="text"
-                                                    value={formatCurrency(b.q1)}
-                                                    onChange={(e) => updateField(b.id, 'q1', e.target.value)}
-                                                    className="w-24 text-zinc-700 bg-white border border-zinc-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500"/>
+                                                <div className="flex items-center border border-zinc-200 rounded px-2 w-28 bg-white">
+                                                    <span className="text-zinc-400 mr-1">₹</span>
+                                                    <input
+                                                        type="text"
+                                                        value={b.q1}
+                                                        onChange={(e) => updateField(b.id, 'q1', e.target.value)}
+                                                        className="w-full text-zinc-700 border-none focus:outline-none py-1" />
+                                                </div>
                                             </td>
                                             <td className="py-2 px-2 align-middle">
-                                                <input
-                                                    type="text"
-                                                    value={formatCurrency(b.q2)}
-                                                    onChange={(e) => updateField(b.id, 'q2', e.target.value)}
-                                                    className="w-24 text-zinc-700 bg-white border border-zinc-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500"/>
+                                                <div className="flex items-center border border-zinc-200 rounded px-2 w-28 bg-white">
+                                                    <span className="text-zinc-400 mr-1">₹</span>
+                                                    <input
+                                                        type="text"
+                                                        value={b.q2}
+                                                        onChange={(e) => updateField(b.id, 'q2', e.target.value)}
+                                                        className="w-full text-zinc-700 border-none focus:outline-none py-1" />
+                                                </div>
                                             </td>
                                             <td className="py-2 px-2 align-middle">
-                                                <input
-                                                    type="text"
-                                                    value={formatCurrency(b.q3)}
-                                                    onChange={(e) => updateField(b.id, 'q3', e.target.value)}
-                                                    className="w-24 text-zinc-700 bg-white border border-zinc-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500"/>
+                                                <div className="flex items-center border border-zinc-200 rounded px-2 w-28 bg-white">
+                                                    <span className="text-zinc-400 mr-1">₹</span>
+                                                    <input
+                                                        type="text"
+                                                        value={b.q3}
+                                                        onChange={(e) => updateField(b.id, 'q3', e.target.value)}
+                                                        className="w-full text-zinc-700 border-none focus:outline-none py-1" />
+                                                </div>
                                             </td>
                                             <td className="py-2 px-2 align-middle">
-                                                <input
-                                                    type="text"
-                                                    value={formatCurrency(b.q4)}
-                                                    onChange={(e) => updateField(b.id, 'q4', e.target.value)}
-                                                    className="w-24 text-zinc-700 bg-white border border-zinc-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                                                <div className="flex items-center border border-zinc-200 rounded px-2 w-28 bg-white">
+                                                    <span className="text-zinc-400 mr-1">₹</span>
+                                                    <input
+                                                        type="text"
+                                                        value={b.q4}
+                                                        onChange={(e) => updateField(b.id, 'q4', e.target.value)}
+                                                        className="w-full text-zinc-700 border-none focus:outline-none py-1" />
+                                                </div>
                                             </td>
                                             <td className="py-2 px-2 align-middle text-center">
                                                 <div className="flex items-center justify-center gap-1">
-                                                    <button className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-md transition-colors" title="Edit">
-                                                        <Edit2 className="w-3.5 h-3.5" />
-                                                    </button>
                                                     <button
                                                         onClick={() => handleDeleteRow(b.id)}
                                                         className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-md transition-colors"
@@ -481,8 +693,9 @@ export default function AddBudgetAllocationPage() {
                             Cancel
                         </button>
                         <button onClick={handleSave}
-                            className="flex items-center gap-1.5 h-9 px-4 bg-indigo-600 text-white rounded-md text-[12.5px] font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
-                            <Save className="w-3.5 h-3.5" /> Save Budget Allocation
+                            disabled={isSaving || isLoadingAllocation}
+                            className="flex items-center gap-1.5 h-9 px-4 bg-indigo-600 text-white rounded-md text-[12.5px] font-semibold hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed">
+                            <Save className="w-3.5 h-3.5" /> {isSaving ? 'Saving...' : 'Save Budget Allocation'}
                         </button>
                     </div>
                 </div>
@@ -509,15 +722,11 @@ export default function AddBudgetAllocationPage() {
                             <div className="border-t border-zinc-100 pt-2.5 flex flex-col gap-1.5">
                                 <div className="flex items-center justify-between text-[11px]">
                                     <span className="text-zinc-500">Created By</span>
-                                    <span className="font-semibold text-zinc-800">{createdBy}</span>
+                                    <span className="font-semibold text-zinc-800">Admin</span>
                                 </div>
                                 <div className="flex items-center justify-between text-[11px]">
                                     <span className="text-zinc-500">Created On</span>
-                                    <span className="font-semibold text-zinc-800">{createdOn}</span>
-                                </div>
-                                <div className="flex items-center justify-between text-[11px]">
-                                    <span className="text-zinc-500">Last Updated</span>
-                                    <span className="font-semibold text-zinc-800">{lastUpdated}</span>
+                                    <span className="font-semibold text-zinc-800">{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                                 </div>
                             </div>
                         </div>

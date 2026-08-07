@@ -56,14 +56,14 @@ export default function DesignationsPage() {
       <div className="w-full mx-auto p-2 sm:p-2 md:p-2 lg:p-2">
 
         {/* Breadcrumbs */}
-      <Breadcrumb
-    items={[
-      { label: "Organization Setup", href: "/dashboard" },
-      { label: "Business Units", href: "/dashboard/bussiness-unit/bussinessunit-bu" },
-      { label: "Divisions", href: "" },
-      { label: "Designations", href: "" },
-    ]}
-  />
+        <Breadcrumb
+          items={[
+            { label: "Organization Setup", href: "/dashboard" },
+            { label: "Business Units", href: "/dashboard/bussiness-unit/bussinessunit-bu" },
+            { label: "Divisions", href: "" },
+            { label: "Designations", href: "" },
+          ]}
+        />
 
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
