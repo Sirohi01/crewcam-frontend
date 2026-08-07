@@ -83,7 +83,13 @@ export default function PoliciesPage({ params }: { params: Promise<{ id: string 
       try {
         setLoading(true);
         const data = await getDepartmentById(id);
-        setDepartment(data);
+        // Safely resolve populated fields so React never receives an object as a child
+        const resolveField = (field: any) => {
+          if (!field) return null;
+          if (typeof field === 'object') return field.firstName ? `${field.firstName} ${field.lastName}`.trim() : field._id || null;
+          return field;
+        };
+        setDepartment({ ...data, hodEmployeeId: resolveField(data.hodEmployeeId), reportingToId: resolveField(data.reportingToId) });
       } catch (error) {
         console.error('Failed to fetch department details', error);
       } finally {
@@ -143,7 +149,7 @@ export default function PoliciesPage({ params }: { params: Promise<{ id: string 
             </div>
             <div className="flex flex-col gap-0 mt-0.5">
               <span className="text-[10.5px] font-medium text-slate-600">Department Code: {department?.code || '---'}</span>
-              <span className="text-[10.5px] font-medium text-slate-600">Parent Department: {department?.reportingToId || 'N/A'}</span>
+              <span className="text-[10.5px] font-medium text-slate-600">Parent Department: {typeof department?.reportingToId === 'object' && department?.reportingToId ? (department.reportingToId.name || department.reportingToId.code || 'N/A') : (department?.reportingToId || 'N/A')}</span>
             </div>
           </div>
         </div>
@@ -152,7 +158,11 @@ export default function PoliciesPage({ params }: { params: Promise<{ id: string 
           <img src="https://i.pravatar.cc/150?u=12" alt="Avatar" className="w-10 h-10 rounded-full object-cover border border-slate-200" />
           <div className="flex flex-col gap-0.5">
             <span className="text-[10px] font-semibold text-slate-500 tracking-wide uppercase">Department Head</span>
-            <span className="text-sm font-bold text-slate-900">{department?.hodEmployeeId || 'Not Assigned'}</span>
+            <span className="text-sm font-bold text-slate-900">
+              {typeof department?.hodEmployeeId === 'object' && department?.hodEmployeeId
+                ? ([department.hodEmployeeId.firstName, department.hodEmployeeId.lastName].filter(Boolean).join(' ') || department.hodEmployeeId.email || 'Not Assigned')
+                : (department?.hodEmployeeId || 'Not Assigned')}
+            </span>
             <span className="text-[11px] font-medium text-slate-600">Manager</span>
           </div>
         </div>

@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Upload, Download, Sparkles, Plus, ChevronRight, Search, Filter, RotateCcw, Eye, Edit2, X, ChevronDown, ChevronLeft, Building, Users, User, PieChart as PieChartIcon, TrendingUp, Clock, Trash2} from 'lucide-react';
+import { Upload, Download, Sparkles, Plus, ChevronRight, Search, Filter, RotateCcw, Eye, Edit2, X, ChevronDown, ChevronLeft, Building, Users, User, PieChart as PieChartIcon, TrendingUp, Clock, Trash2 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Card } from '@/components/ui/card';
 import { getDepartments, deleteDepartment } from '@/services/departmentService';
@@ -152,7 +152,7 @@ export default function DepartmentsPage() {
     };
 
     const handleImportDepartments = async (rows: DepartmentRow[]) => {
-        await Promise.all( 
+        await Promise.all(
             rows.map((row) =>
                 fetch('/api/departments/bulk-import-row', {
                     method: 'POST',
@@ -329,13 +329,13 @@ export default function DepartmentsPage() {
                                                     <img src={`https://i.pravatar.cc/150?u=${dept._id || dept.id}`} alt={(typeof dept.headName === 'string' ? dept.headName : dept.hodEmployeeId?.firstName) || 'User'} className="w-6 h-6 rounded-full border border-slate-200 shrink-0" />
                                                     <div className="min-w-0">
                                                         <p className="font-semibold text-slate-800 text-[11px] truncate">
-                                                            {(dept.hodEmployeeId && typeof dept.hodEmployeeId === 'object') 
-                                                                ? `${dept.hodEmployeeId.firstName || ''} ${dept.hodEmployeeId.lastName || ''}`.trim() 
+                                                            {(dept.hodEmployeeId && typeof dept.hodEmployeeId === 'object')
+                                                                ? `${dept.hodEmployeeId.firstName || ''} ${dept.hodEmployeeId.lastName || ''}`.trim()
                                                                 : (typeof dept.hodEmployeeId === 'string' ? dept.hodEmployeeId : 'Aman Malhotra')}
                                                         </p>
                                                         <p className="text-[10px] text-slate-400 truncate">
-                                                            {(dept.hodEmployeeId && typeof dept.hodEmployeeId === 'object' && dept.hodEmployeeId.designation) 
-                                                                ? dept.hodEmployeeId.designation 
+                                                            {(dept.hodEmployeeId && typeof dept.hodEmployeeId === 'object' && dept.hodEmployeeId.designation)
+                                                                ? dept.hodEmployeeId.designation
                                                                 : 'Design Director'}
                                                         </p>
                                                     </div>

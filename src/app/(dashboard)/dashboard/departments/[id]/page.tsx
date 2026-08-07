@@ -51,10 +51,18 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
     try {
       setLoading(true);
       const data = await getDepartmentById(id);
-      setFormData({
-        ...formData,
+      // Safely resolve populated fields (backend returns objects, we need strings/IDs)
+      const resolveField = (field: any) => {
+        if (!field) return '';
+        if (typeof field === 'object') return field.firstName ? `${field.firstName} ${field.lastName}`.trim() : field._id || '';
+        return field;
+      };
+      setFormData(prev => ({
+        ...prev,
         ...data,
-      });
+        hodEmployeeId: resolveField(data.hodEmployeeId),
+        reportingToId: resolveField(data.reportingToId),
+      }));
     } catch (error) {
       console.error('Failed to fetch department details', error);
     } finally {
@@ -137,7 +145,6 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
                 <Link
                   key={idx}
                   href={tab.href}
-                  target="_blank"
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg text-[12px] font-bold transition-colors ${idx === 0 ? 'bg-white text-blue-600 shadow-sm border border-slate-200 relative before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:bg-blue-600 before:rounded-r-md' : 'text-slate-600 hover:bg-slate-100 border border-transparent'}`}
                 >
                   <tab.icon className={`w-4 h-4 ${idx === 0 ? 'text-blue-600' : 'text-slate-400'}`} />

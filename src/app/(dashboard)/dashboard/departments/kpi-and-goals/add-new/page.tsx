@@ -1,18 +1,118 @@
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ChevronRight, ArrowLeft, Target, Eye, BookOpen, Copy, Info, Trash2,
   Bold, Italic, Underline, List, ListOrdered, Link as LinkIcon, Goal, Activity, Plus, BarChart2
 } from 'lucide-react';
+import { createDepartmentKpi, getDepartmentKpiById, updateDepartmentKpi } from '@/services/kpiService';
+import toast from 'react-hot-toast';
 
 const BREADCRUMB = ['Performance Management', 'KPIs & Goals', 'KPI Management', 'Add New KPI & Goal'];
 
 export default function AddNewKPIPage() {
-  const [goals, setGoals] = useState([{ id: 1 }, { id: 2 }]);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isEditMode = searchParams.get('edit') === 'true';
+  const editId = searchParams.get('id');
+  
+  // Dummy department ID for testing since URL doesn't have one
+  const departmentId = '64a7c1e5f8b9a9d2a4f6e1b3'; 
 
-  const addGoal = () => setGoals([...goals, { id: goals.length + 1 }]);
+  const [formData, setFormData] = useState({
+    title: '',
+    code: 'AUTO-GEN', // Auto-generated
+    kpiType: 'Leading',
+    category: '',
+    perspective: '',
+    weightage: 0,
+    description: '',
+    measurementUnit: '',
+    targetType: '',
+    targetIsHigherBetter: true,
+    goalPeriod: 'FY 2025-26',
+    alignedWith: '',
+    alignmentDetails: '',
+    assignedTo: '',
+    alignmentDepartment: '',
+    cascadedKpi: false,
+  });
+
+  const [goals, setGoals] = useState([{ id: Date.now(), name: '', targetValue: 0, minThreshold: 0, maxThreshold: 0, weightage: 0 }]);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const addGoal = () => setGoals([...goals, { id: Date.now(), name: '', targetValue: 0, minThreshold: 0, maxThreshold: 0, weightage: 0 }]);
   const removeGoal = (id: number) => setGoals(goals.filter(g => g.id !== id));
+
+  const handleGoalChange = (id: number, field: string, value: any) => {
+    setGoals(goals.map(g => g.id === id ? { ...g, [field]: value } : g));
+  };
+
+  React.useEffect(() => {
+    if (isEditMode && editId) {
+      const fetchKpi = async () => {
+        try {
+          const res = await getDepartmentKpiById(editId);
+          if (res.success && res.data) {
+            const data = res.data;
+            setFormData({
+              title: data.title || '',
+              code: data.code || 'AUTO-GEN',
+              kpiType: data.kpiType || 'Leading',
+              category: data.category || '',
+              perspective: data.perspective || '',
+              weightage: data.weightage || 0,
+              description: data.description || '',
+              measurementUnit: data.measurementUnit || '',
+              targetType: data.targetType || '',
+              targetIsHigherBetter: data.targetIsHigherBetter ?? true,
+              goalPeriod: data.goalPeriod || 'FY 2025-26',
+              alignedWith: data.alignedWith || '',
+              alignmentDetails: data.alignmentDetails || '',
+              assignedTo: data.assignedTo || '',
+              alignmentDepartment: data.alignmentDepartment || '',
+              cascadedKpi: data.cascadedKpi || false,
+            });
+            if (data.goals && data.goals.length > 0) {
+              setGoals(data.goals.map((g: any, i: number) => ({ ...g, id: g._id || Date.now() + i })));
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch KPI details:', error);
+          toast.error('Failed to load KPI data');
+        }
+      };
+      fetchKpi();
+    }
+  }, [isEditMode, editId]);
+
+  const handleSave = async () => {
+    try {
+      setIsSubmitting(true);
+      
+      const payload = {
+        ...formData,
+        departmentId,
+        goals: goals.map(({ id, ...rest }) => rest) // remove temp id
+      };
+
+      if (isEditMode && editId) {
+        await updateDepartmentKpi(editId, payload);
+        toast.success('KPI & Goal updated successfully!');
+      } else {
+        await createDepartmentKpi(payload);
+        toast.success('KPI & Goal created successfully!');
+      }
+      router.push('/dashboard/departments/kpi-and-goals');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} KPI`);
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-2 p-2 w-full font-sans text-slate-800 bg-slate-100 min-h-screen overflow-x-hidden">
@@ -37,8 +137,8 @@ export default function AddNewKPIPage() {
               <Goal className="w-6 h-6" />
             </div>
             <div className="flex flex-col">
-              <h1 className="text-[18px] font-bold text-slate-900 leading-tight">Add New KPI and Goal</h1>
-              <p className="text-[11px] text-slate-500 mt-0.5">Define a new KPI and set measurable goals aligned with organizational objectives.</p>
+              <h1 className="text-[18px] font-bold text-slate-900 leading-tight">{isEditMode ? 'Edit KPI and Goal' : 'Add New KPI and Goal'}</h1>
+              <p className="text-[11px] text-slate-500 mt-0.5">{isEditMode ? 'Update the details of the selected KPI and its associated goals.' : 'Define a new KPI and set measurable goals aligned with organizational objectives.'}</p>
             </div>
           </div>
         </div>
@@ -47,8 +147,8 @@ export default function AddNewKPIPage() {
           <Link href="/dashboard/departments/kpi-and-goals" className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 rounded-md text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition-colors">
             <ArrowLeft className="w-3.5 h-3.5" /> Back to KPI & Goals
           </Link>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-700 text-white rounded-md text-[11px] font-bold hover:bg-indigo-800 transition-colors shadow-sm">
-            Save KPI & Goal
+          <button onClick={handleSave} disabled={isSubmitting} className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-700 text-white rounded-md text-[11px] font-bold hover:bg-indigo-800 transition-colors shadow-sm disabled:opacity-50">
+            {isSubmitting ? (isEditMode ? 'Updating...' : 'Saving...') : (isEditMode ? 'Update KPI & Goal' : 'Save KPI & Goal')}
           </button>
         </div>
       </div>
@@ -65,18 +165,21 @@ export default function AddNewKPIPage() {
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-bold text-slate-700">KPI Title <span className="text-red-500">*</span></label>
                 <div className="relative">
-                  <input type="text" placeholder="Enter KPI title" className="w-full border border-slate-300 bg-slate-50 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 placeholder-slate-400" />
-                  <span className="absolute right-2 top-1.5 text-[10px] text-slate-400">0/150</span>
+                  <input type="text" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} placeholder="Enter KPI title" className="w-full border border-slate-300 bg-slate-50 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 placeholder-slate-400" />
+                  <span className="absolute right-2 top-1.5 text-[10px] text-slate-400">{formData.title.length}/150</span>
                 </div>
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-bold text-slate-700">KPI Code <span className="text-red-500">*</span></label>
-                <input type="text" placeholder="Auto-generated" disabled className="w-full border border-slate-300 bg-slate-100 rounded-md px-3 py-1.5 text-[12px] focus:outline-none placeholder-slate-500 cursor-not-allowed" />
+                <input type="text" value={formData.code} disabled className="w-full border border-slate-300 bg-slate-100 rounded-md px-3 py-1.5 text-[12px] focus:outline-none placeholder-slate-500 cursor-not-allowed" />
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">KPI Type <span className="text-red-500">*</span> <Info className="w-3 h-3 text-slate-400" /></label>
-                <select className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 bg-slate-50 appearance-none">
-                  <option>Select KPI Type</option>
+                <select value={formData.kpiType} onChange={(e) => setFormData({...formData, kpiType: e.target.value})} className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 bg-slate-50 appearance-none">
+                  <option value="Leading">Leading</option>
+                  <option value="Lagging">Lagging</option>
+                  <option value="Outcome">Outcome</option>
+                  <option value="Activity">Activity</option>
                 </select>
               </div>
             </div>
@@ -84,20 +187,25 @@ export default function AddNewKPIPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-bold text-slate-700">Category <span className="text-red-500">*</span></label>
-                <select className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 bg-slate-50 appearance-none">
-                  <option>Select Category</option>
+                <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 bg-slate-50 appearance-none">
+                  <option value="">Select Category</option>
+                  <option value="Financial">Financial</option>
+                  <option value="Operational">Operational</option>
+                  <option value="Customer">Customer</option>
                 </select>
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-bold text-slate-700">Perspective <span className="text-red-500">*</span></label>
-                <select className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 bg-slate-50 appearance-none">
-                  <option>Select Perspective</option>
+                <select value={formData.perspective} onChange={(e) => setFormData({...formData, perspective: e.target.value})} className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 bg-slate-50 appearance-none">
+                  <option value="">Select Perspective</option>
+                  <option value="Internal">Internal</option>
+                  <option value="External">External</option>
                 </select>
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-bold text-slate-700">Weightage <span className="text-red-500">*</span> (%)</label>
                 <div className="flex items-center gap-2">
-                  <input type="text" placeholder="0" className="w-20 border border-slate-300 bg-slate-50 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 placeholder-slate-400" />
+                  <input type="number" value={formData.weightage} onChange={(e) => setFormData({...formData, weightage: Number(e.target.value)})} placeholder="0" className="w-20 border border-slate-300 bg-slate-50 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 placeholder-slate-400" />
                   <span className="text-[10px] text-slate-500">% (Total must be 100%)</span>
                 </div>
               </div>
@@ -117,8 +225,8 @@ export default function AddNewKPIPage() {
                   <button className="p-1 hover:bg-slate-200 rounded text-slate-700"><LinkIcon className="w-3.5 h-3.5" /></button>
                 </div>
                 <div className="relative">
-                  <textarea rows={3} placeholder="Enter KPI description..." className="w-full px-3 py-2 text-[12px] focus:outline-none resize-none placeholder-slate-400" />
-                  <span className="absolute right-2 bottom-2 text-[10px] text-slate-400">0/1000</span>
+                  <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={3} placeholder="Enter KPI description..." className="w-full px-3 py-2 text-[12px] focus:outline-none resize-none placeholder-slate-400" />
+                  <span className="absolute right-2 bottom-2 text-[10px] text-slate-400">{formData.description.length}/1000</span>
                 </div>
               </div>
             </div>
@@ -131,27 +239,32 @@ export default function AddNewKPIPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-bold text-slate-700">Measurement Unit <span className="text-red-500">*</span></label>
-                <select className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 bg-slate-50 appearance-none">
-                  <option>Select Unit</option>
+                <select value={formData.measurementUnit} onChange={(e) => setFormData({...formData, measurementUnit: e.target.value})} className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 bg-slate-50 appearance-none">
+                  <option value="">Select Unit</option>
+                  <option value="Percentage">Percentage (%)</option>
+                  <option value="Currency">Currency</option>
+                  <option value="Number">Number</option>
                 </select>
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-bold text-slate-700">Target Type <span className="text-red-500">*</span></label>
-                <select className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 bg-slate-50 appearance-none">
-                  <option>Select Target Type</option>
+                <select value={formData.targetType} onChange={(e) => setFormData({...formData, targetType: e.target.value})} className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 bg-slate-50 appearance-none">
+                  <option value="">Select Target Type</option>
+                  <option value="Fixed">Fixed</option>
+                  <option value="Range">Range</option>
                 </select>
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">Target is Higher Better?</label>
                 <div className="flex items-center gap-1 bg-slate-100 rounded-md p-0.5 w-fit">
-                  <button className="px-4 py-1 text-[11px] font-bold bg-indigo-700 text-white rounded shadow-sm">Yes</button>
-                  <button className="px-4 py-1 text-[11px] font-bold text-slate-600 hover:text-slate-900 rounded transition-colors">No</button>
+                  <button onClick={() => setFormData({...formData, targetIsHigherBetter: true})} className={`px-4 py-1 text-[11px] font-bold rounded shadow-sm ${formData.targetIsHigherBetter ? 'bg-indigo-700 text-white' : 'text-slate-600 hover:text-slate-900'}`}>Yes</button>
+                  <button onClick={() => setFormData({...formData, targetIsHigherBetter: false})} className={`px-4 py-1 text-[11px] font-bold rounded transition-colors ${!formData.targetIsHigherBetter ? 'bg-indigo-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}>No</button>
                 </div>
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-bold text-slate-700">Goal Period <span className="text-red-500">*</span></label>
                 <div className="relative">
-                  <input type="text" value="FY 2025-26" readOnly className="w-full border border-slate-300 rounded-md pl-8 pr-3 py-1.5 text-[12px] focus:outline-none font-medium text-slate-900 bg-slate-50" />
+                  <input type="text" value={formData.goalPeriod} onChange={(e) => setFormData({...formData, goalPeriod: e.target.value})} className="w-full border border-slate-300 rounded-md pl-8 pr-3 py-1.5 text-[12px] focus:outline-none font-medium text-slate-900 bg-slate-50" />
                   <div className="absolute left-2.5 top-1.5">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                   </div>
@@ -177,11 +290,11 @@ export default function AddNewKPIPage() {
                   {goals.map((g, index) => (
                     <tr key={g.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
                       <td className="px-2 py-3 text-[12px] font-bold text-slate-900">{index + 1}</td>
-                      <td className="px-2 py-3"><input type="text" placeholder="Enter goal name or description" className="w-full border border-slate-300 bg-slate-50 rounded text-[11px] px-2 py-1.5 focus:outline-none focus:border-indigo-500 placeholder-slate-400" /></td>
-                      <td className="px-2 py-3"><input type="text" placeholder="0" className="w-full border border-slate-300 bg-slate-50 rounded text-[11px] px-2 py-1.5 focus:outline-none focus:border-indigo-500 placeholder-slate-400" /></td>
-                      <td className="px-2 py-3"><input type="text" placeholder="0" className="w-full border border-slate-300 bg-slate-50 rounded text-[11px] px-2 py-1.5 focus:outline-none focus:border-indigo-500 placeholder-slate-400" /></td>
-                      <td className="px-2 py-3"><input type="text" placeholder="0" className="w-full border border-slate-300 bg-slate-50 rounded text-[11px] px-2 py-1.5 focus:outline-none focus:border-indigo-500 placeholder-slate-400" /></td>
-                      <td className="px-2 py-3"><input type="text" placeholder="0" className="w-full border border-slate-300 bg-slate-50 rounded text-[11px] px-2 py-1.5 focus:outline-none focus:border-indigo-500 placeholder-slate-400" /></td>
+                      <td className="px-2 py-3"><input type="text" value={g.name} onChange={(e) => handleGoalChange(g.id, 'name', e.target.value)} placeholder="Enter goal name or description" className="w-full border border-slate-300 bg-slate-50 rounded text-[11px] px-2 py-1.5 focus:outline-none focus:border-indigo-500 placeholder-slate-400" /></td>
+                      <td className="px-2 py-3"><input type="number" value={g.targetValue} onChange={(e) => handleGoalChange(g.id, 'targetValue', Number(e.target.value))} placeholder="0" className="w-full border border-slate-300 bg-slate-50 rounded text-[11px] px-2 py-1.5 focus:outline-none focus:border-indigo-500 placeholder-slate-400" /></td>
+                      <td className="px-2 py-3"><input type="number" value={g.minThreshold} onChange={(e) => handleGoalChange(g.id, 'minThreshold', Number(e.target.value))} placeholder="0" className="w-full border border-slate-300 bg-slate-50 rounded text-[11px] px-2 py-1.5 focus:outline-none focus:border-indigo-500 placeholder-slate-400" /></td>
+                      <td className="px-2 py-3"><input type="number" value={g.maxThreshold} onChange={(e) => handleGoalChange(g.id, 'maxThreshold', Number(e.target.value))} placeholder="0" className="w-full border border-slate-300 bg-slate-50 rounded text-[11px] px-2 py-1.5 focus:outline-none focus:border-indigo-500 placeholder-slate-400" /></td>
+                      <td className="px-2 py-3"><input type="number" value={g.weightage} onChange={(e) => handleGoalChange(g.id, 'weightage', Number(e.target.value))} placeholder="0" className="w-full border border-slate-300 bg-slate-50 rounded text-[11px] px-2 py-1.5 focus:outline-none focus:border-indigo-500 placeholder-slate-400" /></td>
                       <td className="px-2 py-3 text-center"><button onClick={() => removeGoal(g.id)} className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"><Trash2 className="w-3.5 h-3.5" /></button></td>
                     </tr>
                   ))}
@@ -211,33 +324,39 @@ export default function AddNewKPIPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-bold text-slate-700">Aligned With <span className="text-red-500">*</span></label>
-                <select className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 bg-slate-50 appearance-none">
-                  <option>Select Alignment</option>
+                <select value={formData.alignedWith} onChange={(e) => setFormData({...formData, alignedWith: e.target.value})} className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 bg-slate-50 appearance-none">
+                  <option value="">Select Alignment</option>
+                  <option value="Company Goal">Company Goal</option>
+                  <option value="Department Goal">Department Goal</option>
                 </select>
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-bold text-slate-700">Alignment Details</label>
                 <div className="relative">
-                  <input type="text" placeholder="Enter alignment details (optional)" className="w-full border border-slate-300 bg-slate-50 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 placeholder-slate-400" />
-                  <span className="absolute right-2 top-1.5 text-[9px] text-slate-400">0/250</span>
+                  <input type="text" value={formData.alignmentDetails} onChange={(e) => setFormData({...formData, alignmentDetails: e.target.value})} placeholder="Enter alignment details (optional)" className="w-full border border-slate-300 bg-slate-50 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 placeholder-slate-400" />
+                  <span className="absolute right-2 top-1.5 text-[9px] text-slate-400">{formData.alignmentDetails.length}/250</span>
                 </div>
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-bold text-slate-700">Assigned To <span className="text-red-500">*</span></label>
-                <select className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 bg-slate-50 appearance-none">
-                  <option>Select Employee / Team</option>
+                <select value={formData.assignedTo} onChange={(e) => setFormData({...formData, assignedTo: e.target.value})} className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 bg-slate-50 appearance-none">
+                  <option value="">Select Employee / Team</option>
+                  <option value="John Doe">John Doe</option>
+                  <option value="Design Team">Design Team</option>
                 </select>
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-bold text-slate-700">Department</label>
-                <select className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 bg-slate-50 appearance-none">
-                  <option>All Departments</option>
+                <select value={formData.alignmentDepartment} onChange={(e) => setFormData({...formData, alignmentDepartment: e.target.value})} className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-indigo-500 bg-slate-50 appearance-none">
+                  <option value="">All Departments</option>
+                  <option value="Design">Design</option>
+                  <option value="Engineering">Engineering</option>
                 </select>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <input type="checkbox" className="w-3.5 h-3.5 border border-slate-300 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
+              <input type="checkbox" checked={formData.cascadedKpi} onChange={(e) => setFormData({...formData, cascadedKpi: e.target.checked})} className="w-3.5 h-3.5 border border-slate-300 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
               <label className="text-[11px] font-medium text-slate-700 flex items-center gap-1 cursor-pointer">
                 Cascaded KPI (Rolls down to team/individuals) <Info className="w-3 h-3 text-slate-400" />
               </label>
@@ -260,35 +379,35 @@ export default function AddNewKPIPage() {
             <div className="space-y-3.5">
               <div className="grid grid-cols-[100px_1fr] gap-2">
                 <span className="text-[11px] text-slate-500 font-bold">KPI Title</span>
-                <span className="text-[11px] font-bold text-slate-900">-</span>
+                <span className="text-[11px] font-bold text-slate-900">{formData.title || '-'}</span>
               </div>
               <div className="grid grid-cols-[100px_1fr] gap-2">
                 <span className="text-[11px] text-slate-500 font-bold">KPI Code</span>
-                <span className="text-[11px] font-bold text-slate-900">-</span>
+                <span className="text-[11px] font-bold text-slate-900">{formData.code || '-'}</span>
               </div>
               <div className="grid grid-cols-[100px_1fr] gap-2">
                 <span className="text-[11px] text-slate-500 font-bold">Category</span>
-                <span className="text-[11px] font-bold text-slate-900">-</span>
+                <span className="text-[11px] font-bold text-slate-900">{formData.category || '-'}</span>
               </div>
               <div className="grid grid-cols-[100px_1fr] gap-2">
                 <span className="text-[11px] text-slate-500 font-bold">Type</span>
-                <span className="text-[11px] font-bold text-slate-900">-</span>
+                <span className="text-[11px] font-bold text-slate-900">{formData.kpiType || '-'}</span>
               </div>
               <div className="grid grid-cols-[100px_1fr] gap-2">
                 <span className="text-[11px] text-slate-500 font-bold">Weightage</span>
-                <span className="text-[11px] font-bold text-slate-900">0%</span>
+                <span className="text-[11px] font-bold text-slate-900">{formData.weightage || 0}%</span>
               </div>
               <div className="grid grid-cols-[100px_1fr] gap-2">
                 <span className="text-[11px] text-slate-500 font-bold">Perspective</span>
-                <span className="text-[11px] font-bold text-slate-900">-</span>
+                <span className="text-[11px] font-bold text-slate-900">{formData.perspective || '-'}</span>
               </div>
               <div className="grid grid-cols-[100px_1fr] gap-2 mt-4 pt-4 border-t border-slate-200">
                 <span className="text-[11px] text-slate-500 font-bold">Added By</span>
-                <span className="text-[11px] font-bold text-slate-900">Vijay Sharma</span>
+                <span className="text-[11px] font-bold text-slate-900">Current User</span>
               </div>
               <div className="grid grid-cols-[100px_1fr] gap-2">
                 <span className="text-[11px] text-slate-500 font-bold">Date</span>
-                <span className="text-[11px] font-bold text-slate-900">21 May 2025</span>
+                <span className="text-[11px] font-bold text-slate-900">{new Date().toLocaleDateString('en-GB')}</span>
               </div>
             </div>
           </div>
@@ -297,49 +416,34 @@ export default function AddNewKPIPage() {
           <div className="bg-white border border-slate-300 rounded-lg p-4 shadow-md">
             <h3 className="text-[13px] font-bold text-slate-900 mb-3">KPI Type</h3>
             <div className="grid grid-cols-4 gap-1.5 mb-4">
-              <button className="flex flex-col items-center gap-1.5 p-2 rounded border border-indigo-200 bg-indigo-50/50 text-indigo-700 transition-colors hover:bg-indigo-50 text-center">
+              <button onClick={() => setFormData({...formData, kpiType: 'Leading'})} className={`flex flex-col items-center gap-1.5 p-2 rounded border transition-colors text-center ${formData.kpiType === 'Leading' ? 'border-indigo-200 bg-indigo-50/50 text-indigo-700' : 'border-slate-300 hover:border-slate-400 text-slate-700'}`}>
                 <Target className="w-4 h-4" />
                 <div className="flex flex-col items-center">
                   <span className="text-[10px] font-bold leading-tight">Leading</span>
-                  <span className="text-[7.5px] leading-tight text-center opacity-80 mt-1">Focus on drivers of future performance</span>
+                  <span className="text-[7.5px] leading-tight text-center opacity-80 mt-1">Focus on drivers</span>
                 </div>
               </button>
-              <button className="flex flex-col items-center gap-1.5 p-2 rounded border border-slate-300 hover:border-slate-400 text-slate-700 transition-colors text-center">
+              <button onClick={() => setFormData({...formData, kpiType: 'Lagging'})} className={`flex flex-col items-center gap-1.5 p-2 rounded border transition-colors text-center ${formData.kpiType === 'Lagging' ? 'border-indigo-200 bg-indigo-50/50 text-indigo-700' : 'border-slate-300 hover:border-slate-400 text-slate-700'}`}>
                 <BarChart2 className="w-4 h-4" />
                 <div className="flex flex-col items-center">
                   <span className="text-[10px] font-bold leading-tight">Lagging</span>
-                  <span className="text-[7.5px] leading-tight text-center text-slate-500 mt-1">Focus on results of past performance</span>
+                  <span className="text-[7.5px] leading-tight text-center mt-1 opacity-80">Focus on results</span>
                 </div>
               </button>
-              <button className="flex flex-col items-center gap-1.5 p-2 rounded border border-slate-300 hover:border-slate-400 text-slate-700 transition-colors text-center">
+              <button onClick={() => setFormData({...formData, kpiType: 'Outcome'})} className={`flex flex-col items-center gap-1.5 p-2 rounded border transition-colors text-center ${formData.kpiType === 'Outcome' ? 'border-indigo-200 bg-indigo-50/50 text-indigo-700' : 'border-slate-300 hover:border-slate-400 text-slate-700'}`}>
                 <Target className="w-4 h-4" />
                 <div className="flex flex-col items-center">
                   <span className="text-[10px] font-bold leading-tight">Outcome</span>
-                  <span className="text-[7.5px] leading-tight text-center text-slate-500 mt-1">Focus on impact and outcomes</span>
+                  <span className="text-[7.5px] leading-tight text-center mt-1 opacity-80">Focus on impact</span>
                 </div>
               </button>
-              <button className="flex flex-col items-center gap-1.5 p-2 rounded border border-slate-300 hover:border-slate-400 text-slate-700 transition-colors text-center">
+              <button onClick={() => setFormData({...formData, kpiType: 'Activity'})} className={`flex flex-col items-center gap-1.5 p-2 rounded border transition-colors text-center ${formData.kpiType === 'Activity' ? 'border-indigo-200 bg-indigo-50/50 text-indigo-700' : 'border-slate-300 hover:border-slate-400 text-slate-700'}`}>
                 <Activity className="w-4 h-4" />
                 <div className="flex flex-col items-center">
                   <span className="text-[10px] font-bold leading-tight">Activity</span>
-                  <span className="text-[7.5px] leading-tight text-center text-slate-500 mt-1">Focus on key activities</span>
+                  <span className="text-[7.5px] leading-tight text-center mt-1 opacity-80">Focus on key actions</span>
                 </div>
               </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1">
-                <label className="text-[10.5px] font-bold text-slate-700">Category</label>
-                <select className="w-full border border-slate-300 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-indigo-500 bg-slate-50 appearance-none text-slate-700 font-medium">
-                  <option>Select Category</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-[10.5px] font-bold text-slate-700 flex items-center gap-1">Perspective <Info className="w-3 h-3 text-slate-400" /></label>
-                <select className="w-full border border-slate-300 rounded px-2 py-1.5 text-[11px] focus:outline-none focus:border-indigo-500 bg-slate-50 appearance-none text-slate-700 font-medium">
-                  <option>Select Perspective</option>
-                </select>
-              </div>
             </div>
           </div>
 
@@ -366,28 +470,18 @@ export default function AddNewKPIPage() {
                   <span className="text-[10px] font-medium text-slate-500">Duplicate and customize</span>
                 </div>
               </button>
-
-              <button className="w-full flex items-start gap-2.5 p-2.5 rounded-lg hover:bg-slate-50 transition-colors text-left group border border-transparent hover:border-slate-100">
-                <div className="w-6 h-6 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-indigo-100 transition-colors">
-                  <Info className="w-3.5 h-3.5" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[11.5px] font-bold text-slate-800">KPI Guidelines</span>
-                  <span className="text-[10px] font-medium text-slate-500">Best practices for KPIs</span>
-                </div>
-              </button>
             </div>
           </div>
         </div>
       </div>
 
       {/* Footer Actions */}
-      <div className="flex items-center justify-between p-3 bg-white border border-slate-300 rounded-lg shadow-md   mb-2">
-        <button className="px-5 py-2 border border-slate-300 bg-white rounded-md text-[11px] font-bold text-slate-700 hover:bg-slate-100 transition-colors">
+      <div className="flex items-center justify-between p-3 bg-white border border-slate-300 rounded-lg shadow-md mb-2">
+        <Link href="/dashboard/departments/kpi-and-goals" className="px-5 py-2 border border-slate-300 bg-white rounded-md text-[11px] font-bold text-slate-700 hover:bg-slate-100 transition-colors">
           Cancel
-        </button>
-        <button className="flex items-center gap-1.5 px-5 py-2 bg-indigo-700 text-white rounded-md text-[11px] font-bold hover:bg-indigo-800 transition-colors shadow-sm">
-          <Goal className="w-3.5 h-3.5" /> Save KPI & Goal
+        </Link>
+        <button onClick={handleSave} disabled={isSubmitting} className="flex items-center gap-1.5 px-5 py-2 bg-indigo-700 text-white rounded-md text-[11px] font-bold hover:bg-indigo-800 transition-colors shadow-sm disabled:opacity-50">
+          <Goal className="w-3.5 h-3.5" /> {isSubmitting ? (isEditMode ? 'Updating...' : 'Saving...') : (isEditMode ? 'Update KPI & Goal' : 'Save KPI & Goal')}
         </button>
       </div>
 

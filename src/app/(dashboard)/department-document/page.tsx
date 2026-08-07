@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
 import {
     Plus, Upload, Search, ChevronDown, Check, ChevronLeft, ChevronRight, ArrowLeft,
     Eye, Download, MoreVertical, FileText, Folder, Building2, Calendar,
@@ -10,7 +9,6 @@ import {
     UploadCloud, FolderPlus, FolderOpen, Trash2, ShieldCheck, Info
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import api from '@/lib/axios';
 
 // ---- DUMMY / MOCK DATA (used as fallback when the API is unavailable) ----
 const MOCK_DEPARTMENT = {
@@ -124,22 +122,10 @@ export default function DepartmentDocumentsPage() {
     const rowsPerPage = 10;
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await api.get('/departments/current/documents');
-                const data = response.data.data;
-                setDepartment(data?.department || MOCK_DEPARTMENT);
-                setDocuments(data?.documents?.length > 0 ? data.documents : MOCK_DOCUMENTS);
-            } catch (error) {
-                console.error('Error fetching documents:', error);
-                toast.error('Failed to load documents, showing sample data');
-                setDepartment(MOCK_DEPARTMENT);
-                setDocuments(MOCK_DOCUMENTS);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchData();
+        // Backend endpoint not yet available — using mock data
+        setDepartment(MOCK_DEPARTMENT);
+        setDocuments(MOCK_DOCUMENTS);
+        setIsLoading(false);
     }, []);
 
     useEffect(() => {
@@ -154,19 +140,22 @@ export default function DepartmentDocumentsPage() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const mappedDocuments = documents.map((d) => ({
-        id: d._id,
-        name: d.name || '-',
-        note: d.note || '',
-        category: d.category || '-',
-        fileType: d.fileType || '-',
-        size: d.size || '-',
-        uploadedByName: d.uploadedBy ? `${d.uploadedBy.firstName} ${d.uploadedBy.lastName}` : 'Unassigned',
-        uploadedByRole: d.uploadedBy?.designation || '-',
-        uploadedByAvatar: d.uploadedBy?.avatarUrl || `https://i.pravatar.cc/150?u=${d._id}`,
-        uploadedOn: d.uploadedOn,
-        status: d.status || 'Active',
-    }));
+    const mappedDocuments = documents.map((d) => {
+        const uploadedByObj = d.uploadedBy && typeof d.uploadedBy === 'object' ? d.uploadedBy : null;
+        return {
+            id: d._id,
+            name: d.name || '-',
+            note: d.note || '',
+            category: d.category || '-',
+            fileType: d.fileType || '-',
+            size: d.size || '-',
+            uploadedByName: uploadedByObj ? `${uploadedByObj.firstName ?? ''} ${uploadedByObj.lastName ?? ''}`.trim() || 'Unassigned' : 'Unassigned',
+            uploadedByRole: uploadedByObj?.designation || '-',
+            uploadedByAvatar: uploadedByObj?.avatarUrl || `https://i.pravatar.cc/150?u=${d._id}`,
+            uploadedOn: d.uploadedOn,
+            status: d.status || 'Active',
+        };
+    });
 
     const categoryOptions = ['All Categories', ...Array.from(new Set(mappedDocuments.map((d) => d.category)))];
     const fileTypeOptions = ['All File Types', ...Array.from(new Set(mappedDocuments.map((d) => d.fileType)))];
@@ -238,7 +227,7 @@ export default function DepartmentDocumentsPage() {
             <p className="text-[12px] text-zinc-500 -mt-1 mb-1">View and manage all documents related to this sub department.</p>
 
             {/* DEPARTMENT INFO CARD */}
-            <div className="bg-white border border-zinc-200 shadow-sm rounded-md p-3 flex flex-wrap items-center gap-x-8 gap-y-2">
+            <div className="bg-white border border-zinc-200 shadow-sm rounded-md p-3 flex flex-wrap lg:flex-nowrap items-center justify-between gap-x-5 gap-y-2">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
                         <Building2 className="w-5 h-5" />

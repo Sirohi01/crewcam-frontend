@@ -18,7 +18,7 @@ const INFO_CARDS = [
 
 const TABS = [
   { name: 'Budget Overview' },
-  { name: 'Budget Allocation' },
+  { name: 'Budget Allocation', href: "/dashboard/departments/123/approval-workflow/view" },
   { name: 'Expense Tracking' },
   { name: 'Cost Center Mapping' },
   { name: 'Approval Workflow' },
@@ -130,7 +130,7 @@ function Tabs({ active, onChange }: { active: string; onChange: (t: string) => v
           className={`shrink-0 pb-3 pt-1 text-[13px] font-semibold whitespace-nowrap border-b-2 transition-colors ${active === t.name ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'
             }`}
         >
-          {t.name}
+          {t.href ? <Link href={t.href as string}>{t.name}</Link> : t.name}
         </button>
       ))}
     </div>
