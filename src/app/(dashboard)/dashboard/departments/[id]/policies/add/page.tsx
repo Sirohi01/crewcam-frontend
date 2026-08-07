@@ -31,6 +31,7 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
   const [shortDescription, setShortDescription] = useState('');
   const [detailedDescription, setDetailedDescription] = useState('');
   const [reviewDate, setReviewDate] = useState('');
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const [allEmployees, setAllEmployees] = useState(true);
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
@@ -283,13 +284,34 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-slate-700">Upload Policy Document <span className="text-red-500">*</span></label>
-                <label className="h-28 border-2 border-dashed border-indigo-200 bg-indigo-50/50 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-indigo-50 transition-colors group relative">
-                  <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept=".pdf,.doc,.docx" />
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform">
-                    <UploadCloud className="w-4 h-4 text-indigo-600" />
-                  </div>
-                  <span className="text-[11px] font-bold text-indigo-700">Drag & drop file here <span className="text-slate-600 font-medium">or click to browse</span></span>
-                  <span className="text-[9px] text-slate-500 mt-0.5">Supports PDF, DOC, DOCX (Max. 10MB)</span>
+                <label className="h-28 border-2 border-dashed border-indigo-200 bg-indigo-50/50 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-indigo-50 transition-colors group relative p-2 text-center">
+                  <input 
+                    type="file" 
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                    accept=".pdf,.doc,.docx" 
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setUploadedFile(e.target.files[0]);
+                      }
+                    }}
+                  />
+                  {uploadedFile ? (
+                    <>
+                      <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform">
+                        <FileText className="w-4 h-4 text-emerald-600" />
+                      </div>
+                      <span className="text-[11px] font-bold text-emerald-700 line-clamp-1">{uploadedFile.name}</span>
+                      <span className="text-[9px] text-slate-500 mt-0.5">Click or drag to replace file</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform">
+                        <UploadCloud className="w-4 h-4 text-indigo-600" />
+                      </div>
+                      <span className="text-[11px] font-bold text-indigo-700">Drag & drop file here <span className="text-slate-600 font-medium">or click to browse</span></span>
+                      <span className="text-[9px] text-slate-500 mt-0.5">Supports PDF, DOC, DOCX (Max. 10MB)</span>
+                    </>
+                  )}
                 </label>
               </div>
               <div className="flex-1 flex flex-col">

@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
+import { getDepartmentCustomFields, deleteCustomField } from '@/services/customFieldService';
 import {
   Settings, ArrowLeft, Plus, Building2, UserCircle, Users, Calendar, MapPin,
   Search, ChevronDown, Check, X, Eye, Edit2, Trash2, Info, List, Hash,
@@ -10,22 +11,13 @@ import {
   Briefcase, ShieldCheck, ClipboardList
 } from 'lucide-react';
 
-// Static Data based on user prompt
-const customFields = [
-  { id: 1, label: 'Project Specialization', subtitle: 'Main area of specialization', apiKey: 'project_specialization', type: 'Dropdown', group: 'Department Info', mandatory: false, status: 'Active' },
-  { id: 2, label: 'Years of Experience in Interior', subtitle: 'Total experience in interior industry', apiKey: 'years_of_experience', type: 'Number', group: 'Department Info', mandatory: false, status: 'Active' },
-  { id: 3, label: 'Key Design Tools', subtitle: 'Tools used by the department', apiKey: 'design_tools', type: 'Multi Select', group: 'Department Info', mandatory: false, status: 'Active' },
-  { id: 4, label: 'Primary Client Segment', subtitle: 'Type of clients we mainly serve', apiKey: 'client_segment', type: 'Dropdown', group: 'Business Info', mandatory: true, status: 'Active' },
-  { id: 5, label: 'Department Budget (FY)', subtitle: 'Annual budget allocated', apiKey: 'department_budget', type: 'Currency', group: 'Finance Info', mandatory: false, status: 'Active' },
-  { id: 6, label: 'Quality Certification', subtitle: 'Any certification applicable', apiKey: 'quality_certification', type: 'Text', group: 'Compliance', mandatory: false, status: 'Draft' },
-  { id: 7, label: 'Last Review Date', subtitle: 'Date of last department review', apiKey: 'last_review_date', type: 'Date', group: 'Review Info', mandatory: false, status: 'Active' },
-];
-
 export default function CustomFieldsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = React.use(params);
   const { id } = resolvedParams;
 
   const [activeTab, setActiveTab] = useState('Custom Fields');
+  const [customFields, setCustomFields] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGroup, setSelectedGroup] = useState('All Field Groups');
@@ -40,6 +32,34 @@ export default function CustomFieldsPage({ params }: { params: Promise<{ id: str
     setCurrentPage(1);
   }, [searchQuery, selectedGroup, selectedType, selectedStatus, activeTab]);
 
+  useEffect(() => {
+    fetchFields();
+  }, [id]);
+
+  const fetchFields = async () => {
+    setIsLoading(true);
+    try {
+      const res = await getDepartmentCustomFields(id);
+      if (res.success) {
+        setCustomFields(res.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch custom fields:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (fieldId: string) => {
+    if (!window.confirm("Are you sure you want to delete this custom field?")) return;
+    try {
+      await deleteCustomField(fieldId);
+      setCustomFields(prev => prev.filter(f => f._id !== fieldId));
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Failed to delete custom field');
+    }
+  };
+
   const handleClearFilters = () => {
     setSearchQuery('');
     setSelectedGroup('All Field Groups');
@@ -50,7 +70,7 @@ export default function CustomFieldsPage({ params }: { params: Promise<{ id: str
   const filteredFields = customFields.filter((field) => {
     if (searchQuery && !field.label.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     if (selectedGroup !== 'All Field Groups' && field.group !== selectedGroup) return false;
-    if (selectedType !== 'All Data Types' && field.type !== selectedType) return false;
+    if (selectedType !== 'All Data Types' && field.dataType !== selectedType) return false;
     if (selectedStatus !== 'All Status' && field.status !== selectedStatus) return false;
     return true;
   });
@@ -261,23 +281,25 @@ export default function CustomFieldsPage({ params }: { params: Promise<{ id: str
               <tbody className="divide-y divide-slate-100">
                 {paginatedFields.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="text-center py-4 text-slate-500 text-[11px]">No custom fields found matching your filters.</td>
+                    <td colSpan={8} className="text-center py-4 text-slate-500 text-[11px]">
+                      {isLoading ? 'Loading custom fields...' : 'No custom fields found matching your filters.'}
+                    </td>
                   </tr>
                 )}
                 {paginatedFields.map((field, idx) => (
-                  <tr key={field.id} className="hover:bg-slate-50/50 transition-colors">
+                  <tr key={field._id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="py-2.5 px-3 text-[11px] font-bold text-slate-700">{(currentPage - 1) * rowsPerPage + idx + 1}</td>
                     <td className="py-2.5 px-2">
                       <div className="flex flex-col">
                         <span className="text-[11px] font-bold text-slate-900">{field.label}</span>
-                        <span className="text-[10px] font-medium text-slate-500 mt-0.5">{field.subtitle}</span>
+                        <span className="text-[10px] font-medium text-slate-500 mt-0.5">{field.description}</span>
                       </div>
                     </td>
                     <td className="py-2.5 px-2">
                       <span className="text-[11px] font-medium text-slate-600">{field.apiKey}</span>
                     </td>
                     <td className="py-2.5 px-2">
-                      {renderDataTypeBadge(field.type)}
+                      {renderDataTypeBadge(field.dataType)}
                     </td>
                     <td className="py-2.5 px-2">
                       <span className="text-[11px] font-medium text-slate-600">{field.group}</span>
@@ -305,8 +327,8 @@ export default function CustomFieldsPage({ params }: { params: Promise<{ id: str
                     <td className="py-2.5 px-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-blue-600 transition-colors"><Eye className="w-3.5 h-3.5" /></button>
-                        <button className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-blue-600 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                        <button className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-red-600 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <Link href={`/dashboard/departments/${id}/custom-fields/add?edit=true&fieldId=${field._id}`} className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-blue-600 transition-colors"><Edit2 className="w-3.5 h-3.5" /></Link>
+                        <button onClick={() => handleDelete(field._id)} className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-red-600 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     </td>
                   </tr>

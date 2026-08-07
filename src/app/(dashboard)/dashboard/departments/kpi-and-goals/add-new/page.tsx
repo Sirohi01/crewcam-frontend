@@ -1,18 +1,21 @@
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ChevronRight, ArrowLeft, Target, Eye, BookOpen, Copy, Info, Trash2,
   Bold, Italic, Underline, List, ListOrdered, Link as LinkIcon, Goal, Activity, Plus, BarChart2
 } from 'lucide-react';
-import { createDepartmentKpi } from '@/services/kpiService';
+import { createDepartmentKpi, getDepartmentKpiById, updateDepartmentKpi } from '@/services/kpiService';
 import toast from 'react-hot-toast';
 
 const BREADCRUMB = ['Performance Management', 'KPIs & Goals', 'KPI Management', 'Add New KPI & Goal'];
 
 export default function AddNewKPIPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isEditMode = searchParams.get('edit') === 'true';
+  const editId = searchParams.get('id');
   
   // Dummy department ID for testing since URL doesn't have one
   const departmentId = '64a7c1e5f8b9a9d2a4f6e1b3'; 
@@ -47,6 +50,44 @@ export default function AddNewKPIPage() {
     setGoals(goals.map(g => g.id === id ? { ...g, [field]: value } : g));
   };
 
+  React.useEffect(() => {
+    if (isEditMode && editId) {
+      const fetchKpi = async () => {
+        try {
+          const res = await getDepartmentKpiById(editId);
+          if (res.success && res.data) {
+            const data = res.data;
+            setFormData({
+              title: data.title || '',
+              code: data.code || 'AUTO-GEN',
+              kpiType: data.kpiType || 'Leading',
+              category: data.category || '',
+              perspective: data.perspective || '',
+              weightage: data.weightage || 0,
+              description: data.description || '',
+              measurementUnit: data.measurementUnit || '',
+              targetType: data.targetType || '',
+              targetIsHigherBetter: data.targetIsHigherBetter ?? true,
+              goalPeriod: data.goalPeriod || 'FY 2025-26',
+              alignedWith: data.alignedWith || '',
+              alignmentDetails: data.alignmentDetails || '',
+              assignedTo: data.assignedTo || '',
+              alignmentDepartment: data.alignmentDepartment || '',
+              cascadedKpi: data.cascadedKpi || false,
+            });
+            if (data.goals && data.goals.length > 0) {
+              setGoals(data.goals.map((g: any, i: number) => ({ ...g, id: g._id || Date.now() + i })));
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch KPI details:', error);
+          toast.error('Failed to load KPI data');
+        }
+      };
+      fetchKpi();
+    }
+  }, [isEditMode, editId]);
+
   const handleSave = async () => {
     try {
       setIsSubmitting(true);
@@ -57,11 +98,16 @@ export default function AddNewKPIPage() {
         goals: goals.map(({ id, ...rest }) => rest) // remove temp id
       };
 
-      await createDepartmentKpi(payload);
-      toast.success('KPI & Goal created successfully!');
+      if (isEditMode && editId) {
+        await updateDepartmentKpi(editId, payload);
+        toast.success('KPI & Goal updated successfully!');
+      } else {
+        await createDepartmentKpi(payload);
+        toast.success('KPI & Goal created successfully!');
+      }
       router.push('/dashboard/departments/kpi-and-goals');
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Failed to create KPI');
+      toast.error(error?.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} KPI`);
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -91,8 +137,8 @@ export default function AddNewKPIPage() {
               <Goal className="w-6 h-6" />
             </div>
             <div className="flex flex-col">
-              <h1 className="text-[18px] font-bold text-slate-900 leading-tight">Add New KPI and Goal</h1>
-              <p className="text-[11px] text-slate-500 mt-0.5">Define a new KPI and set measurable goals aligned with organizational objectives.</p>
+              <h1 className="text-[18px] font-bold text-slate-900 leading-tight">{isEditMode ? 'Edit KPI and Goal' : 'Add New KPI and Goal'}</h1>
+              <p className="text-[11px] text-slate-500 mt-0.5">{isEditMode ? 'Update the details of the selected KPI and its associated goals.' : 'Define a new KPI and set measurable goals aligned with organizational objectives.'}</p>
             </div>
           </div>
         </div>
@@ -102,7 +148,7 @@ export default function AddNewKPIPage() {
             <ArrowLeft className="w-3.5 h-3.5" /> Back to KPI & Goals
           </Link>
           <button onClick={handleSave} disabled={isSubmitting} className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-700 text-white rounded-md text-[11px] font-bold hover:bg-indigo-800 transition-colors shadow-sm disabled:opacity-50">
-            {isSubmitting ? 'Saving...' : 'Save KPI & Goal'}
+            {isSubmitting ? (isEditMode ? 'Updating...' : 'Saving...') : (isEditMode ? 'Update KPI & Goal' : 'Save KPI & Goal')}
           </button>
         </div>
       </div>
@@ -435,7 +481,7 @@ export default function AddNewKPIPage() {
           Cancel
         </Link>
         <button onClick={handleSave} disabled={isSubmitting} className="flex items-center gap-1.5 px-5 py-2 bg-indigo-700 text-white rounded-md text-[11px] font-bold hover:bg-indigo-800 transition-colors shadow-sm disabled:opacity-50">
-          <Goal className="w-3.5 h-3.5" /> {isSubmitting ? 'Saving...' : 'Save KPI & Goal'}
+          <Goal className="w-3.5 h-3.5" /> {isSubmitting ? (isEditMode ? 'Updating...' : 'Saving...') : (isEditMode ? 'Update KPI & Goal' : 'Save KPI & Goal')}
         </button>
       </div>
 

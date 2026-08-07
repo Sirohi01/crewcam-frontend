@@ -4,7 +4,7 @@ import Link from 'next/link';
 import {
   ChevronRight, ArrowLeft, Plus, Building2, Users, MapPin, GitBranch,
   Target, Activity, Flag, Trophy, BarChart2, Eye, Pencil, MoreVertical,
-  LayoutDashboard, Download, ArrowRight, Goal
+  LayoutDashboard, Download, ArrowRight, Goal, Trash2
 } from 'lucide-react';
 
 import { getDepartmentKpis } from '@/services/kpiService';
@@ -46,6 +46,7 @@ export default function KPIsAndGoalsPage() {
               kpi.goals.forEach((goal: any, gIdx: number) => {
                 allGoals.push({
                   id: goal._id || `${kpi._id}-${gIdx}`,
+                  kpiId: kpi._id,
                   displayId: allGoals.length + 1,
                   title: goal.name,
                   kpis: '1 KPI',
@@ -70,6 +71,19 @@ export default function KPIsAndGoalsPage() {
     };
     fetchKpis();
   }, []);
+
+  const handleDeleteKpi = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this KPI?")) {
+      setKpisData(prev => prev.filter(kpi => kpi.id !== id));
+      setGoalsData(prev => prev.filter(goal => goal.kpiId !== id));
+    }
+  };
+
+  const handleDeleteGoal = (goalId: string) => {
+    if (window.confirm("Are you sure you want to delete this Goal?")) {
+      setGoalsData(prev => prev.filter(goal => goal.id !== goalId));
+    }
+  };
 
   return (
     <div className="flex flex-col gap-2 p-2 w-full font-sans text-slate-800 bg-slate-50 min-h-screen overflow-hidden">
@@ -270,8 +284,8 @@ export default function KPIsAndGoalsPage() {
             <div className="p-3 border-b border-slate-100">
               <h3 className="text-[13px] font-bold text-slate-900">Key Performance Indicators (KPIs)</h3>
             </div>
-            <div className="overflow-hidden">
-              <table className="w-full text-left border-collapse whitespace-nowrap">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse whitespace-nowrap min-w-[900px]">
                 <thead>
                   <tr className="bg-slate-50/50 border-b border-slate-100">
                     <th className="px-2 py-2 text-[10px] font-bold text-slate-800 w-8">#</th>
@@ -289,7 +303,7 @@ export default function KPIsAndGoalsPage() {
                   {kpisData.map((kpi, index) => (
                     <tr key={kpi.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-2 py-2 text-[11px] font-semibold text-slate-900">{kpi.displayId}</td>
-                      <td className="px-2 py-2">
+                      <td className="px-2 py-2 whitespace-normal min-w-[250px] max-w-[350px]">
                         <p className="text-[11px] font-bold text-slate-900 leading-tight">{kpi.name}</p>
                         <p className="text-[9px] text-slate-500 mt-0.5 leading-tight">{kpi.desc}</p>
                       </td>
@@ -323,9 +337,9 @@ export default function KPIsAndGoalsPage() {
                       </td>
                       <td className="px-2 py-2">
                         <div className="flex items-center justify-center gap-1">
-                          <button className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"><Eye className="w-3 h-3" /></button>
-                          <button className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"><Pencil className="w-3 h-3" /></button>
-                          <button className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"><MoreVertical className="w-3 h-3" /></button>
+                          <button disabled className="p-1 text-slate-400 cursor-not-allowed rounded"><Eye className="w-3 h-3" /></button>
+                          <Link href={`/dashboard/departments/kpi-and-goals/add-new?edit=true&id=${kpi.id}`} className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"><Pencil className="w-3 h-3" /></Link>
+                          <button onClick={() => handleDeleteKpi(kpi.id)} className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"><Trash2 className="w-3 h-3" /></button>
                         </div>
                       </td>
                     </tr>
@@ -345,8 +359,8 @@ export default function KPIsAndGoalsPage() {
             <div className="p-3 border-b border-slate-100">
               <h3 className="text-[13px] font-bold text-slate-900">Department Goals</h3>
             </div>
-            <div className="overflow-hidden flex-1">
-              <table className="w-full text-left border-collapse whitespace-nowrap">
+            <div className="overflow-x-auto flex-1">
+              <table className="w-full text-left border-collapse whitespace-nowrap min-w-[850px]">
                 <thead>
                   <tr className="bg-slate-50/50 border-b border-slate-100">
                     <th className="px-2 py-2 text-[10px] font-bold text-slate-800 w-8">#</th>
@@ -363,7 +377,7 @@ export default function KPIsAndGoalsPage() {
                   {goalsData.map((goal, index) => (
                     <tr key={goal.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-2 py-2 text-[11px] font-semibold text-slate-900">{goal.displayId}</td>
-                      <td className="px-2 py-2">
+                      <td className="px-2 py-2 whitespace-normal min-w-[200px] max-w-[300px]">
                         <p className="text-[11px] font-bold text-slate-900 leading-tight">{goal.title}</p>
                       </td>
                       <td className="px-2 py-2 text-[11px] font-medium text-slate-700">{goal.kpis}</td>
@@ -392,9 +406,9 @@ export default function KPIsAndGoalsPage() {
                       </td>
                       <td className="px-2 py-2">
                         <div className="flex items-center justify-center gap-1">
-                          <button className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"><Eye className="w-3 h-3" /></button>
-                          <button className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"><Pencil className="w-3 h-3" /></button>
-                          <button className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"><MoreVertical className="w-3 h-3" /></button>
+                          <button disabled className="p-1 text-slate-400 cursor-not-allowed rounded"><Eye className="w-3 h-3" /></button>
+                          <Link href={`/dashboard/departments/kpi-and-goals/add-new?edit=true&id=${goal.kpiId}`} className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"><Pencil className="w-3 h-3" /></Link>
+                          <button onClick={() => handleDeleteGoal(goal.id)} className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"><Trash2 className="w-3 h-3" /></button>
                         </div>
                       </td>
                     </tr>
