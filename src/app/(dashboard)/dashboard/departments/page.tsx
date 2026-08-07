@@ -328,7 +328,11 @@ export default function DepartmentsPage() {
                                                 <div className="flex items-center gap-2">
                                                     <img src={`https://i.pravatar.cc/150?u=${dept._id || dept.id}`} alt={dept.headName || 'User'} className="w-6 h-6 rounded-full border border-slate-200 shrink-0" />
                                                     <div className="min-w-0">
-                                                        <p className="font-semibold text-slate-800 text-[11px] truncate">{typeof dept.hodEmployeeId === 'object' && dept.hodEmployeeId?.firstName ? `${dept.hodEmployeeId.firstName} ${dept.hodEmployeeId.lastName}`.trim() : dept.hodEmployeeId || 'Aman Malhotra'}</p>
+                                                        <p className="font-semibold text-slate-800 text-[11px] truncate">
+                                                            {typeof dept.hodEmployeeId === 'object' && dept.hodEmployeeId !== null
+                                                                ? ([dept.hodEmployeeId.firstName, dept.hodEmployeeId.lastName].filter(Boolean).join(' ') || dept.hodEmployeeId.email || 'Aman Malhotra')
+                                                                : (dept.hodEmployeeId || 'Aman Malhotra')}
+                                                        </p>
                                                         <p className="text-[10px] text-slate-400 truncate">Design Director</p>
                                                     </div>
                                                 </div>
