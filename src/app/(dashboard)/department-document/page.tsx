@@ -238,7 +238,7 @@ export default function DepartmentDocumentsPage() {
             <p className="text-[12px] text-zinc-500 -mt-1 mb-1">View and manage all documents related to this sub department.</p>
 
             {/* DEPARTMENT INFO CARD */}
-            <div className="bg-white border border-zinc-200 shadow-sm rounded-md p-3 flex flex-wrap items-center gap-x-8 gap-y-2">
+            <div className="bg-white border border-zinc-200 shadow-sm rounded-md p-3 flex flex-wrap lg:flex-nowrap items-center justify-between gap-x-5 gap-y-2">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
                         <Building2 className="w-5 h-5" />
