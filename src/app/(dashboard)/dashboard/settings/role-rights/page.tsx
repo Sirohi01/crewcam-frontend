@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Edit2, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { Loader2, Edit2, Trash2, ChevronDown, ChevronRight, Search } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/axios';
 
@@ -26,12 +26,13 @@ export default function RoleRightsPage() {
   const queryClient = useQueryClient();
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: rolesRes, isLoading: loadingRoles } = useQuery({
     queryKey: ['companies', 'roles'],
     queryFn: async () => (await api.get('/companies/roles')).data,
   });
-  const roles: Role[] = rolesRes?.data || [];
+  const roles: Role[] = (rolesRes?.data || []).filter((r: Role) => r.isActive !== false);
 
   const { data: sidebarItems, isLoading: loadingSidebar } = useQuery<SidebarItem[]>({
     queryKey: ['admin', 'sidebar-config'],
@@ -109,8 +110,17 @@ export default function RoleRightsPage() {
     }
   };
 
+  const filteredSidebarItems = useMemo(() => {
+    if (!searchQuery.trim()) return sidebarItems;
+    const q = searchQuery.toLowerCase();
+    return sidebarItems?.filter(item =>
+      item.label.toLowerCase().includes(q) ||
+      (item.section && item.section.toLowerCase().includes(q))
+    );
+  }, [sidebarItems, searchQuery]);
+
   const getAllPerms = () => {
-    return (sidebarItems || []).flatMap(item => {
+    return (filteredSidebarItems || []).flatMap(item => {
       const basePerm = getBasePerm(item);
       return [`${basePerm}_READ`, `${basePerm}_WRITE`, `${basePerm}_DELETE`];
     });
@@ -138,13 +148,13 @@ export default function RoleRightsPage() {
 
   const groupedItems = useMemo(() => {
     const groups: Record<string, SidebarItem[]> = {};
-    (sidebarItems || []).forEach((item) => {
+    (filteredSidebarItems || []).forEach((item) => {
       const sec = item.section || 'MAIN';
       groups[sec] = groups[sec] || [];
       groups[sec].push(item);
     });
     return groups;
-  }, [sidebarItems]);
+  }, [filteredSidebarItems]);
 
   const sections = Object.keys(groupedItems).sort();
 
@@ -166,7 +176,7 @@ export default function RoleRightsPage() {
               <div className="flex items-center gap-4">
                 <CardTitle className="text-[13px] font-semibold text-zinc-900">Add Role Rights</CardTitle>
                 <div className="flex items-center gap-1 border-l border-zinc-200 pl-4">
-                  <button 
+                  <button
                     className="text-[11px] font-medium text-blue-600 hover:text-blue-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={!selectedRoleId}
                     onClick={() => {
@@ -178,7 +188,7 @@ export default function RoleRightsPage() {
                     Expand All
                   </button>
                   <span className="text-zinc-300 text-[10px]">|</span>
-                  <button 
+                  <button
                     className="text-[11px] font-medium text-blue-600 hover:text-blue-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={!selectedRoleId}
                     onClick={() => {
@@ -192,6 +202,16 @@ export default function RoleRightsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-4">
+                <div className="relative flex items-center">
+                  <Search size={14} className="absolute left-2.5 text-zinc-400" />
+                  <input
+                    type="text"
+                    placeholder="Search modules..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="h-8 w-48 pl-8 text-[12px] rounded-md border border-zinc-200 bg-white shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900"
+                  />
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[12px] font-medium text-zinc-700">Select Role <span className="text-red-500">*</span></span>
                   <select
@@ -250,9 +270,9 @@ export default function RoleRightsPage() {
                     <tbody className="divide-y divide-zinc-100">
                       {sections.map((section) => (
                         <React.Fragment key={section}>
-                          <tr 
+                          <tr
                             className="bg-gray-100/60 cursor-pointer hover:bg-gray-200/60 transition-colors border-y border-gray-200"
-                            onClick={() => setCollapsedSections(prev => ({...prev, [section]: !prev[section]}))}
+                            onClick={() => setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }))}
                           >
                             <td colSpan={4} className="px-3 py-2 font-semibold text-gray-700 uppercase text-[11px] tracking-wider select-none">
                               <div className="flex items-center gap-1.5">
