@@ -16,12 +16,12 @@ export interface PageHeaderProps {
 
 export function PageHeader({ title, description, icon, breadcrumbs }: PageHeaderProps) {
   return (
-    <div className="mb-5">
+    <div className="mb-2">
       {breadcrumbs && breadcrumbs.length > 0 && (
         <div className="flex items-center text-[10px] text-zinc-500 mb-2 font-semibold">
           {breadcrumbs.map((crumb, index) => {
             const isLast = index === breadcrumbs.length - 1;
-            
+
             return (
               <React.Fragment key={index}>
                 {crumb.href && !isLast ? (
@@ -33,14 +33,14 @@ export function PageHeader({ title, description, icon, breadcrumbs }: PageHeader
                     {crumb.label}
                   </span>
                 )}
-                
+
                 {!isLast && <ChevronRight size={12} className="mx-1" />}
               </React.Fragment>
             );
           })}
         </div>
       )}
-      
+
       <div className="flex items-center gap-3">
         {icon && (
           <div className="p-2 bg-indigo-50/80 border border-indigo-100 text-indigo-600 rounded-lg">

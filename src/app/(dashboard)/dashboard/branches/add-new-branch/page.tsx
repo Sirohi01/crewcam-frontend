@@ -252,18 +252,18 @@ export default function AddNewBranch() {
   return (
     <PageLayout>
       <div className="flex justify-between">
-      
-      <PageHeader
-        title="Add New Branch"
-        description="Create a new branch for your organization."
-        icon={<Building2 size={16} />}
-        breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Branches", href: "/dashboard/branches" },
-          { label: "Add New Branch" },
-        ]}
-      />
-   <div className="flex items-center justify-end gap-3">
+
+        <PageHeader
+          title="Add New Branch"
+          description="Create a new branch for your organization."
+          icon={<Building2 size={16} />}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Branches", href: "/dashboard/branches" },
+            { label: "Add New Branch" },
+          ]}
+        />
+        <div className="flex items-center justify-end gap-2">
           <Button
             type="button"
             variant="outline"
@@ -293,7 +293,7 @@ export default function AddNewBranch() {
               <CardContent className="p-3">
                 <SectionHeader icon={<Building2 className="h-4 w-4 text-white" />} title="Branch Information" />
 
-                <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
                   <FormField label="Branch Name" required>
                     <FormInput
                       required
@@ -332,7 +332,7 @@ export default function AddNewBranch() {
               <CardContent className="p-3">
                 <SectionHeader icon={<MapPin className="h-4 w-4 text-white" />} title="Location Information" />
 
-                <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
                   <div className="sm:col-span-2">
                     <FormField label="Address Line 1" required>
                       <FormInput
@@ -527,7 +527,7 @@ export default function AddNewBranch() {
                   </FormField>
 
                   <FormField label="Upload Branch Logo">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-zinc-300 px-3 py-2 text-xs text-gray-500 hover:border-indigo-400 hover:text-indigo-600">
                         <UploadCloud className="h-4 w-4" />
                         {uploading ? "Uploading..." : form.logoUrl ? "Change Logo" : "Click to upload"}
@@ -564,7 +564,7 @@ export default function AddNewBranch() {
           </div>
         </div>
 
-       
+
       </form>
     </PageLayout>
   );
@@ -572,7 +572,7 @@ export default function AddNewBranch() {
 
 function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
   return (
-    <div className="mb-5 flex items-center gap-2">
+    <div className="mb-2 flex items-center gap-2">
       <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600">
         {icon}
       </span>

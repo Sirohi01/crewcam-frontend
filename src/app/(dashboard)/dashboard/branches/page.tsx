@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import {Download, Plus, ChevronRight, Search, Check, Eye, Edit2, Users, ChevronDown, ChevronLeft, MapPin, Briefcase, Trash2, Network, Building2, ShieldCheck, X, Navigation} from 'lucide-react';
+import { Download, Plus, ChevronRight, Search, Check, Eye, Edit2, Users, ChevronDown, ChevronLeft, MapPin, Briefcase, Trash2, Network, Building2, ShieldCheck, X, Navigation } from 'lucide-react';
 import api from '@/lib/axios';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 import { geocodeAddress } from '@/lib/geocode';
@@ -107,7 +107,7 @@ export default function ManageBranchPage() {
     const [isBuOpen, setIsBuOpen] = useState(false);
     const [isHeadOpen, setIsHeadOpen] = useState(false);
 
-    const [appliedFilters, setAppliedFilters] = useState({search: '', status: 'All Status', bu: 'All Business Units', head: 'All Branch Heads', });
+    const [appliedFilters, setAppliedFilters] = useState({ search: '', status: 'All Status', bu: 'All Business Units', head: 'All Branch Heads', });
 
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
@@ -121,14 +121,16 @@ export default function ManageBranchPage() {
 
     const emptyBranch = {
         name: '', code: '', location: '', address: '', pincode: '', city: '', state: '', country: 'India',
-        contactPerson: '', contactPhone: '', contactEmail: '', lat: undefined as number | undefined, lng: undefined as number | undefined};
+        contactPerson: '', contactPhone: '', contactEmail: '', lat: undefined as number | undefined, lng: undefined as number | undefined
+    };
     const [branchData, setBranchData] = useState(emptyBranch);
 
     const openCreate = () => {
         setError('');
         setBranchData(emptyBranch);
-        setModalItem(null);
-        setModal(true);
+        // setModalItem(null);
+        // setModal(true);
+        router.push("/dashboard/branches/add-new-branch")
     };
 
     const openEdit = (item: any) => {
@@ -365,10 +367,13 @@ export default function ManageBranchPage() {
         name: b.name || '-',
         isRegisteredOffice: !!b.isRegisteredOffice,
         code: b.code || '-',
-        businessUnit: b.businessUnit?.name || b.businessUnitName || '-',
-        headName: b.head ? `${b.head.firstName} ${b.head.lastName}` : (b.headName || 'Unassigned'),
-        headRole: b.head?.designation || 'Branch Manager',
-        headAvatar: b.head?.avatarUrl || `https://i.pravatar.cc/150?u=${b._id}`,
+        businessUnit: (b.businessUnit && typeof b.businessUnit === 'object' ? b.businessUnit.name : typeof b.businessUnit === 'string' ? b.businessUnit : null) || b.businessUnitName || '-',
+        headName: (b.head && b.head.firstName) ? `${b.head.firstName} ${b.head.lastName}` : 
+                  (b.branchHead && b.branchHead.firstName) ? `${b.branchHead.firstName} ${b.branchHead.lastName}` :
+                  (b.headName && typeof b.headName === 'object') ? `${b.headName.firstName || ''} ${b.headName.lastName || ''}`.trim() : 
+                  (typeof b.headName === 'string' ? b.headName : 'Unassigned'),
+        headRole: (b.head?.designation) || (b.branchHead?.designation) || (b.headName?.designation) || (typeof b.headRole === 'string' ? b.headRole : 'Branch Manager'),
+        headAvatar: (b.head?.avatarUrl) || (b.branchHead?.avatarUrl) || (b.headName?.avatarUrl) || `https://i.pravatar.cc/150?u=${b._id}`,
         location: b.city && b.state ? `${b.city}, ${b.state}` : (b.location || '-'),
         employees: b.totalEmployees || 0,
         status: b.status || 'Active',
@@ -630,11 +635,10 @@ export default function ManageBranchPage() {
                                     <td className="py-2.5 px-3 text-zinc-700">{b.location}</td>
                                     <td className="py-2.5 px-3 text-center font-semibold text-zinc-800 text-[11px]">{b.employees}</td>
                                     <td className="py-2.5 px-3 text-center">
-                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border ${
-                                            b.status === 'Active'
-                                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                                                : 'bg-zinc-100 text-zinc-500 border-zinc-200'
-                                        }`}>
+                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border ${b.status === 'Active'
+                                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                            : 'bg-zinc-100 text-zinc-500 border-zinc-200'
+                                            }`}>
                                             {b.status}
                                         </span>
                                     </td>
@@ -687,11 +691,10 @@ export default function ManageBranchPage() {
                             <button
                                 key={page}
                                 onClick={() => setCurrentPage(page)}
-                                className={`w-6 h-6 flex items-center justify-center border rounded-md font-semibold ${
-                                    currentPage === page
-                                        ? 'border-indigo-600 bg-indigo-600 text-white'
-                                        : 'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50'
-                                }`}
+                                className={`w-6 h-6 flex items-center justify-center border rounded-md font-semibold ${currentPage === page
+                                    ? 'border-indigo-600 bg-indigo-600 text-white'
+                                    : 'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50'
+                                    }`}
                             >
                                 {page}
                             </button>

@@ -1,6 +1,7 @@
 
 
 export interface CandidateInfo {
+  manpowerRequestId: string;
   fullName: string;
   email: string;
   mobile: string;
@@ -23,6 +24,25 @@ export interface CandidateInfo {
   university: string; // e.g. "Amity University, Noida"
   yearOfPassing: string; // e.g. "2017"
   cgpa: string; // e.g. "7.8 CGPA"
+  skills?: string[];
+  experiences?: ExperienceEntry[];
+  education?: EducationEntry[];
+}
+
+export interface ExperienceEntry {
+  id: string;
+  role: string;
+  company: string;
+  employmentType: string;
+  startDate: string;
+  endDate: string;
+  bullets: string[];
+}
+
+export interface EducationEntry {
+  degree: string;
+  school: string;
+  period: string;
 }
 
 export interface Note {

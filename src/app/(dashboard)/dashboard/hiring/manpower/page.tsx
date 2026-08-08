@@ -5,46 +5,21 @@ import Link from 'next/link';
 import {
   Briefcase, FileText, Send, CheckCircle2, XCircle, Search, SlidersHorizontal,
   RotateCcw, Columns3, ArrowUpDown, ChevronDown, Eye, Pencil, MoreHorizontal,
-  Download, BarChart3, Plus, Star, CalendarDays, ChevronLeft, ChevronRight,
+  Download, BarChart3, Plus, Star, CalendarDays, ChevronLeft, ChevronRight, Trash2, Loader2
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import api from '@/lib/axios';
+import { toast } from 'react-hot-toast';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 type Priority = 'High' | 'Medium' | 'Low';
 type Status = 'Open' | 'Pending Approval' | 'Approved' | 'Closed';
 
-interface Requisition {
-  id: string;
-  jobTitle: string;
-  employmentType: string;
-  department: string;
-  location: string;
-  requestedBy: { name: string; role: string; avatar: string };
-  positions: number;
-  priority: Priority;
-  status: Status;
-  requestedOn: string;
-  starred?: boolean;
-}
+// Requisition interface removed as we use the backend schema now.
 
 // ─── Mock data ──────────────────────────────────────────────────────────────
-const REQUISITIONS: Requisition[] = [
-  { id: 'REQ-2026-058', jobTitle: 'Sales Manager', employmentType: 'Full Time', department: 'Sales & Marketing', location: 'Noida, UP', requestedBy: { name: 'Amit Verma', role: 'Sales Head', avatar: '101' }, positions: 1, priority: 'High', status: 'Approved', requestedOn: '15 Jun 2026', starred: true },
-  { id: 'REQ-2026-057', jobTitle: 'HR Executive', employmentType: 'Full Time', department: 'Human Resources', location: 'Noida, UP', requestedBy: { name: 'Pooja Sharma', role: 'HR Manager', avatar: '102' }, positions: 2, priority: 'Medium', status: 'Pending Approval', requestedOn: '14 Jun 2026', starred: true },
-  { id: 'REQ-2026-056', jobTitle: 'Software Developer', employmentType: 'Full Time', department: 'IT Department', location: 'Noida, UP (WFH)', requestedBy: { name: 'Rishav Singh', role: 'IT Manager', avatar: '103' }, positions: 3, priority: 'High', status: 'Open', requestedOn: '13 Jun 2026', starred: true },
-  { id: 'REQ-2026-055', jobTitle: 'Digital Marketing Executive', employmentType: 'Full Time', department: 'Marketing', location: 'Noida, UP', requestedBy: { name: 'Nistha Arora', role: 'Marketing Head', avatar: '104' }, positions: 2, priority: 'Medium', status: 'Approved', requestedOn: '12 Jun 2026', starred: true },
-  { id: 'REQ-2026-054', jobTitle: 'Accounts Executive', employmentType: 'Full Time', department: 'Finance & Accounts', location: 'Ghaziabad, UP', requestedBy: { name: 'Vikas Mittal', role: 'Finance Manager', avatar: '105' }, positions: 1, priority: 'Low', status: 'Open', requestedOn: '10 Jun 2026', starred: true },
-];
-
-const TOTAL_REQUISITIONS = 58;
-
-const SUMMARY = [
-  { key: 'total', label: 'Total Requisitions', value: TOTAL_REQUISITIONS, sub: 'All time', icon: <Briefcase size={18} />, color: 'text-indigo-700', bg: 'bg-violet-50' },
-  { key: 'open', label: 'Open Requisitions', value: 23, sub: '39.66% of total', icon: <FileText size={18} />, color: 'text-blue-600', bg: 'bg-blue-50' },
-  { key: 'pending', label: 'Pending Approval', value: 8, sub: '13.79% of total', icon: <Send size={18} />, color: 'text-amber-600', bg: 'bg-amber-50' },
-  { key: 'approved', label: 'Approved', value: 19, sub: '32.76% of total', icon: <CheckCircle2 size={18} />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  { key: 'closed', label: 'Closed', value: 8, sub: '13.79% of total', icon: <XCircle size={18} />, color: 'text-rose-600', bg: 'bg-rose-50' },
-];
+// Replaced by live API data.
 
 const DEPARTMENTS = ['All Departments', 'Sales & Marketing', 'Human Resources', 'IT Department', 'Marketing', 'Finance & Accounts', 'Customer Support'];
 const JOB_CATEGORIES = ['All Categories', 'Engineering', 'Design', 'Sales', 'Support', 'Finance', 'HR'];
@@ -101,10 +76,18 @@ function PriorityBadge({ priority }: { priority: Priority }) {
 }
 
 // ─── Summary cards ──────────────────────────────────────────────────────────
-function SummaryCards() {
+function SummaryCards({ stats }: { stats: any }) {
+  const dynamicSummary = [
+    { key: 'total', label: 'Total Requisitions', value: stats?.total || 0, sub: 'All time', icon: <Briefcase size={18} />, color: 'text-indigo-700', bg: 'bg-violet-50' },
+    { key: 'open', label: 'Open Requisitions', value: stats?.open || 0, sub: 'Pending action', icon: <FileText size={18} />, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { key: 'pending', label: 'Pending Approval', value: stats?.pending || 0, sub: 'Awaiting approval', icon: <Send size={18} />, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { key: 'approved', label: 'Approved', value: stats?.approved || 0, sub: 'Ready to hire', icon: <CheckCircle2 size={18} />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { key: 'closed', label: 'Closed', value: stats?.closed || 0, sub: 'Filled or cancelled', icon: <XCircle size={18} />, color: 'text-rose-600', bg: 'bg-rose-50' },
+  ];
+
   return (
     <section className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
-      {SUMMARY.map((item) => (
+      {dynamicSummary.map((item) => (
         <Card key={item.key} className="rounded-2xl border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
           <CardContent className="flex items-center gap-3 p-3.5">
             <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${item.bg} ${item.color}`}>
@@ -184,7 +167,15 @@ function FiltersBar({
 }
 
 // ─── Table ──────────────────────────────────────────────────────────────────
-function RequisitionsTable({ rows, onToggleStar }: { rows: Requisition[]; onToggleStar: (id: string) => void; }) {
+function RequisitionsTable({ rows, onToggleStar, onDelete }: { rows: any[]; onToggleStar: (id: string) => void; onDelete: (id: string) => void; }) {
+  if (rows.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-10">
+        <p className="text-sm text-zinc-500">No requisitions found.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full overflow-x-auto">
       <table className="w-full min-w-[980px] border-collapse">
@@ -204,52 +195,56 @@ function RequisitionsTable({ rows, onToggleStar }: { rows: Requisition[]; onTogg
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
-            <tr key={r.id} className="border-b border-zinc-200 last:border-b-0 hover:bg-zinc-50/70 transition-colors">
+          {rows.map((r) => {
+            const shortId = (r._id || r.id || '').substring(0, 8).toUpperCase();
+            return (
+            <tr key={r._id || r.id} className="border-b border-zinc-200 last:border-b-0 hover:bg-zinc-50/70 transition-colors">
               <td className="py-1.5 pl-1 text-center">
-                <button onClick={() => onToggleStar(r.id)} className="text-zinc-300 hover:text-amber-400 transition-colors">
+                <button onClick={() => onToggleStar(r._id || r.id)} className="text-zinc-300 hover:text-amber-400 transition-colors">
                   <Star size={14} fill={r.starred ? 'currentColor' : 'none'} className={r.starred ? 'text-amber-400' : ''} />
                 </button>
               </td>
-              <td className="py-1.5 px-3 text-center text-[10px] font-semibold text-violet-700 whitespace-nowrap">{r.id}</td>
+              <td className="py-1.5 px-3 text-center text-[10px] font-semibold text-violet-700 whitespace-nowrap">{shortId}</td>
               <td className="py-1.5 px-3 text-center whitespace-nowrap">
                 <p className="text-[10px] font-semibold text-zinc-900 leading-tight">{r.jobTitle}</p>
                 <p className="text-[10px] text-zinc-400 leading-tight">{r.employmentType}</p>
               </td>
-              <td className="py-1.5 px-3 text-center text-[10px] text-zinc-600 whitespace-nowrap">{r.department}</td>
-              <td className="py-1.5 px-3 text-center text-[10px] text-zinc-600 whitespace-nowrap">{r.location}</td>
+              <td className="py-1.5 px-3 text-center text-[10px] text-zinc-600 whitespace-nowrap">{r.departmentId?.name || r.department || 'N/A'}</td>
+              <td className="py-1.5 px-3 text-center text-[10px] text-zinc-600 whitespace-nowrap">{r.locationBranchId?.name || r.location || 'N/A'}</td>
               <td className="py-1.5 px-3">
                 <div className="flex items-center justify-center gap-2">
                   <img
-                    src={`https://i.pravatar.cc/150?u=${r.requestedBy.avatar}`}
-                    alt={r.requestedBy.name}
+                    src={`https://ui-avatars.com/api/?name=${r.requestedBy?.firstName || 'User'}+${r.requestedBy?.lastName || ''}&background=random`}
+                    alt="avatar"
                     className="w-7 h-7 rounded-full object-cover border border-zinc-100 shrink-0"
                   />
                   <div className="text-left whitespace-nowrap">
-                    <p className="text-[10px] font-semibold text-zinc-900 leading-tight">{r.requestedBy.name}</p>
-                    <p className="text-[10px] text-zinc-400 leading-tight">{r.requestedBy.role}</p>
+                    <p className="text-[10px] font-semibold text-zinc-900 leading-tight">{r.requestedBy?.firstName} {r.requestedBy?.lastName}</p>
+                    <p className="text-[10px] text-zinc-400 leading-tight">{r.designation || 'N/A'}</p>
                   </div>
                 </div>
               </td>
-              <td className="py-1.5 px-3 text-center text-[10px] font-semibold text-zinc-800">{r.positions}</td>
+              <td className="py-1.5 px-3 text-center text-[10px] font-semibold text-zinc-800">{r.numberOfPositions || r.positions}</td>
               <td className="py-1.5 px-3 text-center"><PriorityBadge priority={r.priority} /></td>
               <td className="py-1.5 px-3 text-center"><StatusBadge status={r.status} /></td>
-              <td className="py-1.5 px-3 text-center text-[10px] text-zinc-500 whitespace-nowrap">{r.requestedOn}</td>
+              <td className="py-1.5 px-3 text-center text-[10px] text-zinc-500 whitespace-nowrap">
+                {new Date(r.requestDate || r.createdAt || r.requestedOn || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+              </td>
               <td className="py-1.5 pr-1">
                 <div className="flex items-center justify-center gap-1">
-                  <Link href={`/dashboard/hiring/requisitions/${r.id}`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
+                  <Link href={`/dashboard/hiring/manpower/${r._id || r.id}`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
                     <Eye size={13} />
                   </Link>
-                  <Link href={`/dashboard/hiring/requisitions/${r.id}/edit`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
+                  <Link href={`/dashboard/hiring/manpower/${r._id || r.id}/edit`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
                     <Pencil size={13} />
                   </Link>
-                  <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
-                    <MoreHorizontal size={13} />
+                  <button onClick={() => { if(confirm('Are you sure you want to delete this requisition?')) onDelete(r._id || r.id); }} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-rose-200 hover:text-rose-600 transition-colors">
+                    <Trash2 size={13} />
                   </button>
                 </div>
               </td>
             </tr>
-          ))}
+          )})}
         </tbody>
       </table>
     </div>
@@ -342,6 +337,7 @@ function PageHeader() {
 
 // ─── Page ───────────────────────────────────────────────────────────────────
 export default function JobRequisitionsPage() {
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [department, setDepartment] = useState('All Departments');
   const [category, setCategory] = useState('All Categories');
@@ -351,7 +347,38 @@ export default function JobRequisitionsPage() {
   const [dateRange] = useState('01 May 2026 - 15 Jun 2026');
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
-  const [rows, setRows] = useState(REQUISITIONS);
+  const [starredIds, setStarredIds] = useState<Set<string>>(new Set());
+
+  const { data: requisitionsData, isLoading } = useQuery({
+    queryKey: ['manpower-requests', page, pageSize, search, department, status, priority],
+    queryFn: async () => {
+      let url = `/hiring/manpower-request?page=${page}&limit=${pageSize}`;
+      if (status !== 'All Status') url += `&status=${status}`;
+      if (search) url += `&search=${search}`;
+      // Note: we can add more query params if backend supports them. 
+      // The backend handles basic pagination and searching.
+      const res = await api.get(url);
+      return res.data;
+    }
+  });
+
+  const { data: statsData } = useQuery({
+    queryKey: ['manpower-request-stats'],
+    queryFn: async () => {
+      const res = await api.get('/hiring/manpower-request/stats');
+      return res.data;
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.delete(`/hiring/manpower-request/${id}`),
+    onSuccess: () => {
+      toast.success('Requisition deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['manpower-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['manpower-request-stats'] });
+    },
+    onError: () => toast.error('Failed to delete requisition')
+  });
 
   const activeCount = [
     department !== 'All Departments',
@@ -361,18 +388,6 @@ export default function JobRequisitionsPage() {
     priority !== 'All Priorities',
   ].filter(Boolean).length;
 
-  const filtered = useMemo(() => {
-    return rows.filter((r) => {
-      const matchesSearch = search.trim() === '' ||
-        [r.id, r.jobTitle, r.department, r.requestedBy.name].some((f) => f.toLowerCase().includes(search.toLowerCase()));
-      const matchesDept = department === 'All Departments' || r.department === department;
-      const matchesStatus = status === 'All Status' || r.status === status;
-      const matchesRequester = requester === 'All Requesters' || r.requestedBy.name === requester;
-      const matchesPriority = priority === 'All Priorities' || r.priority === priority;
-      return matchesSearch && matchesDept && matchesStatus && matchesRequester && matchesPriority;
-    });
-  }, [rows, search, department, status, requester, priority]);
-
   const handleClear = () => {
     setSearch('');
     setDepartment('All Departments');
@@ -380,16 +395,29 @@ export default function JobRequisitionsPage() {
     setStatus('All Status');
     setRequester('All Requesters');
     setPriority('All Priorities');
+    setPage(1);
   };
 
   const toggleStar = (id: string) => {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, starred: !r.starred } : r)));
+    setStarredIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
+
+  // The backend might return paginated { data, meta } or just an array.
+  const rows = Array.isArray(requisitionsData) ? requisitionsData : requisitionsData?.data || [];
+  const meta = requisitionsData?.meta;
+  const totalEntries = meta?.total || rows.length;
+
+  const displayRows = rows.map((r: any) => ({ ...r, starred: starredIds.has(r._id) }));
 
   return (
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       <PageHeader />
-      <SummaryCards />
+      <SummaryCards stats={statsData} />
       <FiltersBar
         search={search} onSearch={setSearch}
         department={department} setDepartment={setDepartment}
@@ -404,7 +432,7 @@ export default function JobRequisitionsPage() {
       <Card className="rounded-2xl border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
         <CardContent className="p-2">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-zinc-200 pb-2">
-            <h3 className="text-[11px] font-semibold text-zinc-900">{filtered.length} Requisitions Found</h3>
+            <h3 className="text-[11px] font-semibold text-zinc-900">{totalEntries} Requisitions Found</h3>
             <div className="flex items-center gap-2">
               <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 hover:border-indigo-200 transition-colors">
                 <Columns3 size={13} />
@@ -417,12 +445,18 @@ export default function JobRequisitionsPage() {
             </div>
           </div>
 
-          <RequisitionsTable rows={filtered.slice((page - 1) * pageSize, page * pageSize)} onToggleStar={toggleStar} />
+          {isLoading ? (
+            <div className="flex justify-center items-center py-10 text-indigo-600">
+              <Loader2 className="animate-spin w-8 h-8" />
+            </div>
+          ) : (
+            <RequisitionsTable rows={displayRows} onToggleStar={toggleStar} onDelete={(id) => deleteMutation.mutate(id)} />
+          )}
 
           <TableFooter
             pageSize={pageSize} setPageSize={setPageSize}
             page={page} setPage={setPage}
-            totalEntries={TOTAL_REQUISITIONS}
+            totalEntries={totalEntries}
           />
         </CardContent>
       </Card>

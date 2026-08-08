@@ -4,6 +4,8 @@ import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/ui/page-header';
 import { useDepartmentForm } from '@/context/DepartmentFormContext';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/axios';
 import {
     Building2, ChevronRight, User, Calendar, Users, CheckCircle2,
     HelpCircle, Eye, MapPin, Building, Briefcase, UserCheck, ChevronDown,
@@ -77,6 +79,18 @@ export default function BasicInformation() {
         }
     }, [formData.name]);
 
+    const { data: employeesRes } = useQuery({
+        queryKey: ['employees'],
+        queryFn: () => api.get('/employees')
+    });
+    const employees = employeesRes?.data?.data || [];
+
+    const { data: buRes } = useQuery({
+        queryKey: ['business-units'],
+        queryFn: () => api.get('/business-units')
+    });
+    const businessUnits = (buRes?.data?.data || []).filter((bu: any) => bu.status === 'Active');
+
     return (
         <div className="w-full bg-[#f8f9fc] flex flex-col font-sans min-h-screen">
             <div className="w-full mx-auto p-2 sm:p-2 md:p-2 lg:p-2">
@@ -133,7 +147,23 @@ export default function BasicInformation() {
                                 <SelectField title="Parent Department" value={formData.branchId} onChange={e => updateFormData({ branchId: e.target.value })} options={['Business Operations', 'IT', 'HR']} helpText="Select parent department (if any)" />
                                 <SelectField title="Department Type" value={formData.departmentType} onChange={e => updateFormData({ departmentType: e.target.value })} required options={['Core Department', 'Support', 'Admin', 'Other']} helpText="Core / Support / Admin / Other" />
 
-                                <SelectField title="Business Unit" value={formData.businessUnit} onChange={e => updateFormData({ businessUnit: e.target.value })} required options={['Retail Interiors & Exhibition', 'Corporate', 'Sales']} helpText="Select business unit" />
+                                <Field title="Business Unit" required helpText="Select business unit">
+                                    <div className="relative">
+                                        <select 
+                                            value={formData.businessUnit || ''} 
+                                            onChange={e => updateFormData({ businessUnit: e.target.value })} 
+                                            className={selectCls}
+                                        >
+                                            <option value="" disabled>Select Business Unit</option>
+                                            {businessUnits.map((bu: any) => (
+                                                <option key={bu._id} value={bu.name}>
+                                                    {bu.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                                    </div>
+                                </Field>
 
                                 <Field title="Status" required helpText="Active departments are visible in system">
                                     <div className="relative">
@@ -152,20 +182,41 @@ export default function BasicInformation() {
                         <Card title={<><span className="flex items-center justify-center bg-indigo-600 text-white rounded-full w-4 h-4 text-[9px]">2</span> Department Head</>}>
                             <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-3 mt-0.5">
                                 <Field title="Department Head (HOD)">
-                                    <div className="relative flex items-center border border-indigo-200 bg-indigo-50/50 px-2 py-1 mt-1 cursor-pointer h-8 rounded-md transition-colors hover:border-indigo-300">
-                                        <img src="https://i.pravatar.cc/150?u=aman" alt="User" className="w-5 h-5 rounded-full border border-white shrink-0 shadow-sm" />
-                                        <div className="ml-2 flex-1 overflow-hidden leading-tight">
-                                            <p className="text-[11px] font-bold text-zinc-900 truncate">Aman Malhotra</p>
-                                            <p className="text-[9px] text-zinc-500 truncate font-medium">Design Director</p>
-                                        </div>
-                                        <div className="flex items-center shrink-0">
-                                            <X size={12} className="text-zinc-400 hover:text-rose-500 cursor-pointer mx-1" />
-                                            <ChevronDown size={14} className="text-zinc-400 pointer-events-none" />
-                                        </div>
+                                    <div className="relative">
+                                        <select 
+                                            value={formData.hodEmployeeId || ''} 
+                                            onChange={e => updateFormData({ hodEmployeeId: e.target.value })} 
+                                            className={selectCls}
+                                        >
+                                            <option value="" disabled>Select Department Head</option>
+                                            {employees.map((emp: any) => (
+                                                <option key={emp._id} value={emp._id}>
+                                                    {emp.firstName} {emp.lastName} {emp.designation ? `(${emp.designation})` : ''}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
                                     </div>
                                 </Field>
 
-                                <SelectField title="Reporting To" value={formData.reportingToId} onChange={e => updateFormData({ reportingToId: e.target.value })} options={['Rajesh Sharma']} helpText="Select reporting manager" />
+                                <Field title="Reporting To" helpText="Select reporting manager">
+                                    <div className="relative">
+                                        <select 
+                                            value={formData.reportingToId || ''} 
+                                            onChange={e => updateFormData({ reportingToId: e.target.value })} 
+                                            className={selectCls}
+                                        >
+                                            <option value="" disabled>Select Reporting To</option>
+                                            <option value="none">None (Top Level)</option>
+                                            {employees.map((emp: any) => (
+                                                <option key={emp._id} value={emp._id}>
+                                                    {emp.firstName} {emp.lastName} {emp.designation ? `(${emp.designation})` : ''}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                                    </div>
+                                </Field>
 
                                 <Field title="Effective Date" required helpText="From when this department will be active">
                                     <div className="relative">

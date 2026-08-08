@@ -42,7 +42,7 @@ const NOTES = [
 ];
 
 // ─── Shared field styles ─────────────────────────────────────────────────────
-function inputCls(error?: string) {
+function inputClass(error?: string) {
   return `w-full rounded-lg border ${error ? 'border-rose-400 focus:ring-rose-200' : 'border-zinc-200 focus:ring-indigo-100'} bg-white px-3 py-2 text-[12.5px] text-zinc-800 shadow-sm outline-none focus:border-indigo-400 focus:ring-2 transition-colors placeholder:text-zinc-400`;
 }
 
@@ -69,26 +69,30 @@ function Field({
 
 // Note: PageHeading and JobGradeDetailsCard are integrated below into the main component.
 
-          {/* Examples */}
-          <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
-            <h3 className="text-[14px] font-bold text-zinc-900 mb-3">Examples of Job Grades in Your Organization</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
-              {EXAMPLE_GRADES.map((g) => (
-                <div key={g.code} className={`rounded-lg border ${g.border} bg-white p-1.5`}>
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="text-[11px] font-bold text-zinc-500">{g.code}</span>
-                    <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${g.levelColor}`}>{g.level}</span>
-                  </div>
-                  <p className="text-[12px] font-bold text-zinc-900 mt-1">{g.title}</p>
-                  <p className="text-[10px] text-zinc-500 mt-1">{g.pay}</p>
-                  <div className="mt-2 pt-2 border-t border-zinc-100 space-y-0.5">
-                    <p className="text-[10px] text-zinc-400">Family: <span className="text-zinc-600">{g.family}</span></p>
-                    <p className="text-[10px] text-zinc-400">Reports To: <span className="text-zinc-600">{g.reports}</span></p>
-                  </div>
-                </div>
-              ))}
+// ─── Examples of Job Grades card ────────────────────────────────────────────
+function ExampleGradesCard() {
+  return (
+    <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
+      <h3 className="text-[14px] font-bold text-zinc-900 mb-3">Examples of Job Grades in Your Organization</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+        {EXAMPLE_GRADES.map((g) => (
+          <div key={g.code} className={`rounded-lg border ${g.border} bg-white p-1.5`}>
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[11px] font-bold text-zinc-500">{g.code}</span>
+              <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${g.levelColor}`}>{g.level}</span>
+            </div>
+            <p className="text-[12px] font-bold text-zinc-900 mt-1">{g.title}</p>
+            <p className="text-[10px] text-zinc-500 mt-1">{g.pay}</p>
+            <div className="mt-2 pt-2 border-t border-zinc-100 space-y-0.5">
+              <p className="text-[10px] text-zinc-400">Family: <span className="text-zinc-600">{g.family}</span></p>
+              <p className="text-[10px] text-zinc-400">Reports To: <span className="text-zinc-600">{g.reports}</span></p>
             </div>
           </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 // ─── Additional Information card ────────────────────────────────────────────
 function AdditionalInfoCard({
@@ -106,17 +110,17 @@ function AdditionalInfoCard({
           <div className="flex items-center gap-1.5">
             <div className="relative flex-1">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-zinc-400">₹</span>
-              <input type="text" placeholder="6,00,000" className={`${inputClass} pl-6`} />
+              <input type="text" placeholder="6,00,000" className={`${inputClass()} pl-6`} />
             </div>
             <span className="text-[11px] text-zinc-400">-</span>
             <div className="relative flex-1">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-zinc-400">₹</span>
-              <input type="text" placeholder="9,00,000" className={`${inputClass} pl-6`} />
+              <input type="text" placeholder="9,00,000" className={`${inputClass()} pl-6`} />
             </div>
           </div>
         </Field>
         <Field label="Probation Period (Months)" hint="e.g., 3, 6">
-          <input type="text" placeholder="6" className={inputClass} />
+          <input type="text" placeholder="6" className={inputClass()} />
         </Field>
         <Field label="Remarks">
           <div className="relative">
@@ -127,7 +131,7 @@ function AdditionalInfoCard({
                 setRemarksLen(e.target.value.length);
               }}
               rows={2}
-              className={`${inputClass} resize-none pr-12`}
+              className={`${inputClass()} resize-none pr-12`}
             />
             <span className="pointer-events-none absolute bottom-1.5 right-2.5 text-[9px] text-zinc-400">{remarksLen}/160</span>
           </div>
@@ -137,34 +141,42 @@ function AdditionalInfoCard({
   );
 }
 
-        {/* Right rail */}
-        <div className="space-y-2 min-w-0 xl:sticky xl:top-[20px]">
-          <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
-            <h3 className="text-[14px] font-bold text-zinc-900 mb-3">Grade Level Guide</h3>
-            <div className="space-y-1.5">
-              {GRADE_LEVEL_GUIDE.map((g) => (
-                <div key={g.level} className="flex items-center gap-2.5">
-                  <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-lg ${g.bg} text-[11px] font-bold text-white`}>{g.level}</span>
-                  <div>
-                    <p className="text-[12px] font-semibold text-zinc-900">{g.title}</p>
-                    <p className="text-[10.5px] text-zinc-400">{g.sub}</p>
-                  </div>
-                </div>
-              ))}
+// ─── Right rail: Grade Level Guide ──────────────────────────────────────────
+function GradeLevelGuideCard() {
+  return (
+    <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
+      <h3 className="text-[14px] font-bold text-zinc-900 mb-3">Grade Level Guide</h3>
+      <div className="space-y-1.5">
+        {GRADE_LEVEL_GUIDE.map((g) => (
+          <div key={g.level} className="flex items-center gap-2.5">
+            <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-lg ${g.bg} text-[11px] font-bold text-white`}>{g.level}</span>
+            <div>
+              <p className="text-[12px] font-semibold text-zinc-900">{g.title}</p>
+              <p className="text-[10.5px] text-zinc-400">{g.sub}</p>
             </div>
           </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-          <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
-            <h3 className="text-[14px] font-bold text-zinc-900 mb-3">Why Add Job Grade?</h3>
-            <div className="space-y-1.5">
-              {WHY_ADD.map((w) => (
-                <div key={w} className="flex items-start gap-2">
-                  <Check size={14} className="mt-0.5 shrink-0 rounded-full bg-emerald-100 text-emerald-600 p-0.5" />
-                  <p className="text-[12px] text-zinc-600 leading-snug">{w}</p>
-                </div>
-              ))}
-            </div>
+// ─── Right rail: Why Add Job Grade ──────────────────────────────────────────
+function WhyAddCard() {
+  return (
+    <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
+      <h3 className="text-[14px] font-bold text-zinc-900 mb-3">Why Add Job Grade?</h3>
+      <div className="space-y-1.5">
+        {WHY_ADD.map((w) => (
+          <div key={w} className="flex items-start gap-2">
+            <Check size={14} className="mt-0.5 shrink-0 rounded-full bg-emerald-100 text-emerald-600 p-0.5" />
+            <p className="text-[12px] text-zinc-600 leading-snug">{w}</p>
           </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 // ─── Right rail: Note ────────────────────────────────────────────────────────
 function NoteCard() {
@@ -328,13 +340,13 @@ function AddJobGradeContent() {
               <div className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <Field label="Grade Name" required hint="e.g., Junior Manager">
-                    <input type="text" placeholder="Junior Manager" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={inputClass} />
+                    <input type="text" placeholder="Junior Manager" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={inputClass()} />
                   </Field>
                   <Field label="Grade Code" required hint="e.g., JG-05">
-                    <input type="text" placeholder="JG-05" value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} className={inputClass} />
+                    <input type="text" placeholder="JG-05" value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} className={inputClass()} />
                   </Field>
                   <Field label="Grade Level" required hint="Select grade level">
-                    <select className={inputClass} value={formData.level} onChange={(e) => setFormData({ ...formData, level: e.target.value })}>
+                    <select className={inputClass()} value={formData.level} onChange={(e) => setFormData({ ...formData, level: e.target.value })}>
                       <option value="10">10</option>
                       <option value="9-8">9 - 8</option>
                       <option value="7-6">7 - 6</option>
@@ -345,10 +357,10 @@ function AddJobGradeContent() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <Field label="Pay Range (Monthly)" required hint="Enter minimum and maximum monthly pay range">
-                    <input type="text" placeholder="e.g., ₹45,000 - ₹70,000" value={formData.payRange} onChange={(e) => setFormData({ ...formData, payRange: e.target.value })} className={inputClass} />
+                    <input type="text" placeholder="e.g., ₹45,000 - ₹70,000" value={formData.payRange} onChange={(e) => setFormData({ ...formData, payRange: e.target.value })} className={inputClass()} />
                   </Field>
                   <Field label="Job Family" required hint="Choose job family">
-                    <select className={inputClass} value={formData.jobFamily} onChange={(e) => setFormData({ ...formData, jobFamily: e.target.value })}>
+                    <select className={inputClass()} value={formData.jobFamily} onChange={(e) => setFormData({ ...formData, jobFamily: e.target.value })}>
                       <option value="">Select a family...</option>
                       {jobFamilies.map((jf: any) => (
                         <option key={jf._id} value={jf._id}>{jf.name}</option>
@@ -356,7 +368,7 @@ function AddJobGradeContent() {
                     </select>
                   </Field>
                   <Field label="Parent Grade (Optional)" hint="Select if this grade has a parent">
-                    <select className={inputClass} value={formData.parentGrade} onChange={(e) => setFormData({ ...formData, parentGrade: e.target.value })}>
+                    <select className={inputClass()} value={formData.parentGrade} onChange={(e) => setFormData({ ...formData, parentGrade: e.target.value })}>
                       <option value="">None</option>
                       {allJobGrades.filter((jg: any) => jg.isActive && jg._id !== editId).map((jg: any) => (
                         <option key={jg._id} value={jg._id}>{jg.name}</option>
@@ -366,13 +378,13 @@ function AddJobGradeContent() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label="Status" required hint="Choose status">
-                    <select className={inputClass} value={formData.isActive ? 'Active' : 'Inactive'} onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'Active' })}>
+                    <select className={inputClass()} value={formData.isActive ? 'Active' : 'Inactive'} onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'Active' })}>
                       <option value="Active">Active</option>
                       <option value="Inactive">Inactive</option>
                     </select>
                   </Field>
                   <Field label="Short Description" hint="e.g., Mid-level management roles">
-                    <input type="text" placeholder="Mid-level management roles with functional ownership." value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className={inputClass} />
+                    <input type="text" placeholder="Mid-level management roles with functional ownership." value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className={inputClass()} />
                   </Field>
                 </div>
               </div>
@@ -393,7 +405,7 @@ function AddJobGradeContent() {
       <footer className="text-center text-[11px] text-zinc-400 py-3 flex items-center justify-center gap-2.5 flex-wrap">
         <span>© 2025 Crewcam HRMS. All Rights Reserved.</span>
       </footer>
-    </form>
+    </div>
   );
 }
 

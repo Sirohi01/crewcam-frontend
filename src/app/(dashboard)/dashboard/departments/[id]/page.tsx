@@ -89,7 +89,7 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
     { name: 'Department Structure', icon: GitBranch, href: '/dashboard/departments/structure' },
     { name: 'Business Mapping', icon: Building, href: '/dashboard/departments/business-mapping' },
     { name: 'Budget & Costing', icon: PieChartIcon, href: "/dashboard/departments/buget-and-costing" },
-    { name: 'Documents (3)', icon: FileText },
+    { name: 'Documents (3)', icon: FileText, href: "/dashboard/department-documents" },
     { name: 'KPIs & Goals', icon: Target, href: '/dashboard/departments/kpi-and-goals' },
     { name: 'Policies', icon: Book, href: `/dashboard/departments/${id}/policies` },
     { name: 'Custom Fields', icon: AlignLeft, href: `/dashboard/departments/${id}/custom-fields` },
