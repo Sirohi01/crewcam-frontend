@@ -7,7 +7,7 @@ import {
   ChevronDown, CheckCircle2, Circle, Clock3,
   Check,
 } from 'lucide-react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
 
@@ -102,8 +102,36 @@ export default function InterviewProcessPage() {
   const [openQ, setOpenQ] = useState<number>(1);
   const [candidate, setCandidate] = useState<any>(null);
 
+  const [timeLeft, setTimeLeft] = useState(30 * 60);
+  const [isInterviewEnded, setIsInterviewEnded] = useState(false);
+
   const params = useParams() as { id: string };
   const candidateId = params?.id;
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (timeLeft > 0 && !isInterviewEnded) {
+      const timerId = setInterval(() => setTimeLeft((t) => t - 1), 1000);
+      return () => clearInterval(timerId);
+    } else if (timeLeft === 0 && !isInterviewEnded) {
+      handleEndInterview();
+    }
+  }, [timeLeft, isInterviewEnded]);
+
+  const handleEndInterview = () => {
+    if (isInterviewEnded) return;
+    setIsInterviewEnded(true);
+    toast.success('Interview ended automatically.');
+    router.push(`/dashboard/hiring/candidates/new/create/evaluation/${candidateId}`);
+  };
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const timerPercentage = (timeLeft / (30 * 60)) * 100;
 
   React.useEffect(() => {
     if (candidateId) {
@@ -283,13 +311,13 @@ export default function InterviewProcessPage() {
 
                 <div className="grid grid-cols-1 gap-2 pt-1.5 sm:grid-cols-[auto_1fr]">
                   <div className="shrink-0 text-center">
-                    <div className="relative mx-auto grid h-20 w-20 place-items-center rounded-full" style={{ background: 'conic-gradient(#22c55e 82%, #e5e7eb 0)' }}>
-                      <div className="grid h-16 w-16 place-items-center rounded-full bg-white text-center">
-                        <p className="text-[14px] font-bold text-zinc-900">24:35</p>
-                        <p className="text-[8px] text-zinc-400">of 30:00</p>
+                    <div className="relative mx-auto grid h-20 w-20 place-items-center rounded-full" style={{ background: `conic-gradient(#22c55e ${timerPercentage}%, #e5e7eb 0)` }}>
+                      <div className="flex flex-col items-center justify-center h-16 w-16 rounded-full bg-white text-center">
+                        <p className={`text-[14px] leading-none font-bold ${timeLeft < 60 ? 'text-rose-600' : 'text-zinc-900'}`}>{formatTime(timeLeft)}</p>
+                        <p className="text-[8px] leading-none mt-1 text-zinc-400">of 30:00</p>
                       </div>
                     </div>
-                    <button type="button" className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-zinc-700 hover:bg-zinc-50">
+                    <button type="button" onClick={handleEndInterview} className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors hover:text-rose-600 hover:border-rose-200">
                       End Interview
                     </button>
                   </div>
