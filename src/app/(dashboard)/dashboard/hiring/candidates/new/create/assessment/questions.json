@@ -1,0 +1,106 @@
+[
+  {
+    "category": "Sales & Business Strategy",
+    "scenario": "You are assigned a target to increase revenue by 25% in the next quarter in a highly competitive market.",
+    "prompt": "What strategy would you implement to achieve this target?",
+    "subPrompt": "Select the most effective approach.",
+    "options": [
+      { "key": "A", "text": "Focus only on acquiring new customers through aggressive discounting." },
+      { "key": "B", "text": "Increase prices to improve margins without changing the existing strategy." },
+      { "key": "C", "text": "Strengthen key accounts, cross-sell existing customers, and identify new market segments." },
+      { "key": "D", "text": "Reduce marketing budget and focus only on high-margin products." }
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "category": "Team Management",
+    "scenario": "A high-performing team member is consistently missing deadlines due to personal issues affecting their work.",
+    "prompt": "How would you handle this situation as their manager?",
+    "subPrompt": "Select the most effective approach.",
+    "options": [
+      { "key": "A", "text": "Immediately escalate the matter to HR for disciplinary action." },
+      { "key": "B", "text": "Ignore the issue since their overall performance has been good historically." },
+      { "key": "C", "text": "Have a private conversation, understand the situation, and offer reasonable support or flexibility." },
+      { "key": "D", "text": "Publicly call out the missed deadlines during the team meeting." }
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "category": "Customer Relationship Management",
+    "scenario": "A key client is unhappy with a delayed delivery and is threatening to switch to a competitor.",
+    "prompt": "What would be your first course of action?",
+    "subPrompt": "Select the most effective approach.",
+    "options": [
+      { "key": "A", "text": "Offer a large discount immediately without understanding the root cause." },
+      { "key": "B", "text": "Acknowledge the issue, apologize, and propose a clear resolution timeline." },
+      { "key": "C", "text": "Avoid the client until the delivery issue resolves itself." },
+      { "key": "D", "text": "Blame the logistics team when speaking with the client." }
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "category": "Negotiation Skills",
+    "scenario": "During a contract negotiation, the client is pushing for a 15% price reduction that would hurt profitability.",
+    "prompt": "How would you respond in this negotiation?",
+    "subPrompt": "Select the most effective approach.",
+    "options": [
+      { "key": "A", "text": "Accept the reduction immediately to close the deal quickly." },
+      { "key": "B", "text": "Walk away from the negotiation without further discussion." },
+      { "key": "C", "text": "Explore value-added trade-offs, such as volume commitments or longer contract terms." },
+      { "key": "D", "text": "Refuse to negotiate and hold firm on the original price with no explanation." }
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "category": "Market Analysis",
+    "scenario": "A competitor has just launched a similar product at a significantly lower price point.",
+    "prompt": "What would be the most strategic response?",
+    "subPrompt": "Select the most effective approach.",
+    "options": [
+      { "key": "A", "text": "Immediately match their price without analyzing the impact." },
+      { "key": "B", "text": "Ignore the competitor and continue business as usual." },
+      { "key": "C", "text": "Analyze the value proposition gap and differentiate through service or quality." },
+      { "key": "D", "text": "Launch a smear campaign against the competitor." }
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "category": "Decision Making",
+    "scenario": "You have two project proposals with limited budget to approve only one this quarter.",
+    "prompt": "What is the best way to decide between them?",
+    "subPrompt": "Select the most effective approach.",
+    "options": [
+      { "key": "A", "text": "Choose the one proposed by the more senior team member." },
+      { "key": "B", "text": "Evaluate both based on ROI, risk, and strategic alignment before deciding." },
+      { "key": "C", "text": "Flip a coin to avoid conflict between teams." },
+      { "key": "D", "text": "Delay the decision indefinitely to avoid taking a stance." }
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "category": "Problem Solving",
+    "scenario": "Production output has dropped by 20% over the last two weeks with no clear explanation.",
+    "prompt": "What would be your first step to resolve this?",
+    "subPrompt": "Select the most effective approach.",
+    "options": [
+      { "key": "A", "text": "Assume it is a one-off issue and take no action." },
+      { "key": "B", "text": "Immediately reduce staff to cut costs." },
+      { "key": "C", "text": "Investigate root causes systematically using data before implementing changes." },
+      { "key": "D", "text": "Blame the shift supervisor without investigation." }
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "category": "Communication Skills",
+    "scenario": "You need to deliver disappointing quarterly results to senior leadership.",
+    "prompt": "How would you approach this communication?",
+    "subPrompt": "Select the most effective approach.",
+    "options": [
+      { "key": "A", "text": "Present only the positive numbers and hope no one notices the gaps." },
+      { "key": "B", "text": "Present the facts transparently along with a clear action plan going forward." },
+      { "key": "C", "text": "Delay the meeting until results improve." },
+      { "key": "D", "text": "Blame external market conditions without offering a plan." }
+    ],
+    "correctAnswer": "B"
+  }
+]

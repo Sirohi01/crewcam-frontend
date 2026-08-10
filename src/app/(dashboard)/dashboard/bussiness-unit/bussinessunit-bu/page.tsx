@@ -142,11 +142,11 @@ export default function BusinessUnitsPage() {
     // Filter
     processedBusinessUnits = processedBusinessUnits.filter((bu) => {
         let isValid = true;
-        
+
         // Global search
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
-            const matchesGlobal = 
+            const matchesGlobal =
                 bu.name.toLowerCase().includes(query) ||
                 bu.code.toLowerCase().includes(query) ||
                 bu.headName.toLowerCase().includes(query);
@@ -162,7 +162,7 @@ export default function BusinessUnitsPage() {
         if (columnFilters.costCenters.trim() && !String(bu.costCenters).toLowerCase().includes(columnFilters.costCenters.toLowerCase())) isValid = false;
         if (columnFilters.budget.trim() && !String(bu.budget).toLowerCase().includes(columnFilters.budget.toLowerCase())) isValid = false;
         if (columnFilters.status.trim() && !bu.status.toLowerCase().includes(columnFilters.status.toLowerCase())) isValid = false;
-        
+
         return isValid;
     });
 
@@ -186,7 +186,6 @@ export default function BusinessUnitsPage() {
 
     return (
         <div className="flex flex-col gap-2 animate-in fade-in duration-300 p-2 w-full font-sans text-zinc-800 bg-[#f8f9fc] min-h-screen">
-
             {/* PAGE HEADER */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-1">
                 <div>
@@ -244,16 +243,16 @@ export default function BusinessUnitsPage() {
                             <h2 className="text-[13px] font-bold text-zinc-800 flex items-center gap-2">Business Units List</h2>
                             <div className="flex items-center gap-2">
                                 <div className="relative">
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         placeholder="Search business units..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="pl-2.5 pr-7 h-8 bg-white border border-zinc-200 rounded-md text-[11px] w-48 focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-400" 
+                                        className="pl-2.5 pr-7 h-8 bg-white border border-zinc-200 rounded-md text-[11px] w-48 focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder:text-zinc-400"
                                     />
                                     <Search className="w-3 h-3 absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                                 </div>
-                                <button 
+                                <button
                                     onClick={() => setIsFilterOpen(!isFilterOpen)}
                                     className={`flex items-center gap-1.5 h-8 px-2.5 border border-zinc-200 rounded-md text-[11px] font-semibold transition-colors ${isFilterOpen ? 'bg-indigo-50 text-indigo-600 border-indigo-200' : 'text-zinc-700 hover:bg-zinc-50'}`}
                                 >
@@ -261,17 +260,17 @@ export default function BusinessUnitsPage() {
                                 </button>
 
                                 <div className="relative" ref={sortRef}>
-                                    <button 
+                                    <button
                                         onClick={() => setIsSortOpen(!isSortOpen)}
                                         className="flex items-center gap-1.5 h-8 px-2.5 border border-zinc-200 rounded-md text-[11px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
                                     >
                                         Sort by: {
                                             sortOption === 'name-asc' ? 'Name (A-Z)' :
-                                            sortOption === 'name-desc' ? 'Name (Z-A)' :
-                                            sortOption === 'code-asc' ? 'Code (A-Z)' :
-                                            sortOption === 'code-desc' ? 'Code (Z-A)' :
-                                            sortOption === 'employees-desc' ? 'Employees (High-Low)' :
-                                            sortOption === 'employees-asc' ? 'Employees (Low-High)' : 'Name (A-Z)'
+                                                sortOption === 'name-desc' ? 'Name (Z-A)' :
+                                                    sortOption === 'code-asc' ? 'Code (A-Z)' :
+                                                        sortOption === 'code-desc' ? 'Code (Z-A)' :
+                                                            sortOption === 'employees-desc' ? 'Employees (High-Low)' :
+                                                                sortOption === 'employees-asc' ? 'Employees (Low-High)' : 'Name (A-Z)'
                                         }
                                         <ChevronDown className="w-3.5 h-3.5" />
                                     </button>

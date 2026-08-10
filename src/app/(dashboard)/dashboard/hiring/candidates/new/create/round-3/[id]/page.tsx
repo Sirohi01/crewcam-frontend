@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ArrowLeft, Square, Phone, Mail, MapPin, Link2, ExternalLink,
   CheckCircle2, Clock, Check, Info, FileText, Share2, HelpCircle,
@@ -10,6 +10,17 @@ import {
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
+
+const DUMMY_QUESTIONS = [
+  { category: 'Time Management', text: 'How do you prioritize multiple tasks when working under tight deadlines?', insight: 'This evaluates your ability to manage stress and organize tasks efficiently.' },
+  { category: 'Leadership & People Management', text: 'Describe a situation where you had to manage a low-performing team. What steps did you take to improve their performance and what was the outcome?', insight: 'This question evaluates your leadership style, ability to motivate teams, problem-solving skills, and focus on results.' },
+  { category: 'Conflict Resolution', text: 'Tell me about a time you had a disagreement with a stakeholder or peer. How did you resolve it?', insight: 'This tests your communication skills and ability to find win-win solutions.' },
+  { category: 'Strategic Thinking', text: 'How do you align your team\'s goals with the broader objectives of the organization?', insight: 'This evaluates strategic thinking and ability to communicate company vision effectively.' },
+  { category: 'Change Management', text: 'Describe a time when you had to lead your team through a significant organizational change.', insight: 'Assesses adaptability, leadership during uncertainty, and change management skills.' },
+  { category: 'Performance Evaluation', text: 'How do you approach giving constructive feedback to a high-performing employee who has a negative attitude?', insight: 'Tests emotional intelligence and performance management capabilities.' },
+  { category: 'Decision Making', text: 'Tell me about a time you had to make a difficult decision with incomplete information.', insight: 'Evaluates analytical skills, risk assessment, and decisiveness.' },
+  { category: 'Innovation & Growth', text: 'How do you encourage innovation and continuous learning within your team?', insight: 'Assesses your commitment to team development and fostering a growth mindset.' }
+];
 
 export default function InterviewUI() {
   const [candidate, setCandidate] = React.useState<any>(null);
@@ -33,11 +44,11 @@ export default function InterviewUI() {
             if (match) cId = match._id;
             else throw new Error("Candidate not found");
           }
-          
+
           const res = await api.get(`/hiring/candidates/${cId}`);
           const data = res.data;
           const appDetails = data.applicationDetails || {};
-          
+
           setCandidate({
             fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
             email: data.email || '',
@@ -62,6 +73,40 @@ export default function InterviewUI() {
   }, [candidateId]);
 
   if (!candidate) return <div className="p-8 text-center text-zinc-500 font-medium">Loading candidate details...</div>;
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(1);
+  const [answers, setAnswers] = useState<string[]>(Array(DUMMY_QUESTIONS.length).fill(''));
+
+  useEffect(() => {
+    setAnswers(prev => {
+      const newAnswers = [...prev];
+      newAnswers[0] = 'I prioritize tasks based on impact and urgency using the Eisenhower matrix. By focusing on high-impact tasks first, I ensure that critical deadlines are met while delegating or deferring less urgent ones.';
+      return newAnswers;
+    });
+  }, []);
+
+  const currentQuestion = DUMMY_QUESTIONS[currentQuestionIndex];
+  const answeredCount = answers.filter(a => a.trim().length > 0).length;
+
+  const totalSeconds = 40 * 60;
+  const [timeLeft, setTimeLeft] = useState(34 * 60 + 20); // Starting around 34:20 for demo
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(prev => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const radius = 48;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (timeLeft / totalSeconds) * circumference;
+
   return (
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
 
@@ -223,17 +268,30 @@ export default function InterviewUI() {
             <p className="text-[10px] text-zinc-500 font-medium mb-6">Round 3 of 5<br />Managerial Interview</p>
 
             <div className="flex items-center justify-center mb-6 relative">
-              <div className="h-28 w-28 rounded-full border-[6px] border-emerald-600 border-t-zinc-100 border-l-zinc-100 flex flex-col items-center justify-center bg-white shadow-sm">
-                <span className="text-[9px] text-zinc-500 font-medium mb-0.5">Time Remaining</span>
-                <span className="text-2xl font-bold text-emerald-600 leading-none mb-1">15:20</span>
-                <span className="text-[9px] text-zinc-400">of 40:00</span>
+              <div className="h-28 w-28 relative flex flex-col items-center justify-center bg-white rounded-full">
+                <svg className="absolute inset-0 w-full h-full transform -rotate-90 drop-shadow-sm">
+                  <circle cx="56" cy="56" r={radius} stroke="#f4f4f5" strokeWidth="8" fill="transparent" />
+                  <circle
+                    cx="56" cy="56" r={radius}
+                    stroke="#4f46e5" strokeWidth="8" fill="transparent"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={strokeDashoffset}
+                    strokeLinecap="round"
+                    className="transition-all duration-1000 ease-linear"
+                  />
+                </svg>
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
+                  <span className="text-[9px] text-zinc-500 font-medium mb-0.5">Time Remaining</span>
+                  <span className="text-xl font-bold text-zinc-900 leading-none mb-1">{formatTime(timeLeft)}</span>
+                  <span className="text-[9px] text-zinc-400">of 40:00</span>
+                </div>
               </div>
             </div>
 
             <div className="flex flex-col gap-2 border-t border-zinc-100 pt-4 text-[11px]">
-              <div className="flex items-center justify-between"><span className="text-zinc-500">Total Questions</span><span className="font-bold">10</span></div>
-              <div className="flex items-center justify-between"><span className="text-zinc-500">Answered</span><span className="font-bold">2</span></div>
-              <div className="flex items-center justify-between"><span className="text-zinc-500">Remaining</span><span className="font-bold">8</span></div>
+              <div className="flex items-center justify-between"><span className="text-zinc-500">Total Questions</span><span className="font-bold">{DUMMY_QUESTIONS.length}</span></div>
+              <div className="flex items-center justify-between"><span className="text-zinc-500">Answered</span><span className="font-bold">{answeredCount}</span></div>
+              <div className="flex items-center justify-between"><span className="text-zinc-500">Remaining</span><span className="font-bold">{DUMMY_QUESTIONS.length - answeredCount}</span></div>
             </div>
 
             <div className="mt-6 bg-indigo-50/50 rounded-lg p-3 border border-indigo-100">
@@ -251,8 +309,8 @@ export default function InterviewUI() {
           <div className="p-5 rounded-xl border border-zinc-100 bg-white shadow-sm flex flex-col h-full">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <h2 className="text-[15px] font-bold text-zinc-900">Question 5 of 10</h2>
-                <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">Technical – Data Analysis</span>
+                <h2 className="text-[15px] font-bold text-zinc-900">Question {currentQuestionIndex + 1} of {DUMMY_QUESTIONS.length}</h2>
+                <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">{currentQuestion.category}</span>
               </div>
               <button className="flex items-center gap-1.5 text-[10px] font-semibold text-rose-600 bg-white border border-rose-200 px-2 py-1 rounded hover:bg-rose-50 transition-colors shadow-sm">
                 <Flag size={12} /> Flag Question
@@ -260,14 +318,14 @@ export default function InterviewUI() {
             </div>
 
             <p className="text-[13px] font-bold text-zinc-900 mb-4 leading-relaxed">
-              You are given a large sales dataset with millions of records. How would you design a reliable and efficient data pipeline to process, clean, and analyze this data for reporting insights?
+              {currentQuestion.text}
             </p>
 
             <div className="bg-[#f5f3ff] border border-indigo-100 rounded-lg p-3 mb-4 flex items-start gap-2">
               <Sparkles size={14} className="text-indigo-600 mt-0.5 shrink-0" />
               <div className="flex flex-col">
                 <span className="text-[11px] font-bold text-indigo-900">AI Insight</span>
-                <p className="text-[11px] text-indigo-700 mt-1 leading-relaxed">This question evaluates your understanding of data engineering concepts, ETL/ELT pipeline design, data processing tools, and scalability.</p>
+                <p className="text-[11px] text-indigo-700 mt-1 leading-relaxed">{currentQuestion.insight}</p>
               </div>
             </div>
 
@@ -286,10 +344,16 @@ export default function InterviewUI() {
               <textarea
                 className="flex-1 w-full resize-none p-3 text-[12px] text-zinc-800 outline-none min-h-[150px]"
                 placeholder="Type your answer here..."
+                value={answers[currentQuestionIndex]}
+                onChange={(e) => {
+                  const newAnswers = [...answers];
+                  newAnswers[currentQuestionIndex] = e.target.value;
+                  setAnswers(newAnswers);
+                }}
               ></textarea>
               <div className="flex items-center justify-between px-3 py-2 bg-zinc-50 border-t border-zinc-100">
                 <span className="text-[10px] text-zinc-500">Minimum 50 words</span>
-                <span className="text-[10px] text-zinc-500 font-medium">0 / 2500</span>
+                <span className="text-[10px] text-zinc-500 font-medium">{answers[currentQuestionIndex].split(/\s+/).filter(Boolean).length} / 2500 words</span>
               </div>
             </div>
 
@@ -299,10 +363,16 @@ export default function InterviewUI() {
             </div>
 
             <div className="flex items-center justify-between mt-auto">
-              <button className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-600 bg-white border border-zinc-200 px-4 py-2 rounded-lg hover:bg-zinc-50 shadow-sm transition-colors">
+              <button
+                onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
+                disabled={currentQuestionIndex === 0}
+                className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-600 bg-white border border-zinc-200 px-4 py-2 rounded-lg hover:bg-zinc-50 shadow-sm transition-colors disabled:opacity-50">
                 <ArrowLeft size={13} /> Previous Question
               </button>
-              <button className="flex items-center gap-1.5 text-[11px] font-semibold text-white bg-indigo-700 px-6 py-2 rounded-lg hover:bg-indigo-800 shadow-sm transition-colors">
+              <button
+                onClick={() => setCurrentQuestionIndex(prev => Math.min(DUMMY_QUESTIONS.length - 1, prev + 1))}
+                disabled={currentQuestionIndex === DUMMY_QUESTIONS.length - 1}
+                className="flex items-center gap-1.5 text-[11px] font-semibold text-white bg-indigo-700 px-6 py-2 rounded-lg hover:bg-indigo-800 shadow-sm transition-colors disabled:opacity-50">
                 Next Question <ArrowLeft size={13} className="rotate-180" />
               </button>
             </div>
@@ -416,17 +486,23 @@ export default function InterviewUI() {
 
         {/* Your Previous Answer */}
         <div className="rounded-xl border border-zinc-100 bg-white p-5 shadow-sm">
-          <h3 className="text-[11px] font-bold text-zinc-900 mb-4">Your Previous Answer (Q2)</h3>
-          <div className="flex items-start gap-2 mb-3">
-            <div className="h-5 w-5 bg-[#f0f9f4] text-emerald-600 rounded flex items-center justify-center shrink-0 font-bold text-[9px] border border-emerald-100">Q.2</div>
-            <p className="text-[10px] font-bold text-zinc-900 mt-0.5 leading-relaxed">Explain a time when you used data to influence a critical business decision. What was the impact?</p>
-          </div>
-          <div className="bg-[#f4fbf7] rounded p-3 text-[10px] text-zinc-700 border border-emerald-50 mt-3 line-clamp-3 leading-relaxed">
-            I analyzed customer purchase patterns and identified a drop in repeat orders. Based on the insights, we improved the follow-up strategy which increased repeat orders by 18% in the next quarter.
-            <div className="text-right w-full mt-3">
-              <button className="text-[9px] font-bold text-indigo-700 hover:underline">View Full Answer</button>
-            </div>
-          </div>
+          <h3 className="text-[11px] font-bold text-zinc-900 mb-4">Your Previous Answer {currentQuestionIndex > 0 ? `(Q${currentQuestionIndex})` : ''}</h3>
+          {currentQuestionIndex > 0 ? (
+            <>
+              <div className="flex items-start gap-2 mb-3">
+                <div className="h-5 w-5 bg-[#f0f9f4] text-emerald-600 rounded flex items-center justify-center shrink-0 font-bold text-[9px] border border-emerald-100">Q.{currentQuestionIndex}</div>
+                <p className="text-[10px] font-bold text-zinc-900 mt-0.5 leading-relaxed">{DUMMY_QUESTIONS[currentQuestionIndex - 1].text}</p>
+              </div>
+              <div className="bg-[#f4fbf7] rounded p-3 text-[10px] text-zinc-700 border border-emerald-50 mt-3 line-clamp-3 leading-relaxed">
+                {answers[currentQuestionIndex - 1] || "No answer provided."}
+                <div className="text-right w-full mt-3">
+                  <button className="text-[9px] font-bold text-indigo-700 hover:underline">View Full Answer</button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="text-[10px] text-zinc-500 italic py-4">No previous answer. This is the first question.</div>
+          )}
         </div>
 
         {/* Quick Actions */}

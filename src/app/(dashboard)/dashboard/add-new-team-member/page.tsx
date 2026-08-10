@@ -1,13 +1,10 @@
 'use client';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import {
-    UserPlus, ArrowLeft, Save, ChevronRight, ChevronDown, UploadCloud,
-    Calendar, Plus, ClipboardList, Circle, CheckCircle2, FileText,
-    IdCard, GraduationCap, File as FileIcon, Info
-} from 'lucide-react';
+import api from '@/lib/axios';
+import {UserPlus, ArrowLeft, Save, ChevronRight, ChevronDown, UploadCloud, Calendar, Plus, ClipboardList, Circle, CheckCircle2, FileText, IdCard, GraduationCap, File as FileIcon, Info} from 'lucide-react';
 
 const checklistItems = [
     { label: 'Personal Information', done: false },
@@ -46,10 +43,31 @@ const bloodGroupOptions = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
 function SelectField({
     label, required, value, onChange, options, placeholder,
 }: {
-    label: string; required?: boolean; value: string; onChange: (v: string) => void; options: string[]; placeholder: string;
+    label: string;
+    required?: boolean;
+    value: string;
+    onChange: (v: string) => void;
+    options: string[] | { label: string; value: string }[];
+    placeholder: string;
 }) {
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (ref.current && !ref.current.contains(event.target as Node)) {
+                setOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const normalizedOptions = options.map(opt =>
+        typeof opt === 'string' ? { label: opt, value: opt } : opt
+    );
+
+    const selectedOption = normalizedOptions.find(opt => opt.value === value);
 
     return (
         <div className="flex flex-col gap-1">
@@ -62,19 +80,19 @@ function SelectField({
                     onClick={() => setOpen(!open)}
                     className="w-full h-10 px-3 flex items-center justify-between border border-zinc-200 rounded-md text-[12.5px] bg-white hover:border-zinc-300 transition-colors focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 >
-                    <span className={value ? 'text-zinc-800' : 'text-zinc-400'}>{value || placeholder}</span>
+                    <span className={value ? 'text-zinc-800' : 'text-zinc-400'}>{selectedOption ? selectedOption.label : placeholder}</span>
                     <ChevronDown className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                 </button>
                 {open && (
                     <div className="absolute left-0 top-full mt-1 w-full bg-white border border-zinc-200 shadow-lg rounded-md py-1 z-30 max-h-52 overflow-y-auto">
-                        {options.map((opt) => (
+                        {normalizedOptions.map((opt) => (
                             <button
-                                key={opt}
+                                key={opt.value}
                                 type="button"
-                                onClick={() => { onChange(opt); setOpen(false); }}
+                                onClick={() => { onChange(opt.value); setOpen(false); }}
                                 className="w-full text-left px-3 py-1.5 text-[12px] font-medium text-zinc-700 hover:bg-zinc-50"
                             >
-                                {opt}
+                                {opt.label}
                             </button>
                         ))}
                     </div>
@@ -153,12 +171,95 @@ export default function AddNewTeamMemberPage() {
 
     const employeeId = 'Auto-generated';
 
-    const handleSaveNext = () => {
+    // Reference lists from backend
+    const [departmentsList, setDepartmentsList] = useState<{ label: string; value: string }[]>([]);
+    const [designationsList, setDesignationsList] = useState<{ label: string; value: string }[]>([]);
+    const [branchesList, setBranchesList] = useState<{ label: string; value: string }[]>([]);
+    const [rolesList, setRolesList] = useState<{ label: string; value: string }[]>([]);
+    const [employeesList, setEmployeesList] = useState<{ label: string; value: string }[]>([]);
+
+    useEffect(() => {
+        const fetchRefData = async () => {
+            try {
+                const [rRes, bRes, dRes, desRes, empRes] = await Promise.all([
+                    api.get('/companies/roles').catch(() => ({ data: { data: [] } })),
+                    api.get('/companies/branches').catch(() => ({ data: { data: [] } })),
+                    api.get('/companies/departments').catch(() => ({ data: { data: [] } })),
+                    api.get('/companies/designations').catch(() => ({ data: { data: [] } })),
+                    api.get('/employees').catch(() => ({ data: { data: [] } })),
+                ]);
+                setRolesList(rRes.data.data?.map((r: any) => ({ label: r.name, value: r._id })) || []);
+                setBranchesList(bRes.data.data?.map((b: any) => ({ label: b.name, value: b._id })) || []);
+                setDepartmentsList(dRes.data.data?.map((d: any) => ({ label: d.name, value: d._id })) || []);
+                setDesignationsList(desRes.data.data?.map((d: any) => ({ label: d.name, value: d._id })) || []);
+                setEmployeesList(empRes.data.data?.map((e: any) => ({
+                    label: `${e.firstName} ${e.lastName || ''}`.trim(),
+                    value: e._id
+                })) || []);
+            } catch (error) {
+                console.error('Failed to fetch reference data:', error);
+            }
+        };
+        fetchRefData();
+    }, []);
+
+    const [isSaving, setIsSaving] = useState(false);
+
+    const parseDate = (str: string) => {
+        if (!str) return undefined;
+        const d = new Date(str);
+        return isNaN(d.getTime()) ? undefined : d;
+    };
+
+    const handleSaveNext = async () => {
         if (!firstName || !lastName || !dob || !gender || !personalEmail || !personalMobile) {
             toast.error('Please fill all required Personal Information fields');
             return;
         }
-        toast.success('Team member details saved. Proceeding to next step...');
+
+        setIsSaving(true);
+        const loadId = toast.loading('Saving team member details...');
+        try {
+            let uploadedPhotoUrl = '';
+            if (profilePhoto) {
+                const uploadData = new FormData();
+                uploadData.append('file', profilePhoto);
+                const uploadRes = await api.post('/upload', uploadData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                uploadedPhotoUrl = uploadRes.data.url;
+            }
+
+            const payload = {
+                firstName,
+                lastName,
+                email: personalEmail,
+                roleId: userRole || undefined,
+                profilePictureUrl: uploadedPhotoUrl || undefined,
+                employeeCode: undefined, // let backend auto-generate
+                mobileNumber: personalMobile,
+                dateOfJoining: parseDate(dateOfJoining),
+                dateOfBirth: parseDate(dob),
+                gender: ['male', 'female', 'other'].includes(gender.toLowerCase()) ? gender.toLowerCase() : undefined,
+                bloodGroup: bloodGroup || undefined,
+                maritalStatus: ['single', 'married', 'divorced', 'widowed'].includes(maritalStatus.toLowerCase()) ? maritalStatus.toLowerCase() : undefined,
+                branchId: workLocation || undefined,
+                departmentId: department || undefined,
+                designationId: designation || undefined,
+                reportingToId: reportingTo || undefined,
+            };
+
+            await api.post('/employees', payload);
+            toast.dismiss(loadId);
+            toast.success('Team member details saved successfully!');
+            router.push('/dashboard/team-members');
+        } catch (error: any) {
+            toast.dismiss(loadId);
+            const msg = error.response?.data?.message || 'Failed to save team member details';
+            toast.error(msg);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -193,9 +294,10 @@ export default function AddNewTeamMemberPage() {
                     </button>
                     <button
                         onClick={handleSaveNext}
-                        className="flex items-center gap-1.5 h-9 px-3 bg-indigo-600 text-white rounded-md text-[12px] font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
+                        disabled={isSaving}
+                        className="flex items-center gap-1.5 h-9 px-3 bg-indigo-600 text-white rounded-md text-[12px] font-semibold hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                        <Save className="w-3.5 h-3.5" /> Save & Next
+                        <Save className="w-3.5 h-3.5" /> {isSaving ? 'Saving...' : 'Save & Next'}
                     </button>
                 </div>
             </div>
@@ -251,8 +353,8 @@ export default function AddNewTeamMemberPage() {
 
                             <div className="flex flex-col gap-1">
                                 <label className="text-[12px] font-semibold text-zinc-700">Personal Mobile <span className="text-rose-500">*</span></label>
-                                <div className="flex">
-                                    <div className="flex items-center gap-1 h-10 px-2.5 border border-r-0 border-zinc-200 rounded-l-md bg-zinc-50 text-[12.5px] font-medium text-zinc-600 shrink-0">
+                                <div className="flex rounded-md border border-zinc-200 bg-white focus-within:ring-1 focus-within:ring-indigo-500 focus-within:border-indigo-500 hover:border-zinc-300 transition-colors h-10 overflow-hidden">
+                                    <div className="flex items-center gap-1 bg-zinc-50 px-2.5 text-[12.5px] font-medium text-zinc-600 border-r border-zinc-200 shrink-0 select-none">
                                         🇮🇳 +91
                                     </div>
                                     <input
@@ -260,7 +362,7 @@ export default function AddNewTeamMemberPage() {
                                         value={personalMobile}
                                         onChange={(e) => setPersonalMobile(e.target.value)}
                                         placeholder="Enter mobile number"
-                                        className="w-full h-10 px-3 border border-zinc-200 rounded-r-md text-[12.5px] bg-white placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                        className="flex-1 min-w-0 px-3 text-[12.5px] bg-white placeholder:text-zinc-400 focus:outline-none"
                                     />
                                 </div>
                             </div>
@@ -273,8 +375,8 @@ export default function AddNewTeamMemberPage() {
                     <div className="bg-white border border-zinc-200 shadow-sm rounded-xl p-4">
                         <h2 className="text-[13.5px] font-bold text-zinc-800 mb-3">2. Job Information</h2>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                            <SelectField label="Department" required value={department} onChange={setDepartment} options={departmentOptions} placeholder="Select Department" />
-                            <SelectField label="Designation" required value={designation} onChange={setDesignation} options={designationOptions} placeholder="Select Designation" />
+                            <SelectField label="Department" required value={department} onChange={setDepartment} options={departmentsList} placeholder="Select Department" />
+                            <SelectField label="Designation" required value={designation} onChange={setDesignation} options={designationsList} placeholder="Select Designation" />
 
                             <div className="flex flex-col gap-1">
                                 <label className="text-[12px] font-semibold text-zinc-700">Employee ID <span className="text-rose-500">*</span></label>
@@ -286,7 +388,7 @@ export default function AddNewTeamMemberPage() {
                                 />
                             </div>
 
-                            <SelectField label="Reporting To" required value={reportingTo} onChange={setReportingTo} options={reportingToOptions} placeholder="Select Reporting Manager" />
+                            <SelectField label="Reporting To" required value={reportingTo} onChange={setReportingTo} options={employeesList} placeholder="Select Reporting Manager" />
                             <SelectField label="Business Unit" value={businessUnit} onChange={setBusinessUnit} options={businessUnitOptions} placeholder="Select Business Unit" />
                             <SelectField label="Cost Center" value={costCenter} onChange={setCostCenter} options={costCenterOptions} placeholder="Select Cost Center" />
                             <SelectField label="Job Grade" value={jobGrade} onChange={setJobGrade} options={jobGradeOptions} placeholder="Select Job Grade" />
@@ -308,7 +410,7 @@ export default function AddNewTeamMemberPage() {
 
                             <SelectField label="Probation Period (Months)" value={probationPeriod} onChange={setProbationPeriod} options={probationOptions} placeholder="Select Probation Period" />
                             <TextField label="Notice Period (Days)" value={noticePeriod} onChange={setNoticePeriod} placeholder="Enter notice period" type="number" />
-                            <SelectField label="Work Location" required value={workLocation} onChange={setWorkLocation} options={workLocationOptions} placeholder="Select Work Location" />
+                            <SelectField label="Work Location" required value={workLocation} onChange={setWorkLocation} options={branchesList} placeholder="Select Work Location" />
                         </div>
                     </div>
 
@@ -320,8 +422,8 @@ export default function AddNewTeamMemberPage() {
 
                             <div className="flex flex-col gap-1">
                                 <label className="text-[12px] font-semibold text-zinc-700">CTC (Annual) <span className="text-rose-500">*</span></label>
-                                <div className="flex">
-                                    <div className="flex items-center h-10 px-2.5 border border-r-0 border-zinc-200 rounded-l-md bg-zinc-50 text-[12.5px] font-medium text-zinc-600 shrink-0">
+                                <div className="flex rounded-md border border-zinc-200 bg-white focus-within:ring-1 focus-within:ring-indigo-500 focus-within:border-indigo-500 hover:border-zinc-300 transition-colors h-10 overflow-hidden">
+                                    <div className="flex items-center bg-zinc-50 px-2.5 text-[12.5px] font-medium text-zinc-600 border-r border-zinc-200 shrink-0 select-none">
                                         ₹
                                     </div>
                                     <input
@@ -329,7 +431,7 @@ export default function AddNewTeamMemberPage() {
                                         value={ctc}
                                         onChange={(e) => setCtc(e.target.value)}
                                         placeholder="Enter annual CTC"
-                                        className="w-full h-10 px-3 border border-zinc-200 rounded-r-md text-[12.5px] bg-white placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                        className="flex-1 min-w-0 px-3 text-[12.5px] bg-white placeholder:text-zinc-400 focus:outline-none"
                                     />
                                 </div>
                             </div>
@@ -346,7 +448,7 @@ export default function AddNewTeamMemberPage() {
                     <div className="bg-white border border-zinc-200 shadow-sm rounded-xl p-4">
                         <h2 className="text-[13.5px] font-bold text-zinc-800 mb-3">4. Access & Permissions</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                            <SelectField label="User Role" required value={userRole} onChange={setUserRole} options={userRoleOptions} placeholder="Select User Role" />
+                            <SelectField label="User Role" required value={userRole} onChange={setUserRole} options={rolesList} placeholder="Select User Role" />
                             <SelectField label="System Access" required value={systemAccess} onChange={setSystemAccess} options={systemAccessOptions} placeholder="Select Access Level" />
                         </div>
 
@@ -391,9 +493,10 @@ export default function AddNewTeamMemberPage() {
                         </button>
                         <button
                             onClick={handleSaveNext}
-                            className="flex items-center gap-1.5 h-9 px-4 bg-indigo-600 text-white rounded-md text-[12.5px] font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
+                            disabled={isSaving}
+                            className="flex items-center gap-1.5 h-9 px-4 bg-indigo-600 text-white rounded-md text-[12.5px] font-semibold hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            <Save className="w-3.5 h-3.5" /> Save & Next
+                            <Save className="w-3.5 h-3.5" /> {isSaving ? 'Saving...' : 'Save & Next'}
                         </button>
                     </div>
                 </div>

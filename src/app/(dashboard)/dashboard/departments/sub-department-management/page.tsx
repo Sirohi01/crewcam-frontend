@@ -1,35 +1,19 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import NextLink from 'next/link';
 import {
   ChevronRight, Building2, GitBranch, Plus, ChevronDown, Search, Filter,
   Download, Pencil, MoreVertical, Users, FolderKanban, LayoutGrid, Palette,
   Box, FileText, Layers, ArrowUpRight, UserPlus, Repeat, UserCog, Upload,
   Info,
-  Route,
-  Link,
+  Loader2,
+  Recycle,
+  Trash2,
 } from 'lucide-react';
+import { getSubDepartments, deleteSubDepartment, SubDepartment } from '@/services/subDepartmentService';
 
 // ─── Static data ────────────────────────────────────────────────────────────
 const BREADCRUMB = ['Organization Setup', 'Departments', 'Design Studio', 'Sub Departments'];
-
-const KPIS = [
-  { label: 'Total Sub Departments', value: '7', sub: 'All active teams', icon: Building2, bg: 'bg-blue-50', color: 'text-blue-600' },
-  { label: 'Active Teams', value: '7', sub: '100% of total', icon: Users, bg: 'bg-emerald-50', color: 'text-emerald-600' },
-  { label: 'Team Leads', value: '7', sub: 'Assigned', icon: UserCog, bg: 'bg-purple-50', color: 'text-purple-600' },
-  { label: 'Total Employees', value: '76', sub: 'Across all teams', icon: Users, bg: 'bg-orange-50', color: 'text-orange-600' },
-  { label: 'Active Projects', value: '18', sub: 'Across all teams', icon: FolderKanban, bg: 'bg-blue-50', color: 'text-blue-600' },
-];
-
-const SUB_DEPARTMENTS = [
-  { id: 1, name: 'Concept Design', code: 'DS-CD', lead: 'Neha Sethi', role: 'Sr. Manager', initials: 'NS', avatarBg: 'bg-rose-400', employees: 12, projects: 3, status: 'Active', icon: Pencil, iconBg: 'bg-blue-50', iconColor: 'text-blue-600' },
-  { id: 2, name: 'Retail Interior Design', code: 'DS-RI', lead: 'Rohit Singh', role: 'Sr. Engineer', initials: 'RS', avatarBg: 'bg-sky-500', employees: 14, projects: 4, status: 'Active', icon: LayoutGrid, bg: 'bg-teal-50', iconBg: 'bg-teal-50', iconColor: 'text-teal-600' },
-  { id: 3, name: 'Exhibition Design', code: 'DS-EX', lead: 'Pooja Bansal', role: 'Manager', initials: 'PB', avatarBg: 'bg-fuchsia-400', employees: 10, projects: 2, status: 'Active', icon: Palette, iconBg: 'bg-purple-50', iconColor: 'text-purple-600' },
-  { id: 4, name: '3D Visualization', code: 'DS-3D', lead: 'Vikram Arora', role: 'Manager', initials: 'VA', avatarBg: 'bg-indigo-500', employees: 8, projects: 3, status: 'Active', icon: Box, iconBg: 'bg-orange-50', iconColor: 'text-orange-600' },
-  { id: 5, name: 'CAD / Working Drawings', code: 'DS-CAD', lead: 'Amit Sharma', role: 'Sr. Engineer', initials: 'AS', avatarBg: 'bg-teal-500', employees: 12, projects: 4, status: 'Active', icon: FileText, iconBg: 'bg-rose-50', iconColor: 'text-rose-500' },
-  { id: 6, name: 'Design Coordination', code: 'DS-DC', lead: 'Anjali Gupta', role: 'Manager', initials: 'AG', avatarBg: 'bg-violet-500', employees: 9, projects: 1, status: 'Active', icon: GitBranch, iconBg: 'bg-blue-50', iconColor: 'text-blue-600' },
-  { id: 7, name: 'Material & Specification', code: 'DS-MS', lead: 'Meena Joshi', role: 'Manager', initials: 'MJ', avatarBg: 'bg-emerald-500', employees: 11, projects: 1, status: 'Active', icon: Layers, iconBg: 'bg-emerald-50', iconColor: 'text-emerald-600' },
-];
 
 const QUICK_ACTIONS = [
   { title: 'Add Employee', sub: 'Add new employee to this team', icon: UserPlus },
@@ -87,7 +71,21 @@ function PageHeading() {
 }
 
 // ─── KPI strip ────────────────────────────────────────────────────────────────
-function KpiStrip() {
+function KpiStrip({ departments }: { departments: any[] }) {
+  const totalSubDepartments = departments.length;
+  const activeTeams = departments.filter((d) => d.isActive).length;
+  const teamLeads = departments.filter((d) => d.hodEmployeeId).length;
+  const totalEmployees = departments.reduce((acc, d) => acc + (d.employeeCapacity || d.employees || d.totalEmployees || 0), 0);
+  const activeProjects = departments.reduce((acc, d) => acc + (d.activeProjects || d.projectsCount || 0), 0);
+
+  const KPIS = [
+    { label: 'Total Sub Departments', value: totalSubDepartments.toString(), sub: 'All active teams', icon: Building2, bg: 'bg-blue-50', color: 'text-blue-600' },
+    { label: 'Active Teams', value: activeTeams.toString(), sub: '100% of total', icon: Users, bg: 'bg-emerald-50', color: 'text-emerald-600' },
+    { label: 'Team Leads', value: teamLeads.toString(), sub: 'Assigned', icon: UserCog, bg: 'bg-purple-50', color: 'text-purple-600' },
+    { label: 'Total Employees', value: totalEmployees.toString(), sub: 'Across all teams', icon: Users, bg: 'bg-orange-50', color: 'text-orange-600' },
+    { label: 'Active Projects', value: activeProjects.toString(), sub: 'Across all teams', icon: FolderKanban, bg: 'bg-blue-50', color: 'text-blue-600' },
+  ];
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
       {KPIS.map((k) => (
@@ -107,12 +105,17 @@ function KpiStrip() {
 }
 
 // ─── Department hierarchy card ──────────────────────────────────────────────
-function DepartmentHierarchyCard() {
+function DepartmentHierarchyCard({ departments }: { departments: any[] }) {
+  const totalSubDepartments = departments.length;
+  const teamLeads = departments.filter((d) => d.hodEmployeeId).length;
+  const totalEmployees = departments.reduce((acc, d) => acc + (d.employeeCapacity || d.employees || d.totalEmployees || 0), 0);
+  const activeProjects = departments.reduce((acc, d) => acc + (d.activeProjects || d.projectsCount || 0), 0);
+
   const nodes = [
-    { label: 'Sub Departments', value: '7' },
-    { label: 'Team Leads', value: '7' },
-    { label: 'Employees', value: '76' },
-    { label: 'Active Projects', value: '18' },
+    { label: 'Sub Departments', value: totalSubDepartments.toString() },
+    { label: 'Team Leads', value: teamLeads.toString() },
+    { label: 'Employees', value: totalEmployees.toString() },
+    { label: 'Active Projects', value: activeProjects.toString() },
   ];
   return (
     <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
@@ -146,9 +149,16 @@ function DepartmentHierarchyCard() {
 
 // ─── Status pill ─────────────────────────────────────────────────────────────
 function StatusPill({ status }: { status: string }) {
+  if (status === 'Active') {
+    return (
+      <span className="inline-block rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-600">
+        Active
+      </span>
+    );
+  }
   return (
-    <span className="inline-block rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-600">
-      {status}
+    <span className="inline-block rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-600">
+      Inactive
     </span>
   );
 }
@@ -162,7 +172,7 @@ function Avatar({ initials, bg }: { initials: string; bg: string }) {
 }
 
 // ─── Sub Departments table ───────────────────────────────────────────────────
-function SubDepartmentsTable({ onSelect, selectedId }: { onSelect: (id: number) => void; selectedId: number }) {
+function SubDepartmentsTable({ departments, onSelect, selectedId, loading, onDelete }: { departments: SubDepartment[], onSelect: (id: string) => void; selectedId: string, loading: boolean, onDelete: (id: string) => void }) {
   return (
     <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -208,40 +218,55 @@ function SubDepartmentsTable({ onSelect, selectedId }: { onSelect: (id: number) 
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
-            {SUB_DEPARTMENTS.map((row) => (
+            {loading ? (
+              <tr>
+                <td colSpan={7} className="text-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-zinc-400 mx-auto" />
+                  <p className="text-sm text-zinc-500 mt-2">Loading departments...</p>
+                </td>
+              </tr>
+            ) : departments.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="text-center py-8">
+                  <p className="text-sm text-zinc-500">No sub departments found</p>
+                </td>
+              </tr>
+            ) : departments.map((row: any) => (
               <tr
-                key={row.id}
-                onClick={() => onSelect(row.id)}
-                className={`cursor-pointer transition-colors ${selectedId === row.id ? 'bg-indigo-50/40' : 'hover:bg-zinc-50/60'}`}
+                key={row._id}
+                onClick={() => onSelect(row._id)}
+                className={`cursor-pointer transition-colors ${selectedId === row._id ? 'bg-indigo-50/40' : 'hover:bg-zinc-50/60'}`}
               >
                 <td className="py-1.5 pr-2">
                   <div className="flex items-center gap-2">
-                    <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${row.iconBg} ${row.iconColor}`}>
-                      <row.icon size={15} />
+                    <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-600`}>
+                      <Building2 size={15} />
                     </span>
                     <span className="text-[12.5px] font-normal text-zinc-700">{row.name}</span>
                   </div>
                 </td>
-                <td className="py-1.5 pr-2 text-[12px] text-zinc-500">{row.code}</td>
+                <td className="py-1.5 pr-2 text-[12px] text-zinc-500">{row.code || '-'}</td>
                 <td className="py-1.5 pr-2">
                   <div className="flex items-center gap-2">
-                    <Avatar initials={row.initials} bg={row.avatarBg} />
+                    <Avatar initials={row.hodEmployeeId ? row.hodEmployeeId.firstName?.charAt(0) : 'U'} bg="bg-indigo-500" />
                     <div>
-                      <p className="text-[12px] font-semibold text-zinc-900">{row.lead}</p>
-                      <p className="text-[10.5px] text-zinc-400">{row.role}</p>
+                      <p className="text-[12px] font-semibold text-zinc-900">
+                        {row.hodEmployeeId ? `${row.hodEmployeeId.firstName} ${row.hodEmployeeId.lastName}` : 'Unassigned'}
+                      </p>
+                      <p className="text-[10.5px] text-zinc-400">Team Lead</p>
                     </div>
                   </div>
                 </td>
-                <td className="py-1.5 pr-2 text-[12.5px] text-zinc-700">{row.employees}</td>
-                <td className="py-1.5 pr-2 text-[12.5px] text-zinc-700">{row.projects}</td>
-                <td className="py-1.5 pr-2"><StatusPill status={row.status} /></td>
+                <td className="py-1.5 pr-2 text-[12.5px] text-zinc-700">{row.employeeCapacity || row.employees || row.totalEmployees || 0}</td>
+                <td className="py-1.5 pr-2 text-[12.5px] text-zinc-700">{row.activeProjects || row.projectsCount || 0}</td>
+                <td className="py-1.5 pr-2"><StatusPill status={row.isActive ? 'Active' : 'Inactive'} /></td>
                 <td className="py-1.5 pr-2">
-                  <div className="flex items-center gap-1.5">
-                    <button className="grid h-7 w-7 place-items-center rounded-md text-indigo-600 hover:bg-indigo-50 transition-colors">
+                  <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                    <NextLink href={`/dashboard/departments/add-sub-department?id=${row._id}`} className="grid h-7 w-7 place-items-center rounded-md text-indigo-600 hover:bg-indigo-50 transition-colors">
                       <Pencil size={13} />
-                    </button>
-                    <button className="grid h-7 w-7 place-items-center rounded-md text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition-colors">
-                      <MoreVertical size={15} />
+                    </NextLink>
+                    <button onClick={() => onDelete(row._id)} className="grid h-7 w-7 place-items-center rounded-md text-red-600 hover:bg-red-50 transition-colors">
+                      <Trash2 size={13} />
                     </button>
                   </div>
                 </td>
@@ -252,7 +277,7 @@ function SubDepartmentsTable({ onSelect, selectedId }: { onSelect: (id: number) 
       </div>
 
       <div className="flex items-center justify-between gap-3 flex-wrap mt-4 pt-3 border-t border-zinc-100">
-        <p className="text-[12px] text-zinc-500">Showing 1 to 7 of 7 sub departments</p>
+        <p className="text-[12px] text-zinc-500">Showing {departments.length} sub departments</p>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
             <button className="grid h-8 w-8 place-items-center rounded-lg border border-zinc-200 bg-white text-zinc-400 hover:bg-zinc-50 transition-colors">
@@ -301,36 +326,44 @@ function QuickActionsRow() {
 }
 
 // ─── Right rail: Selected Sub Department ────────────────────────────────────
-function SelectedSubDepartmentCard() {
+function SelectedSubDepartmentCard({ department }: { department: any }) {
+  if (!department) return null;
+  const leadName = department.hodEmployeeId ? `${department.hodEmployeeId.firstName} ${department.hodEmployeeId.lastName}` : 'Unassigned';
   return (
     <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
       <p className="text-[13px] font-semibold text-zinc-900 mb-3">Selected Sub Department</p>
       <div className="flex items-center gap-3">
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-indigo-600 text-white">
-          <Pencil size={18} />
+          <Building2 size={18} />
         </span>
         <div>
-          <p className="text-[14px] font-semibold text-zinc-900">Concept Design</p>
-          <span className="inline-block mt-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[10.5px] font-bold text-emerald-600">Active</span>
+          <p className="text-[14px] font-semibold text-zinc-900">{department.name}</p>
+          <span className={`inline-block mt-0.5 rounded-full px-2 py-0.5 text-[10.5px] font-bold ${department.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+            {department.isActive ? 'Active' : 'Inactive'}
+          </span>
         </div>
       </div>
-      <p className="text-[11.5px] text-zinc-500 mt-2">Code: <span className="font-semibold text-zinc-700">DS-CD</span> &nbsp;•&nbsp; Team Lead: <span className="font-semibold text-zinc-700">Neha Sethi</span></p>
+      <p className="text-[11.5px] text-zinc-500 mt-2">Code: <span className="font-semibold text-zinc-700">{department.code || '-'}</span> &nbsp;•&nbsp; Team Lead: <span className="font-semibold text-zinc-700">{leadName}</span></p>
     </div>
   );
 }
 
 // ─── Right rail: Reporting Structure ────────────────────────────────────────
-function ReportingStructureCard() {
+function ReportingStructureCard({ department }: { department: any }) {
+  if (!department) return null;
+  const leadName = department.hodEmployeeId ? `${department.hodEmployeeId.firstName} ${department.hodEmployeeId.lastName}` : 'Unassigned';
+  const leadInitials = department.hodEmployeeId ? department.hodEmployeeId.firstName.charAt(0) : 'U';
+
   return (
     <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
       <p className="text-[13px] font-semibold text-zinc-900 mb-3">Reporting Structure</p>
       <div className="flex items-start gap-2">
         <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-300" />
         <div className="flex items-center gap-2 flex-1">
-          <Avatar initials="AM" bg="bg-slate-600" />
+          <Avatar initials="H" bg="bg-slate-600" />
           <div>
-            <p className="text-[12px] font-semibold text-zinc-900">Design Studio <span className="font-normal text-zinc-400">(Parent)</span></p>
-            <p className="text-[10.5px] text-zinc-400">Aman Malhotra <span className="text-zinc-400">(HOD)</span></p>
+            <p className="text-[12px] font-semibold text-zinc-900">{department.branchId?.name || 'Head Office'} <span className="font-normal text-zinc-400">(Parent)</span></p>
+            <p className="text-[10.5px] text-zinc-400">Head of Department</p>
           </div>
         </div>
       </div>
@@ -338,10 +371,10 @@ function ReportingStructureCard() {
       <div className="flex items-start gap-2">
         <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" />
         <div className="flex items-center gap-2 flex-1">
-          <Avatar initials="NS" bg="bg-rose-400" />
+          <Avatar initials={leadInitials} bg="bg-rose-400" />
           <div>
-            <p className="text-[12px] font-semibold text-zinc-900">Concept Design <span className="font-normal text-zinc-400">(This Sub Dept)</span></p>
-            <p className="text-[10.5px] text-zinc-400">Neha Sethi <span className="text-zinc-400">(Team Lead)</span></p>
+            <p className="text-[12px] font-semibold text-zinc-900">{department.name} <span className="font-normal text-zinc-400">(This Sub Dept)</span></p>
+            <p className="text-[10.5px] text-zinc-400">{leadName} <span className="text-zinc-400">(Team Lead)</span></p>
           </div>
         </div>
       </div>
@@ -438,23 +471,64 @@ function CapacityOverviewCard() {
 
 // ─── Page ───────────────────────────────────────────────────────────────────
 export default function SubDepartmentManagementPage() {
-  const [selectedId, setSelectedId] = useState(1);
+  const [departments, setDepartments] = useState<SubDepartment[]>([]);
+  const [selectedId, setSelectedId] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getSubDepartments({ limit: 1000 })
+      .then((data) => {
+        setDepartments(data);
+        if (data.length > 0) {
+          setSelectedId(data[0]._id);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this sub department?')) {
+      try {
+        await deleteSubDepartment(id);
+        const updatedDepartments = departments.filter((d) => d._id !== id);
+        setDepartments(updatedDepartments);
+        if (selectedId === id) {
+          setSelectedId(updatedDepartments.length > 0 ? updatedDepartments[0]._id : '');
+        }
+      } catch (error) {
+        console.error('Failed to delete sub department', error);
+        alert('Failed to delete sub department');
+      }
+    }
+  };
+
+  const selectedDepartment = departments.find(d => d._id === selectedId);
 
   return (
     <div className="space-y-2 font-sans text-zinc-900 p-2">
       <PageHeading />
-      <KpiStrip />
+      <KpiStrip departments={departments} />
 
       <div className="grid grid-cols-1 xl:grid-cols-[2.6fr_1fr] gap-2 items-start">
         <div className="min-w-0 space-y-2">
-          <DepartmentHierarchyCard />
-          <SubDepartmentsTable onSelect={setSelectedId} selectedId={selectedId} />
+          <DepartmentHierarchyCard departments={departments} />
+          <SubDepartmentsTable
+            departments={departments}
+            onSelect={setSelectedId}
+            selectedId={selectedId}
+            loading={loading}
+            onDelete={handleDelete}
+          />
           <QuickActionsRow />
         </div>
 
         <div className="space-y-2 min-w-0 xl:sticky xl:top-[20px]">
-          <SelectedSubDepartmentCard />
-          <ReportingStructureCard />
+          {selectedDepartment && (
+            <>
+              <SelectedSubDepartmentCard department={selectedDepartment} />
+              <ReportingStructureCard department={selectedDepartment} />
+            </>
+          )}
           <SkillsExpertiseCard />
           <ActiveProjectsCard />
           <CapacityOverviewCard />
