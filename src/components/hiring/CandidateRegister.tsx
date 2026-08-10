@@ -99,7 +99,9 @@ export default function CandidateRegister() {
               {!isLoading && rows.map((candidate: any) => (
                 <tr key={candidate._id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-3 py-2 border-r border-slate-100">
-                    <span className="font-medium text-slate-800">{candidate.firstName} {candidate.lastName}</span>
+                    <Link href={`/dashboard/hiring/candidates/${candidate._id}`} className="font-medium text-indigo-600 hover:text-indigo-800 hover:underline">
+                      {candidate.firstName} {candidate.lastName}
+                    </Link>
                   </td>
                   <td className="px-3 py-2 border-r border-slate-100 text-slate-700">
                     <span className="block">{candidate.email}</span>

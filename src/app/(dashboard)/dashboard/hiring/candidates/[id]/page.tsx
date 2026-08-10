@@ -8,9 +8,48 @@ import {
   Sparkles, Circle,
 } from 'lucide-react';
 
-// Dummy data / static mockup — matches the approved design 1:1. Every candidate
-// row on the Selected Candidates page links here; the id param isn't wired to a
-// real record yet, so the same sample profile renders regardless of who you click.
+import { useParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/axios';
+
+const JOURNEY_STEPS = [
+  { label: 'Upload CV', route: '/dashboard/hiring/candidates/new/create' },
+  { label: 'Review & Edit', route: '/dashboard/hiring/candidates/new/create/review-and-edit' },
+  { label: 'Submit Application', route: '/dashboard/hiring/candidates/new/create/submit-application' },
+  { label: 'AI Screening', route: '/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation' },
+  { label: 'HOD Review', route: '/dashboard/hiring/selection-approval' },
+  { label: 'Interview', route: '/dashboard/hiring/candidates/new/create/interview-process' },
+  { label: 'Offer', route: '/dashboard/hiring/loi' },
+  { label: 'Onboarding', route: '/dashboard/hiring/joining-confirmation' }
+];
+
+function getPipelineSteps(status: string, candidateSlugOrId: string) {
+  // Map candidate status to current step index
+  let currentIdx = 3; // Default to AI Screening if 'Applied'
+  if (status === 'Screening') currentIdx = 4; // HOD Review
+  if (status === 'Interviewing') currentIdx = 5; // Interview
+  if (status === 'Offered') currentIdx = 6; // Offer
+  if (status === 'Hired') currentIdx = 8; // All completed
+  if (status === 'Rejected') currentIdx = -1; // Halt pipeline
+
+  const journeySteps = [
+    { label: 'Upload CV', route: '/dashboard/hiring/candidates/new/create' },
+    { label: 'Review & Edit', route: `/dashboard/hiring/candidates/new/create/review-and-edit/${candidateSlugOrId}` },
+    { label: 'Submit Application', route: `/dashboard/hiring/candidates/new/create/submit-application/${candidateSlugOrId}` },
+    { label: 'AI Screening', route: `/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateSlugOrId}` },
+    { label: 'HOD Review', route: `/dashboard/hiring/selection-approval` },
+    { label: 'Interview', route: `/dashboard/hiring/candidates/new/create/interview-process` },
+    { label: 'Offer', route: `/dashboard/hiring/loi` },
+    { label: 'Onboarding', route: `/dashboard/hiring/joining-confirmation` }
+  ];
+
+  return journeySteps.map((step, idx) => {
+    let state = 'pending';
+    if (idx < currentIdx) state = 'done';
+    if (idx === currentIdx) state = 'current';
+    return { ...step, state, date: '' }; // Dates could be mapped from audit logs later
+  });
+}
 
 const candidate = {
   name: 'Amit Kumar Verma',
@@ -34,15 +73,6 @@ const candidate = {
 };
 
 const tabs = ['Overview', 'Personal Details', 'Experience', 'Education', 'Skills', 'Documents', 'Interview', 'Offers', 'Communication', 'History', 'AI Insights'];
-
-const stageSteps = [
-  { label: 'Applied', date: '10 May 2026', state: 'done' },
-  { label: 'Screening', date: '12 May 2026', state: 'done' },
-  { label: 'HR Interview', date: '15 May 2026', state: 'done' },
-  { label: 'Technical Interview', date: '18 May 2026', state: 'done' },
-  { label: 'Final Interview', date: '21 May 2026', state: 'current' },
-  { label: 'Offer', date: '', state: 'pending' },
-];
 
 const skills = ['Sales Strategy', 'CRM', 'Client Relationship', 'Team Leadership', 'Business Development', 'Negotiation', 'Market Analysis', 'Presentation'];
 
@@ -129,6 +159,60 @@ function Stars({ value }: { value: number }) {
 
 export default function CandidateDetailsPage() {
   const [tab, setTab] = useState('Overview');
+  const { id } = useParams() as { id: string };
+
+  const { data: candidateData, isLoading } = useQuery({
+    queryKey: ['candidate', id],
+    queryFn: async () => {
+      // If it's a valid object ID, fetch directly
+      if (/^[0-9a-fA-F]{24}$/.test(id)) {
+        const res = await api.get(`/hiring/candidates/${id}`);
+        return res.data;
+      }
+      // Otherwise it's a slug, fetch all and find
+      const res = await api.get(`/hiring/candidates?limit=1000`);
+      const candidates = res.data?.data || res.data || [];
+      const match = candidates.find((c: any) => {
+        const nameSlug = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+        return nameSlug === id;
+      });
+      if (match) {
+        // Fetch full details of the matched candidate
+        const fullRes = await api.get(`/hiring/candidates/${match._id}`);
+        return fullRes.data;
+      }
+      throw new Error("Candidate not found");
+    }
+  });
+
+  if (isLoading) {
+    return <div className="p-8 text-center text-zinc-500">Loading candidate details...</div>;
+  }
+
+  if (!candidateData) {
+    return <div className="p-8 text-center text-zinc-500">Candidate not found.</div>;
+  }
+
+  const {
+    firstName, lastName, email, phone, jobRole, departmentId,
+    status, source, rating, createdAt, profileImageUrl, applicationDetails
+  } = candidateData;
+
+  const fullName = `${firstName} ${lastName || ''}`.trim();
+  const departmentName = departmentId?.name || 'Unassigned';
+  const appliedDate = new Date(createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  
+  // Extract data from applicationDetails (the AI parsed data)
+  const appDetails = applicationDetails || {};
+  const currentCtc = appDetails.currentCTC || candidate.currentCtc;
+  const expectedCtc = appDetails.expectedCTC || candidate.expectedCtc;
+  const experience = appDetails.totalExperience ? `${appDetails.totalExperience} Years` : candidate.experience;
+  const location = appDetails.currentLocation || appDetails.location || candidate.location;
+  const noticePeriod = appDetails.noticePeriod || candidate.noticePeriod;
+  
+  // Use the name slug for links to keep the URL consistent
+  const candidateSlug = `${firstName || ''} ${lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+  const stageSteps = getPipelineSteps(status, candidateSlug);
 
   return (
     <div className="font-sans">
@@ -166,35 +250,35 @@ export default function CandidateDetailsPage() {
             <div className="flex flex-wrap items-start gap-4">
               <div className="min-w-[220px] flex-1">
                 <p className="flex items-center gap-1.5 text-[15px] font-bold text-zinc-900">
-                  {candidate.name}
+                  {fullName}
                   <Link2 size={13} className="text-blue-500" />
                   <Mail size={13} className="text-zinc-400" />
                 </p>
                 <p className="mt-0.5 flex items-center gap-1.5 text-[11.5px] text-zinc-600">
-                  {candidate.title}
-                  <span className="rounded-[2px] bg-blue-50 px-2 py-0.5 text-[9.5px] font-semibold text-blue-600">{candidate.stage}</span>
+                  {jobRole}
+                  <span className="rounded-[2px] bg-blue-50 px-2 py-0.5 text-[9.5px] font-semibold text-blue-600">{status}</span>
                 </p>
                 <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10.5px] text-zinc-500">
-                  <span className="flex items-center gap-1"><Phone size={11} className="text-zinc-400" /> {candidate.phone}</span>
-                  <span className="flex items-center gap-1"><Mail size={11} className="text-zinc-400" /> {candidate.email}</span>
-                  <span className="flex items-center gap-1"><MapPin size={11} className="text-zinc-400" /> {candidate.location}</span>
+                  <span className="flex items-center gap-1"><Phone size={11} className="text-zinc-400" /> {phone}</span>
+                  <span className="flex items-center gap-1"><Mail size={11} className="text-zinc-400" /> {email}</span>
+                  <span className="flex items-center gap-1"><MapPin size={11} className="text-zinc-400" /> {location}</span>
                 </div>
               </div>
 
               <div className="shrink-0 space-y-1 text-[10.5px]">
-                <div className="flex items-center gap-6"><span className="text-zinc-400">Candidate ID</span><span className="ml-auto font-semibold text-zinc-800">{candidate.candidateId}</span></div>
-                <div className="flex items-center gap-6"><span className="text-zinc-400">Current Company</span><span className="ml-auto font-semibold text-zinc-800">{candidate.company}</span></div>
-                <div className="flex items-center gap-6"><span className="text-zinc-400">Current Designation</span><span className="ml-auto font-semibold text-zinc-800">{candidate.designation}</span></div>
+                <div className="flex items-center gap-6"><span className="text-zinc-400">Candidate ID</span><span className="ml-auto font-semibold text-zinc-800">{id.slice(-6).toUpperCase()}</span></div>
+                <div className="flex items-center gap-6"><span className="text-zinc-400">Current Company</span><span className="ml-auto font-semibold text-zinc-800">{appDetails.currentCompany || candidate.company}</span></div>
+                <div className="flex items-center gap-6"><span className="text-zinc-400">Current Designation</span><span className="ml-auto font-semibold text-zinc-800">{appDetails.highestQualification || candidate.designation}</span></div>
               </div>
             </div>
 
             <div className="mt-1.5 grid grid-cols-2 gap-2 border-t border-zinc-100 pt-1.5 text-[10.5px] leading-tight sm:grid-cols-3 lg:grid-cols-6">
-              <div><p className="text-zinc-400 leading-tight">Total Experience</p><p className="font-semibold leading-tight text-zinc-800">{candidate.experience}</p></div>
-              <div><p className="text-zinc-400 leading-tight">Current CTC</p><p className="font-semibold leading-tight text-zinc-800">{candidate.currentCtc}</p></div>
-              <div><p className="text-zinc-400 leading-tight">Expected CTC</p><p className="font-semibold leading-tight text-zinc-800">{candidate.expectedCtc}</p></div>
-              <div><p className="text-zinc-400 leading-tight">Notice Period</p><p className="font-semibold leading-tight text-zinc-800">{candidate.noticePeriod}</p></div>
-              <div><p className="text-zinc-400 leading-tight">Availability</p><p className="font-semibold leading-tight text-zinc-800">{candidate.availability}</p></div>
-              <div><p className="text-zinc-400 leading-tight">Source</p><p className="font-semibold leading-tight text-zinc-800">{candidate.source}</p></div>
+              <div><p className="text-zinc-400 leading-tight">Total Experience</p><p className="font-semibold leading-tight text-zinc-800">{experience}</p></div>
+              <div><p className="text-zinc-400 leading-tight">Current CTC</p><p className="font-semibold leading-tight text-zinc-800">{currentCtc}</p></div>
+              <div><p className="text-zinc-400 leading-tight">Expected CTC</p><p className="font-semibold leading-tight text-zinc-800">{expectedCtc}</p></div>
+              <div><p className="text-zinc-400 leading-tight">Notice Period</p><p className="font-semibold leading-tight text-zinc-800">{noticePeriod}</p></div>
+              <div><p className="text-zinc-400 leading-tight">Availability</p><p className="font-semibold leading-tight text-zinc-800">{appDetails.availableFrom || candidate.availability}</p></div>
+              <div><p className="text-zinc-400 leading-tight">Source</p><p className="font-semibold leading-tight text-zinc-800">{source || candidate.source}</p></div>
             </div>
           </div>
 
@@ -231,37 +315,45 @@ export default function CandidateDetailsPage() {
             <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
               <Card title="Application Summary">
                 <div className="grid grid-cols-2 gap-y-1 text-[10.5px]">
-                  <div><p className="text-zinc-400">Applied For</p><p className="font-semibold text-zinc-800">{candidate.title}</p></div>
-                  <div><p className="text-zinc-400">Department</p><p className="font-semibold text-zinc-800">Sales &amp; Marketing</p></div>
-                  <div><p className="text-zinc-400">Job Opening</p><p className="font-semibold text-zinc-800">Sales Manager - North Region</p></div>
-                  <div><p className="text-zinc-400">Applied On</p><p className="font-semibold text-zinc-800">10 May 2026</p></div>
-                  <div><p className="text-zinc-400">Current Stage</p><p className="font-semibold text-zinc-800">{candidate.stage}</p></div>
-                  <div><p className="text-zinc-400">Application Source</p><p className="font-semibold text-zinc-800">{candidate.source}</p></div>
-                  <div><p className="text-zinc-400">Referred By</p><p className="font-semibold text-zinc-800">Vikram Singh</p></div>
-                  <div><p className="text-zinc-400">Candidate Type</p><p className="font-semibold text-zinc-800">External</p></div>
+                  <div><p className="text-zinc-400">Applied For</p><p className="font-semibold text-zinc-800">{jobRole}</p></div>
+                  <div><p className="text-zinc-400">Department</p><p className="font-semibold text-zinc-800">{departmentName}</p></div>
+                  <div><p className="text-zinc-400">Applied On</p><p className="font-semibold text-zinc-800">{appliedDate}</p></div>
+                  <div><p className="text-zinc-400">Current Stage</p><p className="font-semibold text-zinc-800">{status}</p></div>
+                  <div><p className="text-zinc-400">Application Source</p><p className="font-semibold text-zinc-800">{source || 'Manual Entry'}</p></div>
                 </div>
               </Card>
 
               <Card title="Current Stage &amp; Progress">
-                <div className="flex items-start justify-between">
-                  {stageSteps.map((s) => (
-                    <div key={s.label} className="flex flex-1 flex-col items-center text-center">
-                      <span
-                        className={`grid h-7 w-7 place-items-center rounded-[2px] ${s.state === 'done' ? 'bg-emerald-500 text-white'
-                            : s.state === 'current' ? 'bg-indigo-600 text-white'
-                              : 'border border-zinc-200 bg-white text-zinc-300'
-                          }`}
-                      >
-                        {s.state === 'done' ? <CheckCircle2 size={13} /> : s.state === 'current' ? <Circle size={11} className="fill-current" /> : <Circle size={10} />}
-                      </span>
-                      <p className="mt-1 text-[9.5px] font-semibold text-zinc-700">{s.label}</p>
-                      <p className="text-[8.5px] text-zinc-400">{s.date}</p>
-                    </div>
-                  ))}
+                <div className="flex items-start justify-between overflow-x-auto no-scrollbar gap-2 pb-2">
+                  {stageSteps.map((s, idx) => {
+                    const isClickable = s.state === 'done' || s.state === 'current';
+                    const StepContent = (
+                      <div className={`flex flex-1 flex-col items-center text-center min-w-[60px] transition-opacity ${isClickable ? 'cursor-pointer hover:opacity-80' : 'cursor-not-allowed opacity-60'}`}>
+                        <span
+                          className={`grid h-7 w-7 place-items-center rounded-full ${s.state === 'done' ? 'bg-emerald-500 text-white'
+                              : s.state === 'current' ? 'bg-indigo-600 text-white shadow-[0_0_0_3px_rgba(79,70,229,0.15)]'
+                                : 'border border-zinc-200 bg-white text-zinc-300'
+                            }`}
+                        >
+                          {s.state === 'done' ? <CheckCircle2 size={13} /> : s.state === 'current' ? <span className="text-[10px] font-bold">{idx + 1}</span> : <span className="text-[10px]">{idx + 1}</span>}
+                        </span>
+                        <p className={`mt-1 text-[8.5px] font-semibold leading-tight ${s.state === 'current' ? 'text-indigo-600' : 'text-zinc-700'}`}>{s.label}</p>
+                      </div>
+                    );
+
+                    return isClickable ? (
+                      <Link key={s.label} href={s.route} className="flex-1">
+                        {StepContent}
+                      </Link>
+                    ) : (
+                      <div key={s.label} className="flex-1">
+                        {StepContent}
+                      </div>
+                    );
+                  })}
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-2 rounded-[2px] bg-zinc-50 px-2.5 py-2 text-[10.5px]">
-                  <div><p className="text-zinc-400">Next Step</p><p className="font-semibold text-zinc-800">Awaiting Final Interview Feedback</p></div>
-                  <div><p className="text-zinc-400">Estimated Joining</p><p className="font-semibold text-zinc-800">01 Jun 2026 (Tentative)</p></div>
+                  <div><p className="text-zinc-400">Status</p><p className="font-semibold text-zinc-800">{status}</p></div>
                 </div>
               </Card>
             </div>

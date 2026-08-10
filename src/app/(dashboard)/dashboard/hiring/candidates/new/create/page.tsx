@@ -10,6 +10,7 @@ import {
   MapPin, Link2, ChevronDown, X, RefreshCw, Calendar, ArrowRight, Sparkles,
 } from 'lucide-react';
 import { FormInput } from '@/components/ui/form-input';
+import { useSearchParams } from 'next/navigation';
 import ApiSelect from '@/components/common/ApiSelect';
 
 export interface ExperienceEntry {
@@ -133,7 +134,7 @@ export default function CreateCandidatePage() {
   const [file, setFile] = React.useState<File | null>(null);
   const [cvZoom, setCvZoom] = React.useState<number>(100);
   const [isMaximized, setIsMaximized] = React.useState<boolean>(false);
-  
+
   const [showAddSkill, setShowAddSkill] = React.useState(false);
   const [newSkill, setNewSkill] = React.useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -141,14 +142,107 @@ export default function CreateCandidatePage() {
   const [resumeUrl, setResumeUrl] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const candidateId = searchParams.get('id');
 
-  const handleNext = () => {
+  React.useEffect(() => {
+    if (candidateId) {
+      const fetchCandidate = async () => {
+        try {
+          let cId = candidateId;
+          if (!/^[0-9a-fA-F]{24}$/.test(candidateId)) {
+            const res = await api.get(`/hiring/candidates?limit=1000`);
+            const candidates = res.data?.data || res.data || [];
+            const match = candidates.find((c: any) => {
+              const nameSlug = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+              return nameSlug === candidateId;
+            });
+            if (match) cId = match._id;
+            else throw new Error("Candidate not found");
+          }
+
+          const res = await api.get(`/hiring/candidates/${cId}`);
+          const data = res.data;
+          const appDetails = data.applicationDetails || {};
+          setCandidate({
+            manpowerRequestId: appDetails.manpowerRequestId || data.manpowerRequestId || '',
+            fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
+            email: data.email || '',
+            mobile: data.phone || '',
+            currentLocation: appDetails.currentLocation || '',
+            preferredLocation: appDetails.preferredLocation || '',
+            linkedin: appDetails.linkedin || '',
+            appliedFor: data.jobRole || '',
+            department: data.departmentId?._id || data.departmentId || '',
+            employmentType: appDetails.employmentType || 'Full Time',
+            totalExperience: appDetails.totalExperience || '',
+            relevantExperience: appDetails.relevantExperience || '',
+            currentCompany: appDetails.currentCompany || '',
+            currentCTC: appDetails.currentCTC || '',
+            expectedCTC: appDetails.expectedCTC || '',
+            noticePeriod: appDetails.noticePeriod || '',
+            availableFrom: appDetails.availableFrom || '',
+            relocation: appDetails.relocation || '',
+            willingToTravel: appDetails.willingToTravel || '',
+            highestQualification: appDetails.highestQualification || '',
+            university: appDetails.university || '',
+            yearOfPassing: appDetails.yearOfPassing || '',
+            cgpa: appDetails.cgpa || '',
+            skills: appDetails.skills || [],
+            experiences: appDetails.experiences || [],
+            education: appDetails.education || []
+          });
+          if (data.resumeUrl) {
+            setResumeUrl(data.resumeUrl);
+            setFile(new File([], "Uploaded_Resume.pdf"));
+          }
+        } catch (err) {
+          console.error('Failed to load candidate', err);
+          toast.error('Failed to load candidate details');
+        }
+      };
+      fetchCandidate();
+    }
+  }, [candidateId]);
+
+  const handleNext = async () => {
     if (!candidate.fullName || !candidate.email || !candidate.mobile || !candidate.manpowerRequestId || !candidate.appliedFor || !candidate.department) {
       toast.error('Please fill all mandatory fields (Full Name, Email, Mobile, Manpower Request, Position, Department).');
       return;
     }
-    sessionStorage.setItem('extractedCandidate', JSON.stringify({ ...candidate, resumeUrl }));
-    router.push('/dashboard/hiring/candidates/new/create/review-and-edit');
+
+    try {
+      const payload = {
+        firstName: candidate.fullName.split(' ')[0],
+        lastName: candidate.fullName.split(' ').slice(1).join(' ') || '.',
+        email: candidate.email,
+        phone: candidate.mobile,
+        jobRole: candidate.appliedFor,
+        departmentId: candidate.department,
+        manpowerRequestId: candidate.manpowerRequestId,
+        resumeUrl: resumeUrl,
+        applicationDetails: candidate
+      };
+
+      let newId = candidateId;
+      if (candidateId) {
+        let cId = candidateId;
+        if (!/^[0-9a-fA-F]{24}$/.test(candidateId)) {
+          const res = await api.get(`/hiring/candidates?limit=1000`);
+          const candidates = res.data?.data || res.data || [];
+          const match = candidates.find((c: any) => `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') === candidateId);
+          if (match) cId = match._id;
+        }
+        await api.put(`/hiring/candidates/${cId}`, payload);
+      } else {
+        const { data } = await api.post('/hiring/candidates', payload);
+        newId = data._id;
+      }
+
+      router.push(`/dashboard/hiring/candidates/new/create/review-and-edit/${newId}`);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to save candidate');
+    }
   };
 
   const handleReextract = () => {
@@ -173,47 +267,47 @@ export default function CreateCandidatePage() {
   };
 
   const handleUpload = async (selectedFile: File) => {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
+    const formData = new FormData();
+    formData.append('file', selectedFile);
 
-      setIsUploading(true);
-      try {
-        const { data: uploadData } = await api.post('/upload', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        const rUrl = uploadData.url || (typeof uploadData === 'string' ? uploadData : '');
-        setResumeUrl(rUrl);
+    setIsUploading(true);
+    try {
+      const { data: uploadData } = await api.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const rUrl = uploadData.url || (typeof uploadData === 'string' ? uploadData : '');
+      setResumeUrl(rUrl);
 
-        if (!rUrl) throw new Error('File upload failed.');
+      if (!rUrl) throw new Error('File upload failed.');
 
-        toast.success('CV Uploaded. Extracting details via AI...');
-        setIsUploading(false);
-        setIsExtracting(true);
+      toast.success('CV Uploaded. Extracting details via AI...');
+      setIsUploading(false);
+      setIsExtracting(true);
 
-        const { data: extractData } = await api.post('/ai/hiring/extract-resume-profile', { resumeUrl: rUrl });
+      const { data: extractData } = await api.post('/ai/hiring/extract-resume-profile', { resumeUrl: rUrl });
 
-        sessionStorage.setItem('extractedCandidate', JSON.stringify({ ...extractData, resumeUrl: rUrl }));
-        setCandidate(prev => ({
-          ...prev,
-          fullName: extractData.name || extractData.fullName || '',
-          email: extractData.email || '',
-          mobile: extractData.phone || extractData.mobile || '',
-          currentLocation: extractData.location || extractData.currentLocation || '',
-          totalExperience: extractData.totalExperience || '',
-          highestQualification: extractData.education?.[0]?.degree || '',
-          university: extractData.education?.[0]?.institution || '',
-          yearOfPassing: extractData.education?.[0]?.year || '',
-          skills: extractData.skills || [],
-          experiences: extractData.experiences || [],
-          education: extractData.education || [],
-        }));
-        toast.success('Extraction complete!');
-        setIsExtracting(false);
-      } catch (err: any) {
-        setIsUploading(false);
-        setIsExtracting(false);
-        toast.error(err.response?.data?.message || 'Something went wrong during extraction.');
-      }
+      sessionStorage.setItem('extractedCandidate', JSON.stringify({ ...extractData, resumeUrl: rUrl }));
+      setCandidate(prev => ({
+        ...prev,
+        fullName: extractData.name || extractData.fullName || '',
+        email: extractData.email || '',
+        mobile: extractData.phone || extractData.mobile || '',
+        currentLocation: extractData.location || extractData.currentLocation || '',
+        totalExperience: extractData.totalExperience || '',
+        highestQualification: extractData.education?.[0]?.degree || '',
+        university: extractData.education?.[0]?.institution || '',
+        yearOfPassing: extractData.education?.[0]?.year || '',
+        skills: extractData.skills || [],
+        experiences: extractData.experiences || [],
+        education: extractData.education || [],
+      }));
+      toast.success('Extraction complete!');
+      setIsExtracting(false);
+    } catch (err: any) {
+      setIsUploading(false);
+      setIsExtracting(false);
+      toast.error(err.response?.data?.message || 'Something went wrong during extraction.');
+    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -236,7 +330,7 @@ export default function CreateCandidatePage() {
           </div>
 
           {/* Steps */}
-          <div className="flex-1 max-w-[320px] w-full flex items-center justify-center relative mx-auto">
+          <div className="flex-1 max-w-[800px] w-full flex items-center justify-center relative mx-auto overflow-visible pb-2 lg:pb-0">
             <div className="absolute left-[30px] right-[30px] top-[11px] h-[2px] bg-zinc-200 -z-0"></div>
             <div className="flex w-full justify-between z-10">
               {steps.map((step, idx) => (
@@ -495,11 +589,11 @@ export default function CreateCandidatePage() {
                   ))}
                   {showAddSkill ? (
                     <div className="flex items-center gap-1">
-                      <input 
+                      <input
                         autoFocus
-                        type="text" 
-                        className="h-6 w-24 border border-indigo-200 px-1.5 text-[10px] outline-none focus:border-indigo-400" 
-                        value={newSkill} 
+                        type="text"
+                        className="h-6 w-24 border border-indigo-200 px-1.5 text-[10px] outline-none focus:border-indigo-400"
+                        value={newSkill}
                         onChange={e => setNewSkill(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && handleAddSkill()}
                         onBlur={handleAddSkill}

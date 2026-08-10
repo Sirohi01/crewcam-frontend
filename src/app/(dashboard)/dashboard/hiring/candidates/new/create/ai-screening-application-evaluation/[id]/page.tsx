@@ -22,7 +22,10 @@ import {
   ShieldCheck,
   Star
 } from 'lucide-react';
-import { CandidateInfo, Note, Skill, PortalView } from './types';
+import { CandidateInfo, Note, Skill, PortalView } from '../types';
+import { useParams } from 'next/navigation';
+import api from '@/lib/axios';
+import { toast } from 'react-hot-toast';
 import { FaLinkedin } from 'react-icons/fa';
 
 const defaultCandidate: CandidateInfo = {
@@ -129,12 +132,70 @@ export default function EvaluationPage({
   setCurrentView
 }: EvaluationPageProps) {
   // Local State
-  const [candidate] = React.useState<CandidateInfo>(defaultCandidate);
+  const [candidate, setCandidate] = React.useState<CandidateInfo>(defaultCandidate);
   const [skills] = React.useState<Skill[]>(initialSkills);
   const [notes, setNotes] = React.useState<Note[]>(defaultNotes);
   const [newNoteText, setNewNoteText] = React.useState<string>("");
   const [activeSubTab, setActiveSubTab] = React.useState<string>(subTabs[0]);
   const [zoom, setZoom] = React.useState<number>(100);
+
+  const params = useParams() as { id: string };
+  const candidateId = params?.id;
+
+  React.useEffect(() => {
+    if (candidateId) {
+      const fetchCandidate = async () => {
+        try {
+          let cId = candidateId;
+          // If it's a slug, find the candidate first
+          if (!/^[0-9a-fA-F]{24}$/.test(candidateId)) {
+            const res = await api.get(`/hiring/candidates?limit=1000`);
+            const candidates = res.data?.data || res.data || [];
+            const match = candidates.find((c: any) => {
+              const nameSlug = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+              return nameSlug === candidateId;
+            });
+            if (match) cId = match._id;
+            else throw new Error("Candidate not found");
+          }
+          
+          const res = await api.get(`/hiring/candidates/${cId}`);
+          const data = res.data;
+          const appDetails = data.applicationDetails || {};
+          
+          setCandidate({
+            fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
+            email: data.email || '',
+            mobile: data.phone || '',
+            currentLocation: appDetails.currentLocation || '',
+            preferredLocation: appDetails.preferredLocation || '',
+            linkedin: appDetails.linkedin || '',
+            appliedFor: data.jobRole || '',
+            department: data.departmentId?.name || data.departmentId || '',
+            employmentType: appDetails.employmentType || 'Full Time',
+            totalExperience: appDetails.totalExperience || '',
+            relevantExperience: appDetails.relevantExperience || '',
+            currentCompany: appDetails.currentCompany || '',
+            currentCTC: appDetails.currentCTC || '',
+            expectedCTC: appDetails.expectedCTC || '',
+            noticePeriod: appDetails.noticePeriod || '',
+            availableFrom: appDetails.availableFrom || '',
+            relocation: appDetails.relocation || '',
+            willingToTravel: appDetails.willingToTravel || '',
+            highestQualification: appDetails.highestQualification || '',
+            university: appDetails.university || '',
+            yearOfPassing: appDetails.yearOfPassing || '',
+            cgpa: appDetails.cgpa || '',
+            resumeUrl: data.resumeUrl || defaultCandidate.resumeUrl
+          });
+        } catch (err) {
+          console.error(err);
+          toast.error('Failed to load candidate details');
+        }
+      };
+      fetchCandidate();
+    }
+  }, [candidateId]);
 
   // Add a Note (interactive)
   const handleAddNote = () => {
@@ -163,9 +224,9 @@ export default function EvaluationPage({
       {/* HEADER & HORIZONTAL STEP INDICATOR */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-2">
         {/* Title */}
-        <div className="shrink-0 w-full lg:w-[380px]">
+        <div className="shrink-0 w-full lg:w-auto">
           <h1 className="text-[17px] font-bold text-zinc-900 tracking-tight leading-tight">AI Screening &ndash; Application Evaluation</h1>
-          <p className="text-[11px] font-medium text-zinc-500 mt-0.5">Application ID: APP-2026-000124</p>
+          <p className="text-[11px] font-medium text-zinc-500 mt-0.5">Application ID: APP-{candidateId?.slice(-6).toUpperCase() || '100124'}</p>
         </div>
 
         {/* Steps */}
@@ -189,7 +250,7 @@ export default function EvaluationPage({
         </div>
 
         {/* Buttons */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 w-full lg:w-auto mt-2 lg:mt-0 justify-end">
           <button
             onClick={() => setCurrentView('submitted')}
             className="flex items-center justify-center h-8 px-3 rounded-md text-[11px] font-semibold text-indigo-700 border border-indigo-200 bg-white hover:bg-indigo-50 shadow-sm transition-colors"
@@ -198,7 +259,7 @@ export default function EvaluationPage({
           </button>
           <button
             onClick={() => {
-              window.open('/dashboard/hiring/candidates/new/create/evaluation', '_blank')
+              window.open(`/dashboard/hiring/candidates/new/create/evaluation/${candidateId}`, '_blank')
               setCurrentView('submitted');
             }}
             className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors"
@@ -236,7 +297,7 @@ export default function EvaluationPage({
                     <div className="w-16 h-16 rounded-lg border border-indigo-400 overflow-hidden bg-indigo-50 shrink-0">
                       <img
                         src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
-                        alt="Amit"
+                        alt={candidate.fullName}
                         className="w-full h-full object-cover"
                         referrerPolicy="no-referrer"
                       />
@@ -476,7 +537,7 @@ export default function EvaluationPage({
                         Extracted Summary (AI)
                       </span>
                       <p className="text-[9px] text-slate-700 leading-relaxed flex-1">
-                        Results-driven Sales Manager with {candidate.totalExperience}+ years of experience in B2B sales, team leadership, and business development. Proven track record in achieving revenue targets, building strong client relationships and driving growth.
+                        Results-driven {candidate.appliedFor} with {candidate.totalExperience} years of experience. Proven track record in achieving targets, building strong client relationships and driving growth.
                       </p>
                       <button className="text-[9px] font-bold text-indigo-700 hover:text-indigo-900 text-left mt-1.5">
                         View Full Extracted Text →
@@ -493,8 +554,8 @@ export default function EvaluationPage({
                           <FileText className="w-4 h-4" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-[9px] font-bold text-slate-900 truncate">Amit_Kumar_Verma_Resume.pdf</p>
-                          <p className="text-[8px] text-slate-500">245 KB • Uploaded on 15 June 2026, 11:32 AM</p>
+                          <p className="text-[9px] font-bold text-slate-900 truncate">{candidate.fullName.replace(/\s+/g, '_')}_Resume.pdf</p>
+                          <p className="text-[8px] text-slate-500">245 KB • Uploaded on {candidate.availableFrom || '15 June 2026'}, 11:32 AM</p>
                         </div>
                       </div>
                       <div className="flex gap-1 mt-auto">
