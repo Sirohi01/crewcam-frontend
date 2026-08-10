@@ -5,103 +5,49 @@ import {
     Plus, Search, ChevronDown, Check, ChevronLeft, ChevronRight,
     Eye, Pencil, MoreVertical, ArrowLeft, Users, UserCheck, CalendarDays,
     Building2, Network, UserCog, Landmark, Wallet, UserPlus, ShieldCheck,
-    UploadCloud, Download, GitBranch
+    UploadCloud, Download, GitBranch, Loader2
 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import api from '@/lib/axios';
 
-// ---- DUMMY / MOCK DATA (used as fallback when the API is unavailable) ----
-const MOCK_SUB_DEPARTMENT = {
-    name: 'Interior Design',
-    code: 'INT-DSN',
-    department: 'Design & Build',
-    reportingTo: 'Design & Build Head Office',
-    totalMembers: 12,
-    activeMembers: 11,
-    effectiveDate: '2025-06-01',
-    parentDepartment: 'Design & Build',
-    departmentHead: 'Rahul Nair',
-    businessUnit: 'Design House – Projects',
-    costCenter: 'CC-DB-INT-01',
-};
+// ─── Types ───────────────────────────────────────────────────────────────────
+interface TeamMember {
+    id: string;
+    name: string;
+    email: string;
+    employeeId: string;
+    designation: string;
+    role: string;
+    mobile: string;
+    status: string;
+    avatarUrl: string;
+}
 
-const MOCK_TEAM_MEMBERS = [
-    {
-        _id: 'tm1',
-        firstName: 'Rahul',
-        lastName: 'Nair',
-        employeeId: 'DHI1023',
-        designation: 'Senior Interior Designer',
-        role: 'Team Lead',
-        email: 'rahul.nair@dhipl.com',
-        mobile: '9876543210',
-        status: 'Active',
-        avatarUrl: 'https://i.pravatar.cc/150?u=tm1',
-    },
-    {
-        _id: 'tm2',
-        firstName: 'Neha',
-        lastName: 'Joshi',
-        employeeId: 'DHI1045',
-        designation: 'Interior Designer',
-        role: 'Designer',
-        email: 'neha.joshi@dhipl.com',
-        mobile: '9876543211',
-        status: 'Active',
-        avatarUrl: 'https://i.pravatar.cc/150?u=tm2',
-    },
-    {
-        _id: 'tm3',
-        firstName: 'Amit',
-        lastName: 'Verma',
-        employeeId: 'DHI1058',
-        designation: '3D Visualizer',
-        role: 'Visualizer',
-        email: 'amit.verma@dhipl.com',
-        mobile: '9876543212',
-        status: 'Active',
-        avatarUrl: 'https://i.pravatar.cc/150?u=tm3',
-    },
-    {
-        _id: 'tm4',
-        firstName: 'Pooja',
-        lastName: 'Mehta',
-        employeeId: 'DHI1062',
-        designation: 'Project Coordinator',
-        role: 'Coordinator',
-        email: 'pooja.mehta@dhipl.com',
-        mobile: '9876543213',
-        status: 'Active',
-        avatarUrl: 'https://i.pravatar.cc/150?u=tm4',
-    },
-    {
-        _id: 'tm5',
-        firstName: 'Vikram',
-        lastName: 'Singh',
-        employeeId: 'DHI1069',
-        designation: 'Site Supervisor',
-        role: 'Supervisor',
-        email: 'vikram.singh@dhipl.com',
-        mobile: '9876543214',
-        status: 'Active',
-        avatarUrl: 'https://i.pravatar.cc/150?u=tm5',
-    },
-    {
-        _id: 'tm6',
-        firstName: 'Anjali',
-        lastName: 'Sharma',
-        employeeId: 'DHI1076',
-        designation: 'Material & FF&E Specialist',
-        role: 'Specialist',
-        email: 'anjali.sharma@dhipl.com',
-        mobile: '9876543215',
-        status: 'Inactive',
-        avatarUrl: 'https://i.pravatar.cc/150?u=tm6',
-    },
-];
+interface SubDepartmentInfo {
+    name: string;
+    code?: string;
+    department?: string;
+    reportingTo?: string;
+    totalMembers: number;
+    activeMembers: number;
+    inactiveMembers?: number;
+    effectiveDate?: string;
+    parentDepartment?: string;
+    departmentHead?: string;
+    businessUnit?: string;
+    costCenter?: string;
+}
 
-const MOCK_TOTAL_ENTRIES = 12;
+interface Pagination {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+const ROWS_PER_PAGE = 6;
 
 const quickActions = [
     { label: 'Add Team Member', icon: UserPlus },
@@ -110,14 +56,6 @@ const quickActions = [
     { label: 'Download Member List', icon: Download },
     { label: 'View Team Hierarchy', icon: GitBranch },
 ];
-// ---------------------------------------------------------------------------
-
-const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return '-';
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-};
 
 const roleStyles: Record<string, string> = {
     'Team Lead': 'bg-blue-50 text-blue-600',
@@ -128,51 +66,116 @@ const roleStyles: Record<string, string> = {
     Specialist: 'bg-rose-50 text-rose-600',
 };
 
+const statusStyles: Record<string, string> = {
+    Active: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+    Inactive: 'bg-zinc-100 text-zinc-500 border-zinc-200',
+};
+
+const formatDate = (dateStr: string | null | undefined) => {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function TeamMembersPage() {
+    const router = useRouter();
+    const params = useParams();
+    // sub-department slug comes from the URL: /dashboard/departments/[subDepartment]/team-members
+    // Falls back to 'interior-design' if not using dynamic routing yet
+    const subDepartmentSlug = (params?.subDepartment as string) || 'interior-design';
+
     const filterRef = useRef<HTMLDivElement>(null);
 
-    const [subDepartment, setSubDepartment] = useState<any>(MOCK_SUB_DEPARTMENT);
-    const [membersData, setMembersData] = useState<any[]>([]);
+    // ── Data state ──
+    const [subDepartment, setSubDepartment] = useState<SubDepartmentInfo | null>(null);
+    const [members, setMembers] = useState<TeamMember[]>([]);
+    const [pagination, setPagination] = useState<Pagination>({ total: 0, page: 1, limit: ROWS_PER_PAGE, totalPages: 1 });
     const [isLoading, setIsLoading] = useState(true);
 
-    const [activeTab, setActiveTab] = useState<'members' | 'hierarchy' | 'roles'>('members');
-
+    // ── Filter state (pending — not yet sent to API) ──
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All Status');
     const [roleFilter, setRoleFilter] = useState('All Roles');
     const [employmentFilter, setEmploymentFilter] = useState('All Employment Types');
 
+    // ── Dropdown open state ──
     const [isStatusOpen, setIsStatusOpen] = useState(false);
     const [isRoleOpen, setIsRoleOpen] = useState(false);
     const [isEmploymentOpen, setIsEmploymentOpen] = useState(false);
 
+    // ── Applied filters (sent to API on "Apply" / Enter) ──
     const [appliedFilters, setAppliedFilters] = useState({
         search: '',
         status: 'All Status',
         role: 'All Roles',
+        employmentType: 'All Employment Types',
     });
 
     const [currentPage, setCurrentPage] = useState(1);
-    const rowsPerPage = 6;
+    const [activeTab, setActiveTab] = useState<'members' | 'hierarchy' | 'roles'>('members');
 
+    // ── Fetch team members from API ──────────────────────────────────────────
     useEffect(() => {
-        const fetchMembers = async () => {
+        const fetchTeamMembers = async () => {
+            setIsLoading(true);
             try {
-                const response = await api.get('/sub-departments/interior-design/team-members');
-                const data = response.data.data || [];
-                setMembersData(data.length > 0 ? data : MOCK_TEAM_MEMBERS);
-                setSubDepartment(response.data.subDepartment || MOCK_SUB_DEPARTMENT);
-            } catch (error) {
+                const params: Record<string, any> = {
+                    page: currentPage,
+                    limit: ROWS_PER_PAGE,
+                };
+
+                if (appliedFilters.search.trim()) params.search = appliedFilters.search.trim();
+                if (appliedFilters.status !== 'All Status') params.status = appliedFilters.status;
+                if (appliedFilters.role !== 'All Roles') params.role = appliedFilters.role;
+                if (appliedFilters.employmentType !== 'All Employment Types') params.employmentType = appliedFilters.employmentType;
+
+                const res = await api.get(
+                    `/sub-departments/${subDepartmentSlug}/team-members`,
+                    { params }
+                );
+
+                const data = res.data;
+
+                // Map API shape → local TeamMember shape
+                const mapped: TeamMember[] = (data.data || []).map((m: any) => ({
+                    id: m._id,
+                    name: `${m.firstName} ${m.lastName}`.trim(),
+                    email: m.email,
+                    employeeId: m.employeeId,
+                    designation: m.designation,
+                    role: m.role,
+                    mobile: m.mobile,
+                    status: m.status || 'Active',
+                    avatarUrl: m.avatarUrl || `https://i.pravatar.cc/150?u=${m._id}`,
+                }));
+
+                setMembers(mapped);
+                setPagination(data.pagination || {
+                    total: data.data?.length || 0,
+                    page: currentPage,
+                    limit: ROWS_PER_PAGE,
+                    totalPages: Math.max(1, Math.ceil((data.data?.length || 0) / ROWS_PER_PAGE)),
+                });
+
+                // Sub-department info returned by the API
+                if (data.subDepartment) {
+                    setSubDepartment(data.subDepartment);
+                }
+            } catch (error: any) {
                 console.error('Error fetching team members:', error);
-                toast.error('Failed to load team members, showing sample data');
-                setMembersData(MOCK_TEAM_MEMBERS);
+                toast.error(error.response?.data?.message || 'Failed to load team members');
+                setMembers([]);
             } finally {
                 setIsLoading(false);
             }
         };
-        fetchMembers();
-    }, []);
 
+        fetchTeamMembers();
+    }, [subDepartmentSlug, currentPage, appliedFilters]);
+
+    // ── Close dropdowns on outside click ────────────────────────────────────
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
@@ -185,76 +188,52 @@ export default function TeamMembersPage() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const mappedMembers = membersData.map((m) => ({
-        id: m._id,
-        name: `${m.firstName} ${m.lastName}`,
-        email: m.email,
-        employeeId: m.employeeId,
-        designation: m.designation,
-        role: m.role,
-        mobile: m.mobile,
-        status: m.status || 'Active',
-        avatarUrl: m.avatarUrl || `https://i.pravatar.cc/150?u=${m._id}`,
-    }));
-
-    const statusOptions = ['All Status', ...Array.from(new Set(mappedMembers.map((m) => m.status)))];
-    const roleOptions = ['All Roles', ...Array.from(new Set(mappedMembers.map((m) => m.role)))];
-    const employmentOptions = ['All Employment Types', 'Full-Time', 'Part-Time', 'Contract'];
-
-    let processedMembers = mappedMembers.filter((m) => {
-        let isValid = true;
-
-        if (appliedFilters.search.trim()) {
-            const q = appliedFilters.search.toLowerCase();
-            const matchesGlobal =
-                m.name.toLowerCase().includes(q) ||
-                m.employeeId.toLowerCase().includes(q) ||
-                m.email.toLowerCase().includes(q);
-            if (!matchesGlobal) isValid = false;
-        }
-
-        if (appliedFilters.status !== 'All Status' && m.status !== appliedFilters.status) isValid = false;
-        if (appliedFilters.role !== 'All Roles' && m.role !== appliedFilters.role) isValid = false;
-
-        return isValid;
-    });
-
+    // ── Helpers ──────────────────────────────────────────────────────────────
     const handleApply = () => {
         setAppliedFilters({
             search: searchQuery,
             status: statusFilter,
             role: roleFilter,
+            employmentType: employmentFilter,
         });
         setCurrentPage(1);
     };
 
-    const totalPages = Math.max(1, Math.ceil(MOCK_TOTAL_ENTRIES / rowsPerPage));
-    const paginatedMembers = processedMembers.slice(
-        (currentPage - 1) * rowsPerPage,
-        currentPage * rowsPerPage
-    );
+    const statusOptions = ['All Status', 'Active', 'Inactive'];
+    const roleOptions = ['All Roles', ...Array.from(new Set(members.map((m) => m.role).filter(Boolean)))];
+    const employmentOptions = ['All Employment Types', 'Full-Time', 'Part-Time', 'Contract'];
 
-    const statusStyles: Record<string, string> = {
-        Active: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-        Inactive: 'bg-zinc-100 text-zinc-500 border-zinc-200',
-    };
-
-    const overviewItems = [
+    const overviewItems = subDepartment ? [
         { label: 'Sub Department', value: subDepartment.name, icon: Building2, bg: 'bg-indigo-50', text: 'text-indigo-600' },
-        { label: 'Parent Department', value: subDepartment.parentDepartment, icon: Network, bg: 'bg-blue-50', text: 'text-blue-600' },
-        { label: 'Department Head', value: subDepartment.departmentHead, icon: UserCog, bg: 'bg-rose-50', text: 'text-rose-600' },
-        { label: 'Business Unit', value: subDepartment.businessUnit, icon: Landmark, bg: 'bg-amber-50', text: 'text-amber-600' },
-        { label: 'Cost Center', value: subDepartment.costCenter, icon: Wallet, bg: 'bg-emerald-50', text: 'text-emerald-600' },
-    ];
+        { label: 'Parent Department', value: subDepartment.parentDepartment || '—', icon: Network, bg: 'bg-blue-50', text: 'text-blue-600' },
+        { label: 'Department Head', value: subDepartment.departmentHead || '—', icon: UserCog, bg: 'bg-rose-50', text: 'text-rose-600' },
+        { label: 'Business Unit', value: subDepartment.businessUnit || '—', icon: Landmark, bg: 'bg-amber-50', text: 'text-amber-600' },
+        { label: 'Cost Center', value: subDepartment.costCenter || '—', icon: Wallet, bg: 'bg-emerald-50', text: 'text-emerald-600' },
+    ] : [];
 
+    // ── Loading screen ───────────────────────────────────────────────────────
+    if (isLoading && !subDepartment) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-[#f8f9fc]">
+                <div className="flex items-center gap-2 text-zinc-500 text-[13px] font-medium">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Loading team members...
+                </div>
+            </div>
+        );
+    }
+
+    // ── Render ───────────────────────────────────────────────────────────────
     return (
         <div className="flex flex-col gap-2 animate-in fade-in duration-300 p-2 w-full font-sans text-zinc-800 bg-[#f8f9fc] min-h-screen">
 
             {/* BREADCRUMB */}
             <div className="text-[12px] text-zinc-500 font-medium mb-0.5">
-                <span>Organization Setup</span> <span className="mx-1 text-zinc-300">›</span>
-                <span>Departments</span> <span className="mx-1 text-zinc-300">›</span>
-                <span>Sub Departments</span> <span className="mx-1 text-zinc-300">›</span>
+                <span>Organization Setup</span>
+                <span className="mx-1 text-zinc-300">›</span>
+                <span>Departments</span>
+                <span className="mx-1 text-zinc-300">›</span>
+                <span>Sub Departments</span>
+                <span className="mx-1 text-zinc-300">›</span>
                 <span className="text-indigo-600 font-semibold">Team Members</span>
             </div>
 
@@ -267,71 +246,83 @@ export default function TeamMembersPage() {
                     <p className="text-[12px] text-zinc-500">View and manage team members working in this sub department.</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Link href="/dashboard/departments/sub-department-details" className="flex items-center gap-1.5 h-9 px-3 bg-white border border-zinc-200 rounded-md text-[12px] font-semibold hover:bg-zinc-50 transition-colors shadow-sm text-zinc-700">
+                    <Link
+                        href="/dashboard/departments/sub-department-details"
+                        className="flex items-center gap-1.5 h-9 px-3 bg-white border border-zinc-200 rounded-md text-[12px] font-semibold hover:bg-zinc-50 transition-colors shadow-sm text-zinc-700"
+                    >
                         <ArrowLeft className="w-3.5 h-3.5" /> Back to Sub Departments
                     </Link>
-                    <Link href="/dashboard/add-new-team-member" className="flex items-center gap-1.5 h-9 px-3 bg-indigo-600 text-white rounded-md text-[12px] font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
+                    <Link
+                        href="/dashboard/add-new-team-member"
+                        className="flex items-center gap-1.5 h-9 px-3 bg-indigo-600 text-white rounded-md text-[12px] font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
+                    >
                         <Plus className="w-4 h-4" /> Add Team Member
                     </Link>
                 </div>
             </div>
 
             {/* SUB DEPARTMENT SUMMARY CARD */}
-            <div className="bg-white border border-zinc-200 shadow-sm rounded-md p-3 flex flex-wrap items-center gap-6">
-                <div className="flex items-center gap-3 min-w-[220px]">
-                    <div className="w-10 h-10 rounded-md bg-indigo-50 flex items-center justify-center shrink-0">
-                        <Building2 className="w-5 h-5 text-indigo-600" />
-                    </div>
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-[13px] font-bold text-zinc-900">{subDepartment.name}</span>
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600">Sub Department</span>
+            {subDepartment && (
+                <div className="bg-white border border-zinc-200 shadow-sm rounded-md p-3 flex flex-wrap items-center gap-6">
+                    <div className="flex items-center gap-3 min-w-[220px]">
+                        <div className="w-10 h-10 rounded-md bg-indigo-50 flex items-center justify-center shrink-0">
+                            <Building2 className="w-5 h-5 text-indigo-600" />
                         </div>
-                        <p className="text-[11px] text-zinc-500">Code: {subDepartment.code}</p>
-                        <p className="text-[11px] text-zinc-500">Department: {subDepartment.department}</p>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[13px] font-bold text-zinc-900">{subDepartment.name}</span>
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600">Sub Department</span>
+                            </div>
+                            {subDepartment.code && <p className="text-[11px] text-zinc-500">Code: {subDepartment.code}</p>}
+                            {subDepartment.department && <p className="text-[11px] text-zinc-500">Department: {subDepartment.department}</p>}
+                        </div>
                     </div>
-                </div>
 
-                <div className="flex items-center gap-2 min-w-[170px]">
-                    <div className="w-8 h-8 rounded-md bg-zinc-100 flex items-center justify-center shrink-0">
-                        <Network className="w-4 h-4 text-zinc-500" />
-                    </div>
-                    <div>
-                        <p className="text-[10px] text-zinc-400">Reporting To</p>
-                        <p className="text-[12px] font-semibold text-zinc-800">{subDepartment.reportingTo}</p>
-                    </div>
-                </div>
+                    {subDepartment.reportingTo && (
+                        <div className="flex items-center gap-2 min-w-[170px]">
+                            <div className="w-8 h-8 rounded-md bg-zinc-100 flex items-center justify-center shrink-0">
+                                <Network className="w-4 h-4 text-zinc-500" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] text-zinc-400">Reporting To</p>
+                                <p className="text-[12px] font-semibold text-zinc-800">{subDepartment.reportingTo}</p>
+                            </div>
+                        </div>
+                    )}
 
-                <div className="flex items-center gap-2 min-w-[130px]">
-                    <div className="w-8 h-8 rounded-md bg-zinc-100 flex items-center justify-center shrink-0">
-                        <Users className="w-4 h-4 text-zinc-500" />
+                    <div className="flex items-center gap-2 min-w-[130px]">
+                        <div className="w-8 h-8 rounded-md bg-zinc-100 flex items-center justify-center shrink-0">
+                            <Users className="w-4 h-4 text-zinc-500" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-zinc-400">Total Members</p>
+                            <p className="text-[13px] font-bold text-zinc-800">{subDepartment.totalMembers}</p>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-[10px] text-zinc-400">Total Members</p>
-                        <p className="text-[13px] font-bold text-zinc-800">{subDepartment.totalMembers}</p>
-                    </div>
-                </div>
 
-                <div className="flex items-center gap-2 min-w-[140px]">
-                    <div className="w-8 h-8 rounded-md bg-emerald-50 flex items-center justify-center shrink-0">
-                        <UserCheck className="w-4 h-4 text-emerald-600" />
+                    <div className="flex items-center gap-2 min-w-[140px]">
+                        <div className="w-8 h-8 rounded-md bg-emerald-50 flex items-center justify-center shrink-0">
+                            <UserCheck className="w-4 h-4 text-emerald-600" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-zinc-400">Active Members</p>
+                            <p className="text-[13px] font-bold text-emerald-600">{subDepartment.activeMembers}</p>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-[10px] text-zinc-400">Active Members</p>
-                        <p className="text-[13px] font-bold text-emerald-600">{subDepartment.activeMembers}</p>
-                    </div>
-                </div>
 
-                <div className="flex items-center gap-2 min-w-[150px]">
-                    <div className="w-8 h-8 rounded-md bg-zinc-100 flex items-center justify-center shrink-0">
-                        <CalendarDays className="w-4 h-4 text-zinc-500" />
-                    </div>
-                    <div>
-                        <p className="text-[10px] text-zinc-400">Effective Date</p>
-                        <p className="text-[12px] font-semibold text-zinc-800">{formatDate(subDepartment.effectiveDate)}</p>
-                    </div>
+                    {subDepartment.effectiveDate && (
+                        <div className="flex items-center gap-2 min-w-[150px]">
+                            <div className="w-8 h-8 rounded-md bg-zinc-100 flex items-center justify-center shrink-0">
+                                <CalendarDays className="w-4 h-4 text-zinc-500" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] text-zinc-400">Effective Date</p>
+                                <p className="text-[12px] font-semibold text-zinc-800">{formatDate(subDepartment.effectiveDate)}</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
-            </div>
+            )}
 
             {/* TABS */}
             <div className="flex items-center gap-1 border-b border-zinc-200 mt-1 px-1">
@@ -357,9 +348,15 @@ export default function TeamMembersPage() {
             {/* MAIN GRID: TABLE + SIDEBAR */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 mt-1">
 
+                {/* LEFT: TABLE AREA */}
                 <div className="lg:col-span-9 flex flex-col gap-2">
+
                     {/* FILTER BAR */}
-                    <div ref={filterRef} className="bg-white border border-zinc-200 shadow-sm rounded-md p-2 flex flex-wrap items-stretch md:items-center gap-2">
+                    <div
+                        ref={filterRef}
+                        className="bg-white border border-zinc-200 shadow-sm rounded-md p-2 flex flex-wrap items-stretch md:items-center gap-2"
+                    >
+                        {/* Search */}
                         <div className="relative flex-1 min-w-[200px]">
                             <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                             <input
@@ -372,7 +369,7 @@ export default function TeamMembersPage() {
                             />
                         </div>
 
-                        {/* All Status */}
+                        {/* Status */}
                         <div className="relative shrink-0">
                             <button
                                 onClick={() => { setIsStatusOpen(!isStatusOpen); setIsRoleOpen(false); setIsEmploymentOpen(false); }}
@@ -395,13 +392,14 @@ export default function TeamMembersPage() {
                             )}
                         </div>
 
-                        {/* All Roles */}
+                        {/* Roles */}
                         <div className="relative shrink-0">
                             <button
                                 onClick={() => { setIsRoleOpen(!isRoleOpen); setIsStatusOpen(false); setIsEmploymentOpen(false); }}
                                 className="flex items-center justify-between gap-1.5 h-9 px-3 w-full md:w-36 border border-zinc-200 rounded-md text-[12px] font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
                             >
-                                <span className="truncate">{roleFilter}</span> <ChevronDown className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                                <span className="truncate">{roleFilter}</span>
+                                <ChevronDown className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                             </button>
                             {isRoleOpen && (
                                 <div className="absolute left-0 top-full mt-1 w-44 bg-white border border-zinc-200 shadow-lg rounded-md py-1 z-50 max-h-56 overflow-y-auto">
@@ -411,20 +409,22 @@ export default function TeamMembersPage() {
                                             onClick={() => { setRoleFilter(opt); setIsRoleOpen(false); }}
                                             className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50"
                                         >
-                                            <span className="truncate">{opt}</span> {roleFilter === opt && <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+                                            <span className="truncate">{opt}</span>
+                                            {roleFilter === opt && <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
                                         </button>
                                     ))}
                                 </div>
                             )}
                         </div>
 
-                        {/* All Employment Types */}
+                        {/* Employment Types */}
                         <div className="relative shrink-0">
                             <button
                                 onClick={() => { setIsEmploymentOpen(!isEmploymentOpen); setIsStatusOpen(false); setIsRoleOpen(false); }}
                                 className="flex items-center justify-between gap-1.5 h-9 px-3 w-full md:w-48 border border-zinc-200 rounded-md text-[12px] font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
                             >
-                                <span className="truncate">{employmentFilter}</span> <ChevronDown className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                                <span className="truncate">{employmentFilter}</span>
+                                <ChevronDown className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                             </button>
                             {isEmploymentOpen && (
                                 <div className="absolute left-0 top-full mt-1 w-52 bg-white border border-zinc-200 shadow-lg rounded-md py-1 z-50 max-h-56 overflow-y-auto">
@@ -434,12 +434,21 @@ export default function TeamMembersPage() {
                                             onClick={() => { setEmploymentFilter(opt); setIsEmploymentOpen(false); }}
                                             className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50"
                                         >
-                                            <span className="truncate">{opt}</span> {employmentFilter === opt && <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+                                            <span className="truncate">{opt}</span>
+                                            {employmentFilter === opt && <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
                                         </button>
                                     ))}
                                 </div>
                             )}
                         </div>
+
+                        {/* Apply button */}
+                        <button
+                            onClick={handleApply}
+                            className="h-9 px-4 bg-indigo-600 text-white rounded-md text-[12px] font-semibold hover:bg-indigo-700 transition-colors shrink-0"
+                        >
+                            Apply
+                        </button>
                     </div>
 
                     {/* TABLE */}
@@ -462,22 +471,35 @@ export default function TeamMembersPage() {
                                 <tbody className="text-[12px]">
                                     {isLoading ? (
                                         <tr>
-                                            <td colSpan={9} className="py-8 text-center text-zinc-500 font-medium">
-                                                Loading team members...
+                                            <td colSpan={9} className="py-12 text-center">
+                                                <div className="flex items-center justify-center gap-2 text-zinc-400">
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                    <span className="text-[12px] font-medium">Loading team members...</span>
+                                                </div>
                                             </td>
                                         </tr>
-                                    ) : paginatedMembers.length === 0 ? (
+                                    ) : members.length === 0 ? (
                                         <tr>
-                                            <td colSpan={9} className="py-8 text-center text-zinc-500 font-medium">
-                                                No team members found
+                                            <td colSpan={9} className="py-12 text-center">
+                                                <div className="flex flex-col items-center gap-2 text-zinc-400">
+                                                    <Users className="w-8 h-8 opacity-40" />
+                                                    <span className="text-[12px] font-medium">No team members found</span>
+                                                    <span className="text-[11px]">Try adjusting your filters or add a new member</span>
+                                                </div>
                                             </td>
                                         </tr>
-                                    ) : paginatedMembers.map((m, idx) => (
+                                    ) : members.map((m, idx) => (
                                         <tr key={m.id} className="border-b border-zinc-50 hover:bg-zinc-50 transition-colors">
-                                            <td className="py-3 px-3 text-zinc-500 font-semibold align-top">{(currentPage - 1) * rowsPerPage + idx + 1}</td>
+                                            <td className="py-3 px-3 text-zinc-500 font-semibold align-top">
+                                                {(currentPage - 1) * ROWS_PER_PAGE + idx + 1}
+                                            </td>
                                             <td className="py-3 px-3 align-top">
                                                 <div className="flex items-center gap-2">
-                                                    <img src={m.avatarUrl} alt={m.name} className="w-7 h-7 rounded-full border border-zinc-200 shrink-0" />
+                                                    <img
+                                                        src={m.avatarUrl}
+                                                        alt={m.name}
+                                                        className="w-7 h-7 rounded-full border border-zinc-200 shrink-0"
+                                                    />
                                                     <span className="font-bold text-zinc-800 text-[12px] whitespace-nowrap">{m.name}</span>
                                                 </div>
                                             </td>
@@ -497,13 +519,22 @@ export default function TeamMembersPage() {
                                             </td>
                                             <td className="py-3 px-3 align-top">
                                                 <div className="flex items-center justify-center gap-1.5">
-                                                    <button className="p-1.5 text-zinc-500 hover:bg-blue-50 hover:text-blue-600 rounded-md transition-colors" title="View">
+                                                    <button
+                                                        className="p-1.5 text-zinc-500 hover:bg-blue-50 hover:text-blue-600 rounded-md transition-colors"
+                                                        title="View"
+                                                    >
                                                         <Eye className="w-3.5 h-3.5" />
                                                     </button>
-                                                    <button className="p-1.5 text-zinc-500 hover:bg-indigo-50 hover:text-indigo-600 rounded-md transition-colors" title="Edit">
+                                                    <button
+                                                        className="p-1.5 text-zinc-500 hover:bg-indigo-50 hover:text-indigo-600 rounded-md transition-colors"
+                                                        title="Edit"
+                                                    >
                                                         <Pencil className="w-3.5 h-3.5" />
                                                     </button>
-                                                    <button className="p-1.5 text-zinc-500 hover:bg-zinc-100 rounded-md transition-colors" title="More">
+                                                    <button
+                                                        className="p-1.5 text-zinc-500 hover:bg-zinc-100 rounded-md transition-colors"
+                                                        title="More"
+                                                    >
                                                         <MoreVertical className="w-3.5 h-3.5" />
                                                     </button>
                                                 </div>
@@ -514,11 +545,13 @@ export default function TeamMembersPage() {
                             </table>
                         </div>
 
-                        {/* TABLE FOOTER */}
+                        {/* TABLE FOOTER / PAGINATION */}
                         <div className="p-3 flex items-center justify-between text-[12px] text-zinc-500">
                             <div className="pl-1">
-                                Showing {processedMembers.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1} to{' '}
-                                {Math.min(currentPage * rowsPerPage, processedMembers.length)} of {MOCK_TOTAL_ENTRIES} entries
+                                {pagination.total === 0
+                                    ? 'No entries'
+                                    : `Showing ${(currentPage - 1) * ROWS_PER_PAGE + 1} to ${Math.min(currentPage * ROWS_PER_PAGE, pagination.total)} of ${pagination.total} entries`
+                                }
                             </div>
                             <div className="flex items-center gap-1">
                                 <button
@@ -528,11 +561,12 @@ export default function TeamMembersPage() {
                                 >
                                     <ChevronLeft className="w-3.5 h-3.5" />
                                 </button>
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+
+                                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
                                     <button
                                         key={page}
                                         onClick={() => setCurrentPage(page)}
-                                        className={`w-7 h-7 flex items-center justify-center border rounded-md font-semibold ${
+                                        className={`w-7 h-7 flex items-center justify-center border rounded-md font-semibold text-[11px] ${
                                             currentPage === page
                                                 ? 'border-indigo-600 bg-indigo-600 text-white'
                                                 : 'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50'
@@ -541,9 +575,10 @@ export default function TeamMembersPage() {
                                         {page}
                                     </button>
                                 ))}
+
                                 <button
-                                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                                    disabled={currentPage === totalPages}
+                                    onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
+                                    disabled={currentPage === pagination.totalPages}
                                     className="p-1.5 border border-zinc-200 rounded-md bg-white hover:bg-zinc-50 text-zinc-400 disabled:opacity-40 disabled:cursor-not-allowed"
                                 >
                                     <ChevronRight className="w-3.5 h-3.5" />
@@ -555,26 +590,29 @@ export default function TeamMembersPage() {
 
                 {/* SIDEBAR */}
                 <div className="lg:col-span-3 flex flex-col gap-2">
+
                     {/* Sub Department Overview */}
-                    <div className="bg-white border border-zinc-200 shadow-sm rounded-md p-3">
-                        <h2 className="text-[12px] font-bold text-zinc-800 mb-3">Sub Department Overview</h2>
-                        <div className="flex flex-col gap-3">
-                            {overviewItems.map((item, idx) => {
-                                const ItemIcon = item.icon;
-                                return (
-                                    <div key={idx} className="flex items-center gap-2.5">
-                                        <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${item.bg} ${item.text}`}>
-                                            <ItemIcon className="w-3.5 h-3.5" />
+                    {overviewItems.length > 0 && (
+                        <div className="bg-white border border-zinc-200 shadow-sm rounded-md p-3">
+                            <h2 className="text-[12px] font-bold text-zinc-800 mb-3">Sub Department Overview</h2>
+                            <div className="flex flex-col gap-3">
+                                {overviewItems.map((item, idx) => {
+                                    const ItemIcon = item.icon;
+                                    return (
+                                        <div key={idx} className="flex items-center gap-2.5">
+                                            <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${item.bg} ${item.text}`}>
+                                                <ItemIcon className="w-3.5 h-3.5" />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-[10px] text-zinc-400 leading-tight">{item.label}</p>
+                                                <p className="text-[11.5px] font-semibold text-zinc-800 truncate">{item.value}</p>
+                                            </div>
                                         </div>
-                                        <div className="min-w-0">
-                                            <p className="text-[10px] text-zinc-400 leading-tight">{item.label}</p>
-                                            <p className="text-[11.5px] font-semibold text-zinc-800 truncate">{item.value}</p>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Quick Actions */}
                     <div className="bg-white border border-zinc-200 shadow-sm rounded-md p-3">
