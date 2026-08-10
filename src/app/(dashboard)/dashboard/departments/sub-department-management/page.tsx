@@ -7,8 +7,10 @@ import {
   Box, FileText, Layers, ArrowUpRight, UserPlus, Repeat, UserCog, Upload,
   Info,
   Loader2,
+  Recycle,
+  Trash2,
 } from 'lucide-react';
-import { getSubDepartments, SubDepartment } from '@/services/subDepartmentService';
+import { getSubDepartments, deleteSubDepartment, SubDepartment } from '@/services/subDepartmentService';
 
 // ─── Static data ────────────────────────────────────────────────────────────
 const BREADCRUMB = ['Organization Setup', 'Departments', 'Design Studio', 'Sub Departments'];
@@ -69,13 +71,19 @@ function PageHeading() {
 }
 
 // ─── KPI strip ────────────────────────────────────────────────────────────────
-function KpiStrip({ totalDepartments }: { totalDepartments: number }) {
+function KpiStrip({ departments }: { departments: any[] }) {
+  const totalSubDepartments = departments.length;
+  const activeTeams = departments.filter((d) => d.isActive).length;
+  const teamLeads = departments.filter((d) => d.hodEmployeeId).length;
+  const totalEmployees = departments.reduce((acc, d) => acc + (d.employeeCapacity || d.employees || d.totalEmployees || 0), 0);
+  const activeProjects = departments.reduce((acc, d) => acc + (d.activeProjects || d.projectsCount || 0), 0);
+
   const KPIS = [
-    { label: 'Total Sub Departments', value: totalDepartments.toString(), sub: 'All active teams', icon: Building2, bg: 'bg-blue-50', color: 'text-blue-600' },
-    { label: 'Active Teams', value: totalDepartments.toString(), sub: '100% of total', icon: Users, bg: 'bg-emerald-50', color: 'text-emerald-600' },
-    { label: 'Team Leads', value: '0', sub: 'Assigned', icon: UserCog, bg: 'bg-purple-50', color: 'text-purple-600' },
-    { label: 'Total Employees', value: '0', sub: 'Across all teams', icon: Users, bg: 'bg-orange-50', color: 'text-orange-600' },
-    { label: 'Active Projects', value: '0', sub: 'Across all teams', icon: FolderKanban, bg: 'bg-blue-50', color: 'text-blue-600' },
+    { label: 'Total Sub Departments', value: totalSubDepartments.toString(), sub: 'All active teams', icon: Building2, bg: 'bg-blue-50', color: 'text-blue-600' },
+    { label: 'Active Teams', value: activeTeams.toString(), sub: '100% of total', icon: Users, bg: 'bg-emerald-50', color: 'text-emerald-600' },
+    { label: 'Team Leads', value: teamLeads.toString(), sub: 'Assigned', icon: UserCog, bg: 'bg-purple-50', color: 'text-purple-600' },
+    { label: 'Total Employees', value: totalEmployees.toString(), sub: 'Across all teams', icon: Users, bg: 'bg-orange-50', color: 'text-orange-600' },
+    { label: 'Active Projects', value: activeProjects.toString(), sub: 'Across all teams', icon: FolderKanban, bg: 'bg-blue-50', color: 'text-blue-600' },
   ];
 
   return (
@@ -97,12 +105,17 @@ function KpiStrip({ totalDepartments }: { totalDepartments: number }) {
 }
 
 // ─── Department hierarchy card ──────────────────────────────────────────────
-function DepartmentHierarchyCard({ totalDepartments }: { totalDepartments: number }) {
+function DepartmentHierarchyCard({ departments }: { departments: any[] }) {
+  const totalSubDepartments = departments.length;
+  const teamLeads = departments.filter((d) => d.hodEmployeeId).length;
+  const totalEmployees = departments.reduce((acc, d) => acc + (d.employeeCapacity || d.employees || d.totalEmployees || 0), 0);
+  const activeProjects = departments.reduce((acc, d) => acc + (d.activeProjects || d.projectsCount || 0), 0);
+
   const nodes = [
-    { label: 'Sub Departments', value: totalDepartments.toString() },
-    { label: 'Team Leads', value: '0' },
-    { label: 'Employees', value: '0' },
-    { label: 'Active Projects', value: '0' },
+    { label: 'Sub Departments', value: totalSubDepartments.toString() },
+    { label: 'Team Leads', value: teamLeads.toString() },
+    { label: 'Employees', value: totalEmployees.toString() },
+    { label: 'Active Projects', value: activeProjects.toString() },
   ];
   return (
     <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
@@ -159,7 +172,7 @@ function Avatar({ initials, bg }: { initials: string; bg: string }) {
 }
 
 // ─── Sub Departments table ───────────────────────────────────────────────────
-function SubDepartmentsTable({ departments, onSelect, selectedId, loading }: { departments: SubDepartment[], onSelect: (id: string) => void; selectedId: string, loading: boolean }) {
+function SubDepartmentsTable({ departments, onSelect, selectedId, loading, onDelete }: { departments: SubDepartment[], onSelect: (id: string) => void; selectedId: string, loading: boolean, onDelete: (id: string) => void }) {
   return (
     <div className="rounded-md border border-zinc-200 bg-white shadow-sm p-3">
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -244,16 +257,16 @@ function SubDepartmentsTable({ departments, onSelect, selectedId, loading }: { d
                     </div>
                   </div>
                 </td>
-                <td className="py-1.5 pr-2 text-[12.5px] text-zinc-700">0</td>
-                <td className="py-1.5 pr-2 text-[12.5px] text-zinc-700">0</td>
+                <td className="py-1.5 pr-2 text-[12.5px] text-zinc-700">{row.employeeCapacity || row.employees || row.totalEmployees || 0}</td>
+                <td className="py-1.5 pr-2 text-[12.5px] text-zinc-700">{row.activeProjects || row.projectsCount || 0}</td>
                 <td className="py-1.5 pr-2"><StatusPill status={row.isActive ? 'Active' : 'Inactive'} /></td>
                 <td className="py-1.5 pr-2">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                     <NextLink href={`/dashboard/departments/add-sub-department?id=${row._id}`} className="grid h-7 w-7 place-items-center rounded-md text-indigo-600 hover:bg-indigo-50 transition-colors">
                       <Pencil size={13} />
                     </NextLink>
-                    <button className="grid h-7 w-7 place-items-center rounded-md text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition-colors">
-                      <MoreVertical size={15} />
+                    <button onClick={() => onDelete(row._id)} className="grid h-7 w-7 place-items-center rounded-md text-red-600 hover:bg-red-50 transition-colors">
+                      <Trash2 size={13} />
                     </button>
                   </div>
                 </td>
@@ -473,21 +486,38 @@ export default function SubDepartmentManagementPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this sub department?')) {
+      try {
+        await deleteSubDepartment(id);
+        const updatedDepartments = departments.filter((d) => d._id !== id);
+        setDepartments(updatedDepartments);
+        if (selectedId === id) {
+          setSelectedId(updatedDepartments.length > 0 ? updatedDepartments[0]._id : '');
+        }
+      } catch (error) {
+        console.error('Failed to delete sub department', error);
+        alert('Failed to delete sub department');
+      }
+    }
+  };
+
   const selectedDepartment = departments.find(d => d._id === selectedId);
 
   return (
     <div className="space-y-2 font-sans text-zinc-900 p-2">
       <PageHeading />
-      <KpiStrip totalDepartments={departments.length} />
+      <KpiStrip departments={departments} />
 
       <div className="grid grid-cols-1 xl:grid-cols-[2.6fr_1fr] gap-2 items-start">
         <div className="min-w-0 space-y-2">
-          <DepartmentHierarchyCard totalDepartments={departments.length} />
+          <DepartmentHierarchyCard departments={departments} />
           <SubDepartmentsTable
             departments={departments}
             onSelect={setSelectedId}
             selectedId={selectedId}
             loading={loading}
+            onDelete={handleDelete}
           />
           <QuickActionsRow />
         </div>

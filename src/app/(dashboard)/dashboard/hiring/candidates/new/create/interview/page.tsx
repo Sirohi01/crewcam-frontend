@@ -1,12 +1,23 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Mail, Phone, MapPin, Link2, ChevronRight, ArrowRight, ArrowLeft, Flag, Sparkles,
   Bold, Italic, Underline, List, ListOrdered, Code, CheckCircle2, Search, StickyNote,
-  MessageSquare, CalendarPlus, Info, LifeBuoy, ExternalLink,
+  MessageSquare, CalendarPlus, Info, LifeBuoy, ExternalLink, X
 } from 'lucide-react';
+
+const DUMMY_QUESTIONS = [
+  { category: 'Time Management', text: 'How do you prioritize multiple tasks when working under tight deadlines?', insight: 'This evaluates your ability to manage stress and organize tasks efficiently.' },
+  { category: 'Leadership & People Management', text: 'Describe a situation where you had to manage a low-performing team. What steps did you take to improve their performance and what was the outcome?', insight: 'This question evaluates your leadership style, ability to motivate teams, problem-solving skills, and focus on results.' },
+  { category: 'Conflict Resolution', text: 'Tell me about a time you had a disagreement with a stakeholder or peer. How did you resolve it?', insight: 'This tests your communication skills and ability to find win-win solutions.' },
+  { category: 'Strategic Thinking', text: 'How do you align your team\'s goals with the broader objectives of the organization?', insight: 'This evaluates strategic thinking and ability to communicate company vision effectively.' },
+  { category: 'Change Management', text: 'Describe a time when you had to lead your team through a significant organizational change.', insight: 'Assesses adaptability, leadership during uncertainty, and change management skills.' },
+  { category: 'Performance Evaluation', text: 'How do you approach giving constructive feedback to a high-performing employee who has a negative attitude?', insight: 'Tests emotional intelligence and performance management capabilities.' },
+  { category: 'Decision Making', text: 'Tell me about a time you had to make a difficult decision with incomplete information.', insight: 'Evaluates analytical skills, risk assessment, and decisiveness.' },
+  { category: 'Innovation & Growth', text: 'How do you encourage innovation and continuous learning within your team?', insight: 'Assesses your commitment to team development and fostering a growth mindset.' }
+];
 
 // Dummy data / static mockup — matches the approved design 1:1. This continues
 // the same 8-step "Job Application" pipeline as the Add New Candidate wizard;
@@ -77,6 +88,39 @@ const roundStatusStyle: Record<string, string> = {
 };
 
 export default function InterviewRoundPage() {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(1);
+  const [answers, setAnswers] = useState<string[]>(Array(DUMMY_QUESTIONS.length).fill(''));
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const totalSeconds = 40 * 60;
+  const [timeLeft, setTimeLeft] = useState(34 * 60 + 20); // Starting around 34:20 for demo
+
+  useEffect(() => {
+    setAnswers(prev => {
+      const newAnswers = [...prev];
+      newAnswers[0] = 'I prioritize tasks based on impact and urgency using the Eisenhower Matrix. I break down tasks, set clear milestones, and communicate progress with the team to ensure timely delivery without compromising quality.';
+      return newAnswers;
+    });
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const currentQuestion = DUMMY_QUESTIONS[currentQuestionIndex];
+  const answeredCount = answers.filter(a => a.trim().length > 0).length;
+
+  const radius = 35;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (timeLeft / totalSeconds) * circumference;
+
   return (
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       <div className="mx-auto max-w-[1600px] space-y-2 p-1">
@@ -178,18 +222,29 @@ export default function InterviewRoundPage() {
                 <p className="text-[11px] font-semibold text-zinc-800">Round 3 of 5</p>
                 <p className="text-[10px] text-zinc-400">Managerial Interview</p>
 
-                <div className="relative mx-auto my-3 grid h-24 w-24 place-items-center rounded-full" style={{ background: 'conic-gradient(#4f46e5 86%, #e5e7eb 0)' }}>
-                  <div className="grid h-[76px] w-[76px] place-items-center rounded-full bg-white text-center">
+                <div className="relative mx-auto my-3 grid h-24 w-24 place-items-center rounded-full">
+                  <svg className="absolute inset-0 w-full h-full -rotate-90">
+                    <circle cx="48" cy="48" r={radius} stroke="#f4f4f5" strokeWidth="6" fill="transparent" />
+                    <circle
+                      cx="48" cy="48" r={radius}
+                      stroke="#4f46e5" strokeWidth="6" fill="transparent"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={strokeDashoffset}
+                      strokeLinecap="round"
+                      className="transition-all duration-1000 ease-linear"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                     <p className="text-[9px] text-zinc-400">Time Remaining</p>
-                    <p className="text-[15px] font-bold text-zinc-900">34:20</p>
+                    <p className="text-[15px] font-bold text-zinc-900">{formatTime(timeLeft)}</p>
                     <p className="text-[8.5px] text-zinc-400">of 40:00</p>
                   </div>
                 </div>
 
                 <div className="space-y-1 border-t border-zinc-100 pt-2 text-[10.5px]">
-                  <div className="flex items-center justify-between"><span className="text-zinc-500">Total Questions</span><span className="font-semibold text-zinc-800">8</span></div>
-                  <div className="flex items-center justify-between"><span className="text-zinc-500">Answered</span><span className="font-semibold text-zinc-800">1</span></div>
-                  <div className="flex items-center justify-between"><span className="text-zinc-500">Remaining</span><span className="font-semibold text-zinc-800">7</span></div>
+                  <div className="flex items-center justify-between"><span className="text-zinc-500">Total Questions</span><span className="font-semibold text-zinc-800">{DUMMY_QUESTIONS.length}</span></div>
+                  <div className="flex items-center justify-between"><span className="text-zinc-500">Answered</span><span className="font-semibold text-zinc-800">{answeredCount}</span></div>
+                  <div className="flex items-center justify-between"><span className="text-zinc-500">Remaining</span><span className="font-semibold text-zinc-800">{DUMMY_QUESTIONS.length - answeredCount}</span></div>
                 </div>
 
                 <div className="mt-2 rounded-lg bg-indigo-50/60 px-2 py-1.5 text-[9.5px] leading-snug text-indigo-700/80">
@@ -199,51 +254,73 @@ export default function InterviewRoundPage() {
 
               <div className="space-y-2">
                 <Card
-                  title={<>Question 2 of 8 <span className="ml-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[9.5px] font-semibold text-indigo-600">Leadership &amp; People Management</span></>}
+                  title={<>Question {currentQuestionIndex + 1} of {DUMMY_QUESTIONS.length} <span className="ml-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[9.5px] font-semibold text-indigo-600">{currentQuestion.category}</span></>}
                   action={<button type="button" className="flex items-center gap-1 rounded-lg border border-zinc-200 px-2 py-1 text-[10px] font-semibold text-zinc-600 hover:bg-zinc-50"><Flag size={11} /> Flag Question</button>}
                 >
                   <p className="text-[11.5px] font-semibold leading-snug text-zinc-800">
-                    Describe a situation where you had to manage a low-performing team.
-                    What steps did you take to improve their performance and what was the outcome?
+                    {currentQuestion.text}
                   </p>
 
                   <div className="mt-2 flex items-start gap-2 rounded-lg bg-indigo-50/60 px-2.5 py-2">
                     <Sparkles size={13} className="mt-0.5 shrink-0 text-indigo-600" />
                     <p className="text-[10px] leading-snug text-indigo-700/80">
-                      <span className="font-bold">AI Insight:</span> This question evaluates your leadership style, ability to motivate teams, problem-solving skills, and focus on results.
+                      <span className="font-bold">AI Insight:</span> {currentQuestion.insight}
                     </p>
                   </div>
 
-                  <div className="mt-2 rounded-lg border border-zinc-200">
+                  <div className="mt-2 rounded-lg border border-zinc-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-shadow">
                     <div className="flex items-center gap-2 border-b border-zinc-100 px-2 py-1 text-zinc-400">
                       <Bold size={12} /><Italic size={12} /><Underline size={12} /><List size={12} /><ListOrdered size={12} /><Link2 size={12} /><Code size={12} />
                     </div>
-                    <textarea className="h-20 w-full resize-none px-2.5 py-2 text-[11.5px] text-zinc-800 outline-none placeholder:text-zinc-400" placeholder="Type your answer here..." />
-                    <div className="flex items-center justify-between border-t border-zinc-100 px-2.5 py-1 text-[9px] text-zinc-400">
+                    <textarea
+                      className="h-20 w-full resize-none px-2.5 py-2 text-[11.5px] text-zinc-800 outline-none placeholder:text-zinc-400 bg-transparent"
+                      placeholder="Type your answer here..."
+                      value={answers[currentQuestionIndex]}
+                      onChange={(e) => {
+                        const newAnswers = [...answers];
+                        newAnswers[currentQuestionIndex] = e.target.value;
+                        setAnswers(newAnswers);
+                      }}
+                    />
+                    <div className="flex items-center justify-between border-t border-zinc-100 px-2.5 py-1 text-[9px] text-zinc-400 bg-zinc-50">
                       <span>Minimum 50 words</span>
-                      <span>0 / 2500</span>
+                      <span>{answers[currentQuestionIndex].split(/\s+/).filter(Boolean).length} / 2500</span>
                     </div>
                   </div>
                   <p className="mt-1.5 flex items-center gap-1 text-[10px] font-medium text-emerald-600"><CheckCircle2 size={12} /> Your answer is auto-saved</p>
 
                   <div className="mt-2 flex items-center justify-between">
-                    <button type="button" className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[10.5px] font-semibold text-zinc-700 hover:bg-zinc-50">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
+                      disabled={currentQuestionIndex === 0}
+                      className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[10.5px] font-semibold text-zinc-700 hover:bg-zinc-50 disabled:opacity-50">
                       <ArrowLeft size={12} /> Previous Question
                     </button>
-                    <button type="button" className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-[10.5px] font-semibold text-white hover:bg-indigo-700">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentQuestionIndex(prev => Math.min(DUMMY_QUESTIONS.length - 1, prev + 1))}
+                      disabled={currentQuestionIndex === DUMMY_QUESTIONS.length - 1}
+                      className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-[10.5px] font-semibold text-white hover:bg-indigo-700 disabled:opacity-50">
                       Next Question <ArrowRight size={12} />
                     </button>
                   </div>
                 </Card>
 
-                <Card title="Your Previous Answer (Q1)">
-                  <p className="text-[10.5px] font-semibold text-zinc-800">Q.1 How do you prioritize multiple tasks when working under tight deadlines?</p>
-                  <div className="mt-1.5 rounded-lg bg-emerald-50/60 px-2.5 py-2">
-                    <p className="text-[10px] leading-snug text-zinc-600">
-                      I prioritize tasks based on impact and urgency using the Eisenhower Matrix. I break down tasks, set clear milestones, and communicate progress with the team to ensure timely delivery without compromising quality.
-                    </p>
-                  </div>
-                  <Link href="#" className="mt-1.5 flex justify-end text-[10px] font-semibold text-indigo-600 hover:text-indigo-700">View Full Answer</Link>
+                <Card title={`Your Previous Answer ${currentQuestionIndex > 0 ? `(Q${currentQuestionIndex})` : ''}`}>
+                  {currentQuestionIndex > 0 ? (
+                    <>
+                      <p className="text-[10.5px] font-semibold text-zinc-800">Q.{currentQuestionIndex} {DUMMY_QUESTIONS[currentQuestionIndex - 1].text}</p>
+                      <div className="mt-1.5 rounded-lg bg-emerald-50/60 px-2.5 py-2">
+                        <p className="text-[10px] leading-snug text-zinc-600">
+                          {answers[currentQuestionIndex - 1] || "No answer provided."}
+                        </p>
+                      </div>
+                      <button type="button" onClick={() => setIsModalOpen(true)} className="mt-1.5 flex w-full justify-end text-[10px] font-semibold text-indigo-600 hover:text-indigo-700">View Full Answer</button>
+                    </>
+                  ) : (
+                    <div className="text-[10px] text-zinc-500 italic py-2">No previous answer. This is the first question.</div>
+                  )}
                 </Card>
               </div>
 
@@ -297,11 +374,10 @@ export default function InterviewRoundPage() {
                 {interviewRounds.map((r, i) => (
                   <div key={r.round} className={`relative flex gap-2.5 rounded-lg px-1.5 py-2 last:pb-0 ${r.status === 'In Progress' ? 'bg-indigo-50/50' : ''}`}>
                     {i < interviewRounds.length - 1 && <span className="absolute left-[15px] top-8 h-full w-px bg-zinc-200" />}
-                    <span className={`relative z-10 mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full ${
-                      r.status === 'Completed' ? 'bg-emerald-500 text-white'
-                        : r.status === 'In Progress' ? 'border-2 border-indigo-600 bg-white text-indigo-600'
-                          : 'border border-zinc-200 bg-white text-zinc-300'
-                    }`}
+                    <span className={`relative z-10 mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full ${r.status === 'Completed' ? 'bg-emerald-500 text-white'
+                      : r.status === 'In Progress' ? 'border-2 border-indigo-600 bg-white text-indigo-600'
+                        : 'border border-zinc-200 bg-white text-zinc-300'
+                      }`}
                     >
                       {r.status === 'Completed' ? <CheckCircle2 size={13} /> : <span className="text-[9px] font-bold">{r.round.split(' ')[1]}</span>}
                     </span>
@@ -333,6 +409,37 @@ export default function InterviewRoundPage() {
           </div>
         </div>
       </div>
+
+      {isModalOpen && currentQuestionIndex > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-zinc-100 p-4">
+              <h3 className="text-[14px] font-bold text-zinc-900">Your Previous Answer</h3>
+              <button type="button" onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-zinc-800 bg-zinc-100 hover:bg-zinc-200 rounded-md p-1.5 transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="p-5 overflow-y-auto">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="h-6 w-6 bg-indigo-50 text-indigo-600 rounded flex items-center justify-center shrink-0 font-bold text-[10px] border border-indigo-100">
+                  Q.{currentQuestionIndex}
+                </div>
+                <p className="text-[13px] font-bold text-zinc-900 mt-0.5 leading-relaxed">
+                  {DUMMY_QUESTIONS[currentQuestionIndex - 1].text}
+                </p>
+              </div>
+              <div className="bg-zinc-50 rounded-lg p-4 text-[12px] text-zinc-700 border border-zinc-200 leading-relaxed whitespace-pre-wrap min-h-[100px]">
+                {answers[currentQuestionIndex - 1] || "No answer provided."}
+              </div>
+            </div>
+            <div className="border-t border-zinc-100 p-4 flex justify-end">
+              <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-semibold rounded-lg shadow-sm transition-colors">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
