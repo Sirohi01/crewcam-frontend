@@ -22,8 +22,8 @@ import {
   ShieldCheck,
   Star
 } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
 import { CandidateInfo, Note, Skill, PortalView } from '../types';
-import { useParams } from 'next/navigation';
 import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
 import { FaLinkedin } from 'react-icons/fa';
@@ -124,13 +124,10 @@ const subTabs = [
   "Recommendation"
 ];
 
-interface EvaluationPageProps {
-  setCurrentView: (view: PortalView) => void;
-}
-
-export default function EvaluationPage({
-  setCurrentView
-}: EvaluationPageProps) {
+export default function EvaluationPage() {
+  const router = useRouter();
+  const params = useParams() as { id: string };
+  const candidateId = params?.id;
   // Local State
   const [candidate, setCandidate] = React.useState<CandidateInfo>(defaultCandidate);
   const [skills] = React.useState<Skill[]>(initialSkills);
@@ -138,10 +135,6 @@ export default function EvaluationPage({
   const [newNoteText, setNewNoteText] = React.useState<string>("");
   const [activeSubTab, setActiveSubTab] = React.useState<string>(subTabs[0]);
   const [zoom, setZoom] = React.useState<number>(100);
-
-  const params = useParams() as { id: string };
-  const candidateId = params?.id;
-
   React.useEffect(() => {
     if (candidateId) {
       const fetchCandidate = async () => {
@@ -252,7 +245,7 @@ export default function EvaluationPage({
         {/* Buttons */}
         <div className="flex items-center gap-2 shrink-0 w-full lg:w-auto mt-2 lg:mt-0 justify-end">
           <button
-            onClick={() => setCurrentView('submitted')}
+            onClick={() => router.push(`/dashboard/hiring/candidates/new/create/submit-application/${candidateId}`)}
             className="flex items-center justify-center h-8 px-3 rounded-md text-[11px] font-semibold text-indigo-700 border border-indigo-200 bg-white hover:bg-indigo-50 shadow-sm transition-colors"
           >
             <ChevronLeft className="w-3 h-3 mr-1" /> Back to Applications
@@ -260,7 +253,7 @@ export default function EvaluationPage({
           <button
             onClick={() => {
               window.open(`/dashboard/hiring/candidates/new/create/evaluation/${candidateId}`, '_blank')
-              setCurrentView('submitted');
+              router.push(`/dashboard/hiring/candidates/new/create/submit-application/${candidateId}`);
             }}
             className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors"
           >
@@ -635,7 +628,7 @@ export default function EvaluationPage({
                   <button
                     onClick={() => {
                       alert("Moving application to HOD Review Stage!");
-                      setCurrentView('submitted');
+                      router.push(`/dashboard/hiring/candidates/new/create/submit-application/${candidateId}`);
                     }}
                     className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded flex items-center gap-1 shadow-xs transition-all text-xs"
                   >
@@ -645,7 +638,7 @@ export default function EvaluationPage({
                   <button
                     onClick={() => {
                       alert("Moving application to HOD Review Stage!");
-                      setCurrentView('submitted');
+                      router.push(`/dashboard/hiring/candidates/new/create/submit-application/${candidateId}`);
                     }}
                     className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded flex items-center gap-1 shadow-xs transition-all text-xs"
                   >

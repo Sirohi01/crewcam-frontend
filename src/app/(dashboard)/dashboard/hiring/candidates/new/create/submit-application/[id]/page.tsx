@@ -81,13 +81,7 @@ const journeySteps: JourneyStep[] = [
   { label: "Onboarding", status: "pending" }
 ];
 
-interface SubmittedPageProps {
-  setCurrentView: (view: PortalView) => void;
-}
-
-export default function SubmittedPage({
-  setCurrentView
-}: SubmittedPageProps) {
+export default function SubmittedPage() {
   // Local State
   const [candidate, setCandidate] = React.useState<CandidateInfo>(defaultCandidate);
   const [notes, setNotes] = React.useState<Note[]>(defaultNotes);
@@ -178,7 +172,7 @@ export default function SubmittedPage({
   const pipelineSteps = [
     { title: "AI Screening", delay: "1-2 Days", desc: "Our AI will analyze your CV and match it with the job requirements.", icon: Sparkles, active: true, href: `/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}` },
     { title: "HOD Review", delay: "2-3 Days", desc: "The hiring manager will review your profile and AI screening report.", icon: ClipboardList, active: false, href: `/dashboard/hiring/candidates/new/create/evaluation/${candidateId}` },
-    { title: "Interview", delay: "3-5 Days", desc: "If shortlisted, our team will contact you for interview scheduling.", icon: MessageSquare, active: false, href: '/dashboard/hiring/candidates/new/create/round-2' },
+    { title: "Interview", delay: "3-5 Days", desc: "If shortlisted, our team will contact you for interview scheduling.", icon: MessageSquare, active: false, href: `/dashboard/hiring/candidates/new/create/interview-process/${candidateId}` },
     { title: "Offer", delay: "As per process", desc: "Selected candidates will receive an offer based on the discussion.", icon: Gift, active: false, href: '/dashboard/offers' },
     { title: "Onboarding", delay: "After Offer", desc: "Welcome aboard! We'll help you through the joining process.", icon: UserCheck, active: false, href: '/dashboard/onboarding' }
   ];
@@ -561,7 +555,7 @@ export default function SubmittedPage({
                       </p>
                       {act.current && (
                         <button
-                          onClick={() => setCurrentView('evaluation')}
+                          onClick={() => router.push(`/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}`)}
                           className="text-[8px] text-indigo-700 hover:text-indigo-950 font-bold underline mt-1 block text-left"
                         >
                           Explore Active Screening Report →

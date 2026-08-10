@@ -10,6 +10,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { FaWindowRestore } from 'react-icons/fa';
+import { useParams, useRouter } from 'next/navigation';
+import api from '@/lib/axios';
+import { toast } from 'react-hot-toast';
 
 function CircularProgress({ percentage, colorClass, textClass }: { percentage: number, colorClass: string, textClass: string }) {
   const radius = 36;
@@ -51,6 +54,85 @@ function CircularProgress({ percentage, colorClass, textClass }: { percentage: n
 export default function HODEvaluationPage() {
   const [recommendation, setRecommendation] = useState<string | null>('Strongly Recommend');
   const [rating, setRating] = useState(4);
+  const [candidate, setCandidate] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState('HOD Review');
+
+  const params = useParams() as { id: string };
+  const candidateId = params?.id;
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (candidateId) {
+      const fetchCandidate = async () => {
+        try {
+          let cId = candidateId;
+          if (!/^[0-9a-fA-F]{24}$/.test(candidateId)) {
+            const res = await api.get(`/hiring/candidates?limit=1000`);
+            const candidates = res.data?.data || res.data || [];
+            const match = candidates.find((c: any) => {
+              const nameSlug = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+              return nameSlug === candidateId;
+            });
+            if (match) cId = match._id;
+            else throw new Error("Candidate not found");
+          }
+
+          const res = await api.get(`/hiring/candidates/${cId}`);
+          const data = res.data;
+          const appDetails = data.applicationDetails || {};
+
+          setCandidate({
+            fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
+            email: data.email || '',
+            mobile: data.phone || '',
+            currentLocation: appDetails.currentLocation || '',
+            linkedin: appDetails.linkedin || '',
+            appliedFor: data.jobRole || '',
+            department: data.departmentId?.name || data.departmentId || '',
+            employmentType: appDetails.employmentType || 'Full Time',
+            totalExperience: appDetails.totalExperience || '',
+            expectedCTC: appDetails.expectedCTC || '',
+            noticePeriod: appDetails.noticePeriod || '',
+            resumeUrl: data.resumeUrl
+          });
+        } catch (err) {
+          console.error(err);
+          toast.error('Failed to load candidate details');
+        }
+      };
+      fetchCandidate();
+    }
+  }, [candidateId]);
+
+  const [strengths, setStrengths] = React.useState(['Relevant Experience', 'Sales Strategy', 'Client Relationship', 'Leadership Skills']);
+  const [concerns, setConcerns] = React.useState(['Advanced Data Analytics', 'PPC / Google Ads']);
+
+  const [isAddingStrength, setIsAddingStrength] = React.useState(false);
+  const [newStrength, setNewStrength] = React.useState('');
+
+  const [isAddingConcern, setIsAddingConcern] = React.useState(false);
+  const [newConcern, setNewConcern] = React.useState('');
+
+  const handleAddStrength = () => {
+    if (newStrength.trim()) {
+      setStrengths([...strengths, newStrength.trim()]);
+      setNewStrength('');
+      setIsAddingStrength(false);
+    }
+  };
+
+  const handleAddConcern = () => {
+    if (newConcern.trim()) {
+      setConcerns([...concerns, newConcern.trim()]);
+      setNewConcern('');
+      setIsAddingConcern(false);
+    }
+  };
+
+  const removeStrength = (s: string) => setStrengths(strengths.filter(item => item !== s));
+  const removeConcern = (c: string) => setConcerns(concerns.filter(item => item !== c));
+
+  if (!candidate) return <div className="p-8 text-center text-zinc-500 font-medium">Loading candidate details...</div>;
 
   const steps = [
     { num: 1, label: 'Upload CV', status: 'completed' },
@@ -63,9 +145,6 @@ export default function HODEvaluationPage() {
     { num: 8, label: 'Onboarding', status: 'pending' },
   ];
 
-  const strengths = ['Relevant Experience', 'Sales Strategy', 'Client Relationship', 'Leadership Skills'];
-  const concerns = ['Advanced Data Analytics', 'PPC / Google Ads'];
-
   return (
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
 
@@ -75,7 +154,7 @@ export default function HODEvaluationPage() {
         {/* Title */}
         <div className="shrink-0">
           <h1 className="text-[17px] font-bold text-zinc-900 tracking-tight leading-tight">HOD Review &ndash; Manager Evaluation</h1>
-          <p className="text-[11px] font-medium text-zinc-500 mt-0.5">Application ID: APP-2026-000124</p>
+          <p className="text-[11px] font-medium text-zinc-500 mt-0.5">Application ID: APP-{candidateId?.slice(-6).toUpperCase() || '100124'}</p>
         </div>
 
         {/* Steps */}
@@ -98,10 +177,10 @@ export default function HODEvaluationPage() {
 
         {/* Buttons */}
         <div className="flex items-center gap-2 shrink-0">
-          <Button variant="outline" className="h-8 px-3 text-[11px] font-semibold text-indigo-700 border-indigo-200 hover:bg-indigo-50 shadow-sm">
-            <ArrowLeft className="w-3 h-3 mr-1" /> Back to Applications
+          <Button variant="outline" onClick={() => router.push(`/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}`)} className="h-8 px-3 text-[11px] font-semibold text-indigo-700 border-indigo-200 hover:bg-indigo-50 shadow-sm">
+            <ArrowLeft className="w-3 h-3 mr-1" /> Back to AI Screening
           </Button>
-          <Button onClick={() => window.open('/dashboard/hiring/candidates/new/create/interview-process', '_blank')} className="h-8 px-4 text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
+          <Button onClick={() => window.open(`/dashboard/hiring/candidates/new/create/interview-process/${candidateId}`, '_blank')} className="h-8 px-4 text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
             Next: Interview &rarr;
           </Button>
         </div>
@@ -126,23 +205,23 @@ export default function HODEvaluationPage() {
                   </div>
                   <div className="flex flex-col justify-center min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <h2 className="text-[16px] font-bold text-zinc-900 truncate">Amit Kumar Verma</h2>
+                      <h2 className="text-[16px] font-bold text-zinc-900 truncate">{candidate.fullName}</h2>
                       <span className="bg-emerald-50 text-emerald-600 text-[9px] font-bold px-1.5 py-0.5 rounded border border-emerald-100 whitespace-nowrap">AI Screened</span>
                     </div>
-                    <p className="text-[12px] text-zinc-600 mb-1.5 font-medium">Sales Manager</p>
+                    <p className="text-[12px] text-zinc-600 mb-1.5 font-medium">{candidate.appliedFor}</p>
 
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-y-2 gap-x-4">
                       <div className="flex items-center gap-1.5 text-[12px] text-zinc-600 truncate font-medium">
-                        <Phone className="w-3.5 h-3.5 text-zinc-400 shrink-0" /> +91 98765 43210
+                        <Phone className="w-3.5 h-3.5 text-zinc-400 shrink-0" /> {candidate.mobile}
                       </div>
                       <div className="flex items-center gap-1.5 text-[12px] text-zinc-600 truncate font-medium">
-                        <Mail className="w-3.5 h-3.5 text-zinc-400 shrink-0" /> amit.verma@email.com
+                        <Mail className="w-3.5 h-3.5 text-zinc-400 shrink-0" /> {candidate.email}
                       </div>
                       <div className="flex items-center gap-1.5 text-[12px] text-zinc-600 truncate font-medium">
-                        <MapPin className="w-3.5 h-3.5 text-zinc-400 shrink-0" /> Noida, Uttar Pradesh
+                        <MapPin className="w-3.5 h-3.5 text-zinc-400 shrink-0" /> {candidate.currentLocation}
                       </div>
-                      <div className="flex items-center gap-1.5 text-[12px] text-indigo-600 truncate font-medium hover:underline cursor-pointer">
-                        <LinkIcon className="w-3.5 h-3.5 shrink-0" /> linkedin.com/in/amitverma
+                      <div className="flex items-center gap-1.5 text-[12px] text-indigo-600 truncate font-medium hover:underline cursor-pointer" onClick={() => window.open(candidate.linkedin, '_blank')}>
+                        <LinkIcon className="w-3.5 h-3.5 shrink-0" /> {candidate.linkedin}
                       </div>
                     </div>
                   </div>
@@ -152,27 +231,27 @@ export default function HODEvaluationPage() {
                 <div className="flex-1 grid grid-cols-2 gap-y-2 gap-x-4 content-center xl:pl-2">
                   <div>
                     <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide">Applied For</p>
-                    <p className="text-[13px] font-bold text-zinc-900">Sales Manager</p>
+                    <p className="text-[13px] font-bold text-zinc-900">{candidate.appliedFor}</p>
                   </div>
                   <div>
                     <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide">Experience</p>
-                    <p className="text-[13px] font-bold text-zinc-900">7 Years</p>
+                    <p className="text-[13px] font-bold text-zinc-900">{candidate.totalExperience} Years</p>
                   </div>
                   <div>
                     <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide">Department</p>
-                    <p className="text-[13px] font-bold text-zinc-900">Sales &amp; Marketing</p>
+                    <p className="text-[13px] font-bold text-zinc-900">{candidate.department}</p>
                   </div>
                   <div>
                     <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide">Expected CTC</p>
-                    <p className="text-[13px] font-bold text-zinc-900">₹ 12.00 LPA</p>
+                    <p className="text-[13px] font-bold text-zinc-900">₹ {candidate.expectedCTC}</p>
                   </div>
                   <div>
                     <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide">Employment Type</p>
-                    <p className="text-[13px] font-bold text-zinc-900">Full Time</p>
+                    <p className="text-[13px] font-bold text-zinc-900">{candidate.employmentType}</p>
                   </div>
                   <div>
                     <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide">Notice Period</p>
-                    <p className="text-[13px] font-bold text-zinc-900">30 Days</p>
+                    <p className="text-[13px] font-bold text-zinc-900">{candidate.noticePeriod}</p>
                   </div>
                 </div>
               </div>
@@ -184,10 +263,11 @@ export default function HODEvaluationPage() {
             <nav className="flex gap-4">
               {['HOD Review', 'Application Details', 'AI Screening Report', 'Resume & Documents', 'Comments & History'].map((tab, i) => (
                 <button key={tab}
+                  onClick={() => setActiveTab(tab)}
                   className={`pb-3 text-[13px] font-bold whitespace-nowrap transition-colors relative
-                  ${i === 0 ? 'text-indigo-600' : 'text-zinc-500 hover:text-zinc-800'}`}>
+                  ${activeTab === tab ? 'text-indigo-600' : 'text-zinc-500 hover:text-zinc-800'}`}>
                   {tab}
-                  {i === 0 && <span className="absolute bottom-[-1px] left-0 right-0 h-[3px] bg-indigo-600 rounded-t-full z-10"></span>}
+                  {activeTab === tab && <span className="absolute bottom-[-1px] left-0 right-0 h-[3px] bg-indigo-600 rounded-t-full z-10"></span>}
                 </button>
               ))}
             </nav>
@@ -195,120 +275,153 @@ export default function HODEvaluationPage() {
 
           {/* Details Row */}
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-3">
-            {/* COLUMN 1: HOD EVALUATION */}
-            <div className="xl:col-span-8 flex flex-col gap-3 h-full">
-              <Card className="border-zinc-200/80 shadow-sm rounded-xl h-full flex flex-col justify-between">
-                <CardContent className="p-4 flex flex-col h-full">
-                  <h3 className="text-[15px] font-bold text-zinc-900 mb-1">HOD Evaluation</h3>
-                  <p className="text-[12px] font-medium text-zinc-500 mb-3">Please evaluate the candidate based on the role requirements and AI screening report.</p>
+            {activeTab === 'HOD Review' && (
+              <div className="xl:col-span-8 flex flex-col gap-3 h-full">
+                <Card className="border-zinc-200/80 shadow-sm rounded-xl h-full flex flex-col justify-between">
+                  <CardContent className="p-4 flex flex-col h-full">
+                    <h3 className="text-[15px] font-bold text-zinc-900 mb-1">HOD Evaluation</h3>
+                    <p className="text-[12px] font-medium text-zinc-500 mb-3">Please evaluate the candidate based on the role requirements and AI screening report.</p>
 
-                  {/* Recommendation */}
-                  <div className="mb-3">
-                    <label className="text-[12px] font-bold text-zinc-900 flex items-center gap-1 mb-2">
-                      Overall Recommendation <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-                      {[
-                        { id: 'Strongly Recommend', icon: <ThumbsUp className="w-5 h-5 mb-2" />, desc: 'Excellent fit for the role', color: 'emerald' },
-                        { id: 'Recommend', icon: <ThumbsUp className="w-5 h-5 mb-2" />, desc: 'Good fit for the role', color: 'blue' },
-                        { id: 'Hold / Consider', icon: <MinusSquare className="w-5 h-5 mb-2" />, desc: 'May fit, need more evaluation', color: 'amber' },
-                        { id: 'Not Recommended', icon: <ThumbsDown className="w-5 h-5 mb-2" />, desc: 'Not a good fit', color: 'rose' },
-                      ].map((rec) => {
-                        const isSel = recommendation === rec.id;
-                        return (
-                          <button key={rec.id} onClick={() => setRecommendation(rec.id)}
-                            className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all h-[105px]
+                    {/* Recommendation */}
+                    <div className="mb-3">
+                      <label className="text-[12px] font-bold text-zinc-900 flex items-center gap-1 mb-2">
+                        Overall Recommendation <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+                        {[
+                          { id: 'Strongly Recommend', icon: <ThumbsUp className="w-5 h-5 mb-2" />, desc: 'Excellent fit for the role', color: 'emerald' },
+                          { id: 'Recommend', icon: <ThumbsUp className="w-5 h-5 mb-2" />, desc: 'Good fit for the role', color: 'blue' },
+                          { id: 'Hold / Consider', icon: <MinusSquare className="w-5 h-5 mb-2" />, desc: 'May fit, need more evaluation', color: 'amber' },
+                          { id: 'Not Recommended', icon: <ThumbsDown className="w-5 h-5 mb-2" />, desc: 'Not a good fit', color: 'rose' },
+                        ].map((rec) => {
+                          const isSel = recommendation === rec.id;
+                          return (
+                            <button key={rec.id} onClick={() => setRecommendation(rec.id)}
+                              className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all h-[105px]
                             ${isSel
-                                ? `border-${rec.color}-200 bg-${rec.color}-50/50 shadow-sm ring-1 ring-${rec.color}-500/20`
-                                : 'border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 bg-white shadow-sm'}`}>
-                            <div className={`${isSel ? `text-${rec.color}-600` : 'text-zinc-400'}`}>
-                              {rec.icon}
-                            </div>
-                            <span className={`text-[12px] font-bold mb-1 leading-tight whitespace-nowrap ${isSel ? `text-${rec.color}-700` : 'text-zinc-700'}`}>{rec.id}</span>
-                            <span className={`text-[10px] font-medium leading-tight px-1 ${isSel ? `text-${rec.color}-600/80` : 'text-zinc-500'}`}>{rec.desc}</span>
+                                  ? `border-${rec.color}-200 bg-${rec.color}-50/50 shadow-sm ring-1 ring-${rec.color}-500/20`
+                                  : 'border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 bg-white shadow-sm'}`}>
+                              <div className={`${isSel ? `text-${rec.color}-600` : 'text-zinc-400'}`}>
+                                {rec.icon}
+                              </div>
+                              <span className={`text-[12px] font-bold mb-1 leading-tight whitespace-nowrap ${isSel ? `text-${rec.color}-700` : 'text-zinc-700'}`}>{rec.id}</span>
+                              <span className={`text-[10px] font-medium leading-tight px-1 ${isSel ? `text-${rec.color}-600/80` : 'text-zinc-500'}`}>{rec.desc}</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Strengths */}
+                    <div className="mb-3">
+                      <label className="text-[12px] font-bold text-zinc-900 mb-2 block">Strengths <span className="font-medium text-zinc-500">(What did you like?)</span></label>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {strengths.map(s => (
+                          <div key={s} className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200/60 text-emerald-700 text-[11px] font-bold px-2.5 py-1 rounded-md">
+                            {s}
+                            <X className="w-3 h-3 cursor-pointer hover:text-emerald-900 opacity-70" onClick={() => removeStrength(s)} />
+                          </div>
+                        ))}
+                        {isAddingStrength ? (
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="text"
+                              value={newStrength}
+                              onChange={e => setNewStrength(e.target.value)}
+                              onKeyDown={e => e.key === 'Enter' && handleAddStrength()}
+                              placeholder="Add strength..."
+                              autoFocus
+                              className="text-[11px] px-2 py-1 rounded-md border border-zinc-200 focus:outline-none focus:border-indigo-400"
+                            />
+                            <button onClick={handleAddStrength} className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md text-[11px] font-bold hover:bg-indigo-100 transition-colors">Add</button>
+                            <button onClick={() => { setIsAddingStrength(false); setNewStrength(''); }} className="bg-zinc-50 text-zinc-600 px-2 py-1 rounded-md text-[11px] font-bold hover:bg-zinc-100 transition-colors">Cancel</button>
+                          </div>
+                        ) : (
+                          <button onClick={() => setIsAddingStrength(true)} className="flex items-center gap-1 bg-white border border-dashed border-zinc-300 text-zinc-600 hover:text-indigo-600 hover:border-indigo-300 text-[11px] font-bold px-3 py-1 rounded-md transition-colors shadow-sm">
+                            <Plus className="w-3 h-3" /> Add
                           </button>
-                        )
-                      })}
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Strengths */}
-                  <div className="mb-3">
-                    <label className="text-[12px] font-bold text-zinc-900 mb-2 block">Strengths <span className="font-medium text-zinc-500">(What did you like?)</span></label>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {strengths.map(s => (
-                        <div key={s} className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200/60 text-emerald-700 text-[11px] font-bold px-2.5 py-1 rounded-md">
-                          {s}
-                          <X className="w-3 h-3 cursor-pointer hover:text-emerald-900 opacity-70" />
-                        </div>
-                      ))}
-                      <button className="flex items-center gap-1 bg-white border border-dashed border-zinc-300 text-zinc-600 hover:text-indigo-600 hover:border-indigo-300 text-[11px] font-bold px-3 py-1 rounded-md transition-colors shadow-sm">
-                        <Plus className="w-3 h-3" /> Add
-                      </button>
+                    {/* Areas of Concern */}
+                    <div className="mb-3">
+                      <label className="text-[12px] font-bold text-zinc-900 mb-2 block">Areas of Concern</label>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {concerns.map(c => (
+                          <div key={c} className="flex items-center gap-1.5 bg-amber-50 border border-amber-200/60 text-amber-700 text-[11px] font-bold px-2.5 py-1 rounded-md">
+                            {c}
+                            <X className="w-3 h-3 cursor-pointer hover:text-amber-900 opacity-70" onClick={() => removeConcern(c)} />
+                          </div>
+                        ))}
+                        {isAddingConcern ? (
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="text"
+                              value={newConcern}
+                              onChange={e => setNewConcern(e.target.value)}
+                              onKeyDown={e => e.key === 'Enter' && handleAddConcern()}
+                              placeholder="Add concern..."
+                              autoFocus
+                              className="text-[11px] px-2 py-1 rounded-md border border-zinc-200 focus:outline-none focus:border-amber-400"
+                            />
+                            <button onClick={handleAddConcern} className="bg-amber-50 text-amber-700 px-2 py-1 rounded-md text-[11px] font-bold hover:bg-amber-100 transition-colors">Add</button>
+                            <button onClick={() => { setIsAddingConcern(false); setNewConcern(''); }} className="bg-zinc-50 text-zinc-600 px-2 py-1 rounded-md text-[11px] font-bold hover:bg-zinc-100 transition-colors">Cancel</button>
+                          </div>
+                        ) : (
+                          <button onClick={() => setIsAddingConcern(true)} className="flex items-center gap-1 bg-white border border-dashed border-zinc-300 text-zinc-600 hover:text-amber-600 hover:border-amber-300 text-[11px] font-bold px-3 py-1 rounded-md transition-colors shadow-sm">
+                            <Plus className="w-3 h-3" /> Add
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Areas of Concern */}
-                  <div className="mb-3">
-                    <label className="text-[12px] font-bold text-zinc-900 mb-2 block">Areas of Concern</label>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {concerns.map(c => (
-                        <div key={c} className="flex items-center gap-1.5 bg-amber-50 border border-amber-200/60 text-amber-700 text-[11px] font-bold px-2.5 py-1 rounded-md">
-                          {c}
-                          <X className="w-3 h-3 cursor-pointer hover:text-amber-900 opacity-70" />
-                        </div>
-                      ))}
-                      <button className="flex items-center gap-1 bg-white border border-dashed border-zinc-300 text-zinc-600 hover:text-indigo-600 hover:border-indigo-300 text-[11px] font-bold px-3 py-1 rounded-md transition-colors shadow-sm">
-                        <Plus className="w-3 h-3" /> Add
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Comments */}
-                  <div className="mb-3">
-                    <label className="text-[12px] font-bold text-zinc-900 flex items-center gap-1 mb-2">
-                      Comments <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <textarea
-                        className="w-full h-[120px] rounded-xl border border-zinc-200 p-3.5 text-[13px] font-medium text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 transition-all resize-none shadow-sm"
-                        defaultValue={`Amit has strong B2B sales experience and good domain knowledge. He has a proven track record in achieving targets and managing key accounts.\n\nHe will be a good addition to the team with some improvement in data analytics skills.`}
-                      />
-                      <div className="absolute bottom-3 right-3 text-[10px] font-bold text-zinc-400">187/1000</div>
-                    </div>
-                  </div>
-
-                  {/* Rating */}
-                  <div className="mb-4 flex items-center gap-3">
-                    <label className="text-[12px] font-bold text-zinc-900">Rating <span className="font-medium text-zinc-500">(Optional)</span></label>
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map(star => (
-                        <Star
-                          key={star}
-                          className={`w-4 h-4 cursor-pointer transition-colors ${star <= rating ? 'fill-amber-400 text-amber-400' : 'fill-zinc-100 text-zinc-200 hover:fill-amber-200 hover:text-amber-200'}`}
-                          onClick={() => setRating(star)}
+                    {/* Comments */}
+                    <div className="mb-3">
+                      <label className="text-[12px] font-bold text-zinc-900 flex items-center gap-1 mb-2">
+                        Comments <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <textarea
+                          className="w-full h-[120px] rounded-xl border border-zinc-200 p-3.5 text-[13px] font-medium text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 transition-all resize-none shadow-sm"
+                          defaultValue={`${candidate.fullName} has strong experience and good domain knowledge. Proven track record in achieving targets.\n\nWill be a good addition to the team.`}
                         />
-                      ))}
+                        <div className="absolute bottom-3 right-3 text-[10px] font-bold text-zinc-400">187/1000</div>
+                      </div>
                     </div>
-                    <span className="text-[11px] font-bold text-zinc-500">{rating}/5</span>
-                  </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex flex-wrap items-center gap-4 pt-5 mt-auto border-t border-zinc-100">
-                    <Button className="h-8 px-4 text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-md shadow-sm whitespace-nowrap">
-                      Approve & Move to Interview
-                    </Button>
-                    <Button variant="outline" className="h-8 px-4 text-[11px] font-semibold text-indigo-700 border-indigo-200 hover:bg-indigo-50 rounded-md shadow-sm whitespace-nowrap">
-                      Send Back for Re-evaluation
-                    </Button>
-                    <Button variant="outline" className="h-8 px-4 text-[11px] font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 rounded-md shadow-sm whitespace-nowrap">
-                      Reject Application
-                    </Button>
-                  </div>
+                    {/* Rating */}
+                    <div className="mb-4 flex items-center gap-3">
+                      <label className="text-[12px] font-bold text-zinc-900">Rating <span className="font-medium text-zinc-500">(Optional)</span></label>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <Star
+                            key={star}
+                            className={`w-4 h-4 cursor-pointer transition-colors ${star <= rating ? 'fill-amber-400 text-amber-400' : 'fill-zinc-100 text-zinc-200 hover:fill-amber-200 hover:text-amber-200'}`}
+                            onClick={() => setRating(star)}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-[11px] font-bold text-zinc-500">{rating}/5</span>
+                    </div>
 
-                </CardContent>
-              </Card>
-            </div>
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap items-center gap-4 pt-5 mt-auto border-t border-zinc-100">
+                      <Button onClick={() => window.open(`/dashboard/hiring/candidates/new/create/interview-process/${candidateId}`, '_blank')} className="h-8 px-4 text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-md shadow-sm whitespace-nowrap">
+                        Approve & Move to Interview
+                      </Button>
+                      <Button variant="outline" onClick={() => router.push(`/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}`)} className="h-8 px-4 text-[11px] font-semibold text-indigo-700 border-indigo-200 hover:bg-indigo-50 rounded-md shadow-sm whitespace-nowrap">
+                        Send Back for Re-evaluation
+                      </Button>
+                      <Button variant="outline" className="h-8 px-4 text-[11px] font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 rounded-md shadow-sm whitespace-nowrap">
+                        Reject Application
+                      </Button>
+                    </div>
+
+                  </CardContent>
+                </Card>
+              </div>
+            )}
             {/* COLUMN 2: AI SCREENING INSIGHTS */}
             <div className="xl:col-span-4 flex flex-col gap-3">
               {/* AI Screening Summary (Combined Card) */}

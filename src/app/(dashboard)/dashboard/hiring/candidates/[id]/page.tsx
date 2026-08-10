@@ -12,15 +12,15 @@ import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 
-const JOURNEY_STEPS = [
+const getJourneySteps = (id: string) => [
   { label: 'Upload CV', route: '/dashboard/hiring/candidates/new/create' },
-  { label: 'Review & Edit', route: '/dashboard/hiring/candidates/new/create/review-and-edit' },
-  { label: 'Submit Application', route: '/dashboard/hiring/candidates/new/create/submit-application' },
-  { label: 'AI Screening', route: '/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation' },
-  { label: 'HOD Review', route: '/dashboard/hiring/selection-approval' },
-  { label: 'Interview', route: '/dashboard/hiring/candidates/new/create/interview-process' },
-  { label: 'Offer', route: '/dashboard/hiring/loi' },
-  { label: 'Onboarding', route: '/dashboard/hiring/joining-confirmation' }
+  { label: 'Review & Edit', route: `/dashboard/hiring/candidates/new/create/review-and-edit/${id}` },
+  { label: 'Submit Application', route: `/dashboard/hiring/candidates/new/create/submit-application/${id}` },
+  { label: 'AI Screening', route: `/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${id}` },
+  { label: 'HOD Review', route: `/dashboard/hiring/candidates/new/create/evaluation/${id}` },
+  { label: 'Interview', route: `/dashboard/hiring/candidates/new/create/interview-process/${id}` },
+  { label: 'Offer', route: '/dashboard/offers' },
+  { label: 'Onboarding', route: '/dashboard/onboarding' }
 ];
 
 function getPipelineSteps(status: string, candidateSlugOrId: string) {
@@ -32,16 +32,7 @@ function getPipelineSteps(status: string, candidateSlugOrId: string) {
   if (status === 'Hired') currentIdx = 8; // All completed
   if (status === 'Rejected') currentIdx = -1; // Halt pipeline
 
-  const journeySteps = [
-    { label: 'Upload CV', route: '/dashboard/hiring/candidates/new/create' },
-    { label: 'Review & Edit', route: `/dashboard/hiring/candidates/new/create/review-and-edit/${candidateSlugOrId}` },
-    { label: 'Submit Application', route: `/dashboard/hiring/candidates/new/create/submit-application/${candidateSlugOrId}` },
-    { label: 'AI Screening', route: `/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateSlugOrId}` },
-    { label: 'HOD Review', route: `/dashboard/hiring/selection-approval` },
-    { label: 'Interview', route: `/dashboard/hiring/candidates/new/create/interview-process` },
-    { label: 'Offer', route: `/dashboard/hiring/loi` },
-    { label: 'Onboarding', route: `/dashboard/hiring/joining-confirmation` }
-  ];
+  const journeySteps = getJourneySteps(candidateSlugOrId);
 
   return journeySteps.map((step, idx) => {
     let state = 'pending';

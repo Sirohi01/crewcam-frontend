@@ -773,11 +773,10 @@ const OnboardingPage: React.FC = () => {
                     setActiveTab(tab.key)
                     setCurrentPage(1)
                   }}
-                  className={`pb-2 text-[11px] font-semibold whitespace-nowrap ${
-                    activeTab === tab.key
+                  className={`pb-2 text-[11px] font-semibold whitespace-nowrap ${activeTab === tab.key
                       ? 'text-indigo-700 border-b-2 border-violet-600'
                       : 'text-slate-500 hover:text-slate-700'
-                  }`}
+                    }`}
                 >
                   {tab.label} ({tabCounts[tab.key]})
                 </button>
@@ -811,11 +810,10 @@ const OnboardingPage: React.FC = () => {
           {/* Table */}
           <Card className="min-h-[42vh] lg:flex-1 lg:min-h-0 overflow-x-auto lg:overflow-x-visible">
             <div
-              className={`min-w-[820px] lg:min-w-0 grid gap-2 pb-1.5 border-b border-slate-200 shrink-0 ${
-                showDeptColumn
+              className={`min-w-[820px] lg:min-w-0 grid gap-2 pb-1.5 border-b border-slate-200 shrink-0 ${showDeptColumn
                   ? 'grid-cols-[1.6fr_1.3fr_1.1fr_1fr_1.4fr_1fr_1.2fr_0.7fr]'
                   : 'grid-cols-[1.6fr_1.3fr_1fr_1.4fr_1fr_1.2fr_0.7fr]'
-              }`}
+                }`}
             >
               <span className="text-[10px] font-semibold text-slate-500">Candidate</span>
               <span className="text-[10px] font-semibold text-slate-500">Job Opening</span>
@@ -840,11 +838,10 @@ const OnboardingPage: React.FC = () => {
                   return (
                     <div
                       key={c.id}
-                      className={`grid gap-2 items-center border-b border-slate-100 last:border-b-0 py-1 ${
-                        showDeptColumn
+                      className={`grid gap-2 items-center border-b border-slate-100 last:border-b-0 py-1 ${showDeptColumn
                           ? 'grid-cols-[1.6fr_1.3fr_1.1fr_1fr_1.4fr_1fr_1.2fr_0.7fr]'
                           : 'grid-cols-[1.6fr_1.3fr_1fr_1.4fr_1fr_1.2fr_0.7fr]'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-1.5 min-w-0">
                         <Avatar initials={c.initials} bg={c.avatarBg} text={c.avatarText} />
@@ -966,9 +963,8 @@ const OnboardingPage: React.FC = () => {
                   key={page}
                   type="button"
                   onClick={() => setCurrentPage(page)}
-                  className={`h-6 w-6 rounded-md text-[11px] font-semibold flex items-center justify-center ${
-                    page === pageSafe ? 'bg-indigo-700 text-white' : 'border border-slate-300 text-slate-700'
-                  }`}
+                  className={`h-6 w-6 rounded-md text-[11px] font-semibold flex items-center justify-center ${page === pageSafe ? 'bg-indigo-700 text-white' : 'border border-slate-300 text-slate-700'
+                    }`}
                 >
                   {page}
                 </button>
@@ -989,28 +985,27 @@ const OnboardingPage: React.FC = () => {
         <div className="flex flex-col gap-2 min-h-0">
           <div ref={stepsCardRef}>
             <Card className="min-h-[32vh] lg:flex-[1.6] lg:min-h-0">
-            <span className="text-[12px] font-semibold text-slate-900 mb-2 shrink-0">Onboarding Steps</span>
-            <div className="flex flex-col justify-between flex-1 min-h-0 gap-1.5">
-              {ONBOARDING_STEPS.map((step) => (
-                <div key={step.id} className="flex items-start gap-2">
-                  <StepStatusIcon status={step.status} />
-                  <div className="min-w-0">
-                    <p
-                      className={`text-[11px] font-semibold truncate ${
-                        step.status === 'pending' ? 'text-slate-400' : 'text-slate-900'
-                      }`}
-                    >
-                      {step.order}. {step.title}
-                    </p>
-                    <p className="text-[9px] font-medium text-slate-500 truncate">{step.description}</p>
-                    {step.status === 'active' ? (
-                      <span className="text-[9px] font-semibold text-amber-600">Pending</span>
-                    ) : null}
+              <span className="text-[12px] font-semibold text-slate-900 mb-2 shrink-0">Onboarding Steps</span>
+              <div className="flex flex-col justify-between flex-1 min-h-0 gap-1.5">
+                {ONBOARDING_STEPS.map((step) => (
+                  <div key={step.id} className="flex items-start gap-2">
+                    <StepStatusIcon status={step.status} />
+                    <div className="min-w-0">
+                      <p
+                        className={`text-[11px] font-semibold truncate ${step.status === 'pending' ? 'text-slate-400' : 'text-slate-900'
+                          }`}
+                      >
+                        {step.order}. {step.title}
+                      </p>
+                      <p className="text-[9px] font-medium text-slate-500 truncate">{step.description}</p>
+                      {step.status === 'active' ? (
+                        <span className="text-[9px] font-semibold text-amber-600">Pending</span>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </Card>
+                ))}
+              </div>
+            </Card>
           </div>
 
           <Card className="min-h-[16vh] lg:flex-1 lg:min-h-0">

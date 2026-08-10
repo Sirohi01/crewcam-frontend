@@ -70,13 +70,7 @@ const emptyCandidate: CandidateInfo = {
   education: []
 };
 
-interface ReviewPageProps {
-  setCurrentView: (view: PortalView) => void;
-}
-
-export default function ReviewPage({
-  setCurrentView
-}: ReviewPageProps) {
+export default function ReviewPage() {
   const router = useRouter();
   // Local Data State
   const [candidate, setCandidate] = React.useState<CandidateInfo>(emptyCandidate);
