@@ -293,11 +293,10 @@ export default function HistoryPage() {
                     <button
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key as typeof activeTab)}
-                        className={`px-3 py-2 text-[12px] font-semibold border-b-2 transition-colors -mb-px ${
-                            activeTab === tab.key
+                        className={`px-3 py-2 text-[12px] font-semibold border-b-2 transition-colors -mb-px ${activeTab === tab.key
                                 ? 'border-indigo-600 text-indigo-600'
                                 : 'border-transparent text-zinc-500 hover:text-zinc-700'
-                        }`}
+                            }`}
                     >
                         {tab.label}
                     </button>
@@ -460,11 +459,10 @@ export default function HistoryPage() {
                                     <button
                                         key={page}
                                         onClick={() => setCurrentPage(page)}
-                                        className={`w-7 h-7 flex items-center justify-center border rounded-md font-semibold ${
-                                            currentPage === page
+                                        className={`w-7 h-7 flex items-center justify-center border rounded-md font-semibold ${currentPage === page
                                                 ? 'border-indigo-600 bg-indigo-600 text-white'
                                                 : 'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50'
-                                        }`}
+                                            }`}
                                     >
                                         {page}
                                     </button>
@@ -472,11 +470,10 @@ export default function HistoryPage() {
                                 <span className="px-1 text-zinc-400">...</span>
                                 <button
                                     onClick={() => setCurrentPage(totalPages)}
-                                    className={`w-7 h-7 flex items-center justify-center border rounded-md font-semibold ${
-                                        currentPage === totalPages
+                                    className={`w-7 h-7 flex items-center justify-center border rounded-md font-semibold ${currentPage === totalPages
                                             ? 'border-indigo-600 bg-indigo-600 text-white'
                                             : 'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50'
-                                    }`}
+                                        }`}
                                 >
                                     {totalPages}
                                 </button>
