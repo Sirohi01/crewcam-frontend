@@ -71,8 +71,7 @@ export default function InterviewUI() {
       fetchCandidate();
     }
   }, [candidateId]);
-
-  if (!candidate) return <div className="p-8 text-center text-zinc-500 font-medium">Loading candidate details...</div>;
+  
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(1);
   const [answers, setAnswers] = useState<string[]>(Array(DUMMY_QUESTIONS.length).fill(''));
 
@@ -106,6 +105,8 @@ export default function InterviewUI() {
   const radius = 48;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (timeLeft / totalSeconds) * circumference;
+
+  if (!candidate) return <div className="p-8 text-center text-zinc-500 font-medium">Loading candidate details...</div>;
 
   return (
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
