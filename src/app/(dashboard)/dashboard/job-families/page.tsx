@@ -365,7 +365,7 @@ export default function JobFamiliesPage() {
         <SummaryCard
           icon={<Building2 size={18} />}
           title="Total Designations"
-          value={apiDesignations.length.toString()}
+          value={apiDesignations?.length?.toString()}
           subtitle="Under These Families"
           iconBg="bg-[#e6f8ec]"
           iconColor="text-[#2da348]"

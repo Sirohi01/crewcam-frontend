@@ -1,4 +1,7 @@
 "use client";
+import { useParams, useRouter } from 'next/navigation';
+import api from '@/lib/axios';
+import { toast } from 'react-hot-toast';
 
 import React from 'react';
 import {
@@ -25,7 +28,7 @@ import {
   LayoutDashboard,
   Briefcase
 } from 'lucide-react';
-import { CandidateInfo, Note, PortalView } from './types';
+import { CandidateInfo, Note, PortalView } from '../types';
 
 const defaultCandidate: CandidateInfo = {
   fullName: "Amit Kumar Verma",
@@ -78,18 +81,74 @@ const journeySteps: JourneyStep[] = [
   { label: "Onboarding", status: "pending" }
 ];
 
-interface SubmittedPageProps {
-  setCurrentView: (view: PortalView) => void;
-}
-
-export default function SubmittedPage({
-  setCurrentView
-}: SubmittedPageProps) {
+export default function SubmittedPage() {
   // Local State
   const [candidate, setCandidate] = React.useState<CandidateInfo>(defaultCandidate);
   const [notes, setNotes] = React.useState<Note[]>(defaultNotes);
   const [newNoteText, setNewNoteText] = React.useState<string>("");
   const [showNoteInput, setShowNoteInput] = React.useState<boolean>(false);
+
+  const params = useParams() as { id: string };
+  const candidateId = params?.id;
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (candidateId) {
+      const fetchCandidate = async () => {
+        try {
+          let cId = candidateId;
+          // If it's a slug, find the candidate first
+          if (!/^[0-9a-fA-F]{24}$/.test(candidateId)) {
+            const res = await api.get(`/hiring/candidates?limit=1000`);
+            const candidates = res.data?.data || res.data || [];
+            const match = candidates.find((c: any) => {
+              const nameSlug = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+              return nameSlug === candidateId;
+            });
+            if (match) cId = match._id;
+            else throw new Error("Candidate not found");
+          }
+          
+          const res = await api.get(`/hiring/candidates/${cId}`);
+          const data = res.data;
+          const appDetails = data.applicationDetails || {};
+          
+          setCandidate({
+            fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
+            email: data.email || '',
+            mobile: data.phone || '',
+            currentLocation: appDetails.currentLocation || '',
+            preferredLocation: appDetails.preferredLocation || '',
+            linkedin: appDetails.linkedin || '',
+            appliedFor: data.jobRole || '',
+            department: data.departmentId?.name || data.departmentId || '',
+            employmentType: appDetails.employmentType || 'Full Time',
+            totalExperience: appDetails.totalExperience || '',
+            relevantExperience: appDetails.relevantExperience || '',
+            currentCompany: appDetails.currentCompany || '',
+            currentCTC: appDetails.currentCTC || '',
+            expectedCTC: appDetails.expectedCTC || '',
+            noticePeriod: appDetails.noticePeriod || '',
+            availableFrom: appDetails.availableFrom || '',
+            relocation: appDetails.relocation || '',
+            willingToTravel: appDetails.willingToTravel || '',
+            highestQualification: appDetails.highestQualification || '',
+            university: appDetails.university || '',
+            yearOfPassing: appDetails.yearOfPassing || '',
+            cgpa: appDetails.cgpa || '',
+            manpowerRequestId: data.manpowerRequestId || '',
+            skills: appDetails.skills || [],
+            experiences: appDetails.experiences || [],
+            education: appDetails.education || []
+          });
+        } catch (err) {
+          console.error(err);
+          toast.error('Failed to load candidate details');
+        }
+      };
+      fetchCandidate();
+    }
+  }, [candidateId]);
 
   // Add a Note (interactive)
   const handleAddNote = () => {
@@ -111,9 +170,9 @@ export default function SubmittedPage({
   };
 
   const pipelineSteps = [
-    { title: "AI Screening", delay: "1-2 Days", desc: "Our AI will analyze your CV and match it with the job requirements.", icon: Sparkles, active: true, href: '/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation' },
-    { title: "HOD Review", delay: "2-3 Days", desc: "The hiring manager will review your profile and AI screening report.", icon: ClipboardList, active: false, href: '/dashboard/hiring/candidates/new/create/evaluation' },
-    { title: "Interview", delay: "3-5 Days", desc: "If shortlisted, our team will contact you for interview scheduling.", icon: MessageSquare, active: false, href: '/dashboard/hiring/candidates/new/create/round-2' },
+    { title: "AI Screening", delay: "1-2 Days", desc: "Our AI will analyze your CV and match it with the job requirements.", icon: Sparkles, active: true, href: `/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}` },
+    { title: "HOD Review", delay: "2-3 Days", desc: "The hiring manager will review your profile and AI screening report.", icon: ClipboardList, active: false, href: `/dashboard/hiring/candidates/new/create/evaluation/${candidateId}` },
+    { title: "Interview", delay: "3-5 Days", desc: "If shortlisted, our team will contact you for interview scheduling.", icon: MessageSquare, active: false, href: `/dashboard/hiring/candidates/new/create/interview-process/${candidateId}` },
     { title: "Offer", delay: "As per process", desc: "Selected candidates will receive an offer based on the discussion.", icon: Gift, active: false, href: '/dashboard/offers' },
     { title: "Onboarding", delay: "After Offer", desc: "Welcome aboard! We'll help you through the joining process.", icon: UserCheck, active: false, href: '/dashboard/onboarding' }
   ];
@@ -141,18 +200,18 @@ export default function SubmittedPage({
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
-            onClick={() => alert("Navigating to Dashboard...")}
+            onClick={() => router.push("/dashboard/hiring/candidates")}
             className="flex-1 sm:flex-none justify-center px-3 py-2 sm:py-1.5 text-xs border border-slate-300 text-slate-800 rounded-lg hover:bg-slate-50 font-bold flex items-center gap-1.5 transition-colors whitespace-nowrap"
           >
             <LayoutDashboard className="w-3.5 h-3.5" />
             <span className="hidden xs:inline sm:inline">Go to Dashboard</span>
           </button>
           <button
-            onClick={() => alert("Navigating to My Applications...")}
+            onClick={() => router.push(`/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}`)}
             className="flex-1 sm:flex-none justify-center px-3 py-2 sm:py-1.5 text-xs bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold flex items-center gap-1.5 transition-colors whitespace-nowrap"
           >
             <Briefcase className="w-3.5 h-3.5" />
-            <span>View My Applications</span>
+            <span>AI Screening</span>
           </button>
         </div>
       </header>
@@ -161,7 +220,7 @@ export default function SubmittedPage({
           2. FULL 8-STEP JOURNEY STEPPER
           ========================================================================= */}
       <section className="min-h-[46px] lg:h-[7%] bg-white border-b border-slate-100 px-3 lg:px-4 py-1.5 lg:py-0 flex items-center pt-1">
-        <div className="w-full min-w-max lg:min-w-0 flex items-center justify-between gap-1 lg:gap-0">
+        <div className="w-full min-w-max lg:min-w-0 flex items-center justify-between gap-1 lg:gap-0 overflow-visible">
           {journeySteps.map((step, idx) => (
             <React.Fragment key={step.label}>
               <div className="flex flex-col items-center gap-1 min-w-[56px] lg:min-w-[64px]">
@@ -496,7 +555,7 @@ export default function SubmittedPage({
                       </p>
                       {act.current && (
                         <button
-                          onClick={() => setCurrentView('evaluation')}
+                          onClick={() => router.push(`/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}`)}
                           className="text-[8px] text-indigo-700 hover:text-indigo-950 font-bold underline mt-1 block text-left"
                         >
                           Explore Active Screening Report →

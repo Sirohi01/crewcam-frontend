@@ -35,9 +35,9 @@ import {
 } from "lucide-react";
 
 import { FaLinkedin, FaLinkedinIn } from "react-icons/fa";
-import { CandidateInfo, PortalView, ExperienceEntry } from './types';
+import { CandidateInfo, PortalView, ExperienceEntry } from '../types';
 import ApiSelect from '@/components/common/ApiSelect';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
 
@@ -70,13 +70,7 @@ const emptyCandidate: CandidateInfo = {
   education: []
 };
 
-interface ReviewPageProps {
-  setCurrentView: (view: PortalView) => void;
-}
-
-export default function ReviewPage({
-  setCurrentView
-}: ReviewPageProps) {
+export default function ReviewPage() {
   const router = useRouter();
   // Local Data State
   const [candidate, setCandidate] = React.useState<CandidateInfo>(emptyCandidate);
@@ -84,41 +78,100 @@ export default function ReviewPage({
   const [experiences, setExperiences] = React.useState<ExperienceEntry[]>([]);
   const [resumeUrl, setResumeUrl] = React.useState('');
 
+  const params = useParams() as { id: string };
+  const candidateId = params?.id;
+
   React.useEffect(() => {
-    const data = sessionStorage.getItem('extractedCandidate');
-    if (data) {
-      try {
-        const parsed = JSON.parse(data);
-        setCandidate({ ...emptyCandidate, ...parsed });
-        if (parsed.experiences && parsed.experiences.length > 0) {
-          setExperiences(parsed.experiences);
+    if (candidateId) {
+      const fetchCandidate = async () => {
+        try {
+          let cId = candidateId;
+          // If it's a slug, find the candidate first
+          if (!/^[0-9a-fA-F]{24}$/.test(candidateId)) {
+            const res = await api.get(`/hiring/candidates?limit=1000`);
+            const candidates = res.data?.data || res.data || [];
+            const match = candidates.find((c: any) => {
+              const nameSlug = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+              return nameSlug === candidateId;
+            });
+            if (match) cId = match._id;
+            else throw new Error("Candidate not found");
+          }
+          
+          const res = await api.get(`/hiring/candidates/${cId}`);
+          const data = res.data;
+          const appDetails = data.applicationDetails || {};
+          
+          setCandidate({
+            manpowerRequestId: appDetails.manpowerRequestId || data.manpowerRequestId || '',
+            fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
+            email: data.email || '',
+          mobile: data.phone || '',
+          currentLocation: appDetails.currentLocation || '',
+          preferredLocation: appDetails.preferredLocation || '',
+          linkedin: appDetails.linkedin || '',
+          appliedFor: data.jobRole || '',
+          department: data.departmentId?._id || data.departmentId || '',
+          employmentType: appDetails.employmentType || 'Full Time',
+          totalExperience: appDetails.totalExperience || '',
+          relevantExperience: appDetails.relevantExperience || '',
+          currentCompany: appDetails.currentCompany || '',
+          currentCTC: appDetails.currentCTC || '',
+          expectedCTC: appDetails.expectedCTC || '',
+          noticePeriod: appDetails.noticePeriod || '',
+          availableFrom: appDetails.availableFrom || '',
+          relocation: appDetails.relocation || '',
+          willingToTravel: appDetails.willingToTravel || '',
+          highestQualification: appDetails.highestQualification || '',
+          university: appDetails.university || '',
+          yearOfPassing: appDetails.yearOfPassing || '',
+          cgpa: appDetails.cgpa || '',
+          skills: appDetails.skills || [],
+          experiences: appDetails.experiences || [],
+          education: appDetails.education || []
+        });
+
+        if (appDetails.experiences && appDetails.experiences.length > 0) {
+          setExperiences(appDetails.experiences);
         }
-        if (parsed.resumeUrl) setResumeUrl(parsed.resumeUrl);
-      } catch (err) { }
-    }
-  }, []);
+        if (data.resumeUrl) setResumeUrl(data.resumeUrl);
+      } catch (err) {
+        console.error(err);
+        toast.error('Failed to load candidate details');
+      }
+    };
+    fetchCandidate();
+  }
+}, [candidateId]);
 
   const handleSubmitApplication = async () => {
     try {
-      await api.post('/hiring/candidates', {
+      let cId = candidateId;
+      if (!/^[0-9a-fA-F]{24}$/.test(candidateId)) {
+        const res = await api.get(`/hiring/candidates?limit=1000`);
+        const candidates = res.data?.data || res.data || [];
+        const match = candidates.find((c: any) => `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') === candidateId);
+        if (match) cId = match._id;
+      }
+      
+      await api.put(`/hiring/candidates/${cId}`, {
         manpowerRequestId: candidate.manpowerRequestId,
         firstName: candidate.fullName.split(' ')[0] || '',
-        lastName: candidate.fullName.split(' ').slice(1).join(' ') || '.', // Fallback for required lastName
+        lastName: candidate.fullName.split(' ').slice(1).join(' ') || '.',
         email: candidate.email,
         phone: candidate.mobile,
         jobRole: candidate.appliedFor,
         departmentId: candidate.department,
-        status: 'Applied',
         resumeUrl,
         applicationDetails: {
           ...candidate,
           experiences
         }
       });
-      toast.success('Candidate successfully added!');
-      router.push('/dashboard/hiring/candidates');
+      toast.success('Candidate details saved!');
+      router.push(`/dashboard/hiring/candidates/new/create/submit-application/${candidateId}`);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to create candidate');
+      toast.error(err.response?.data?.message || 'Failed to update candidate');
     }
   };
 
@@ -126,6 +179,11 @@ export default function ReviewPage({
     { num: 1, label: 'Upload CV', status: 'completed' },
     { num: 2, label: 'Review & Edit', status: 'active' },
     { num: 3, label: 'Submit Application', status: 'pending' },
+    { num: 4, label: 'AI Screening', status: 'pending' },
+    { num: 5, label: 'HOD Review', status: 'pending' },
+    { num: 6, label: 'Interview', status: 'pending' },
+    { num: 7, label: 'Offer', status: 'pending' },
+    { num: 8, label: 'Onboarding', status: 'pending' },
   ];
 
   // Interactive UI states
@@ -136,7 +194,7 @@ export default function ReviewPage({
 
   // Auto-sync checks
   const handleInputChange = (field: keyof CandidateInfo, value: string) => {
-    setCandidate(prev => ({
+    setCandidate((prev: any) => ({
       ...prev,
       [field]: value
     }));
@@ -154,7 +212,7 @@ export default function ReviewPage({
   const handleBulletChange = (expId: string, bulletIndex: number, value: string) => {
     setExperiences(prev => prev.map(exp =>
       exp.id === expId
-        ? { ...exp, bullets: exp.bullets.map((b, i) => i === bulletIndex ? value : b) }
+        ? { ...exp, bullets: exp.bullets.map((b: string, i: number) => i === bulletIndex ? value : b) }
         : exp
     ));
     setHasUnsavedChanges(true);
@@ -169,7 +227,7 @@ export default function ReviewPage({
 
   const removeBullet = (expId: string, bulletIndex: number) => {
     setExperiences(prev => prev.map(exp =>
-      exp.id === expId ? { ...exp, bullets: exp.bullets.filter((_, i) => i !== bulletIndex) } : exp
+      exp.id === expId ? { ...exp, bullets: exp.bullets.filter((_: string, i: number) => i !== bulletIndex) } : exp
     ));
     setHasUnsavedChanges(true);
   };
@@ -209,7 +267,7 @@ export default function ReviewPage({
     setIsReextracting(true);
     setTimeout(() => {
       setIsReextracting(false);
-      setCandidate(prev => ({
+      setCandidate((prev: any) => ({
         ...prev,
         fullName: "Amit Kumar Verma",
         currentCTC: "8.50 LPA",
@@ -221,7 +279,7 @@ export default function ReviewPage({
   };
 
   const handleAcceptSuggestions = () => {
-    setCandidate(prev => ({
+    setCandidate((prev: any) => ({
       ...prev,
       fullName: "Amit Kumar Verma",
       currentCTC: "8.50 LPA",
@@ -236,17 +294,17 @@ export default function ReviewPage({
     <div className="w-full bg-slate-50 flex flex-col font-sans select-none" id="review-page-root">
       <div className="w-full mx-auto max-w-[1600px] px-2 pt-2">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-3">
-          <div className="shrink-0 w-full lg:w-[380px]">
+          <div className="shrink-0 w-full lg:w-auto">
             <h1 className="text-[17px] font-bold text-zinc-900 tracking-tight leading-tight">Review &amp; Edit Candidate</h1>
             <p className="mt-0.5 text-[11px] font-medium text-zinc-500 whitespace-nowrap">Review AI extracted details and edit if required before submitting</p>
           </div>
 
           {/* Steps */}
-          <div className="flex-1 max-w-[320px] w-full flex items-center justify-center relative mx-auto">
-            <div className="absolute left-[30px] right-[30px] top-[11px] h-[2px] bg-zinc-200 -z-0"></div>
-            <div className="flex w-full justify-between z-10">
+          <div className="flex-1 max-w-[800px] w-full flex items-center justify-center relative mx-auto overflow-visible pb-2 lg:pb-0">
+            <div className="absolute left-[30px] right-[30px] top-[11px] h-[2px] bg-zinc-200 -z-0 hidden md:block"></div>
+            <div className="flex w-full justify-between z-10 gap-4 md:gap-0">
               {steps.map((step, idx) => (
-                <div key={idx} className="relative z-10 flex flex-col items-center gap-1 px-1 bg-slate-50 lg:bg-transparent">
+                <div key={idx} className="relative z-10 flex flex-col items-center gap-1 px-1 bg-slate-50 lg:bg-transparent min-w-[60px]">
                   <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-colors
                     ${step.status === 'completed' ? 'border-indigo-100 text-indigo-600 bg-indigo-50' :
                       step.status === 'active' ? 'border-indigo-600 bg-indigo-600 text-white shadow-[0_0_0_3px_rgba(79,70,229,0.15)]' :
@@ -262,12 +320,12 @@ export default function ReviewPage({
           </div>
 
           {/* Buttons */}
-          <div className="flex items-center justify-end gap-2 shrink-0 w-full lg:w-[380px]">
+          <div className="flex items-center justify-end gap-2 shrink-0 w-full lg:w-auto mt-2 lg:mt-0">
             <button
-              onClick={handleDiscard}
+              onClick={() => router.push(`/dashboard/hiring/candidates/new/create?id=${candidateId}`)}
               className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors"
             >
-              Back
+              &larr; Back to Edit
             </button>
             <button
               onClick={handleSubmitApplication}
@@ -421,7 +479,6 @@ export default function ReviewPage({
                     <h3 className="text-xs font-bold text-indigo-950 flex items-center gap-1">
                       Personal Information
                     </h3>
-                    <button className='p-1 flex text-[10px] gap-1 text-indigo-800 items-center border border-gray-200 rounded-sm'><Pen size={10} /> Edit</button>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
@@ -749,7 +806,7 @@ export default function ReviewPage({
 
                         <div className="space-y-1 pt-0.5">
                           <label className="text-[10px] font-semibold text-indigo-950">Key Responsibilities</label>
-                          {exp.bullets.map((bullet, bulletIdx) => (
+                          {exp.bullets.map((bullet: string, bulletIdx: number) => (
                             <div key={bulletIdx} className="flex items-start gap-1">
                               <input
                                 type="text"
@@ -878,10 +935,10 @@ export default function ReviewPage({
           </div>
 
           {/* Right Column: Original CV Preview & AI Summary */}
-          <div className={`w-full lg:w-[32%] flex flex-col gap-2 overflow-visible lg:overflow-hidden transition-all duration-300 ${isMaximized ? 'fixed inset-4 z-50 bg-white shadow-2xl lg:w-auto h-auto' : 'h-auto lg:h-full'}`} id="cv-preview-and-ai-panel">
+          <div className={`w-full lg:w-[32%] flex flex-col gap-2 overflow-visible lg:overflow-visible transition-all duration-300 ${isMaximized ? 'fixed inset-4 z-50 bg-white shadow-2xl lg:w-auto h-auto' : 'h-auto lg:h-[calc(100vh-2rem)]'}`} id="cv-preview-and-ai-panel">
 
             {/* 1. Original CV Preview - rendered document (matches uploaded resume look), no live iframe */}
-            <div className={`bg-white rounded-lg border border-slate-200 overflow-hidden flex flex-col shadow-sm shrink-0 lg:shrink ${isMaximized ? 'flex-1 h-full' : 'h-[750px] lg:flex-[3]'}`} id="cv-pdf-viewer">
+            <div className={`bg-white rounded-lg border border-slate-200 overflow-hidden flex flex-col shadow-sm shrink-0 lg:shrink ${isMaximized ? 'flex-1 h-full' : 'h-[800px] lg:flex-[3]'}`} id="cv-pdf-viewer">
               {/* Toolbar */}
               <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between shrink-0">
                 <span className="text-xs font-semibold text-indigo-950">Original CV Preview</span>

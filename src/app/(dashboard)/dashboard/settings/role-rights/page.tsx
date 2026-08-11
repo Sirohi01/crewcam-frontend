@@ -64,15 +64,21 @@ export default function RoleRightsPage() {
 
   const getBasePerm = (item: SidebarItem) => {
     if (item.requiredPermission) return item.requiredPermission.replace(/_READ|_WRITE|_DELETE/g, '');
-    return item.label.toUpperCase().replace(/\s+/g, '_');
+    const sectionPrefix = (item.section || 'MAIN').toUpperCase().replace(/\s+/g, '_');
+    return `${sectionPrefix}_${item.label.toUpperCase().replace(/\s+/g, '_')}`;
   };
 
   const hasPerm = (perm: string) => localPermissions.includes(perm);
 
-  const togglePerm = (perm: string) => {
+  const togglePerm = (perm: string, isChecked: boolean) => {
     setLocalPermissions((prev) =>
-      prev.includes(perm) ? prev.filter((p) => p !== perm) : [...prev, perm]
+      isChecked ? Array.from(new Set([...prev, perm])) : prev.filter((p) => p !== perm)
     );
+  };
+
+  const isAllChecked = (basePerm: string) => {
+    const perms = [`${basePerm}_READ`, `${basePerm}_WRITE`, `${basePerm}_DELETE`];
+    return perms.every((p) => localPermissions.includes(p));
   };
 
   const handleAllToggle = (basePerm: string, isChecked: boolean) => {
@@ -82,11 +88,6 @@ export default function RoleRightsPage() {
     } else {
       setLocalPermissions((prev) => prev.filter((p) => !perms.includes(p)));
     }
-  };
-
-  const isAllChecked = (basePerm: string) => {
-    const perms = [`${basePerm}_READ`, `${basePerm}_WRITE`, `${basePerm}_DELETE`];
-    return perms.every((p) => localPermissions.includes(p));
   };
 
   const getSectionPerms = (section: string) => {
@@ -304,7 +305,7 @@ export default function RoleRightsPage() {
                                       className="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
                                       disabled={!selectedRoleId}
                                       checked={hasPerm(`${basePerm}_READ`)}
-                                      onChange={() => togglePerm(`${basePerm}_READ`)}
+                                      onChange={(e) => togglePerm(`${basePerm}_READ`, e.target.checked)}
                                     />
                                   </td>
                                   <td className="px-3 py-2 text-center">
@@ -313,7 +314,7 @@ export default function RoleRightsPage() {
                                       className="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
                                       disabled={!selectedRoleId}
                                       checked={hasPerm(`${basePerm}_WRITE`)}
-                                      onChange={() => togglePerm(`${basePerm}_WRITE`)}
+                                      onChange={(e) => togglePerm(`${basePerm}_WRITE`, e.target.checked)}
                                     />
                                   </td>
                                   <td className="px-3 py-2 text-center">
@@ -322,7 +323,7 @@ export default function RoleRightsPage() {
                                       className="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
                                       disabled={!selectedRoleId}
                                       checked={hasPerm(`${basePerm}_DELETE`)}
-                                      onChange={() => togglePerm(`${basePerm}_DELETE`)}
+                                      onChange={(e) => togglePerm(`${basePerm}_DELETE`, e.target.checked)}
                                     />
                                   </td>
                                   <td className="px-3 py-2 text-center">

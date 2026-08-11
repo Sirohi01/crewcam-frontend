@@ -26,6 +26,10 @@ export interface CandidateInfo {
   university: string; // e.g. "Amity University, Noida"
   yearOfPassing: string; // e.g. "2017"
   cgpa: string; // e.g. "7.8 CGPA"
+  manpowerRequestId?: string;
+  skills?: string[];
+  experiences?: any[];
+  education?: any[];
 }
 
 export interface Note {

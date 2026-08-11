@@ -10,8 +10,9 @@ import {
   HeartHandshake, Lightbulb, Crown, HelpCircle,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-
-// ─── Types ──────────────────────────────────────────────────────────────────
+import { useParams, useRouter } from 'next/navigation';
+import api from '@/lib/axios';
+import { toast } from 'react-hot-toast';
 type StepStatus = 'done' | 'active' | 'upcoming';
 
 interface Step {
@@ -127,7 +128,8 @@ function Stepper() {
 }
 
 // ─── Page header ────────────────────────────────────────────────────────────
-function PageHeader() {
+function PageHeader({ candidateId }: { candidateId: string }) {
+  const router = useRouter();
   const steps = [
     { num: 1, label: 'Upload CV', status: 'completed' },
     { num: 2, label: 'Review & Edit', status: 'completed' },
@@ -171,11 +173,14 @@ function PageHeader() {
 
         {/* Buttons */}
         <div className="flex items-center justify-end gap-2 shrink-0 w-full lg:w-[280px] xl:w-[340px]">
-          <button className="flex items-center justify-center h-8 px-3 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
-            <ArrowLeft className="w-3 h-3 mr-1" /> Back to Applications
+          <button onClick={() => router.push(`/dashboard/hiring/candidates/new/create/round-4/${candidateId}`)} className="flex items-center justify-center h-8 px-3 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
+            <ArrowLeft className="w-3 h-3 mr-1" /> Back to Round 4
           </button>
-          <button className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
-            End Interview <LogOut className="w-3 h-3 ml-1" />
+          <button onClick={() => {
+            window.open('/dashboard/offers', '_blank');
+            toast.success("Proceeding to Offer stage");
+          }} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
+            End & Generate Offer <LogOut className="w-3 h-3 ml-1" />
           </button>
         </div>
       </div>
@@ -625,6 +630,8 @@ function BottomActionBar() {
 // 4. Your Previous Answer / HR Competency Areas / HR Interview Guidelines are
 //    combined into a single 3-column row.
 export default function InterviewRoundPage() {
+  const params = useParams();
+  const candidateId = params.id as string;
   const [activeTab, setActiveTab] = useState<TabKey>('Interview');
   const [questionIndex, setQuestionIndex] = useState(1);
   const [answers, setAnswers] = useState<string[]>(['', '']);
@@ -650,73 +657,73 @@ export default function InterviewRoundPage() {
 
   return (
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
-        <PageHeader />
+      <PageHeader candidateId={candidateId} />
 
-        {/* Row 1: Candidate Info + Application Summary — same height */}
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-3 items-stretch">
-          <CandidateInfoCard />
-          <ApplicationSummaryCard />
-        </div>
+      {/* Row 1: Candidate Info + Application Summary — same height */}
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-3 items-stretch">
+        <CandidateInfoCard />
+        <ApplicationSummaryCard />
+      </div>
 
-        {/* Row 2 onward: main tabbed card on the left, Rounds Overview + Guidelines
+      {/* Row 2 onward: main tabbed card on the left, Rounds Overview + Guidelines
           stacked in the sidebar on the right — outside the tabbed card, matching
           the reference layout. */}
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_240px] gap-3 items-start">
-          <Card className="border-zinc-200/80 shadow-sm">
-            <CardContent className="p-0">
-              <div className="px-3.5 pt-1">
-                <TabsBar active={activeTab} onChange={setActiveTab} />
-              </div>
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_240px] gap-3 items-start">
+        <Card className="border-zinc-200/80 shadow-sm">
+          <CardContent className="p-0">
+            <div className="px-3.5 pt-1">
+              <TabsBar active={activeTab} onChange={setActiveTab} />
+            </div>
 
-              {activeTab === 'Interview' ? (
-                <div className="p-2 space-y-2">
-                  {/* Round Progress / Question / AI Assistant */}
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 items-stretch">
-                    <div className="lg:col-span-3 min-w-0 overflow-hidden">
-                      <RoundProgressPanel
-                        remainingSeconds={remainingSeconds}
-                        totalSeconds={totalSeconds}
-                        answered={answeredCount}
-                        total={QUESTIONS.length + 4}
-                      />
-                    </div>
-                    <div className="lg:col-span-6 min-w-0 overflow-hidden">
-                      <QuestionPanel
-                        index={questionIndex}
-                        total={QUESTIONS.length + 4}
-                        question={QUESTIONS[questionIndex] ?? QUESTIONS[QUESTIONS.length - 1]}
-                        answer={answers[questionIndex] ?? ''}
-                        onAnswerChange={handleAnswerChange}
-                        onPrev={() => setQuestionIndex((i) => Math.max(0, i - 1))}
-                        onNext={() => setQuestionIndex((i) => Math.min(QUESTIONS.length - 1, i + 1))}
-                      />
-                    </div>
-                    <div className="lg:col-span-3 min-w-0 overflow-hidden">
-                      <AIAssistantPanel />
-                    </div>
+            {activeTab === 'Interview' ? (
+              <div className="p-2 space-y-2">
+                {/* Round Progress / Question / AI Assistant */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 items-stretch">
+                  <div className="lg:col-span-3 min-w-0 overflow-hidden">
+                    <RoundProgressPanel
+                      remainingSeconds={remainingSeconds}
+                      totalSeconds={totalSeconds}
+                      answered={answeredCount}
+                      total={QUESTIONS.length + 4}
+                    />
+                  </div>
+                  <div className="lg:col-span-6 min-w-0 overflow-hidden">
+                    <QuestionPanel
+                      index={questionIndex}
+                      total={QUESTIONS.length + 4}
+                      question={QUESTIONS[questionIndex] ?? QUESTIONS[QUESTIONS.length - 1]}
+                      answer={answers[questionIndex] ?? ''}
+                      onAnswerChange={handleAnswerChange}
+                      onPrev={() => setQuestionIndex((i) => Math.max(0, i - 1))}
+                      onNext={() => setQuestionIndex((i) => Math.min(QUESTIONS.length - 1, i + 1))}
+                    />
+                  </div>
+                  <div className="lg:col-span-3 min-w-0 overflow-hidden">
+                    <AIAssistantPanel />
                   </div>
                 </div>
-              ) : (
-                <div className="p-8 text-center text-[13px] text-zinc-400">
-                  {activeTab} content will appear here.
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              </div>
+            ) : (
+              <div className="p-8 text-center text-[13px] text-zinc-400">
+                {activeTab} content will appear here.
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-          <div className="space-y-3">
-            <RoundsOverviewCard />
-          </div>
+        <div className="space-y-3">
+          <RoundsOverviewCard />
         </div>
-
-        {/* Previous Answer / Competency Areas / Guidelines — outside the tabbed card, full width */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-stretch">
-          <PreviousAnswerCard />
-          <CompetencyAreasCard />
-          <GuidelinesCard />
-        </div>
-
-        <BottomActionBar />
       </div>
+
+      {/* Previous Answer / Competency Areas / Guidelines — outside the tabbed card, full width */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-stretch">
+        <PreviousAnswerCard />
+        <CompetencyAreasCard />
+        <GuidelinesCard />
+      </div>
+
+      <BottomActionBar />
+    </div>
   );
 }

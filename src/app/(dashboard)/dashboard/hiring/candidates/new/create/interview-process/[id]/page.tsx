@@ -7,6 +7,9 @@ import {
   ChevronDown, CheckCircle2, Circle, Clock3,
   Check,
 } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import api from '@/lib/axios';
+import { toast } from 'react-hot-toast';
 
 // Dummy data / static mockup — matches the approved design 1:1. This is the
 // Interview-stage overview (step 6) of the same 8-step "Job Application"
@@ -32,12 +35,12 @@ const applicationSummary = [
   { label: 'AI Screening Score', value: '87%' },
 ];
 
-const rounds = [
-  { name: 'Round 1', title: 'AI Screening Interview', badge: 'Current Round', duration: '30 Mins', questionsLabel: 'AI Generated Questions', status: 'In Progress', href: '/dashboard/hiring/candidates/new/create/interview-process' },
-  { name: 'Round 2', title: 'Technical Interview', badge: 'UPCOMING', duration: '40 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending', href: '/dashboard/hiring/candidates/new/create/round-2' },
-  { name: 'Round 3', title: 'Managerial Interview', badge: 'UPCOMING', duration: '30 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending', href: '/dashboard/hiring/candidates/new/create/round-3' },
-  { name: 'Round 4', title: 'Written Assessment', badge: 'UPCOMING', duration: '45 Mins', questionsLabel: 'AI Generated Test', status: 'Pending', href: '/dashboard/hiring/candidates/new/create/round-4' },
-  { name: 'Round 5', title: 'HR Interview', badge: 'UPCOMING', duration: '25 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending', href: '/dashboard/hiring/candidates/new/create/round-5' },
+const rounds = (candidateId: string) => [
+  { name: 'Round 1', title: 'AI Screening Interview', badge: 'Current Round', duration: '30 Mins', questionsLabel: 'AI Generated Questions', status: 'In Progress', href: `/dashboard/hiring/candidates/new/create/interview-process/${candidateId}` },
+  { name: 'Round 2', title: 'Technical Interview', badge: 'UPCOMING', duration: '40 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending', href: `/dashboard/hiring/candidates/new/create/round-2/${candidateId}` },
+  { name: 'Round 3', title: 'Managerial Interview', badge: 'UPCOMING', duration: '30 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending', href: `/dashboard/hiring/candidates/new/create/round-3/${candidateId}` },
+  { name: 'Round 4', title: 'Written Assessment', badge: 'UPCOMING', duration: '45 Mins', questionsLabel: 'AI Generated Test', status: 'Pending', href: `/dashboard/hiring/candidates/new/create/round-4/${candidateId}` },
+  { name: 'Round 5', title: 'HR Interview', badge: 'UPCOMING', duration: '25 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending', href: `/dashboard/hiring/candidates/new/create/round-5/${candidateId}` },
 ];
 
 const questions = [
@@ -97,6 +100,83 @@ function Card({
 export default function InterviewProcessPage() {
   const [roundTab, setRoundTab] = useState<'questions' | 'transcript'>('questions');
   const [openQ, setOpenQ] = useState<number>(1);
+  const [candidate, setCandidate] = useState<any>(null);
+
+  const [timeLeft, setTimeLeft] = useState(30 * 60);
+  const [isInterviewEnded, setIsInterviewEnded] = useState(false);
+
+  const params = useParams() as { id: string };
+  const candidateId = params?.id;
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (timeLeft > 0 && !isInterviewEnded) {
+      const timerId = setInterval(() => setTimeLeft((t) => t - 1), 1000);
+      return () => clearInterval(timerId);
+    } else if (timeLeft === 0 && !isInterviewEnded) {
+      handleEndInterview();
+    }
+  }, [timeLeft, isInterviewEnded]);
+
+  const handleEndInterview = () => {
+    if (isInterviewEnded) return;
+    setIsInterviewEnded(true);
+    toast.success('Interview ended automatically.');
+    router.push(`/dashboard/hiring/candidates/new/create/evaluation/${candidateId}`);
+  };
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const timerPercentage = (timeLeft / (30 * 60)) * 100;
+
+  React.useEffect(() => {
+    if (candidateId) {
+      const fetchCandidate = async () => {
+        try {
+          let cId = candidateId;
+          if (!/^[0-9a-fA-F]{24}$/.test(candidateId)) {
+            const res = await api.get(`/hiring/candidates?limit=1000`);
+            const candidates = res.data?.data || res.data || [];
+            const match = candidates.find((c: any) => {
+              const nameSlug = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+              return nameSlug === candidateId;
+            });
+            if (match) cId = match._id;
+            else throw new Error("Candidate not found");
+          }
+          
+          const res = await api.get(`/hiring/candidates/${cId}`);
+          const data = res.data;
+          const appDetails = data.applicationDetails || {};
+          
+          setCandidate({
+            fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
+            email: data.email || '',
+            mobile: data.phone || '',
+            currentLocation: appDetails.currentLocation || '',
+            linkedin: appDetails.linkedin || '',
+            appliedFor: data.jobRole || '',
+            department: data.departmentId?.name || data.departmentId || '',
+            employmentType: appDetails.employmentType || 'Full Time',
+            totalExperience: appDetails.totalExperience || '',
+            expectedCTC: appDetails.expectedCTC || '',
+            noticePeriod: appDetails.noticePeriod || '',
+            resumeUrl: data.resumeUrl
+          });
+        } catch (err) {
+          console.error(err);
+          toast.error('Failed to load candidate details');
+        }
+      };
+      fetchCandidate();
+    }
+  }, [candidateId]);
+
+  if (!candidate) return <div className="p-8 text-center text-zinc-500 font-medium">Loading candidate details...</div>;
 
   return (
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
@@ -148,31 +228,30 @@ export default function InterviewProcessPage() {
             <Card className="bg-white">
               <div className="grid grid-cols-1 gap-2 lg:grid-cols-[auto_1fr_1fr]">
                 <div className="flex items-start gap-3">
-                  <span className="h-16 w-16 shrink-0 rounded-full bg-zinc-200" />
+                  <span className="h-16 w-16 shrink-0 rounded-full bg-zinc-200 overflow-hidden"><img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Candidate" className="w-full h-full object-cover" /></span>
                   <div className="min-w-0">
                     <p className="flex flex-wrap items-center gap-1.5 text-[14px] font-bold text-zinc-900">
-                      Amit Kumar Verma
+                      {candidate.fullName}
                       <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-600">Interview In Progress</span>
                     </p>
-                    <p className="text-[10.5px] text-zinc-500">Sales Manager</p>
+                    <p className="text-[10.5px] text-zinc-500">{candidate.appliedFor}</p>
                     <div className="mt-1 space-y-0.5 text-[10px] text-zinc-500">
-                      <p className="flex items-center gap-1"><Phone size={11} className="text-zinc-400" /> +91 98765 43210 <Mail size={11} className="ml-2 text-zinc-400" /> amit.verma@email.com</p>
-                      <p className="flex items-center gap-1"><MapPin size={11} className="text-zinc-400" /> Noida, Uttar Pradesh</p>
-                      <p className="flex items-center gap-1"><MapPin size={11} className="text-zinc-400" /> Noida, Uttar Pradesh</p>
-                      <p className="flex items-center gap-1"><Link2 size={11} className="text-zinc-400" /> linkedin.com/in/amitverma</p>
+                      <p className="flex items-center gap-1"><Phone size={11} className="text-zinc-400" /> {candidate.mobile} <Mail size={11} className="ml-2 text-zinc-400" /> {candidate.email}</p>
+                      <p className="flex items-center gap-1"><MapPin size={11} className="text-zinc-400" /> {candidate.currentLocation}</p>
+                      <p className="flex items-center gap-1 hover:underline cursor-pointer" onClick={() => window.open(candidate.linkedin, '_blank')}><Link2 size={11} className="text-zinc-400" /> {candidate.linkedin}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-1.5 text-[10.5px]">
-                  <div><p className="text-zinc-400">Applied For</p><p className="font-bold text-zinc-800">Sales Manager</p></div>
-                  <div><p className="text-zinc-400">Department</p><p className="font-bold text-zinc-800">Sales &amp; Marketing</p></div>
-                  <div><p className="text-zinc-400">Experience</p><p className="font-bold text-zinc-800">7 Years</p></div>
+                  <div><p className="text-zinc-400">Applied For</p><p className="font-bold text-zinc-800">{candidate.appliedFor}</p></div>
+                  <div><p className="text-zinc-400">Department</p><p className="font-bold text-zinc-800">{candidate.department}</p></div>
+                  <div><p className="text-zinc-400">Experience</p><p className="font-bold text-zinc-800">{candidate.totalExperience} Years</p></div>
                 </div>
 
                 <div className="space-y-1.5 text-[10.5px]">
-                  <div><p className="text-zinc-400">Expected CTC</p><p className="font-bold text-zinc-800">₹ 12.00 LPA</p></div>
-                  <div><p className="text-zinc-400">Notice Period</p><p className="font-bold text-zinc-800">30 Days</p></div>
+                  <div><p className="text-zinc-400">Expected CTC</p><p className="font-bold text-zinc-800">₹ {candidate.expectedCTC}</p></div>
+                  <div><p className="text-zinc-400">Notice Period</p><p className="font-bold text-zinc-800">{candidate.noticePeriod}</p></div>
                   <div><p className="text-zinc-400">Current Stage</p><p className="font-bold text-zinc-800">Interview - Round 1</p></div>
                 </div>
               </div>
@@ -197,7 +276,7 @@ export default function InterviewProcessPage() {
               <p className="mt-0.5 text-[10.5px] text-zinc-500">All rounds are AI-driven. Questions are generated based on job role, candidate profile &amp; skills.</p>
 
               <div className="mt-1.5 flex items-stretch gap-1">
-                {rounds.map((r, i) => (
+                {rounds(candidateId).map((r, i) => (
                   <React.Fragment key={r.name}>
                     <div
                       onClick={() => r.href && window.open(r.href, '_blank')}
@@ -210,7 +289,7 @@ export default function InterviewProcessPage() {
                       <p className="mt-0.5 flex items-center gap-1 truncate text-[9px] text-zinc-500"><Sparkles size={10} className="shrink-0 text-zinc-400" /> <span className="truncate">{r.questionsLabel}</span></p>
                       <p className={`mt-0.5 flex items-center gap-1 truncate text-[9px] font-medium ${i === 0 ? 'text-indigo-600' : 'text-zinc-400'}`}><Info size={10} className="shrink-0" /> <span className="truncate">{r.status}</span></p>
                     </div>
-                    {i < rounds.length - 1 && <span className="flex shrink-0 items-center text-zinc-300"><ArrowRight size={14} /></span>}
+                    {i < rounds(candidateId).length - 1 && <span className="flex shrink-0 items-center text-zinc-300"><ArrowRight size={14} /></span>}
                   </React.Fragment>
                 ))}
               </div>
@@ -232,13 +311,13 @@ export default function InterviewProcessPage() {
 
                 <div className="grid grid-cols-1 gap-2 pt-1.5 sm:grid-cols-[auto_1fr]">
                   <div className="shrink-0 text-center">
-                    <div className="relative mx-auto grid h-20 w-20 place-items-center rounded-full" style={{ background: 'conic-gradient(#22c55e 82%, #e5e7eb 0)' }}>
-                      <div className="grid h-16 w-16 place-items-center rounded-full bg-white text-center">
-                        <p className="text-[14px] font-bold text-zinc-900">24:35</p>
-                        <p className="text-[8px] text-zinc-400">of 30:00</p>
+                    <div className="relative mx-auto grid h-20 w-20 place-items-center rounded-full" style={{ background: `conic-gradient(#22c55e ${timerPercentage}%, #e5e7eb 0)` }}>
+                      <div className="flex flex-col items-center justify-center h-16 w-16 rounded-full bg-white text-center">
+                        <p className={`text-[14px] leading-none font-bold ${timeLeft < 60 ? 'text-rose-600' : 'text-zinc-900'}`}>{formatTime(timeLeft)}</p>
+                        <p className="text-[8px] leading-none mt-1 text-zinc-400">of 30:00</p>
                       </div>
                     </div>
-                    <button type="button" className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-zinc-700 hover:bg-zinc-50">
+                    <button type="button" onClick={handleEndInterview} className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors hover:text-rose-600 hover:border-rose-200">
                       End Interview
                     </button>
                   </div>

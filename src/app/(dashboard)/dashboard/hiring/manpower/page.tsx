@@ -198,53 +198,54 @@ function RequisitionsTable({ rows, onToggleStar, onDelete }: { rows: any[]; onTo
           {rows.map((r) => {
             const shortId = (r._id || r.id || '').substring(0, 8).toUpperCase();
             return (
-            <tr key={r._id || r.id} className="border-b border-zinc-200 last:border-b-0 hover:bg-zinc-50/70 transition-colors">
-              <td className="py-1.5 pl-1 text-center">
-                <button onClick={() => onToggleStar(r._id || r.id)} className="text-zinc-300 hover:text-amber-400 transition-colors">
-                  <Star size={14} fill={r.starred ? 'currentColor' : 'none'} className={r.starred ? 'text-amber-400' : ''} />
-                </button>
-              </td>
-              <td className="py-1.5 px-3 text-center text-[10px] font-semibold text-violet-700 whitespace-nowrap">{shortId}</td>
-              <td className="py-1.5 px-3 text-center whitespace-nowrap">
-                <p className="text-[10px] font-semibold text-zinc-900 leading-tight">{r.jobTitle}</p>
-                <p className="text-[10px] text-zinc-400 leading-tight">{r.employmentType}</p>
-              </td>
-              <td className="py-1.5 px-3 text-center text-[10px] text-zinc-600 whitespace-nowrap">{r.departmentId?.name || r.department || 'N/A'}</td>
-              <td className="py-1.5 px-3 text-center text-[10px] text-zinc-600 whitespace-nowrap">{r.locationBranchId?.name || r.location || 'N/A'}</td>
-              <td className="py-1.5 px-3">
-                <div className="flex items-center justify-center gap-2">
-                  <img
+              <tr key={r._id || r.id} className="border-b border-zinc-200 last:border-b-0 hover:bg-zinc-50/70 transition-colors">
+                <td className="py-1.5 pl-1 text-center">
+                  <button onClick={() => onToggleStar(r._id || r.id)} className="text-zinc-300 hover:text-amber-400 transition-colors">
+                    <Star size={14} fill={r.starred ? 'currentColor' : 'none'} className={r.starred ? 'text-amber-400' : ''} />
+                  </button>
+                </td>
+                <td className="py-1.5 px-3 text-center text-[10px] font-semibold text-violet-700 whitespace-nowrap">{shortId}</td>
+                <td className="py-1.5 px-3 text-center whitespace-nowrap">
+                  <p className="text-[10px] font-semibold text-zinc-900 leading-tight">{r.jobTitle}</p>
+                  <p className="text-[10px] text-zinc-400 leading-tight">{r.employmentType}</p>
+                </td>
+                <td className="py-1.5 px-3 text-center text-[10px] text-zinc-600 whitespace-nowrap">{r.departmentId?.name || r.department || 'N/A'}</td>
+                <td className="py-1.5 px-3 text-center text-[10px] text-zinc-600 whitespace-nowrap">{r.locationBranchId?.name || r.location || 'N/A'}</td>
+                <td className="py-1.5 px-3">
+                  <div className="flex items-center text-center justify-center gap-2">
+                    {/* <img
                     src={`https://ui-avatars.com/api/?name=${r.requestedBy?.firstName || 'User'}+${r.requestedBy?.lastName || ''}&background=random`}
                     alt="avatar"
                     className="w-7 h-7 rounded-full object-cover border border-zinc-100 shrink-0"
-                  />
-                  <div className="text-left whitespace-nowrap">
-                    <p className="text-[10px] font-semibold text-zinc-900 leading-tight">{r.requestedBy?.firstName} {r.requestedBy?.lastName}</p>
-                    <p className="text-[10px] text-zinc-400 leading-tight">{r.designation || 'N/A'}</p>
+                  /> */}
+                    <div className="text-center whitespace-nowrap">
+                      <p className="text-[10px] font-semibold text-zinc-900 leading-tight">{r.requestedBy?.firstName} {r.requestedBy?.lastName}</p>
+                      <p className="text-[10px] text-zinc-400 leading-tight">{r.designation || 'N/A'}</p>
+                    </div>
                   </div>
-                </div>
-              </td>
-              <td className="py-1.5 px-3 text-center text-[10px] font-semibold text-zinc-800">{r.numberOfPositions || r.positions}</td>
-              <td className="py-1.5 px-3 text-center"><PriorityBadge priority={r.priority} /></td>
-              <td className="py-1.5 px-3 text-center"><StatusBadge status={r.status} /></td>
-              <td className="py-1.5 px-3 text-center text-[10px] text-zinc-500 whitespace-nowrap">
-                {new Date(r.requestDate || r.createdAt || r.requestedOn || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-              </td>
-              <td className="py-1.5 pr-1">
-                <div className="flex items-center justify-center gap-1">
-                  <Link href={`/dashboard/hiring/manpower/${r._id || r.id}`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
-                    <Eye size={13} />
-                  </Link>
-                  <Link href={`/dashboard/hiring/manpower/${r._id || r.id}/edit`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
-                    <Pencil size={13} />
-                  </Link>
-                  <button onClick={() => { if(confirm('Are you sure you want to delete this requisition?')) onDelete(r._id || r.id); }} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-rose-200 hover:text-rose-600 transition-colors">
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          )})}
+                </td>
+                <td className="py-1.5 px-3 text-center text-[10px] font-semibold text-zinc-800">{r.numberOfPositions || r.positions}</td>
+                <td className="py-1.5 px-3 text-center"><PriorityBadge priority={r.priority} /></td>
+                <td className="py-1.5 px-3 text-center"><StatusBadge status={r.status} /></td>
+                <td className="py-1.5 px-3 text-center text-[10px] text-zinc-500 whitespace-nowrap">
+                  {new Date(r.requestDate || r.createdAt || r.requestedOn || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </td>
+                <td className="py-1.5 pr-1">
+                  <div className="flex items-center justify-center gap-1">
+                    <Link href={`/dashboard/hiring/manpower/${r._id || r.id}`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
+                      <Eye size={13} />
+                    </Link>
+                    <Link href={`/dashboard/hiring/manpower/${r._id || r.id}/edit`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
+                      <Pencil size={13} />
+                    </Link>
+                    <button onClick={() => { if (confirm('Are you sure you want to delete this requisition?')) onDelete(r._id || r.id); }} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-rose-200 hover:text-rose-600 transition-colors">
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>

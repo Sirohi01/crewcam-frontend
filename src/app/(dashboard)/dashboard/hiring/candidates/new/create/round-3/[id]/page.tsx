@@ -7,6 +7,9 @@ import {
   FileQuestion, Bold, Italic, Underline, List, ListOrdered, Code,
   ThumbsUp, Flag, StopCircle, User, Sparkles
 } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import api from '@/lib/axios';
+import { toast } from 'react-hot-toast';
 
 const DUMMY_QUESTIONS = [
   { category: 'Time Management', text: 'How do you prioritize multiple tasks when working under tight deadlines?', insight: 'This evaluates your ability to manage stress and organize tasks efficiently.' },
@@ -20,6 +23,56 @@ const DUMMY_QUESTIONS = [
 ];
 
 export default function InterviewUI() {
+  const [candidate, setCandidate] = React.useState<any>(null);
+
+  const params = useParams() as { id: string };
+  const candidateId = params?.id;
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (candidateId) {
+      const fetchCandidate = async () => {
+        try {
+          let cId = candidateId;
+          if (!/^[0-9a-fA-F]{24}$/.test(candidateId)) {
+            const res = await api.get(`/hiring/candidates?limit=1000`);
+            const candidates = res.data?.data || res.data || [];
+            const match = candidates.find((c: any) => {
+              const nameSlug = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+              return nameSlug === candidateId;
+            });
+            if (match) cId = match._id;
+            else throw new Error("Candidate not found");
+          }
+
+          const res = await api.get(`/hiring/candidates/${cId}`);
+          const data = res.data;
+          const appDetails = data.applicationDetails || {};
+
+          setCandidate({
+            fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
+            email: data.email || '',
+            mobile: data.phone || '',
+            currentLocation: appDetails.currentLocation || '',
+            linkedin: appDetails.linkedin || '',
+            appliedFor: data.jobRole || '',
+            department: data.departmentId?.name || data.departmentId || '',
+            employmentType: appDetails.employmentType || 'Full Time',
+            totalExperience: appDetails.totalExperience || '',
+            expectedCTC: appDetails.expectedCTC || '',
+            noticePeriod: appDetails.noticePeriod || '',
+            resumeUrl: data.resumeUrl
+          });
+        } catch (err) {
+          console.error(err);
+          toast.error('Failed to load candidate details');
+        }
+      };
+      fetchCandidate();
+    }
+  }, [candidateId]);
+
+  if (!candidate) return <div className="p-8 text-center text-zinc-500 font-medium">Loading candidate details...</div>;
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(1);
   const [answers, setAnswers] = useState<string[]>(Array(DUMMY_QUESTIONS.length).fill(''));
 
@@ -94,13 +147,12 @@ export default function InterviewUI() {
           </div>
         </div>
 
-        {/* Buttons */}
         <div className="flex items-center justify-end gap-2 shrink-0 w-full lg:w-[280px] xl:w-[340px]">
-          <button className="flex items-center justify-center h-8 px-3 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
-            <ArrowLeft className="w-3 h-3 mr-1" /> Back to Applications
+          <button onClick={() => router.push(`/dashboard/hiring/candidates/new/create/round-2/${candidateId}`)} className="flex items-center justify-center h-8 px-3 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
+            <ArrowLeft className="w-3 h-3 mr-1" /> Back to Round 2
           </button>
-          <button className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
-            End Interview <StopCircle className="w-3 h-3 ml-1" />
+          <button onClick={() => window.open(`/dashboard/hiring/candidates/new/create/round-4/${candidateId}`, '_blank')} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
+            End & Next Round <StopCircle className="w-3 h-3 ml-1" />
           </button>
         </div>
       </div>
@@ -111,22 +163,22 @@ export default function InterviewUI() {
         {/* Profile Card */}
         <div className="xl:col-span-2 p-4 bg-white rounded-xl border border-zinc-200 shadow-sm">
           <div className="flex flex-col md:flex-row items-start gap-5 w-full">
-            <img src="https://i.pravatar.cc/150?u=amit" alt="Amit" className="h-20 w-20 rounded-lg object-cover border border-zinc-200 shadow-sm shrink-0" />
+            <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Candidate" className="h-20 w-20 rounded-lg object-cover border border-zinc-200 shadow-sm shrink-0" />
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
               {/* Col 1 */}
               <div className="flex flex-col gap-2">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-[15px] font-bold text-zinc-900">Amit Kumar Verma</h2>
+                    <h2 className="text-[15px] font-bold text-zinc-900">{candidate.fullName}</h2>
                     <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">Round 3 In Progress</span>
                   </div>
-                  <p className="text-[11px] text-zinc-500 font-medium">Sales Manager</p>
+                  <p className="text-[11px] text-zinc-500 font-medium">{candidate.appliedFor}</p>
                 </div>
                 <div className="flex flex-col gap-1.5 text-[10px] text-zinc-600 mt-1">
-                  <span className="flex items-center gap-1.5"><Phone size={12} className="text-zinc-400" /> +91 98765 43210</span>
-                  <span className="flex items-center gap-1.5"><Mail size={12} className="text-zinc-400" /> amit.verma@email.com</span>
-                  <span className="flex items-center gap-1.5"><MapPin size={12} className="text-zinc-400" /> Noida, Uttar Pradesh</span>
-                  <span className="flex items-center gap-1.5"><Link2 size={12} className="text-zinc-400" /> linkedin.com/in/amitverma</span>
+                  <span className="flex items-center gap-1.5"><Phone size={12} className="text-zinc-400" /> {candidate.mobile}</span>
+                  <span className="flex items-center gap-1.5"><Mail size={12} className="text-zinc-400" /> {candidate.email}</span>
+                  <span className="flex items-center gap-1.5"><MapPin size={12} className="text-zinc-400" /> {candidate.currentLocation}</span>
+                  <span className="flex items-center gap-1.5 hover:underline cursor-pointer" onClick={() => window.open(candidate.linkedin, '_blank')}><Link2 size={12} className="text-zinc-400" /> {candidate.linkedin}</span>
                 </div>
               </div>
 
@@ -134,15 +186,15 @@ export default function InterviewUI() {
               <div className="flex flex-col gap-3 border-l border-zinc-200 pl-4">
                 <div>
                   <p className="text-[10px] text-zinc-500 font-medium mb-0.5">Applied For</p>
-                  <p className="text-[11px] font-bold text-zinc-900">Sales Manager</p>
+                  <p className="text-[11px] font-bold text-zinc-900">{candidate.appliedFor}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-zinc-500 font-medium mb-0.5">Department</p>
-                  <p className="text-[11px] font-bold text-zinc-900">Sales & Marketing</p>
+                  <p className="text-[11px] font-bold text-zinc-900">{candidate.department}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-zinc-500 font-medium mb-0.5">Experience</p>
-                  <p className="text-[11px] font-bold text-zinc-900">-</p>
+                  <p className="text-[11px] font-bold text-zinc-900">{candidate.totalExperience} Years</p>
                 </div>
               </div>
 
@@ -176,7 +228,7 @@ export default function InterviewUI() {
           <div className="flex flex-col gap-3 text-[11px]">
             <div className="flex items-center justify-between">
               <span className="text-zinc-600 flex items-center gap-1.5"><FileText size={12} className="text-indigo-600" /> Application ID</span>
-              <span className="font-bold text-zinc-900">APP-2026-000124</span>
+              <span className="font-bold text-zinc-900">APP-{candidateId?.slice(-6).toUpperCase() || '100124'}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-zinc-600 flex items-center gap-1.5"><Clock size={12} className="text-indigo-600" /> Applied On</span>
