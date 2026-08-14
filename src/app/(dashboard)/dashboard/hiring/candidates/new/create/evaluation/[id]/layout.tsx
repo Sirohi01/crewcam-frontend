@@ -3,17 +3,12 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  ArrowLeft, CheckCircle2, MapPin, Phone, Mail, Link as LinkIcon,
-  ThumbsUp, ThumbsDown, MinusSquare, X, Plus, Star, Check, AlertCircle, Circle, User, ClipboardList, Clock,
-  Sparkles
-} from 'lucide-react';
+import { ArrowLeft, CheckCircle2, MapPin, Phone, Mail, Link as LinkIcon, ThumbsUp, ThumbsDown, MinusSquare, X, Plus, Star, Check, AlertCircle, Circle, User, ClipboardList, Clock, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { FaWindowRestore } from 'react-icons/fa';
 import { useParams, useRouter, usePathname } from 'next/navigation';
 import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
-
 
 
 export const CandidateContext = React.createContext<any>(null);
@@ -91,7 +86,7 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
 
       {/* HEADER & HORIZONTAL STEP INDICATOR */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-3">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-start gap-3 lg:gap-8 mb-3">
 
         {/* Title */}
         <div className="shrink-0">
@@ -100,17 +95,17 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
         </div>
 
         {/* Steps */}
-        <div className="flex-1 max-w-[600px] w-full flex items-start justify-between relative px-1 lg:px-2 mx-auto">
-          <div className="absolute left-[20px] lg:left-[24px] right-[20px] lg:right-[24px] top-[11px] h-[2px] bg-zinc-200 -z-0"></div>
+        <div className="flex-1 max-w-[480px] w-full flex items-start justify-between relative px-1">
+          <div className="absolute left-[16px] right-[16px] top-[9px] h-[2px] bg-zinc-200 -z-0"></div>
           {steps.map((step, idx) => (
-            <div key={idx} className="relative z-10 flex flex-col items-center gap-1 px-1">
-              <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-colors
+            <div key={idx} className="relative z-10 flex flex-col items-center gap-1 px-0.5">
+              <div className={`w-[20px] h-[20px] rounded-full flex items-center justify-center text-[9px] font-bold border-2 transition-colors
                 ${step.status === 'completed' ? 'border-indigo-100 text-indigo-600 bg-indigo-50' :
                   step.status === 'active' ? 'border-indigo-600 bg-indigo-600 text-white shadow-[0_0_0_3px_rgba(79,70,229,0.15)]' :
                     'border-zinc-200 text-zinc-400 bg-white'}`}>
-                {step.status === 'completed' ? <Check className="w-3 h-3" strokeWidth={3} /> : step.num}
+                {step.status === 'completed' ? <Check className="w-2.5 h-2.5" strokeWidth={3} /> : step.num}
               </div>
-              <span className={`text-[8.5px] lg:text-[9px] whitespace-nowrap font-bold ${step.status === 'active' ? 'text-indigo-900' : step.status === 'completed' ? 'text-indigo-600' : 'text-zinc-400'}`}>
+              <span className={`text-[8px] lg:text-[8.5px] whitespace-nowrap font-bold ${step.status === 'active' ? 'text-indigo-900' : step.status === 'completed' ? 'text-indigo-600' : 'text-zinc-400'}`}>
                 {step.label}
               </span>
             </div>
@@ -118,12 +113,12 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
         </div>
 
         {/* Buttons */}
-        <div className="flex items-center gap-2 shrink-0">
-          <Button variant="outline" onClick={() => router.push(`/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}`)} className="h-8 px-3 text-[11px] font-semibold text-indigo-700 border-indigo-200 hover:bg-indigo-50 shadow-sm">
-            <ArrowLeft className="w-3 h-3 mr-1" /> Back to AI Screening
+        <div className="flex items-center gap-1.5 shrink-0 flex-wrap sm:flex-nowrap mt-1 lg:mt-0">
+          <Button variant="outline" onClick={() => router.push(`/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}`)} className="h-7 lg:h-8 px-1 lg:px-1 text-[10px] font-semibold text-indigo-700 border-indigo-200 hover:bg-indigo-50 shadow-sm">
+            Back <span className="hidden sm:inline">&nbsp;to AI Screening</span>
           </Button>
-          <Button onClick={() => window.open(`/dashboard/hiring/candidates/new/create/interview-process/${candidateId}`, '_blank')} className="h-8 px-4 text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
-            Next: Interview &rarr;
+          <Button onClick={() => window.open(`/dashboard/hiring/candidates/new/create/interview-process/${candidateId}`, '_blank')} className="h-7 lg:h-8 px-1 lg:px-1 text-[10px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
+            Next: Interview
           </Button>
         </div>
       </div>
@@ -171,29 +166,29 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
 
                 {/* Right: Job Details */}
                 <div className="flex-1 grid grid-cols-2 gap-y-2 gap-x-4 content-center xl:pl-2">
-                  <div>
-                    <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide">Applied For</p>
-                    <p className="text-[13px] font-bold text-zinc-900">{candidate.appliedFor}</p>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide truncate">Applied For</p>
+                    <p className="text-[12px] font-semibold text-zinc-900 truncate" title={candidate.appliedFor}>{candidate.appliedFor}</p>
                   </div>
-                  <div>
-                    <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide">Experience</p>
-                    <p className="text-[13px] font-bold text-zinc-900">{candidate.totalExperience} Years</p>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide truncate">Experience</p>
+                    <p className="text-[12px] font-semibold text-zinc-900 truncate">{candidate.totalExperience} Years</p>
                   </div>
-                  <div>
-                    <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide">Department</p>
-                    <p className="text-[13px] font-bold text-zinc-900">{candidate.department}</p>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide truncate">Department</p>
+                    <p className="text-[12px] font-semibold text-zinc-900 truncate" title={candidate.department}>{candidate.department}</p>
                   </div>
-                  <div>
-                    <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide">Expected CTC</p>
-                    <p className="text-[13px] font-bold text-zinc-900">₹ {candidate.expectedCTC}</p>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide truncate">Expected CTC</p>
+                    <p className="text-[12px] font-semibold text-zinc-900 truncate">₹ {candidate.expectedCTC}</p>
                   </div>
-                  <div>
-                    <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide">Employment Type</p>
-                    <p className="text-[13px] font-bold text-zinc-900">{candidate.employmentType}</p>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide truncate">Employment Type</p>
+                    <p className="text-[12px] font-semibold text-zinc-900 truncate">{candidate.employmentType}</p>
                   </div>
-                  <div>
-                    <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide">Notice Period</p>
-                    <p className="text-[13px] font-bold text-zinc-900">{candidate.noticePeriod}</p>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide truncate">Notice Period</p>
+                    <p className="text-[12px] font-semibold text-zinc-900 truncate">{candidate.noticePeriod}</p>
                   </div>
                 </div>
               </div>
@@ -240,7 +235,7 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
             <CardHeader className="px-4 py-3.5 border-b border-zinc-100 bg-zinc-50/50 rounded-t-xl shrink-0">
               <CardTitle className="text-[13px] font-bold text-zinc-900">Application Summary</CardTitle>
             </CardHeader>
-            <CardContent className="p-4 flex-1 flex flex-col justify-center">
+            <CardContent className="p-3 flex-1 flex flex-col justify-center">
               <div className="space-y-2">
                 {[
                   { label: 'Application ID', val: 'APP-2026-000124', icon: <ClipboardList className="w-3.5 h-3.5" /> },

@@ -1,17 +1,108 @@
 'use client';
 
-import React from 'react';
-import {
-  ArrowLeft, Square, Phone, Mail, MapPin, Link2, ExternalLink,
-  CheckCircle2, Clock, Check, Info, FileText, Share2, HelpCircle,
-  FileQuestion, Bold, Italic, Underline, List, ListOrdered, Code,
-  ThumbsUp, Flag, StopCircle, User, Sparkles
-} from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import Link from 'next/link';
+import { Mail, Phone, MapPin, Link2, ArrowRight, ArrowLeft, Flag, CheckCircle2, Lightbulb, Save, Send, ClipboardCheck, Wifi, AlertTriangle, XCircle, Circle, Trophy, ClipboardList, } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
 
-export default function InterviewUI() {
+import questionTemplatesData from '../../assessment/questions.json';
+const pipelineSteps = ['Upload CV', 'Review & Edit', 'Submit Application', 'AI Screening', 'HOD Review', 'Interview', 'Offer', 'Onboarding'];
+const currentStepIndex = 5;
+
+const tabs = ['Written Assessment', 'Instructions', 'Questions', 'Submit Test', 'Result'] as const;
+type TabName = typeof tabs[number];
+
+const applicationSummary = [
+  { label: 'Application ID', value: 'APP-2026-000124' },
+  { label: 'Applied On', value: '15 June 2026, 11:32 AM' },
+  { label: 'Current Stage', value: 'Interview – Round 4' },
+  { label: 'AI Screening Score', value: '87%' },
+];
+
+const assessmentOverview = [
+  { label: 'Assessment Type', value: 'Role Based Written Test' },
+  { label: 'Total Questions', value: '40' },
+  { label: 'Total Marks', value: '100' },
+  { label: 'Duration', value: '60 Minutes' },
+  { label: 'Passing Marks', value: '60%' },
+  { label: 'Negative Marking', value: 'No' },
+];
+
+const assistantChecklist = ['Concept understanding', 'Role fitment', 'Clarity of thinking', 'Decision making', 'Problem solving ability', 'Communication in writing'];
+
+const testTips = [
+  'Read each question carefully.',
+  'Manage your time effectively.',
+  'Choose the best and most practical answer.',
+  'Review marked questions before submitting.',
+];
+
+const instructions = [
+  { icon: ClipboardCheck, text: 'The test contains 40 multiple choice questions.' },
+  { icon: ClipboardCheck, text: 'Each question carries equal marks.' },
+  { icon: Flag, text: 'You can mark questions for review and revisit later.' },
+  { icon: Wifi, text: 'Ensure stable internet connection during the test.' },
+  { icon: AlertTriangle, text: 'Plagiarism or malpractice will lead to disqualification.' },
+];
+
+type QuestionOption = { key: string; text: string };
+type Question = {
+  id: number;
+  category: string;
+  scenario: string;
+  prompt: string;
+  subPrompt?: string;
+  options: QuestionOption[];
+  correctAnswer: string;
+};
+
+// Cast the imported JSON to the expected shape.
+const QUESTION_TEMPLATES = questionTemplatesData as Omit<Question, 'id'>[];
+
+function generateQuestions(): Question[] {
+  const total = 40;
+  return Array.from({ length: total }, (_, i) => {
+    const template = QUESTION_TEMPLATES[i % QUESTION_TEMPLATES.length];
+    return { id: i + 1, ...template };
+  });
+}
+
+const questions = generateQuestions();
+
+type QState = 'answered' | 'visited' | 'current' | 'not-visited' | 'marked';
+
+function Card({
+  title, action, children, className = '',
+}: { title?: React.ReactNode; action?: React.ReactNode; children?: React.ReactNode; className?: string }) {
+  return (
+    <div className={`rounded-xl border border-zinc-200 bg-white shadow-sm ${className}`}>
+      {title && (
+        <div className="flex items-center justify-between gap-2 border-b border-zinc-100 px-3 py-2">
+          <h3 className="text-[12.5px] font-bold text-zinc-800">{title}</h3>
+          {action}
+        </div>
+      )}
+      <div className="px-3 pb-2.5 pt-2">{children}</div>
+    </div>
+  );
+}
+
+
+function paletteClasses(state: QState) {
+  return state === 'current'
+    ? 'bg-indigo-600 text-white'
+    : state === 'marked'
+      ? 'bg-amber-500 text-white'
+      : state === 'answered'
+        ? 'bg-emerald-500 text-white'
+        : state === 'visited'
+          ? 'border border-blue-300 bg-blue-50 text-blue-600'
+          : 'border border-zinc-200 bg-white text-zinc-500';
+}
+
+export default function AssessmentRoundPage() {
   const [candidate, setCandidate] = React.useState<any>(null);
 
   const params = useParams() as { id: string };
@@ -33,11 +124,11 @@ export default function InterviewUI() {
             if (match) cId = match._id;
             else throw new Error("Candidate not found");
           }
-          
+
           const res = await api.get(`/hiring/candidates/${cId}`);
           const data = res.data;
           const appDetails = data.applicationDetails || {};
-          
+
           setCandidate({
             fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
             email: data.email || '',
@@ -61,417 +152,623 @@ export default function InterviewUI() {
     }
   }, [candidateId]);
 
+  // Seed with the same starting scenario as the original mock:
+  // question 1 & 2 already answered, question 3 is current.
+  const [activeTab, setActiveTab] = useState<TabName>('Written Assessment');
+  const [currentQuestion, setCurrentQuestion] = useState<number>(3);
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({ 1: 'B', 2: 'C', 3: 'C' });
+  const [visited, setVisited] = useState<Set<number>>(new Set([1, 2, 3]));
+  const [marked, setMarked] = useState<Set<number>>(new Set());
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+
+  const totalQuestions = questions.length;
+  const attempted = Object.keys(selectedAnswers).length;
+  const remaining = totalQuestions - attempted;
+  const markedCount = marked.size;
+  const progressPct = Math.round((attempted / totalQuestions) * 100);
+
+  const activeQuestion = useMemo(
+    () => questions.find((q) => q.id === currentQuestion)!,
+    [currentQuestion],);
+
+  const goToQuestion = (n: number) => {
+    if (n < 1 || n > totalQuestions) return;
+    setCurrentQuestion(n);
+    setVisited((prev) => {
+      const next = new Set(prev);
+      next.add(n);
+      return next;
+    });
+    setActiveTab('Written Assessment');
+  };
+
+  const handlePrevious = () => goToQuestion(currentQuestion - 1);
+  const handleNext = () => goToQuestion(currentQuestion + 1);
+
+  const handleSelectOption = (questionId: number, optionKey: string) => {
+    setSelectedAnswers((prev) => ({ ...prev, [questionId]: optionKey }));
+    setVisited((prev) => {
+      const next = new Set(prev);
+      next.add(questionId);
+      return next;
+    });
+  };
+
+  const toggleMarkForReview = (questionId: number = currentQuestion) => {
+    setMarked((prev) => {
+      const next = new Set(prev);
+      if (next.has(questionId)) {
+        next.delete(questionId);
+      } else {
+        next.add(questionId);
+      }
+      return next;
+    });
+  };
+
+  const getQuestionState = (n: number): QState => {
+    if (n === currentQuestion && activeTab === 'Written Assessment') return 'current';
+    if (marked.has(n)) return 'marked';
+    if (selectedAnswers[n]) return 'answered';
+    if (visited.has(n)) return 'visited';
+    return 'not-visited';
+  };
+
+  const isMarkedCurrent = marked.has(currentQuestion);
+
+  const handleSubmitTest = () => {
+    setIsSubmitted(true);
+    setActiveTab('Result');
+  };
+
+  // Result calculations
+  const correctCount = questions.filter((q) => selectedAnswers[q.id] === q.correctAnswer).length;
+  const incorrectCount = attempted - correctCount;
+  const unattemptedCount = totalQuestions - attempted;
+  const scorePct = Math.round((correctCount / totalQuestions) * 100);
+  const marksObtained = correctCount * (100 / totalQuestions);
+  const isPass = scorePct >= 60;
+
   if (!candidate) return <div className="p-8 text-center text-zinc-500 font-medium">Loading candidate details...</div>;
+
   return (
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
-      <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
-
-        {/* HEADER & HORIZONTAL STEP INDICATOR */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-3">
-          {/* Title */}
-          <div className="shrink-0 w-full lg:w-[280px] xl:w-[340px]">
-            <h1 className="text-[17px] font-bold text-zinc-900 tracking-tight leading-tight">Interview &ndash; Round 4</h1>
-            <p className="text-[11px] font-medium text-zinc-500 mt-0.5">Written Assessment – AI Powered</p>
-          </div>
-
-          {/* Steps */}
-          <div className="flex-1 max-w-[550px] xl:max-w-[600px] w-full flex items-center justify-center relative mx-auto">
-            <div className="absolute left-[30px] right-[30px] top-[11px] h-[2px] bg-zinc-200 -z-0"></div>
-            <div className="flex w-full justify-between z-10">
-              {[
-                { num: 1, label: 'Upload CV', status: 'completed' },
-                { num: 2, label: 'Review & Edit', status: 'completed' },
-                { num: 3, label: 'Submit Application', status: 'completed' },
-                { num: 4, label: 'AI Screening', status: 'completed' },
-                { num: 5, label: 'HOD Review', status: 'completed' },
-                { num: 6, label: 'Interview', status: 'active' },
-                { num: 7, label: 'Offer', status: 'pending' },
-                { num: 8, label: 'Onboarding', status: 'pending' },
-              ].map((step, idx) => (
-                <div key={idx} className="relative z-10 flex flex-col items-center gap-1 px-1 bg-slate-50 lg:bg-transparent">
-                  <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-colors
-                    ${step.status === 'completed' ? 'border-indigo-100 text-indigo-600 bg-indigo-50' :
-                      step.status === 'active' ? 'border-indigo-600 bg-indigo-600 text-white shadow-[0_0_0_3px_rgba(79,70,229,0.15)]' :
-                        'border-zinc-200 text-zinc-400 bg-white'}`}>
-                    {step.status === 'completed' ? <Check className="w-3 h-3" strokeWidth={3} /> : step.num}
-                  </div>
-                  <span className={`text-[8.5px] lg:text-[9px] whitespace-nowrap font-bold ${step.status === 'active' ? 'text-indigo-900' : step.status === 'completed' ? 'text-indigo-600' : 'text-zinc-400'}`}>
-                    {step.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Buttons */}
-          <div className="flex items-center justify-end gap-2 shrink-0 w-full lg:w-[280px] xl:w-[340px]">
-            <button onClick={() => router.push(`/dashboard/hiring/candidates/new/create/round-3/${candidateId}`)} className="flex items-center justify-center h-8 px-3 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
-              <ArrowLeft className="w-3 h-3 mr-1" /> Back to Round 3
-            </button>
-            <button onClick={() => window.open(`/dashboard/hiring/candidates/new/create/round-5/${candidateId}`, '_blank')} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
-              End & Next Round <StopCircle className="w-3 h-3 ml-1" />
-            </button>
-          </div>
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold text-zinc-900">Interview – Round 4</h1>
+          <p className="mt-0.5 text-[10.5px] text-zinc-500">Written Assessment – AI Powered</p>
         </div>
-        <div className="h-[1px] bg-zinc-200 w-full mb-2 shrink-0"></div>
 
-        {/* Top Cards Section */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-          {/* Profile Card */}
-          <div className="xl:col-span-2 p-4 bg-white rounded-xl border border-zinc-200 shadow-sm">
-            <div className="flex flex-col md:flex-row items-start gap-5 w-full">
-              <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Candidate" className="h-20 w-20 rounded-lg object-cover border border-zinc-200 shadow-sm shrink-0" />
-              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
-                {/* Col 1 */}
-                <div className="flex flex-col gap-2">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-[15px] font-bold text-zinc-900">{candidate.fullName}</h2>
-                      <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">Round 4 In Progress</span>
-                    </div>
-                    <p className="text-[11px] text-zinc-500 font-medium">{candidate.appliedFor}</p>
+        <div className="flex items-center gap-1.5">
+          {pipelineSteps.map((s, i) => (
+            <React.Fragment key={s}>
+              {i > 0 && <span className="h-px w-5 bg-zinc-200" />}
+              <div className="flex flex-col items-center gap-1">
+                <span className={`grid h-6 w-6 place-items-center rounded-full text-[10px] font-bold ${i === currentStepIndex ? 'bg-indigo-600 text-white' : 'border border-zinc-200 bg-white text-zinc-400'}`}>
+                  {i + 1}
+                </span>
+                <span className={`whitespace-nowrap text-[8.5px] font-semibold ${i === currentStepIndex ? 'text-zinc-800' : 'text-zinc-400'}`}>{s}</span>
+              </div>
+            </React.Fragment>
+          ))}
+        </div>
+
+        <div className="flex gap-2">
+          <Link href="/dashboard/hiring/candidates" className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
+            <ArrowLeft size={13} /> Back to Applications
+          </Link>
+          <button type="button" onClick={() => router.push(`/dashboard/hiring/candidates/new/create/round-5/${candidateId}`)} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700">
+            End & Next Round
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-[7fr_3fr]">
+        <div className="space-y-2">
+          {/* Candidate banner */}
+          <Card>
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-[auto_1fr_1fr_1fr]">
+              <div className="flex items-start gap-3">
+                <span className="h-16 w-16 shrink-0 rounded-full bg-zinc-200" />
+                <div className="min-w-0">
+                  <p className="flex flex-wrap items-center gap-1.5 text-[14px] font-bold text-zinc-900">
+                    {candidate.fullName}
+                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-600">Round 4 In Progress</span>
+                  </p>
+                  <p className="text-[10.5px] text-zinc-500">{candidate.appliedFor}</p>
+                  <div className="mt-1 space-y-0.5 text-[10px] text-zinc-500">
+                    <p className="flex items-center gap-1"><Phone size={11} className="text-zinc-400" /> {candidate.mobile} <Mail size={11} className="ml-2 text-zinc-400" /> {candidate.email}</p>
+                    <p className="flex items-center gap-1"><MapPin size={11} className="text-zinc-400" /> {candidate.currentLocation}</p>
+                    <p className="flex items-center gap-1"><Link2 size={11} className="text-zinc-400" /> {candidate.linkedin}</p>
                   </div>
-                  <div className="flex flex-col gap-1.5 text-[10px] text-zinc-600 mt-1">
-                    <span className="flex items-center gap-1.5"><Phone size={12} className="text-zinc-400" /> {candidate.mobile}</span>
-                    <span className="flex items-center gap-1.5"><Mail size={12} className="text-zinc-400" /> {candidate.email}</span>
-                    <span className="flex items-center gap-1.5"><MapPin size={12} className="text-zinc-400" /> {candidate.currentLocation}</span>
-                    <span className="flex items-center gap-1.5 hover:underline cursor-pointer" onClick={() => window.open(candidate.linkedin, '_blank')}><Link2 size={12} className="text-zinc-400" /> {candidate.linkedin}</span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5 text-[10.5px]">
+                <div><p className="text-zinc-400">Applied For</p><p className="font-bold text-zinc-800">{candidate.appliedFor}</p></div>
+                <div><p className="text-zinc-400">Department</p><p className="font-bold text-zinc-800">{candidate.department}</p></div>
+                <div><p className="text-zinc-400">Experience</p><p className="font-bold text-zinc-800">{candidate.totalExperience} Years</p></div>
+              </div>
+
+              <div className="space-y-1.5 text-[10.5px]">
+                <div><p className="text-zinc-400">Current Round</p><p className="font-bold text-zinc-800">Round 4 – Written Assessment</p></div>
+              </div>
+
+              <div className="space-y-1.5 text-[10.5px]">
+                <div><p className="text-zinc-400">Assessment Type</p><p className="font-bold text-zinc-800">Role Based Written Test</p></div>
+                <div><p className="text-zinc-400">Duration</p><p className="font-bold text-zinc-800">60 Minutes</p></div>
+                <button type="button" className="flex items-center gap-1 text-[10px] font-semibold text-indigo-600 hover:text-indigo-700">
+                  View Candidate Profile <ArrowRight size={11} />
+                </button>
+              </div>
+            </div>
+          </Card>
+
+          {/* Tabs */}
+          <div className="flex items-center gap-4 rounded-xl border border-zinc-200 bg-white px-3 py-1.5">
+            {tabs.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setActiveTab(t)}
+                className={`whitespace-nowrap border-b-2 py-1 text-[11px] font-semibold ${t === activeTab ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+
+          {/* ===================== TAB: WRITTEN ASSESSMENT ===================== */}
+          {activeTab === 'Written Assessment' && (
+            <div className="grid grid-cols-1 gap-2 lg:grid-cols-[1fr_2.4fr]">
+              <Card title="Written Assessment in Progress">
+                <p className="text-[10px] leading-snug text-zinc-500">This is a role-based written assessment with AI-generated questions.</p>
+
+                <div
+                  className="relative mx-auto my-3 grid h-[114px] w-[114px] place-items-center rounded-full"
+                  style={{
+                    background: `conic-gradient(#4f46e5 ${progressPct}%, #e5e7eb 0)`,
+                  }}
+                >
+                  <div className="flex h-[94px] w-[94px] flex-col items-center justify-center rounded-full bg-white text-center">
+                    <p className="text-[10px] leading-tight text-zinc-500">
+                      Time Remaining
+                    </p>
+
+                    <p className="text-[18px] font-bold leading-tight text-zinc-900">
+                      48:25
+                    </p>
+
+                    <p className="text-[9px] leading-tight text-zinc-500">
+                      of 60:00
+                    </p>
                   </div>
                 </div>
 
-                {/* Col 2 */}
-                <div className="flex flex-col gap-3 border-l border-zinc-200 pl-4">
-                  <div>
-                    <p className="text-[10px] text-zinc-500 font-medium mb-0.5">Applied For</p>
-                    <p className="text-[11px] font-bold text-zinc-900">{candidate.appliedFor}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-zinc-500 font-medium mb-0.5">Department</p>
-                    <p className="text-[11px] font-bold text-zinc-900">{candidate.department}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-zinc-500 font-medium mb-0.5">Experience</p>
-                    <p className="text-[11px] font-bold text-zinc-900">{candidate.totalExperience} Years</p>
-                  </div>
+                <div className="space-y-1 border-t border-zinc-100 pt-2 text-[10.5px]">
+                  <div className="flex items-center justify-between"><span className="text-zinc-500">Total Questions</span><span className="font-semibold text-zinc-800">{totalQuestions}</span></div>
+                  <div className="flex items-center justify-between"><span className="text-zinc-500">Attempted</span><span className="font-semibold text-zinc-800">{attempted}</span></div>
+                  <div className="flex items-center justify-between"><span className="text-zinc-500">Remaining</span><span className="font-semibold text-zinc-800">{remaining}</span></div>
                 </div>
 
-                {/* Col 3 */}
-                <div className="flex flex-col justify-between border-l border-zinc-200 pl-4">
-                  <div>
-                    <p className="text-[10px] text-zinc-500 font-medium mb-0.5">Current Round</p>
-                    <p className="text-[11px] font-bold text-zinc-900">Round 4 – Written Assessment</p>
+                <div className="mt-2 rounded-lg bg-indigo-50/60 px-2 py-1.5 text-[9.5px] leading-snug text-indigo-700/80">
+                  Auto-submit when time ends. Do not refresh or close the browser.
+                </div>
+              </Card>
+
+              <div className="space-y-2">
+                <Card
+                  title={<>Question {activeQuestion.id} of {totalQuestions} <span className="ml-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[9.5px] font-semibold text-indigo-600">{activeQuestion.category}</span></>}
+                  action={(
+                    <button
+                      type="button"
+                      onClick={() => toggleMarkForReview()}
+                      className={`flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold ${isMarkedCurrent
+                        ? 'border-amber-300 bg-amber-50 text-amber-600 hover:bg-amber-100'
+                        : 'border-zinc-200 text-zinc-600 hover:bg-zinc-50'
+                        }`}
+                    >
+                      <Flag size={11} /> {isMarkedCurrent ? 'Marked for Review' : 'Mark for Review'}
+                    </button>
+                  )}
+                >
+                  <p className="text-[11.5px] font-semibold leading-snug text-zinc-800">
+                    {activeQuestion.scenario}
+                  </p>
+                  <p className="mt-1 text-[11px] text-zinc-700">{activeQuestion.prompt}</p>
+                  {activeQuestion.subPrompt && (
+                    <p className="text-[11px] text-zinc-700">{activeQuestion.subPrompt}</p>
+                  )}
+
+                  <div className="mt-2.5 space-y-1.5">
+                    {activeQuestion.options.map((o) => {
+                      const isSelected = selectedAnswers[activeQuestion.id] === o.key;
+                      return (
+                        <label
+                          key={o.key}
+                          className={`flex cursor-pointer items-start gap-2.5 rounded-lg border px-2.5 py-2 text-[10.5px] ${isSelected ? 'border-indigo-300 bg-indigo-50/50' : 'border-zinc-200 hover:bg-zinc-50'}`}
+                        >
+                          <input
+                            type="radio"
+                            name={`q${activeQuestion.id}`}
+                            checked={isSelected}
+                            onChange={() => handleSelectOption(activeQuestion.id, o.key)}
+                            className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-indigo-600"
+                          />
+                          <span className="text-zinc-700"><b>{o.key}.</b> {o.text}</span>
+                        </label>
+                      );
+                    })}
                   </div>
-                  <div className="mt-3">
-                    <p className="text-[10px] text-zinc-500 font-medium mb-1">Interviewer</p>
-                    <div className="flex items-center gap-2">
-                      <img src="https://i.pravatar.cc/150?u=anjali" alt="Anjali" className="h-7 w-7 rounded-full object-cover border border-zinc-200" />
-                      <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-zinc-900">Anjali Mehta</span>
-                        <span className="text-[9px] text-zinc-500">HR Manager</span>
-                      </div>
+
+                  <div className="mt-2.5 flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={handlePrevious}
+                      disabled={currentQuestion === 1}
+                      className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[10.5px] font-semibold text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <ArrowLeft size={12} /> Previous Question
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      disabled={currentQuestion === totalQuestions}
+                      className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-[10.5px] font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Next Question <ArrowRight size={12} />
+                    </button>
+                  </div>
+                </Card>
+
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <Card title="AI Assessment Assistant" action={<span className="rounded-full bg-indigo-50 px-1.5 py-0.5 text-[9px] font-bold text-indigo-600">BETA</span>}>
+                    <p className="mb-1.5 text-[10px] leading-snug text-zinc-500">Our AI analyzes your responses in real-time to evaluate:</p>
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                      {assistantChecklist.map((c) => (
+                        <p key={c} className="flex items-center gap-1.5 text-[10px] text-zinc-600">
+                          <CheckCircle2 size={12} className="shrink-0 text-emerald-500" /> {c}
+                        </p>
+                      ))}
                     </div>
-                  </div>
-                  <button className="mt-3 w-fit text-[10px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded hover:bg-indigo-100 transition-colors">
-                    View Candidate Profile →
+                  </Card>
+
+                  <Card title={<span className="flex items-center gap-1.5"><Lightbulb size={13} className="text-amber-500" /> Test Tips</span>}>
+                    <ul className="space-y-1 text-[10.5px] text-zinc-600 pl-3">
+                      {testTips.map((t) => <li key={t} className="list-disc ">{t}</li>)}
+                    </ul>
+                  </Card>
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <button type="button" className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
+                    <Save size={13} /> Save &amp; Exit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('Submit Test')}
+                    className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700"
+                  >
+                    Submit Test <Send size={13} />
                   </button>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Application Summary Card */}
-          <div className="py-4 flex flex-col justify-center border border-zinc-100 shadow-sm p-4 rounded-lg bg-white">
-            <h3 className="text-[13px] font-bold text-zinc-900 mb-4">Application Summary</h3>
-            <div className="flex flex-col gap-3 text-[11px]">
-              <div className="flex items-center justify-between">
-                <span className="text-zinc-600 flex items-center gap-1.5"><FileText size={12} className="text-indigo-600" /> Application ID</span>
-                <span className="font-bold text-zinc-900">APP-{candidateId?.slice(-6).toUpperCase() || '100124'}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-zinc-600 flex items-center gap-1.5"><Clock size={12} className="text-indigo-600" /> Applied On</span>
-                <span className="font-bold text-zinc-900">15 Jun 2026, 11:32 AM</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-zinc-600 flex items-center gap-1.5"><HelpCircle size={12} className="text-indigo-600" /> Current Stage</span>
-                <span className="font-bold text-zinc-900">Interview - Round 4</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-zinc-600 flex items-center gap-1.5"><Sparkles size={12} className="text-indigo-600" /> AI Screening Score</span>
-                <span className="font-bold text-zinc-900">87%</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-zinc-600 flex items-center gap-1.5"><User size={12} className="text-indigo-600" /> HOD Review</span>
-                <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">Recommended</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex items-center gap-6 border-b border-zinc-200 px-2">
-          <button className="pb-2 text-[12px] font-bold text-indigo-700 border-b-2 border-indigo-700">Interview</button>
-          <button className="pb-2 text-[12px] font-semibold text-zinc-500 hover:text-zinc-700 border-b-2 border-transparent">AI Questions</button>
-          <button className="pb-2 text-[12px] font-semibold text-zinc-500 hover:text-zinc-700 border-b-2 border-transparent">Notes</button>
-          <button className="pb-2 text-[12px] font-semibold text-zinc-500 hover:text-zinc-700 border-b-2 border-transparent">Attachments</button>
-        </div>
-
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 mt-2">
-
-          {/* Left Column (Progress) */}
-          <div className="lg:col-span-3 flex flex-col gap-4 h-full">
-            <div className="p-5 rounded-xl border border-zinc-100 bg-white shadow-sm flex flex-col h-full">
-              <h3 className="text-[12px] font-bold text-zinc-900 mb-1">Round Progress</h3>
-              <p className="text-[10px] text-zinc-500 font-medium mb-6">Round 4 of 5<br />Written Assessment</p>
-
-              <div className="flex items-center justify-center mb-6 relative">
-                <div className="h-28 w-28 rounded-full border-[6px] border-emerald-600 border-t-zinc-100 border-l-zinc-100 flex flex-col items-center justify-center bg-white shadow-sm">
-                  <span className="text-[9px] text-zinc-500 font-medium mb-0.5">Time Remaining</span>
-                  <span className="text-2xl font-bold text-emerald-600 leading-none mb-1">05:10</span>
-                  <span className="text-[9px] text-zinc-400">of 40:00</span>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2 border-t border-zinc-100 pt-4 text-[11px]">
-                <div className="flex items-center justify-between"><span className="text-zinc-500">Total Questions</span><span className="font-bold">10</span></div>
-                <div className="flex items-center justify-between"><span className="text-zinc-500">Answered</span><span className="font-bold">2</span></div>
-                <div className="flex items-center justify-between"><span className="text-zinc-500">Remaining</span><span className="font-bold">8</span></div>
-              </div>
-
-              <div className="mt-6 bg-indigo-50/50 rounded-lg p-3 border border-indigo-100">
-                <p className="text-[10px] text-indigo-700 font-medium leading-relaxed">
-                  All questions are AI-generated based on the role, your profile, and previous answers.
-                </p>
-              </div>
-            </div>
-
-
-          </div>
-
-          {/* Center Column (Question Area) */}
-          <div className="lg:col-span-6 flex flex-col gap-4 h-full">
-            <div className="p-5 rounded-xl border border-zinc-100 bg-white shadow-sm flex flex-col h-full">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-[15px] font-bold text-zinc-900">Question 8 of 10</h2>
-                  <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">Technical – Data Analysis</span>
-                </div>
-                <button className="flex items-center gap-1.5 text-[10px] font-semibold text-rose-600 bg-white border border-rose-200 px-2 py-1 rounded hover:bg-rose-50 transition-colors shadow-sm">
-                  <Flag size={12} /> Flag Question
-                </button>
-              </div>
-
-              <p className="text-[13px] font-bold text-zinc-900 mb-4 leading-relaxed">
-                You are given a large sales dataset with millions of records. How would you design a reliable and efficient data pipeline to process, clean, and analyze this data for reporting insights?
-              </p>
-
-              <div className="bg-[#f5f3ff] border border-indigo-100 rounded-lg p-3 mb-4 flex items-start gap-2">
-                <Sparkles size={14} className="text-indigo-600 mt-0.5 shrink-0" />
-                <div className="flex flex-col">
-                  <span className="text-[11px] font-bold text-indigo-900">AI Insight</span>
-                  <p className="text-[11px] text-indigo-700 mt-1 leading-relaxed">This question evaluates your understanding of data engineering concepts, ETL/ELT pipeline design, data processing tools, and scalability.</p>
-                </div>
-              </div>
-
-              <div className="flex-1 flex flex-col border border-zinc-200 rounded-lg overflow-hidden focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-shadow">
-                <div className="flex items-center gap-2 border-b border-zinc-200 p-2 bg-zinc-50">
-                  <button className="p-1 hover:bg-zinc-200 rounded text-zinc-600"><Bold size={13} /></button>
-                  <button className="p-1 hover:bg-zinc-200 rounded text-zinc-600"><Italic size={13} /></button>
-                  <button className="p-1 hover:bg-zinc-200 rounded text-zinc-600"><Underline size={13} /></button>
-                  <div className="w-px h-4 bg-zinc-300 mx-1" />
-                  <button className="p-1 hover:bg-zinc-200 rounded text-zinc-600"><List size={13} /></button>
-                  <button className="p-1 hover:bg-zinc-200 rounded text-zinc-600"><ListOrdered size={13} /></button>
-                  <div className="w-px h-4 bg-zinc-300 mx-1" />
-                  <button className="p-1 hover:bg-zinc-200 rounded text-zinc-600"><Link2 size={13} /></button>
-                  <button className="p-1 hover:bg-zinc-200 rounded text-zinc-600"><Code size={13} /></button>
-                </div>
-                <textarea
-                  className="flex-1 w-full resize-none p-3 text-[12px] text-zinc-800 outline-none min-h-[150px]"
-                  placeholder="Type your answer here..."
-                ></textarea>
-                <div className="flex items-center justify-between px-3 py-2 bg-zinc-50 border-t border-zinc-100">
-                  <span className="text-[10px] text-zinc-500">Minimum 50 words</span>
-                  <span className="text-[10px] text-zinc-500 font-medium">0 / 2500</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1.5 text-emerald-600 mt-3 mb-4">
-                <CheckCircle2 size={13} />
-                <span className="text-[10px] font-medium">Your answer is auto-saved</span>
-              </div>
-
-              <div className="flex items-center justify-between mt-auto">
-                <button className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-600 bg-white border border-zinc-200 px-4 py-2 rounded-lg hover:bg-zinc-50 shadow-sm transition-colors">
-                  <ArrowLeft size={13} /> Previous Question
-                </button>
-                <button className="flex items-center gap-1.5 text-[11px] font-semibold text-white bg-indigo-700 px-6 py-2 rounded-lg hover:bg-indigo-800 shadow-sm transition-colors">
-                  Next Question <ArrowLeft size={13} className="rotate-180" />
-                </button>
-              </div>
-            </div>
-
-
-          </div>
-
-          {/* Right Column (Sidebar) */}
-          <div className="lg:col-span-3 flex flex-col gap-2">
-            <div className="bg-[#f8f7ff] rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles size={14} className="text-indigo-600" />
-                <h3 className="text-[12px] font-bold text-indigo-900">AI Interview Assistant</h3>
-                <span className="text-[8px] font-bold bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">BETA</span>
-              </div>
-              <div className="flex flex-col gap-3">
-                {[
-                  "Questions are generated in real-time based on your role & experience.",
-                  "Answers are analyzed for technical accuracy, depth & clarity.",
-                  "Use diagrams or code snippets wherever applicable.",
-                  "Stay concise, structured and solution-focused."
-                ].map((text, i) => (
-                  <div key={i} className="flex items-start gap-2">
-                    <div className="mt-0.5 p-1 bg-indigo-100/50 rounded flex items-center justify-center shrink-0">
-                      {i === 0 ? <HelpCircle size={10} className="text-indigo-600" /> :
-                        i === 1 ? <FileQuestion size={10} className="text-indigo-600" /> :
-                          i === 2 ? <Code size={10} className="text-indigo-600" /> :
-                            <CheckCircle2 size={10} className="text-indigo-600" />}
-                    </div>
-                    <p className="text-[10px] text-indigo-900/80 leading-relaxed font-medium">{text}</p>
-                  </div>
+          {/* ===================== TAB: INSTRUCTIONS ===================== */}
+          {activeTab === 'Instructions' && (
+            <Card title="Test Instructions">
+              <p className="text-[10.5px] leading-snug text-zinc-500">Please read all the instructions carefully before you begin or resume the written assessment.</p>
+              <div className="mt-3 space-y-2.5">
+                {instructions.map((it) => (
+                  <p key={it.text} className="flex items-start gap-2 text-[11px] leading-snug text-zinc-700">
+                    <it.icon size={15} className="mt-0.5 shrink-0 text-indigo-500" /> {it.text}
+                  </p>
                 ))}
               </div>
-            </div>
+              <div className="mt-3 rounded-lg bg-indigo-50/60 px-3 py-2 text-[10px] leading-snug text-indigo-700/80">
+                Once you begin, the timer cannot be paused. Make sure you are in a quiet, distraction-free environment.
+              </div>
+              <div className="mt-3 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('Written Assessment')}
+                  className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700"
+                >
+                  Proceed to Assessment <ArrowRight size={13} />
+                </button>
+              </div>
+            </Card>
+          )}
 
-            <div className="p-5 rounded-xl border border-zinc-100 bg-white shadow-sm flex flex-col">
-              <h3 className="text-[12px] font-bold text-zinc-900 mb-4">Interview Rounds Overview</h3>
-              <div className="relative pl-3 flex flex-col gap-5">
-                <div className="absolute left-[17px] top-2 bottom-2 w-px bg-zinc-200 z-0"></div>
+          {/* ===================== TAB: QUESTIONS (all 40 at once) ===================== */}
+          {activeTab === 'Questions' && (
+            <div className="space-y-2">
+              <Card title={`All Questions (${attempted} of ${totalQuestions} attempted)`}>
+                <p className="text-[10.5px] text-zinc-500">Answer any question directly below — your progress syncs with the Written Assessment tab.</p>
+              </Card>
 
-                <div className="relative z-10 flex items-start gap-3">
-                  <div className="h-5 w-5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-500 flex items-center justify-center shrink-0 mt-0.5"><Check size={10} strokeWidth={3} /></div>
-                  <div className="flex flex-col flex-1">
-                    <span className="text-[10px] font-bold text-zinc-900">Round 1</span>
-                    <span className="text-[9px] text-zinc-500">AI Screening Interview</span>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">Completed</span>
-                    <span className="text-[9px] text-zinc-500 font-medium">30 Min</span>
-                  </div>
-                </div>
+              {questions.map((q) => {
+                const isMarkedQ = marked.has(q.id);
+                return (
+                  <Card
+                    key={q.id}
+                    title={<>Question {q.id} of {totalQuestions} <span className="ml-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[9.5px] font-semibold text-indigo-600">{q.category}</span></>}
+                    action={(
+                      <button
+                        type="button"
+                        onClick={() => toggleMarkForReview(q.id)}
+                        className={`flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold ${isMarkedQ
+                          ? 'border-amber-300 bg-amber-50 text-amber-600 hover:bg-amber-100'
+                          : 'border-zinc-200 text-zinc-600 hover:bg-zinc-50'
+                          }`}
+                      >
+                        <Flag size={11} /> {isMarkedQ ? 'Marked' : 'Mark for Review'}
+                      </button>
+                    )}
+                  >
+                    <p className="text-[11.5px] font-semibold leading-snug text-zinc-800">{q.scenario}</p>
+                    <p className="mt-1 text-[11px] text-zinc-700">{q.prompt}</p>
+                    {q.subPrompt && <p className="text-[11px] text-zinc-700">{q.subPrompt}</p>}
 
-                <div className="relative z-10 flex items-start gap-3 bg-[#f8f7ff] p-3 -mx-3 rounded-lg">
-                  <div className="h-5 w-5 rounded-full bg-white border-2 border-indigo-600 flex items-center justify-center shrink-0 mt-0.5"><div className="h-2 w-2 rounded-full bg-indigo-600" /></div>
-                  <div className="flex flex-col flex-1">
-                    <span className="text-[10px] font-bold text-indigo-700">Round 4</span>
-                    <span className="text-[9px] font-semibold text-indigo-700">Written Assessment</span>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="text-[9px] font-bold text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded">In Progress</span>
-                    <span className="text-[9px] text-indigo-500 font-medium">40 Min</span>
-                  </div>
-                </div>
+                    <div className="mt-2.5 space-y-1.5">
+                      {q.options.map((o) => {
+                        const isSelected = selectedAnswers[q.id] === o.key;
+                        return (
+                          <label
+                            key={o.key}
+                            className={`flex cursor-pointer items-start gap-2.5 rounded-lg border px-2.5 py-2 text-[10.5px] ${isSelected ? 'border-indigo-300 bg-indigo-50/50' : 'border-zinc-200 hover:bg-zinc-50'}`}
+                          >
+                            <input
+                              type="radio"
+                              name={`all-q${q.id}`}
+                              checked={isSelected}
+                              onChange={() => handleSelectOption(q.id, o.key)}
+                              className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-indigo-600"
+                            />
+                            <span className="text-zinc-700"><b>{o.key}.</b> {o.text}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </Card>
+                );
+              })}
 
-                <div className="relative z-10 flex items-start gap-3 opacity-60">
-                  <div className="h-5 w-5 rounded-full bg-white border border-zinc-300 text-zinc-400 flex items-center justify-center shrink-0 mt-0.5 text-[9px] font-bold">3</div>
-                  <div className="flex flex-col flex-1">
-                    <span className="text-[10px] font-bold text-zinc-800">Round 3</span>
-                    <span className="text-[9px] text-zinc-500">Managerial Interview</span>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="text-[9px] font-bold text-zinc-500">Pending</span>
-                    <span className="text-[9px] text-zinc-500 font-medium">30 Min</span>
-                  </div>
-                </div>
-
-                <div className="relative z-10 flex items-start gap-3 opacity-60">
-                  <div className="h-5 w-5 rounded-full bg-white border border-zinc-300 text-zinc-400 flex items-center justify-center shrink-0 mt-0.5 text-[9px] font-bold">4</div>
-                  <div className="flex flex-col flex-1">
-                    <span className="text-[10px] font-bold text-zinc-800">Round 4</span>
-                    <span className="text-[9px] text-zinc-500">Written Assessment</span>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="text-[9px] font-bold text-zinc-500">Pending</span>
-                    <span className="text-[9px] text-zinc-500 font-medium">45 Min</span>
-                  </div>
-                </div>
-
-                <div className="relative z-10 flex items-start gap-3 opacity-60">
-                  <div className="h-5 w-5 rounded-full bg-white border border-zinc-300 text-zinc-400 flex items-center justify-center shrink-0 mt-0.5 text-[9px] font-bold">5</div>
-                  <div className="flex flex-col flex-1">
-                    <span className="text-[10px] font-bold text-zinc-800">Round 5</span>
-                    <span className="text-[9px] text-zinc-500">HR Interview</span>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="text-[9px] font-bold text-zinc-500">Pending</span>
-                    <span className="text-[9px] text-zinc-500 font-medium">25 Min</span>
-                  </div>
-                </div>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('Submit Test')}
+                  className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700"
+                >
+                  Submit Test <Send size={13} />
+                </button>
               </div>
             </div>
+          )}
 
+          {/* ===================== TAB: SUBMIT TEST ===================== */}
+          {activeTab === 'Submit Test' && (
+            <div className="space-y-2">
+              <Card title="Review Before Submitting">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <div className="rounded-lg bg-emerald-50 px-2.5 py-2 text-center">
+                    <p className="text-[16px] font-bold text-emerald-600">{attempted}</p>
+                    <p className="text-[9.5px] text-emerald-700/80">Answered</p>
+                  </div>
+                  <div className="rounded-lg bg-zinc-50 px-2.5 py-2 text-center">
+                    <p className="text-[16px] font-bold text-zinc-600">{remaining}</p>
+                    <p className="text-[9.5px] text-zinc-500">Unanswered</p>
+                  </div>
+                  <div className="rounded-lg bg-amber-50 px-2.5 py-2 text-center">
+                    <p className="text-[16px] font-bold text-amber-600">{markedCount}</p>
+                    <p className="text-[9.5px] text-amber-700/80">Marked for Review</p>
+                  </div>
+                  <div className="rounded-lg bg-indigo-50 px-2.5 py-2 text-center">
+                    <p className="text-[16px] font-bold text-indigo-600">{totalQuestions}</p>
+                    <p className="text-[9.5px] text-indigo-700/80">Total Questions</p>
+                  </div>
+                </div>
 
-          </div>
+                {isSubmitted && (
+                  <div className="mt-3 flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-2 text-[10.5px] font-semibold text-emerald-600">
+                    <CheckCircle2 size={14} /> Your test has already been submitted. You can view it under the Result tab.
+                  </div>
+                )}
 
+                {!isSubmitted && remaining > 0 && (
+                  <div className="mt-3 flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-[10.5px] leading-snug text-amber-700">
+                    <AlertTriangle size={14} className="shrink-0" /> You still have {remaining} unanswered question{remaining > 1 ? 's' : ''}. You can submit anyway — unanswered questions will be marked incorrect.
+                  </div>
+                )}
+              </Card>
+
+              <Card title="Question Status">
+                <div className="grid grid-cols-8 gap-1.5 sm:grid-cols-10">
+                  {questions.map((q) => (
+                    <button
+                      key={q.id}
+                      type="button"
+                      onClick={() => goToQuestion(q.id)}
+                      className={`grid h-7 w-full place-items-center rounded text-[10px] font-semibold ${paletteClasses(getQuestionState(q.id))}`}
+                    >
+                      {q.id}
+                    </button>
+                  ))}
+                </div>
+              </Card>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('Written Assessment')}
+                  className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50"
+                >
+                  <ArrowLeft size={13} /> Back to Test
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmitTest}
+                  disabled={isSubmitted}
+                  className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Confirm &amp; Submit Test <Send size={13} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ===================== TAB: RESULT ===================== */}
+          {activeTab === 'Result' && (
+            isSubmitted ? (
+              <div className="space-y-2">
+                <Card>
+                  <div className="flex flex-col items-center gap-2 py-3 text-center">
+                    <span className={`grid h-14 w-14 place-items-center rounded-full ${isPass ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                      <Trophy size={26} />
+                    </span>
+                    <p className="text-[15px] font-bold text-zinc-900">{isPass ? 'Congratulations! You Passed' : 'You Did Not Clear the Test'}</p>
+                    <p className="text-[11px] text-zinc-500">Written Assessment · Interview – Round 4</p>
+                    <span className={`mt-1 rounded-full px-3 py-1 text-[11px] font-bold ${isPass ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                      {scorePct}% Score
+                    </span>
+                  </div>
+                </Card>
+
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <Card>
+                    <div className="flex items-center gap-2">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-600"><CheckCircle2 size={16} /></span>
+                      <div>
+                        <p className="text-[14px] font-bold text-zinc-900">{correctCount}</p>
+                        <p className="text-[9.5px] text-zinc-500">Correct</p>
+                      </div>
+                    </div>
+                  </Card>
+                  <Card>
+                    <div className="flex items-center gap-2">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-rose-50 text-rose-600"><XCircle size={16} /></span>
+                      <div>
+                        <p className="text-[14px] font-bold text-zinc-900">{incorrectCount}</p>
+                        <p className="text-[9.5px] text-zinc-500">Incorrect</p>
+                      </div>
+                    </div>
+                  </Card>
+                  <Card>
+                    <div className="flex items-center gap-2">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-zinc-100 text-zinc-500"><Circle size={16} /></span>
+                      <div>
+                        <p className="text-[14px] font-bold text-zinc-900">{unattemptedCount}</p>
+                        <p className="text-[9.5px] text-zinc-500">Unattempted</p>
+                      </div>
+                    </div>
+                  </Card>
+                  <Card>
+                    <div className="flex items-center gap-2">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-indigo-50 text-indigo-600"><ClipboardList size={16} /></span>
+                      <div>
+                        <p className="text-[14px] font-bold text-zinc-900">{marksObtained.toFixed(1)}/100</p>
+                        <p className="text-[9.5px] text-zinc-500">Marks Obtained</p>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+
+                <Card title="Score Breakdown">
+                  <div className="space-y-1.5 text-[10.5px]">
+                    <div className="flex items-center justify-between"><span className="text-zinc-500">Total Marks</span><span className="font-semibold text-zinc-800">100</span></div>
+                    <div className="flex items-center justify-between"><span className="text-zinc-500">Passing Marks</span><span className="font-semibold text-zinc-800">60%</span></div>
+                    <div className="flex items-center justify-between"><span className="text-zinc-500">Marks Obtained</span><span className="font-semibold text-zinc-800">{marksObtained.toFixed(1)}</span></div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-500">Result</span>
+                      <span className={`rounded-full px-2 py-0.5 text-[9.5px] font-semibold ${isPass ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                        {isPass ? 'Pass' : 'Fail'}
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            ) : (
+              <Card title="Test Result">
+                <div className="flex flex-col items-center gap-2 py-6 text-center">
+                  <span className="grid h-12 w-12 place-items-center rounded-full bg-zinc-100 text-zinc-400"><ClipboardList size={22} /></span>
+                  <p className="text-[12px] font-semibold text-zinc-700">You haven&apos;t submitted the test yet.</p>
+                  <p className="text-[10.5px] text-zinc-500">Complete and submit the written assessment to view your result here.</p>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('Submit Test')}
+                    className="mt-1 flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700"
+                  >
+                    Go to Submit Test <ArrowRight size={13} />
+                  </button>
+                </div>
+              </Card>
+            )
+          )}
         </div>
 
-        {/* Bottom Grid: 3 columns with gaps */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2 ">
-
-          {/* Your Previous Answer */}
-          <div className="rounded-xl border border-zinc-100 bg-white p-5 shadow-sm">
-            <h3 className="text-[11px] font-bold text-zinc-900 mb-4">Your Previous Answer (Q2)</h3>
-            <div className="flex items-start gap-2 mb-3">
-              <div className="h-5 w-5 bg-[#f0f9f4] text-emerald-600 rounded flex items-center justify-center shrink-0 font-bold text-[9px] border border-emerald-100">Q.2</div>
-              <p className="text-[10px] font-bold text-zinc-900 mt-0.5 leading-relaxed">Explain a time when you used data to influence a critical business decision. What was the impact?</p>
-            </div>
-            <div className="bg-[#f4fbf7] rounded p-3 text-[10px] text-zinc-700 border border-emerald-50 mt-3 line-clamp-3 leading-relaxed">
-              I analyzed customer purchase patterns and identified a drop in repeat orders. Based on the insights, we improved the follow-up strategy which increased repeat orders by 18% in the next quarter.
-              <div className="text-right w-full mt-3">
-                <button className="text-[9px] font-bold text-indigo-700 hover:underline">View Full Answer</button>
+        {/* Right sidebar */}
+        <div className="space-y-2">
+          <Card title="Application Summary">
+            <div className="space-y-1.5">
+              {applicationSummary.map((s) => (
+                <div key={s.label} className="flex items-center justify-between gap-2 text-[10.5px]">
+                  <span className="text-zinc-500">{s.label}</span>
+                  <span className="text-right font-semibold text-zinc-800">{s.value}</span>
+                </div>
+              ))}
+              <div className="flex items-center justify-between gap-2 text-[10.5px]">
+                <span className="text-zinc-500">HOD Review</span>
+                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9.5px] font-semibold text-emerald-600">Recommended</span>
               </div>
             </div>
-          </div>
+          </Card>
 
-          {/* Quick Actions */}
-          <div className="rounded-xl border border-zinc-100 bg-white p-5 shadow-sm">
-            <h3 className="text-[12px] font-bold text-zinc-900 mb-4">Quick Actions</h3>
-            <div className="flex flex-col gap-3">
-              {[
-                { icon: HelpCircle, label: 'Request Clarification', desc: 'Ask for more details about the question' },
-                { icon: FileText, label: 'Add Interview Note', desc: 'Make a note about candidate\'s response' },
-                { icon: Share2, label: 'Share Feedback', desc: 'Share feedback with the interview panel' },
-                { icon: Code, label: 'Add Code Snippet / Attachment', desc: 'Upload diagram, code, or file' },
-              ].map((action, i) => (
-                <button key={i} className="flex items-start gap-3 text-left group">
-                  <div className="p-1.5 bg-[#f8f7ff] group-hover:bg-indigo-50 text-indigo-600 rounded mt-0.5 border border-indigo-50">
-                    <action.icon size={13} />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[11px] font-bold text-zinc-800 group-hover:text-indigo-700">{action.label}</span>
-                    <span className="text-[9px] text-zinc-500">{action.desc}</span>
-                  </div>
+          <Card title="Assessment Overview">
+            <div className="space-y-1.5">
+              {assessmentOverview.map((s) => (
+                <div key={s.label} className="flex items-center justify-between gap-2 text-[10.5px]">
+                  <span className="text-zinc-500">{s.label}</span>
+                  <span className="text-right font-semibold text-zinc-800">{s.value}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card title="Question Palette">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] text-zinc-500">
+              <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded border border-zinc-300 bg-white" /> Not Visited</span>
+              <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded border border-blue-300 bg-blue-50" /> Visited</span>
+              <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded bg-emerald-500" /> Answered</span>
+              <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded bg-amber-500" /> Marked for Review</span>
+            </div>
+            <div className="mt-2 grid grid-cols-10 gap-1">
+              {questions.map((q) => (
+                <button
+                  key={q.id}
+                  type="button"
+                  onClick={() => goToQuestion(q.id)}
+                  className={`grid h-6 w-6 place-items-center rounded text-[9.5px] font-semibold transition-colors ${paletteClasses(getQuestionState(q.id))}`}
+                >
+                  {q.id}
                 </button>
               ))}
             </div>
-          </div>
+          </Card>
 
-          {/* Interview Guidelines */}
-          <div className="rounded-xl border border-zinc-100 bg-white p-5 shadow-sm">
-            <h3 className="text-[12px] font-bold text-zinc-900 mb-4">Interview Guidelines</h3>
-            <ul className="flex flex-col gap-3 text-[10px] text-zinc-600">
-              <li className="flex items-start gap-2"><div className="mt-0.5 h-3 w-3 rounded-full border border-zinc-300 flex items-center justify-center shrink-0"><div className="h-1 w-1 bg-zinc-400 rounded-full" /></div> Ensure a quiet environment.</li>
-              <li className="flex items-start gap-2"><div className="mt-0.5 h-3 w-3 rounded-full border border-zinc-300 flex items-center justify-center shrink-0"><div className="h-1 w-1 bg-zinc-400 rounded-full" /></div> Use headphones for better experience.</li>
-              <li className="flex items-start gap-2"><div className="mt-0.5 h-3 w-3 rounded-full border border-zinc-300 flex items-center justify-center shrink-0"><div className="h-1 w-1 bg-zinc-400 rounded-full" /></div> Do not refresh or close the browser.</li>
-              <li className="flex items-start gap-2"><div className="mt-0.5 h-3 w-3 rounded-full border border-zinc-300 flex items-center justify-center shrink-0"><div className="h-1 w-1 bg-zinc-400 rounded-full" /></div> AI will evaluate your responses in real-time.</li>
-              <li className="flex items-start gap-2"><div className="mt-0.5 h-3 w-3 rounded-full border border-zinc-300 flex items-center justify-center shrink-0"><div className="h-1 w-1 bg-zinc-400 rounded-full" /></div> You can use notepad for rough work.</li>
-            </ul>
-            <button className="text-[10px] font-bold text-indigo-700 hover:underline mt-5 flex items-center gap-1">
-              Need Help? View Guidelines <ExternalLink size={10} />
-            </button>
-          </div>
+          <Card title="Instructions">
+            <div className="space-y-1.5">
+              {instructions.map((it) => (
+                <p key={it.text} className="flex items-start gap-1.5 text-[10.5px] leading-snug text-zinc-600">
+                  <it.icon size={13} className="mt-0.5 shrink-0 text-indigo-500" /> {it.text}
+                </p>
+              ))}
+            </div>
+          </Card>
         </div>
       </div>
-
     </div>
   );
 }
-

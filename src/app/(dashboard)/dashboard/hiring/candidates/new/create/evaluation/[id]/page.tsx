@@ -78,8 +78,8 @@ export default function HODReviewTab() {
                       <div className={`${isSel ? `text-${rec.color}-600` : 'text-zinc-400'}`}>
                         {rec.icon}
                       </div>
-                      <span className={`text-[12px] font-bold mb-1 leading-tight whitespace-nowrap ${isSel ? `text-${rec.color}-700` : 'text-zinc-700'}`}>{rec.id}</span>
-                      <span className={`text-[10px] font-medium leading-tight px-1 ${isSel ? `text-${rec.color}-600/80` : 'text-zinc-500'}`}>{rec.desc}</span>
+                      <span className={`text-[10px] xl:text-[11px] font-bold mb-1 leading-tight ${isSel ? `text-${rec.color}-700` : 'text-zinc-700'}`}>{rec.id}</span>
+                      <span className={`text-[9px] xl:text-[10px] font-medium leading-tight px-1 ${isSel ? `text-${rec.color}-600/80` : 'text-zinc-500'}`}>{rec.desc}</span>
                     </button>
                   )
                 })}
@@ -180,14 +180,14 @@ export default function HODReviewTab() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-4 pt-5 mt-auto border-t border-zinc-100">
-              <Button onClick={() => window.open(`/dashboard/hiring/candidates/new/create/interview-process/${candidateId}`, '_blank')} className="h-8 px-4 text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-md shadow-sm whitespace-nowrap">
+            <div className="flex flex-wrap items-center gap-2 lg:gap-4 pt-5 mt-auto border-t border-zinc-100">
+              <Button onClick={() => window.open(`/dashboard/hiring/candidates/new/create/interview-process/${candidateId}`, '_blank')} className="h-7 lg:h-8 px-2 lg:px-4 text-[10px] lg:text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-md shadow-sm whitespace-nowrap">
                 Approve & Move to Interview
               </Button>
-              <Button variant="outline" onClick={() => router.push(`/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}`)} className="h-8 px-4 text-[11px] font-semibold text-indigo-700 border-indigo-200 hover:bg-indigo-50 rounded-md shadow-sm whitespace-nowrap">
+              <Button variant="outline" onClick={() => router.push(`/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}`)} className="h-7 lg:h-8 px-2 lg:px-4 text-[10px] lg:text-[11px] font-semibold text-indigo-700 border-indigo-200 hover:bg-indigo-50 rounded-md shadow-sm whitespace-nowrap">
                 Send Back for Re-evaluation
               </Button>
-              <Button variant="outline" className="h-8 px-4 text-[11px] font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 rounded-md shadow-sm whitespace-nowrap">
+              <Button variant="outline" className="h-7 lg:h-8 px-2 lg:px-4 text-[10px] lg:text-[11px] font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 rounded-md shadow-sm whitespace-nowrap">
                 Reject Application
               </Button>
             </div>
