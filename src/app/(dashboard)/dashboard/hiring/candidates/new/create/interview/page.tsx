@@ -11,11 +11,13 @@ import {
 const DUMMY_QUESTIONS = [
   { category: 'Time Management', text: 'How do you prioritize multiple tasks when working under tight deadlines?', insight: 'This evaluates your ability to manage stress and organize tasks efficiently.' },
   { category: 'Leadership & People Management', text: 'Describe a situation where you had to manage a low-performing team. What steps did you take to improve their performance and what was the outcome?', insight: 'This question evaluates your leadership style, ability to motivate teams, problem-solving skills, and focus on results.' },
+  { category: 'Technical - Data Analysis', text: 'You are given a large sales dataset with millions of records. How would you design a reliable and efficient data pipeline to process, clean, and analyze this data for reporting insights?', insight: 'This question evaluates your understanding of data engineering concepts, ETL/ELT pipeline design, data processing tools, and scalability.' },
   { category: 'Conflict Resolution', text: 'Tell me about a time you had a disagreement with a stakeholder or peer. How did you resolve it?', insight: 'This tests your communication skills and ability to find win-win solutions.' },
   { category: 'Strategic Thinking', text: 'How do you align your team\'s goals with the broader objectives of the organization?', insight: 'This evaluates strategic thinking and ability to communicate company vision effectively.' },
   { category: 'Change Management', text: 'Describe a time when you had to lead your team through a significant organizational change.', insight: 'Assesses adaptability, leadership during uncertainty, and change management skills.' },
   { category: 'Performance Evaluation', text: 'How do you approach giving constructive feedback to a high-performing employee who has a negative attitude?', insight: 'Tests emotional intelligence and performance management capabilities.' },
   { category: 'Decision Making', text: 'Tell me about a time you had to make a difficult decision with incomplete information.', insight: 'Evaluates analytical skills, risk assessment, and decisiveness.' },
+  { category: 'Technical - Security', text: 'What is your strategy for ensuring data security and compliance when deploying applications to a public cloud environment?', insight: 'Assesses knowledge of cloud security best practices, IAM, and compliance frameworks.' },
   { category: 'Innovation & Growth', text: 'How do you encourage innovation and continuous learning within your team?', insight: 'Assesses your commitment to team development and fostering a growth mindset.' }
 ];
 
@@ -88,7 +90,24 @@ const roundStatusStyle: Record<string, string> = {
 };
 
 export default function InterviewRoundPage() {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(1);
+  const mockContext = {
+    currentRoundNum: 2,
+    totalRounds: 5,
+    roundName: 'Technical Interview',
+    isAiPowered: true,
+    candidateName: 'Amit Kumar Verma',
+    role: 'Sales Manager',
+    department: 'Sales & Marketing',
+    experience: '7 Years',
+    phone: '+91 98765 43210',
+    email: 'amit.verma@email.com',
+    location: 'Noida, Uttar Pradesh',
+    linkedin: 'linkedin.com/in/amitverma',
+    interviewerName: 'Vikram Sinha',
+    interviewerRole: 'Regional Sales Director'
+  };
+
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(2); // Starting at 3rd question as per screenshot
   const [answers, setAnswers] = useState<string[]>(Array(DUMMY_QUESTIONS.length).fill(''));
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -127,8 +146,8 @@ export default function InterviewRoundPage() {
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold text-zinc-900">Interview – Round 3</h1>
-            <p className="mt-0.5 text-[10.5px] text-zinc-500">Managerial Interview – AI Powered</p>
+            <h1 className="text-xl font-bold text-zinc-900">Interview – Round {mockContext.currentRoundNum}</h1>
+            <p className="mt-0.5 text-[10.5px] text-zinc-500">{mockContext.roundName}{mockContext.isAiPowered ? ' – AI Powered' : ''}</p>
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -164,27 +183,26 @@ export default function InterviewRoundPage() {
                   <span className="h-16 w-16 shrink-0 rounded-full bg-zinc-200" />
                   <div className="min-w-0">
                     <p className="flex flex-wrap items-center gap-1.5 text-[14px] font-bold text-zinc-900">
-                      Amit Kumar Verma
-                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-600">Round 3 In Progress</span>
+                      {mockContext.candidateName}
+                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-600">Round {mockContext.currentRoundNum} In Progress</span>
                     </p>
-                    <p className="text-[10.5px] text-zinc-500">Sales Manager</p>
+                    <p className="text-[10.5px] text-zinc-500">{mockContext.role}</p>
                     <div className="mt-1 space-y-0.5 text-[10px] text-zinc-500">
-                      <p className="flex items-center gap-1"><Phone size={11} className="text-zinc-400" /> +91 98765 43210 <Mail size={11} className="ml-2 text-zinc-400" /> amit.verma@email.com</p>
-                      <p className="flex items-center gap-1"><MapPin size={11} className="text-zinc-400" /> Noida, Uttar Pradesh</p>
-                      <p className="flex items-center gap-1"><MapPin size={11} className="text-zinc-400" /> Noida, Uttar Pradesh</p>
-                      <p className="flex items-center gap-1"><Link2 size={11} className="text-zinc-400" /> linkedin.com/in/amitverma</p>
+                      <p className="flex items-center gap-1"><Phone size={11} className="text-zinc-400" /> {mockContext.phone} <Mail size={11} className="ml-2 text-zinc-400" /> {mockContext.email}</p>
+                      <p className="flex items-center gap-1"><MapPin size={11} className="text-zinc-400" /> {mockContext.location}</p>
+                      <p className="flex items-center gap-1"><Link2 size={11} className="text-zinc-400" /> {mockContext.linkedin}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-1.5 text-[10.5px]">
-                  <div><p className="text-zinc-400">Applied For</p><p className="font-bold text-zinc-800">Sales Manager</p></div>
-                  <div><p className="text-zinc-400">Department</p><p className="font-bold text-zinc-800">Sales &amp; Marketing</p></div>
-                  <div><p className="text-zinc-400">Experience</p><p className="font-bold text-zinc-800">7 Years</p></div>
+                  <div><p className="text-zinc-400">Applied For</p><p className="font-bold text-zinc-800">{mockContext.role}</p></div>
+                  <div><p className="text-zinc-400">Department</p><p className="font-bold text-zinc-800">{mockContext.department}</p></div>
+                  <div><p className="text-zinc-400">Experience</p><p className="font-bold text-zinc-800">{mockContext.experience}</p></div>
                 </div>
 
                 <div className="space-y-1.5 text-[10.5px]">
-                  <div><p className="text-zinc-400">Current Round</p><p className="font-bold text-zinc-800">Round 3 – Managerial Interview</p></div>
+                  <div><p className="text-zinc-400">Current Round</p><p className="font-bold text-zinc-800">Round {mockContext.currentRoundNum} – {mockContext.roundName}</p></div>
                 </div>
 
                 <div className="space-y-1.5 text-[10.5px]">
@@ -192,8 +210,8 @@ export default function InterviewRoundPage() {
                   <div className="flex items-center gap-2">
                     <span className="h-8 w-8 shrink-0 rounded-full bg-zinc-200" />
                     <div>
-                      <p className="font-bold text-zinc-800">Vikram Sinha</p>
-                      <p className="text-[9.5px] text-zinc-400">Regional Sales Director</p>
+                      <p className="font-bold text-zinc-800">{mockContext.interviewerName}</p>
+                      <p className="text-[9.5px] text-zinc-400">{mockContext.interviewerRole}</p>
                     </div>
                   </div>
                   <button type="button" className="flex items-center gap-1 text-[10px] font-semibold text-indigo-600 hover:text-indigo-700">
@@ -219,8 +237,8 @@ export default function InterviewRoundPage() {
             {/* Main interview content */}
             <div className="grid grid-cols-1 gap-2 lg:grid-cols-[1fr_2.1fr_1.3fr]">
               <Card title="Round Progress">
-                <p className="text-[11px] font-semibold text-zinc-800">Round 3 of 5</p>
-                <p className="text-[10px] text-zinc-400">Managerial Interview</p>
+                <p className="text-[11px] font-semibold text-zinc-800">Round {mockContext.currentRoundNum} of {mockContext.totalRounds}</p>
+                <p className="text-[10px] text-zinc-400">{mockContext.roundName}</p>
 
                 <div className="relative mx-auto my-3 grid h-24 w-24 place-items-center rounded-full">
                   <svg className="absolute inset-0 w-full h-full -rotate-90">
