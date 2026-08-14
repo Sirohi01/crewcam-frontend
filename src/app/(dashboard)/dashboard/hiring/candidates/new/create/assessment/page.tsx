@@ -8,16 +8,8 @@ import {
   Trophy, ClipboardList,
 } from 'lucide-react';
 
-// Question bank data now lives in ./questions.json (or data/questions.json in
-// your project) and is imported below instead of being hard-coded here.
+
 import questionTemplatesData from './questions.json';
-
-// Dummy data / static mockup — matches the approved design 1:1. Round 4 of the
-// same 8-step "Job Application" pipeline as the Interview Round 3 page.
-// NOTE: Question data + navigation (Next/Previous/Palette/Mark for Review) and
-// the top tab-bar (Written Assessment / Instructions / Questions / Submit Test
-// / Result) are now fully dynamic — see the state logic below.
-
 const pipelineSteps = ['Upload CV', 'Review & Edit', 'Submit Application', 'AI Screening', 'HOD Review', 'Interview', 'Offer', 'Onboarding'];
 const currentStepIndex = 5;
 
@@ -56,11 +48,6 @@ const instructions = [
   { icon: Wifi, text: 'Ensure stable internet connection during the test.' },
   { icon: AlertTriangle, text: 'Plagiarism or malpractice will lead to disqualification.' },
 ];
-
-/* ------------------------------------------------------------------ */
-/* Dynamic question bank — templates loaded from questions.json,      */
-/* expanded to 40 dummy questions in the same format as before.       */
-/* ------------------------------------------------------------------ */
 
 type QuestionOption = { key: string; text: string };
 type Question = {
@@ -329,8 +316,8 @@ export default function AssessmentRoundPage() {
                       type="button"
                       onClick={() => toggleMarkForReview()}
                       className={`flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold ${isMarkedCurrent
-                          ? 'border-amber-300 bg-amber-50 text-amber-600 hover:bg-amber-100'
-                          : 'border-zinc-200 text-zinc-600 hover:bg-zinc-50'
+                        ? 'border-amber-300 bg-amber-50 text-amber-600 hover:bg-amber-100'
+                        : 'border-zinc-200 text-zinc-600 hover:bg-zinc-50'
                         }`}
                     >
                       <Flag size={11} /> {isMarkedCurrent ? 'Marked for Review' : 'Mark for Review'}
@@ -465,8 +452,8 @@ export default function AssessmentRoundPage() {
                         type="button"
                         onClick={() => toggleMarkForReview(q.id)}
                         className={`flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold ${isMarkedQ
-                            ? 'border-amber-300 bg-amber-50 text-amber-600 hover:bg-amber-100'
-                            : 'border-zinc-200 text-zinc-600 hover:bg-zinc-50'
+                          ? 'border-amber-300 bg-amber-50 text-amber-600 hover:bg-amber-100'
+                          : 'border-zinc-200 text-zinc-600 hover:bg-zinc-50'
                           }`}
                       >
                         <Flag size={11} /> {isMarkedQ ? 'Marked' : 'Mark for Review'}
