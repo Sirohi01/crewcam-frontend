@@ -267,7 +267,7 @@ export default function BasicInformation() {
                         {/* Preview Card */}
                         <Card title={<><Eye size={14} className="text-indigo-600 mr-2" /> Department Preview</>}>
                             <div className="flex items-start gap-3 mt-1 mb-4">
-                                <div className="w-12 h-12 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-lg font-bold shrink-0 shadow-md shadow-indigo-600/20">
+                                <div className="min-w-10 w-auto px-1 h-10 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-lg font-semibold shrink-0 shadow-sm shadow-indigo-600/20">
                                     {formData.code || 'DS'}
                                 </div>
                                 <div>
