@@ -17,8 +17,11 @@ import {
   ChevronRight,
   UserX,
   FileSearch,
-  Filter
+  Filter,
+  Loader2
 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/axios';
 
 // --- TypeScript Types ---
 interface StatCardProps {
@@ -48,128 +51,7 @@ interface Candidate {
 }
 
 // --- Mock Data ---
-const initialCandidates: Candidate[] = [
-  {
-    id: '1',
-    name: 'Aarti Verma',
-    email: 'aarti.verma@email.com',
-    phone: '+91 98765 43210',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-    jobOpening: 'Marketing Executive',
-    jobCode: 'JOB-2026-048',
-    department: 'Marketing',
-    experience: '2 Years',
-    rejectedStage: 'After Interview',
-    rejectionReason: 'Lacked required leadership skills.',
-    rejectedOn: '14 Jun 2026',
-    rejectedTime: '03:45 PM'
-  },
-  {
-    id: '2',
-    name: 'Rahul Singh',
-    email: 'rahul.singh@email.com',
-    phone: '+91 91234 56789',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-    jobOpening: 'Software Developer',
-    jobCode: 'JOB-2026-049',
-    department: 'IT Department',
-    experience: '3 Years',
-    rejectedStage: 'After Assessment',
-    rejectionReason: 'Technical skills not up to the mark.',
-    rejectedOn: '14 Jun 2026',
-    rejectedTime: '12:20 PM'
-  },
-  {
-    id: '3',
-    name: 'Neha Gupta',
-    email: 'neha.gupta@email.com',
-    phone: '+91 90123 45678',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
-    jobOpening: 'HR Executive',
-    jobCode: 'JOB-2026-050',
-    department: 'Human Resources',
-    experience: '4 Years',
-    rejectedStage: 'Screening Rejected',
-    rejectionReason: 'Resume does not match job profile.',
-    rejectedOn: '13 Jun 2026',
-    rejectedTime: '11:10 AM'
-  },
-  {
-    id: '4',
-    name: 'Vikram Mehta',
-    email: 'vikram.mehta@email.com',
-    phone: '+91 98712 34567',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-    jobOpening: 'UI/UX Designer',
-    jobCode: 'JOB-2026-046',
-    department: 'IT Department',
-    experience: '3 Years',
-    rejectedStage: 'After Interview',
-    rejectionReason: 'Not a cultural fit.',
-    rejectedOn: '12 Jun 2026',
-    rejectedTime: '04:30 PM'
-  },
-  {
-    id: '5',
-    name: 'Pooja Sharma',
-    email: 'pooja.sharma@email.com',
-    phone: '+91 99887 66554',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
-    jobOpening: 'Business Analyst',
-    jobCode: 'JOB-2026-045',
-    department: 'IT Department',
-    experience: '2.5 Years',
-    rejectedStage: 'After Assessment',
-    rejectionReason: 'Lacks domain knowledge.',
-    rejectedOn: '12 Jun 2026',
-    rejectedTime: '02:15 PM'
-  },
-  {
-    id: '6',
-    name: 'Amit Patel',
-    email: 'amit.patel@email.com',
-    phone: '+91 99876 66554',
-    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150',
-    jobOpening: 'Sales Manager',
-    jobCode: 'JOB-2026-051',
-    department: 'Sales & Marketing',
-    experience: '5 Years',
-    rejectedStage: 'After Interview',
-    rejectionReason: 'Salary expectation not aligned.',
-    rejectedOn: '11 Jun 2026',
-    rejectedTime: '05:05 PM'
-  },
-  {
-    id: '7',
-    name: 'Ritika Agarwal',
-    email: 'ritika.agarwal@email.com',
-    phone: '+91 90012 34567',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-    jobOpening: 'Accountant',
-    jobCode: 'JOB-2026-043',
-    department: 'Finance & Accounts',
-    experience: '2 Years',
-    rejectedStage: 'Screening Rejected',
-    rejectionReason: 'Insufficient experience.',
-    rejectedOn: '11 Jun 2026',
-    rejectedTime: '10:30 AM'
-  },
-  {
-    id: '8',
-    name: 'Saurabh Kumar',
-    email: 'saurabh.k@email.com',
-    phone: '+91 91234 87654',
-    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150',
-    jobOpening: 'Data Analyst',
-    jobCode: 'JOB-2026-044',
-    department: 'IT Department',
-    experience: '3 Years',
-    rejectedStage: 'After Assessment',
-    rejectionReason: 'Could not clear SQL test.',
-    rejectedOn: '10 Jun 2026',
-    rejectedTime: '03:20 PM'
-  }
-];
+// Data fetched dynamically
 
 export default function RejectedCandidatesPage() {
   // --- States ---
@@ -180,6 +62,33 @@ export default function RejectedCandidatesPage() {
   const [selectedReason, setSelectedReason] = useState('All Reasons');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  const { data: candidatesResponse, isLoading } = useQuery({
+    queryKey: ['rejected-candidates'],
+    queryFn: async () => {
+      const res = await api.get('/hiring/candidates', { params: { status: 'Rejected' } });
+      return res.data;
+    }
+  });
+
+  const initialCandidates: Candidate[] = React.useMemo(() => {
+    const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
+    return rawCandidates.map((c: any) => ({
+      id: c._id || c.id,
+      name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
+      email: c.email || 'N/A',
+      phone: c.phone || 'N/A',
+      avatar: '',
+      jobOpening: c.jobRole || 'N/A',
+      jobCode: 'N/A',
+      department: c.department?.name || 'N/A',
+      experience: c.applicationDetails?.totalExperience || 'N/A',
+      rejectedStage: 'Screening Rejected', // Mock stage
+      rejectionReason: c.comments || 'Not a good fit',
+      rejectedOn: new Date(c.updatedAt || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      rejectedTime: new Date(c.updatedAt || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    }));
+  }, [candidatesResponse]);
 
   // --- Handlers ---
   const clearFilters = () => {
@@ -361,12 +270,18 @@ export default function RejectedCandidatesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {initialCandidates.map((cand) => (
+              {isLoading ? (
+                <tr><td colSpan={9} className="py-10 text-center"><Loader2 className="inline animate-spin text-indigo-600" /></td></tr>
+              ) : initialCandidates.length === 0 ? (
+                <tr><td colSpan={9} className="py-10 text-center text-xs text-slate-500">No candidates found</td></tr>
+              ) : initialCandidates.map((cand) => (
                 <tr key={cand.id} className="hover:bg-slate-50/80 transition-colors">
                   <td className="p-2"><input type="checkbox" className="rounded text-indigo-600" /></td>
                   <td className="p-2">
                     <div className="flex items-center gap-2">
-                      <img src={cand.avatar} alt={cand.name} className="w-6 h-6 rounded-full object-cover border border-slate-200" />
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-zinc-100 text-[10px] font-bold text-zinc-500 border border-slate-200">
+                        {cand.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+                      </span>
                       <div>
                         <p className="font-bold text-slate-900 leading-tight">{cand.name}</p>
                         <p className="text-[10px] text-slate-500">{cand.email}</p>
@@ -411,7 +326,7 @@ export default function RejectedCandidatesPage() {
         {/* COMPACT PAGINATION FOOTER */}
         <div className="border-t border-slate-200 p-2 flex justify-between items-center bg-slate-50 text-[11px] font-semibold text-slate-700 h-[40px]">
           <div>
-            Showing <span className="font-bold text-slate-900">1 to 8</span> of <span className="font-bold text-slate-900">86</span> entries
+            Showing <span className="font-bold text-slate-900">{initialCandidates.length > 0 ? 1 : 0} to {Math.min(pageSize, initialCandidates.length)}</span> of <span className="font-bold text-slate-900">{initialCandidates.length}</span> entries
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1">

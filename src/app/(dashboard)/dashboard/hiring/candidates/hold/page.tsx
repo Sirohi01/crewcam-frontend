@@ -7,6 +7,9 @@ import {
   MoreHorizontal, Mail, Plus, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/axios';
+import { Loader2 } from 'lucide-react';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 type NoticePeriod = 'Immediate' | '1 Month' | '1 - 2 Months' | '2 Months' | '2 - 3 Months' | '3 Months';
@@ -33,19 +36,7 @@ interface HoldCandidate {
   checked?: boolean;
 }
 
-// ─── Mock data (matches the reference screenshot) ──────────────────────────
-const CANDIDATES: HoldCandidate[] = [
-  { id: 'HC-001', name: 'Ananya Verma', avatar: '201', email: 'ananya.verma@email.com', phone: '+91 98765 43210', currentRole: 'Marketing Specialist', company: 'Wipro Technologies', experience: '3 Years', skills: ['Digital Marketing', 'SEO', 'Google Ads'], extraSkills: 2, noticePeriod: '2 Months', reasonForHold: 'Better Role Opportunity', addedOn: '14 Jun 2026', lastContact: '15 Jun 2026', nextFollowUp: '15 Jul 2026', daysLeft: 30, tab: 'followup' },
-  { id: 'HC-002', name: 'Rohit Singh', avatar: '202', email: 'rohit.singh@email.com', phone: '+91 91234 56789', currentRole: 'Software Engineer', company: 'TCS', experience: '4 Years', skills: ['Java', 'Spring Boot', 'SQL'], extraSkills: 1, noticePeriod: '3 Months', reasonForHold: 'Higher Studies', addedOn: '12 Jun 2026', lastContact: '13 Jun 2026', nextFollowUp: '13 Jul 2026', daysLeft: 28, tab: 'longterm' },
-  { id: 'HC-003', name: 'Pooja Mehta', avatar: '203', email: 'pooja.mehta@email.com', phone: '+91 99887 66554', currentRole: 'HR Executive', company: 'HCL Technologies', experience: '2.5 Years', skills: ['HR', 'Recruitment', 'Excel'], extraSkills: 1, noticePeriod: '1 Month', reasonForHold: 'Location Preference', addedOn: '10 Jun 2026', lastContact: '11 Jun 2026', nextFollowUp: '11 Jul 2026', daysLeft: 26, tab: 'ready' },
-  { id: 'HC-004', name: 'Karan Malhotra', avatar: '204', email: 'karan.malhotra@email.com', phone: '+91 98712 34567', currentRole: 'UI/UX Designer', company: 'Infosys', experience: '3 Years', skills: ['Figma', 'UI Design', 'Adobe XD'], extraSkills: 1, noticePeriod: '2 Months', reasonForHold: 'Salary Expectation', addedOn: '08 Jun 2026', lastContact: '09 Jun 2026', nextFollowUp: '09 Jul 2026', daysLeft: 24, tab: 'followup' },
-  { id: 'HC-005', name: 'Neha Yadav', avatar: '205', email: 'neha.yadav@email.com', phone: '+91 99111 22334', currentRole: 'Business Analyst', company: 'Deloitte', experience: '3.5 Years', skills: ['Business Analysis', 'Excel', 'Power BI'], extraSkills: 1, noticePeriod: '2 - 3 Months', reasonForHold: 'Waiting for Notice Buyout', addedOn: '06 Jun 2026', lastContact: '07 Jun 2026', nextFollowUp: '07 Jul 2026', daysLeft: 22, tab: 'longterm' },
-  { id: 'HC-006', name: 'Vikas Sharma', avatar: '206', email: 'vikas.sharma@email.com', phone: '+91 98855 66778', currentRole: 'DevOps Engineer', company: 'Capgemini', experience: '4 Years', skills: ['AWS', 'Docker', 'Kubernetes'], extraSkills: 2, noticePeriod: '1 Month', reasonForHold: 'Relocation Constraint', addedOn: '04 Jun 2026', lastContact: '05 Jun 2026', nextFollowUp: '05 Jul 2026', daysLeft: 20, tab: 'ready' },
-  { id: 'HC-007', name: 'Ritika Agarwal', avatar: '207', email: 'ritika.agarwal@email.com', phone: '+91 90012 34567', currentRole: 'Accountant', company: 'Genpact', experience: '2 Years', skills: ['Tally', 'Excel', 'GST'], extraSkills: 0, noticePeriod: 'Immediate', reasonForHold: 'Family Commitment', addedOn: '02 Jun 2026', lastContact: '03 Jun 2026', nextFollowUp: '03 Jul 2026', daysLeft: 18, tab: 'ready' },
-  { id: 'HC-008', name: 'Saurabh Kumar', avatar: '208', email: 'saurabh.k@email.com', phone: '+91 91234 87654', currentRole: 'Data Analyst', company: 'Accenture', experience: '2.8 Years', skills: ['SQL', 'Python', 'Tableau'], extraSkills: 1, noticePeriod: '1 - 2 Months', reasonForHold: 'Exploring Opportunities', addedOn: '31 May 2026', lastContact: '01 Jun 2026', nextFollowUp: '01 Jul 2026', daysLeft: 16, tab: 'followup' },
-];
-
-const TOTAL_HOLD_CANDIDATES = 48;
+// Data fetched dynamically.
 
 const TABS: { key: TabKey; label: string; count: number }[] = [
   { key: 'all', label: 'All Hold Candidates', count: 48 },
@@ -444,8 +435,41 @@ export default function HoldCandidatesPage() {
     setReason('All Reasons');
   };
 
+  const { data: candidatesResponse, isLoading } = useQuery({
+    queryKey: ['hold-candidates'],
+    queryFn: async () => {
+      const res = await api.get('/hiring/candidates', { params: { status: 'Hold' } });
+      return res.data;
+    }
+  });
+
+  const liveCandidates: HoldCandidate[] = useMemo(() => {
+    const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
+    return rawCandidates.map((c: any): HoldCandidate => {
+      return {
+        id: c._id || c.id || Math.random().toString(),
+        name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
+        avatar: '',
+        email: c.email || 'N/A',
+        phone: c.phone || 'N/A',
+        currentRole: c.jobRole || 'N/A',
+        company: c.source || 'N/A',
+        experience: c.applicationDetails?.totalExperience || 'N/A',
+        skills: [],
+        extraSkills: 0,
+        noticePeriod: '1 Month',
+        reasonForHold: c.comments || 'No Reason',
+        addedOn: new Date(c.createdAt || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        lastContact: new Date(c.updatedAt || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        nextFollowUp: 'N/A',
+        daysLeft: 0,
+        tab: 'followup'
+      };
+    });
+  }, [candidatesResponse]);
+
   const filtered = useMemo(() => {
-    return CANDIDATES.filter((c) => {
+    return liveCandidates.filter((c) => {
       if (activeTab !== 'all' && c.tab !== activeTab) return false;
       const matchesSearch = search.trim() === '' ||
         [c.name, c.email, c.phone, c.currentRole, ...c.skills].some((f) => f.toLowerCase().includes(search.toLowerCase()));
@@ -492,7 +516,7 @@ export default function HoldCandidatesPage() {
           <div className="p-3.5">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <h3 className="text-[13px] font-semibold text-zinc-900">
-                {TABS.find((t) => t.key === activeTab)?.label} ({tabCount})
+                {TABS.find((t) => t.key === activeTab)?.label} ({filtered.length})
               </h3>
               <div className="flex items-center gap-2">
                 <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-violet-300 transition-colors">
@@ -507,17 +531,21 @@ export default function HoldCandidatesPage() {
               </div>
             </div>
 
-            <HoldCandidatesTable
-              rows={filtered.slice((page - 1) * pageSize, page * pageSize)}
-              checkedIds={checkedIds}
-              onToggleCheck={toggleCheck}
-              onToggleAll={toggleAll}
-            />
+            {isLoading ? (
+              <div className="flex justify-center py-10"><Loader2 className="animate-spin text-violet-600" /></div>
+            ) : (
+              <HoldCandidatesTable
+                rows={filtered.slice((page - 1) * pageSize, page * pageSize)}
+                checkedIds={checkedIds}
+                onToggleCheck={toggleCheck}
+                onToggleAll={toggleAll}
+              />
+            )}
 
             <TableFooter
               pageSize={pageSize} setPageSize={setPageSize}
               page={page} setPage={setPage}
-              totalEntries={TOTAL_HOLD_CANDIDATES}
+              totalEntries={filtered.length}
             />
           </div>
         </CardContent>

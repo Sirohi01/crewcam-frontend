@@ -3,154 +3,58 @@
 import React from 'react';
 import {
   Download, Upload, Plus, Search, Filter, RotateCcw, ChevronDown,
-  Users, Briefcase, Calendar, Hourglass, XCircle, Star, Eye, MessageSquare, MoreVertical, LayoutGrid, Mail
+  Users, Briefcase, Calendar, Hourglass, XCircle, Star, Eye, MessageSquare, MoreVertical, LayoutGrid, Mail, Loader2
 } from 'lucide-react';
-
-const CANDIDATES = [
-  {
-    id: 1,
-    name: 'Rahul Sharma',
-    avatar: 'https://i.pravatar.cc/150?u=11',
-    email: 'rahul.sharma@email.com',
-    phone: '+91 98765 43210',
-    jobRole: 'Sales Manager',
-    jobId: 'JOB-2026-051',
-    department: 'Sales & Marketing',
-    experience: '7 Years',
-    rating: 4.6,
-    matchLevel: 'Excellent Match',
-    matchColor: 'text-emerald-500',
-    shortlistedDate: '15 Jun 2026',
-    shortlistedTime: '10:24 AM',
-    nextStepStatus: 'Interview Scheduled',
-    nextStepDesc: '16 Jun 2026, 11:00 AM',
-    statusBg: 'bg-blue-50 text-blue-600',
-  },
-  {
-    id: 2,
-    name: 'Priya Singh',
-    avatar: 'https://i.pravatar.cc/150?u=12',
-    email: 'priya.singh@email.com',
-    phone: '+91 91234 56789',
-    jobRole: 'HR Executive',
-    jobId: 'JOB-2026-050',
-    department: 'Human Resources',
-    experience: '6 Years',
-    rating: 4.3,
-    matchLevel: 'Very Good Match',
-    matchColor: 'text-emerald-500',
-    shortlistedDate: '14 Jun 2026',
-    shortlistedTime: '03:45 PM',
-    nextStepStatus: 'Awaiting Feedback',
-    nextStepDesc: 'HR Interview',
-    statusBg: 'bg-amber-50 text-amber-600',
-  },
-  {
-    id: 3,
-    name: 'Amit Patel',
-    avatar: 'https://i.pravatar.cc/150?u=13',
-    email: 'amit.patel@email.com',
-    phone: '+91 99887 66554',
-    jobRole: 'Software Developer',
-    jobId: 'JOB-2026-049',
-    department: 'IT Department',
-    experience: '5 Years',
-    rating: 4.7,
-    matchLevel: 'Excellent Match',
-    matchColor: 'text-emerald-500',
-    shortlistedDate: '13 Jun 2026',
-    shortlistedTime: '11:32 AM',
-    nextStepStatus: 'Interview Scheduled',
-    nextStepDesc: '17 Jun 2026, 02:00 PM',
-    statusBg: 'bg-blue-50 text-blue-600',
-  },
-  {
-    id: 4,
-    name: 'Neha Gupta',
-    avatar: 'https://i.pravatar.cc/150?u=14',
-    email: 'neha.gupta@email.com',
-    phone: '+91 90123 45678',
-    jobRole: 'Digital Marketing Executive',
-    jobId: 'JOB-2026-048',
-    department: 'Marketing',
-    experience: '4 Years',
-    rating: 4.2,
-    matchLevel: 'Very Good Match',
-    matchColor: 'text-emerald-500',
-    shortlistedDate: '12 Jun 2026',
-    shortlistedTime: '04:20 PM',
-    nextStepStatus: 'Awaiting Feedback',
-    nextStepDesc: 'Managerial Interview',
-    statusBg: 'bg-amber-50 text-amber-600',
-  },
-  {
-    id: 5,
-    name: 'Vikram Mehta',
-    avatar: 'https://i.pravatar.cc/150?u=15',
-    email: 'vikram.mehta@email.com',
-    phone: '+91 98712 34567',
-    jobRole: 'UI/UX Designer',
-    jobId: 'JOB-2026-046',
-    department: 'IT Department',
-    experience: '3 Years',
-    rating: 4.1,
-    matchLevel: 'Good Match',
-    matchColor: 'text-blue-500',
-    shortlistedDate: '10 Jun 2026',
-    shortlistedTime: '09:15 AM',
-    nextStepStatus: 'Interview Scheduled',
-    nextStepDesc: '18 Jun 2026, 10:30 AM',
-    statusBg: 'bg-blue-50 text-blue-600',
-  },
-  {
-    id: 6,
-    name: 'Saurabh Kumar',
-    avatar: 'https://i.pravatar.cc/150?u=16',
-    email: 'saurabh.k@email.com',
-    phone: '+91 91234 87654',
-    jobRole: 'Business Analyst',
-    jobId: 'JOB-2026-045',
-    department: 'IT Department',
-    experience: '2 Years',
-    rating: 4.0,
-    matchLevel: 'Good Match',
-    matchColor: 'text-blue-500',
-    shortlistedDate: '09 Jun 2026',
-    shortlistedTime: '02:10 PM',
-    nextStepStatus: 'Interview Scheduled',
-    nextStepDesc: '19 Jun 2026, 03:00 PM',
-    statusBg: 'bg-blue-50 text-blue-600',
-  },
-  {
-    id: 7,
-    name: 'Ritika Agarwal',
-    avatar: 'https://i.pravatar.cc/150?u=17',
-    email: 'ritika.agarwal@email.com',
-    phone: '+91 90012 34567',
-    jobRole: 'Accountant',
-    jobId: 'JOB-2026-043',
-    department: 'Finance & Accounts',
-    experience: '3 Years',
-    rating: 4.3,
-    matchLevel: 'Very Good Match',
-    matchColor: 'text-emerald-500',
-    shortlistedDate: '08 Jun 2026',
-    shortlistedTime: '10:45 AM',
-    nextStepStatus: 'Awaiting Feedback',
-    nextStepDesc: 'Technical Assessment',
-    statusBg: 'bg-amber-50 text-amber-600',
-  }
-];
-
-const STATS = [
-  { value: '32', label: 'Total Shortlisted', sub: '19.6% of total candidates', icon: Users, bg: 'bg-indigo-50', color: 'text-indigo-600' },
-  { value: '12', label: 'This Week', sub: '37.5% of shortlisted', icon: Briefcase, bg: 'bg-emerald-50', color: 'text-emerald-600' },
-  { value: '18', label: 'Interview Scheduled', sub: '56.3% of shortlisted', icon: Calendar, bg: 'bg-blue-50', color: 'text-blue-500' },
-  { value: '6', label: 'Awaiting Feedback', sub: '18.8% of shortlisted', icon: Hourglass, bg: 'bg-amber-50', color: 'text-amber-500' },
-  { value: '3', label: 'Moved to Hold', sub: '9.4% of shortlisted', icon: XCircle, bg: 'bg-rose-50', color: 'text-rose-500' },
-];
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/axios';
 
 export default function ShortlistedCandidatesUI() {
+  const { data: candidatesResponse, isLoading } = useQuery({
+    queryKey: ['shortlisted-candidates'],
+    queryFn: async () => {
+      const res = await api.get('/hiring/candidates');
+      return res.data;
+    }
+  });
+
+  const candidates = React.useMemo(() => {
+    const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
+    return rawCandidates
+      .filter((c: any) => c.status === 'Screening' || c.status === 'Interviewing')
+      .map((c: any) => ({
+        id: c._id || c.id,
+        name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
+        avatar: 'https://i.pravatar.cc/150?u=11',
+        email: c.email || 'N/A',
+        phone: c.phone || 'N/A',
+        jobRole: c.jobRole || 'N/A',
+        jobId: 'N/A',
+        department: c.department?.name || 'N/A',
+        experience: c.applicationDetails?.totalExperience ? `${c.applicationDetails.totalExperience} Years` : 'N/A',
+        rating: c.rating || 4.0,
+        matchLevel: c.rating > 4.5 ? 'Excellent Match' : c.rating > 4.0 ? 'Very Good Match' : 'Good Match',
+        matchColor: c.rating > 4.0 ? 'text-emerald-500' : 'text-blue-500',
+        shortlistedDate: new Date(c.updatedAt || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        shortlistedTime: new Date(c.updatedAt || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        nextStepStatus: c.status === 'Interviewing' ? 'Interview Scheduled' : 'Screening',
+        nextStepDesc: 'Pending Action',
+        statusBg: c.status === 'Interviewing' ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600',
+      }));
+  }, [candidatesResponse]);
+
+  const stats = React.useMemo(() => {
+    const total = candidates.length;
+    const interviewing = candidates.filter((c: any) => c.nextStepStatus === 'Interview Scheduled').length;
+    const screening = candidates.filter((c: any) => c.nextStepStatus === 'Screening').length;
+    return [
+      { value: total.toString(), label: 'Total Shortlisted', sub: 'In pipeline', icon: Users, bg: 'bg-indigo-50', color: 'text-indigo-600' },
+      { value: interviewing.toString(), label: 'Interview Scheduled', sub: total ? `${((interviewing / total) * 100).toFixed(1)}% of shortlisted` : '0%', icon: Calendar, bg: 'bg-emerald-50', color: 'text-emerald-500' },
+      { value: screening.toString(), label: 'Awaiting Feedback', sub: total ? `${((screening / total) * 100).toFixed(1)}% of shortlisted` : '0%', icon: Hourglass, bg: 'bg-amber-50', color: 'text-amber-500' },
+      { value: '0', label: 'Task Assigned', sub: '0% of shortlisted', icon: Briefcase, bg: 'bg-blue-50', color: 'text-blue-500' },
+      { value: '0', label: 'Moved to Hold', sub: '0% of shortlisted', icon: XCircle, bg: 'bg-rose-50', color: 'text-rose-500' },
+    ];
+  }, [candidates]);
+
   return (
     <div className="w-full max-w-[1600px] mx-auto px-1 py-0.5 lg:px-2 lg:py-1 space-y-4 font-sans text-zinc-900 min-h-screen">
 
@@ -177,7 +81,7 @@ export default function ShortlistedCandidatesUI() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2">
-        {STATS.map((stat, i) => (
+        {stats.map((stat, i) => (
           <div key={i} className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm flex items-start  gap-3">
             <div className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center ${stat.bg}`}>
               <stat.icon size={18} className={stat.color} />
@@ -262,7 +166,7 @@ export default function ShortlistedCandidatesUI() {
         <div className="flex flex-col md:flex-row md:items-center justify-between p-2 border-b border-zinc-100 bg-white">
           <div className="flex flex-wrap items-center gap-1 mb-2 md:mb-0 px-2">
             <button className="px-3 pb-1 border-b-2 border-indigo-700 text-[11px] font-bold text-indigo-700">
-              All Shortlisted (32)
+              All Shortlisted ({candidates.length})
             </button>
             <button className="px-3 pb-1 border-b-2 border-transparent text-[11px] font-semibold text-zinc-500 hover:text-zinc-700">
               Interview Scheduled (18)
@@ -301,14 +205,20 @@ export default function ShortlistedCandidatesUI() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-50">
-              {CANDIDATES.map((app) => (
+              {isLoading ? (
+                <tr><td colSpan={9} className="py-10 text-center"><Loader2 className="inline animate-spin text-indigo-600" /></td></tr>
+              ) : candidates.length === 0 ? (
+                <tr><td colSpan={9} className="py-10 text-center text-[12px] text-zinc-500">No shortlisted candidates</td></tr>
+              ) : candidates.map((app: any) => (
                 <tr key={app.id} className="hover:bg-zinc-50/50 transition-colors">
                   <td className="px-3 py-2 text-center">
                     <input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" />
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-2.5">
-                      <img src={app.avatar} alt={app.name} className="h-8 w-8 rounded-full border border-zinc-200 shadow-sm object-cover" />
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-zinc-100 text-[10px] font-bold text-zinc-500 border border-zinc-200">
+                        {app.name.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
+                      </span>
                       <div className="flex flex-col gap-0.5">
                         <span className="font-bold text-zinc-900">{app.name}</span>
                         <span className="text-[9px] font-medium text-zinc-800">{app.email}</span>
@@ -371,7 +281,7 @@ export default function ShortlistedCandidatesUI() {
         {/* Footer Pagination */}
         <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-t border-zinc-100 bg-white">
           <div className="text-[11px] text-zinc-500 font-medium">
-            Showing 1 to 10 of 32 entries
+            Showing {candidates.length > 0 ? 1 : 0} to {Math.min(10, candidates.length)} of {candidates.length} entries
           </div>
 
           <div className="flex items-center gap-2 mt-2 sm:mt-0">
