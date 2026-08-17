@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import {
   Download, Upload, Plus, Search, Filter, RotateCcw, ChevronDown,
-  Users, FileText, Star, Briefcase, XCircle, UserCheck, Eye, MessageSquare, MoreVertical, LayoutGrid
+  Users, FileText, Star, Briefcase, XCircle, UserCheck, Eye, MessageSquare, MoreVertical, LayoutGrid, Loader2
 } from 'lucide-react';
+<<<<<<< HEAD
 import api from '@/lib/axios';
 
 const PAGE_SIZE = 10;
@@ -15,6 +16,10 @@ function unwrapList(payload: any) {
   if (Array.isArray(payload)) return { rows: payload, meta: { page: 1, totalPages: 1, total: payload.length } };
   return { rows: payload?.data || [], meta: payload?.meta || { page: 1, totalPages: 1, total: 0 } };
 }
+=======
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/axios';
+>>>>>>> 777a016f4c530ed434c7c00384bb420dac93a80e
 
 const STATUS_STYLE: Record<string, string> = {
   'Applied':      'bg-slate-100 text-slate-700',
@@ -26,6 +31,7 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 export default function CandidateRegisterUI() {
+<<<<<<< HEAD
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('All');
   const [page, setPage] = useState(1);
@@ -56,6 +62,50 @@ export default function CandidateRegisterUI() {
     { label: 'Rejected',           value: '-',   sub: '',                                icon: XCircle,   bg: 'bg-rose-50',    color: 'text-rose-600' },
     { label: 'Hired',              value: '-',   sub: '',                                icon: UserCheck, bg: 'bg-purple-50',  color: 'text-purple-600' },
   ];
+=======
+  const { data: candidatesResponse, isLoading } = useQuery({
+    queryKey: ['all-candidates'],
+    queryFn: async () => {
+      const res = await api.get('/hiring/candidates');
+      return res.data;
+    }
+  });
+
+  const candidates = React.useMemo(() => {
+    const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
+    return rawCandidates.map((c: any) => ({
+      id: c._id || c.id,
+      name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
+      rating: c.rating || 4.0,
+      avatar: 'https://i.pravatar.cc/150?u=1', // Placeholder avatar
+      email: c.email || 'N/A',
+      phone: c.phone || 'N/A',
+      currentRole: c.applicationDetails?.currentRole || 'N/A',
+      company: c.applicationDetails?.currentCompany || 'N/A',
+      experience: c.applicationDetails?.totalExperience ? `${c.applicationDetails.totalExperience} Years` : 'N/A',
+      skills: c.skills?.length ? c.skills.slice(0, 3) : ['Skill 1', 'Skill 2'],
+      jobAppliedFor: c.jobRole || 'N/A',
+      jobId: 'N/A',
+      source: c.source || 'Direct',
+      status: c.status || 'Active',
+      stage: 'N/A',
+      addedOn: new Date(c.createdAt || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      addedDaysAgo: 'recently',
+    }));
+  }, [candidatesResponse]);
+
+  const stats = React.useMemo(() => {
+    const total = candidates.length;
+    return [
+      { label: 'Total Candidates', value: total.toString(), sub: 'In database', icon: Users, bg: 'bg-indigo-50', color: 'text-indigo-600' },
+      { label: 'New This Week', value: total > 0 ? '1' : '0', sub: 'Recent applications', subColor: 'text-emerald-500', icon: FileText, bg: 'bg-emerald-50', color: 'text-emerald-600' },
+      { label: 'Shortlisted', value: candidates.filter((c: any) => c.status === 'Screening' || c.status === 'Interviewing').length.toString(), sub: 'Progressing', icon: Star, bg: 'bg-amber-50', color: 'text-amber-600' },
+      { label: 'Active in Process', value: candidates.filter((c: any) => c.status !== 'Rejected' && c.status !== 'Hired').length.toString(), sub: 'Currently active', icon: Briefcase, bg: 'bg-blue-50', color: 'text-blue-600' },
+      { label: 'Rejected', value: candidates.filter((c: any) => c.status === 'Rejected').length.toString(), sub: 'Did not match', icon: XCircle, bg: 'bg-rose-50', color: 'text-rose-600' },
+      { label: 'Hired', value: candidates.filter((c: any) => c.status === 'Hired').length.toString(), sub: 'Joined team', icon: UserCheck, bg: 'bg-purple-50', color: 'text-purple-600' },
+    ];
+  }, [candidates]);
+>>>>>>> 777a016f4c530ed434c7c00384bb420dac93a80e
 
   return (
     <div className="w-full max-w-[1600px] px-1 py-0.5 lg:px-2 lg:py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
@@ -81,7 +131,7 @@ export default function CandidateRegisterUI() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2">
-        {STATS.map((stat, i) => (
+        {stats.map((stat, i) => (
           <div key={i} className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm flex items-start gap-3">
             <div className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center ${stat.bg}`}>
               <stat.icon size={18} className={stat.color} />
@@ -193,6 +243,7 @@ export default function CandidateRegisterUI() {
                 <th className="px-2 py-2 font-bold text-center">Actions</th>
               </tr>
             </thead>
+<<<<<<< HEAD
             <tbody className="divide-y divide-zinc-50">
               {isLoading && (
                 <tr><td colSpan={12} className="px-4 py-8 text-center text-zinc-500 text-sm">Loading candidates...</td></tr>
@@ -220,6 +271,28 @@ export default function CandidateRegisterUI() {
                           {[1,2,3,4,5].map((s) => (
                             <Star key={s} size={9} className={s <= 4 ? 'fill-amber-400 text-amber-400' : 'fill-zinc-200 text-zinc-200'} />
                           ))}
+=======
+            <tbody className="divide-y divide-zinc-100 bg-white">
+              {isLoading ? (
+                <tr><td colSpan={12} className="py-10 text-center"><Loader2 className="inline animate-spin text-indigo-600" /></td></tr>
+              ) : candidates.length === 0 ? (
+                <tr><td colSpan={12} className="py-10 text-center text-[12px] text-zinc-500">No candidates found</td></tr>
+              ) : candidates.map((c: any) => (
+                <tr key={c.id} className="hover:bg-indigo-50/30 transition-colors group">
+                  <td className="px-2 py-2 text-center">
+                    <input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" />
+                  </td>
+                  <td className="px-2 py-2">
+                    <div className="flex items-center gap-2">
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-zinc-100 text-[9px] font-bold text-zinc-500 border border-zinc-200">
+                        {c.name.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
+                      </span>
+                      <div className="flex flex-col">
+                        <Link href={`/dashboard/hiring/candidates/${c.id}`} className="text-indigo-700 font-bold hover:underline">{c.name}</Link>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <Star size={8} className="fill-amber-400 text-amber-400" />
+                          <span className="text-[9px] font-medium text-zinc-600">{c.rating}</span>
+>>>>>>> 777a016f4c530ed434c7c00384bb420dac93a80e
                         </div>
                       </div>
                     </div>
@@ -239,7 +312,11 @@ export default function CandidateRegisterUI() {
                   <td className="px-2 py-2 font-medium text-zinc-700">{c.totalExperience ? `${c.totalExperience} Yrs` : '-'}</td>
                   <td className="px-2 py-2">
                     <div className="flex flex-wrap gap-1 w-40 whitespace-normal">
+<<<<<<< HEAD
                       {(c.skills || []).slice(0, 3).map((skill: string, idx: number) => (
+=======
+                      {c.skills.map((skill: string, idx: number) => (
+>>>>>>> 777a016f4c530ed434c7c00384bb420dac93a80e
                         <span key={idx} className="bg-indigo-50/80 border border-indigo-100 text-indigo-700 text-[9px] font-semibold px-1.5 py-0.5 rounded">
                           {skill}
                         </span>
@@ -304,7 +381,11 @@ export default function CandidateRegisterUI() {
           </div>
 
           <div className="text-[11px] text-zinc-500 font-medium mt-2 sm:mt-0">
+<<<<<<< HEAD
             Showing {rows.length} of {meta.total} entries (Page {meta.page || page} of {meta.totalPages || 1})
+=======
+            Showing {candidates.length > 0 ? 1 : 0} to {Math.min(10, candidates.length)} of {candidates.length} entries
+>>>>>>> 777a016f4c530ed434c7c00384bb420dac93a80e
           </div>
 
           <div className="flex items-center gap-1 mt-2 sm:mt-0">

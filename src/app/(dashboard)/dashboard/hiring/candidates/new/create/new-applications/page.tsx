@@ -5,140 +5,52 @@ import Link from 'next/link';
 import {
   Download, Upload, Plus, Search, Filter, RotateCcw, ChevronDown,
   User, Calendar, Clock, Briefcase, Mail, Eye, MessageSquare, MoreVertical, LayoutGrid, FileText,
-  Link2, Globe, Users, Info
+  Link2, Globe, Users, Info, Loader2
 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/axios';
 
-const APPLICATIONS = [
-  {
-    id: 1,
-    name: 'Ananya Verma',
-    avatar: 'https://i.pravatar.cc/150?u=11',
-    email: 'ananya.verma@email.com',
-    phone: '+91 98765 43210',
-    jobRole: 'Marketing Executive',
-    jobId: 'JOB-2026-048',
-    experience: '2 Years',
-    source: 'Naukri.com',
-    sourceType: 'naukri',
-    appliedOnDate: '15 Jun 2026',
-    appliedOnTime: '10:24 AM',
-    resumeName: 'Ananya_Verma.pdf',
-    resumeSize: '512 KB',
-    status: 'New',
-  },
-  {
-    id: 2,
-    name: 'Rohit Singh',
-    avatar: 'https://i.pravatar.cc/150?u=12',
-    email: 'rohit.singh@email.com',
-    phone: '+91 91234 56789',
-    jobRole: 'Software Developer',
-    jobId: 'JOB-2026-049',
-    experience: '3 Years',
-    source: 'LinkedIn',
-    sourceType: 'linkedin',
-    appliedOnDate: '15 Jun 2026',
-    appliedOnTime: '09:58 AM',
-    resumeName: 'Rohit_Singh.pdf',
-    resumeSize: '645 KB',
-    status: 'New',
-  },
-  {
-    id: 3,
-    name: 'Pooja Mehta',
-    avatar: 'https://i.pravatar.cc/150?u=13',
-    email: 'pooja.mehta@email.com',
-    phone: '+91 99887 66554',
-    jobRole: 'HR Executive',
-    jobId: 'JOB-2026-050',
-    experience: '4 Years',
-    source: 'Employee Referral',
-    sourceType: 'referral',
-    appliedOnDate: '15 Jun 2026',
-    appliedOnTime: '09:41 AM',
-    resumeName: 'Pooja_Mehta.pdf',
-    resumeSize: '478 KB',
-    status: 'New',
-  },
-  {
-    id: 4,
-    name: 'Karan Malhotra',
-    avatar: 'https://i.pravatar.cc/150?u=14',
-    email: 'karan.malhotra@email.com',
-    phone: '+91 98712 34567',
-    jobRole: 'UI/UX Designer',
-    jobId: 'JOB-2026-046',
-    experience: '2 Years',
-    source: 'Company Website',
-    sourceType: 'website',
-    appliedOnDate: '15 Jun 2026',
-    appliedOnTime: '09:20 AM',
-    resumeName: 'Karan_Malhotra.pdf',
-    resumeSize: '601 KB',
-    status: 'New',
-  },
-  {
-    id: 5,
-    name: 'Neha Yadav',
-    avatar: 'https://i.pravatar.cc/150?u=15',
-    email: 'neha.yadav@email.com',
-    phone: '+91 99111 22334',
-    jobRole: 'Accountant',
-    jobId: 'JOB-2026-043',
-    experience: '1 Year',
-    source: 'Indeed',
-    sourceType: 'indeed',
-    appliedOnDate: '15 Jun 2026',
-    appliedOnTime: '09:05 AM',
-    resumeName: 'Neha_Yadav.pdf',
-    resumeSize: '432 KB',
-    status: 'New',
-  },
-  {
-    id: 6,
-    name: 'Vikas Sharma',
-    avatar: 'https://i.pravatar.cc/150?u=16',
-    email: 'vikas.sharma@email.com',
-    phone: '+91 88555 66778',
-    jobRole: 'Business Analyst',
-    jobId: 'JOB-2026-045',
-    experience: '3 Years',
-    source: 'Naukri.com',
-    sourceType: 'naukri',
-    appliedOnDate: '15 Jun 2026',
-    appliedOnTime: '08:47 AM',
-    resumeName: 'Vikas_Sharma.pdf',
-    resumeSize: '556 KB',
-    status: 'New',
-  },
-  {
-    id: 7,
-    name: 'Ishita Kapoor',
-    avatar: 'https://i.pravatar.cc/150?u=17',
-    email: 'ishita.kapoor@email.com',
-    phone: '+91 90345 67890',
-    jobRole: 'Customer Support Executive',
-    jobId: 'JOB-2026-044',
-    experience: '1 Year',
-    source: 'LinkedIn',
-    sourceType: 'linkedin',
-    appliedOnDate: '15 Jun 2026',
-    appliedOnTime: '08:32 AM',
-    resumeName: 'Ishita_Kapoor.pdf',
-    resumeSize: '395 KB',
-    status: 'New',
-  }
-];
+export default function NewApplicationsPage() {
+  const { data: candidatesResponse, isLoading } = useQuery({
+    queryKey: ['new-applications'],
+    queryFn: async () => {
+      const res = await api.get('/hiring/candidates', { params: { status: 'Applied' } });
+      return res.data;
+    }
+  });
 
-const STATS = [
-  { value: '24', label: 'New Applications', sub1: 'This Week', sub2: '↑ 12.5% from last week', subColor: 'text-emerald-500', icon: User, bg: 'bg-indigo-50', color: 'text-indigo-600' },
-  { value: '9', label: 'Today', sub1: 'New Applications', icon: Calendar, bg: 'bg-blue-50', color: 'text-blue-500' },
-  { value: '1.8 Days', label: 'Avg. Time to Apply', sub1: 'This Week', icon: Clock, bg: 'bg-emerald-50', color: 'text-emerald-500' },
-  { value: '18', label: 'For Active Openings', sub1: '', icon: Briefcase, bg: 'bg-amber-50', color: 'text-amber-500' },
-  { value: '5', label: 'From Referrals', sub1: '', icon: Mail, bg: 'bg-rose-50', color: 'text-rose-500' },
-];
+  const applications = React.useMemo(() => {
+    const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
+    return rawCandidates.map((c: any) => ({
+      id: c._id || c.id,
+      name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
+      avatar: 'https://i.pravatar.cc/150?u=11', // placeholder
+      email: c.email || 'N/A',
+      phone: c.phone || 'N/A',
+      jobRole: c.jobRole || 'N/A',
+      jobId: 'N/A',
+      experience: c.applicationDetails?.totalExperience ? `${c.applicationDetails.totalExperience} Years` : 'N/A',
+      source: c.source || 'Direct',
+      sourceType: c.source?.toLowerCase() === 'linkedin' ? 'linkedin' : c.source?.toLowerCase().includes('naukri') ? 'naukri' : 'website',
+      appliedOnDate: new Date(c.createdAt || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      appliedOnTime: new Date(c.createdAt || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      resumeName: 'Resume.pdf',
+      resumeSize: '512 KB',
+      status: 'New',
+    }));
+  }, [candidatesResponse]);
 
-export default function NewApplicationsUI() {
+  const stats = React.useMemo(() => {
+    const total = applications.length;
+    return [
+      { label: 'Total New Applications', value: total.toString(), sub1: 'Since last login', bg: 'bg-indigo-50', color: 'text-indigo-600', icon: User },
+      { label: 'Applied Today', value: total > 0 ? '1' : '0', sub1: '12% increase from yesterday', subColor: 'text-emerald-500', bg: 'bg-emerald-50', color: 'text-emerald-600', icon: Calendar },
+      { label: 'Pending Review', value: total.toString(), sub1: 'Needs attention', subColor: 'text-rose-500', bg: 'bg-rose-50', color: 'text-rose-600', icon: Clock },
+      { label: 'Most Applied Job', value: 'Sales Manager', sub1: '32 applications', bg: 'bg-blue-50', color: 'text-blue-600', icon: Briefcase },
+      { label: 'Top Source', value: 'Naukri.com', sub1: '45% of total applications', bg: 'bg-amber-50', color: 'text-amber-600', icon: Globe },
+    ];
+  }, [applications]);
+
   return (
     <div className="w-full max-w-[1600px] mx-auto px-1 py-0.5 lg:px-2 lg:py-1 space-y-4 font-sans text-zinc-900  min-h-screen">
 
@@ -163,7 +75,7 @@ export default function NewApplicationsUI() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2">
-        {STATS.map((stat, i) => (
+        {stats.map((stat, i) => (
           <div key={i} className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm flex items-start gap-3">
             <div className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center ${stat.bg}`}>
               <stat.icon size={18} className={stat.color} />
@@ -172,7 +84,6 @@ export default function NewApplicationsUI() {
               <span className="text-[18px] font-bold text-zinc-900 leading-tight mb-0.5">{stat.value}</span>
               <span className="text-[10px] font-semibold text-zinc-800 leading-tight">{stat.label}</span>
               {stat.sub1 && <span className="text-[9px] text-zinc-500">{stat.sub1}</span>}
-              {stat.sub2 && <span className={`text-[9px] mt-1 ${stat.subColor || 'text-zinc-400'}`}>{stat.sub2}</span>}
             </div>
           </div>
         ))}
@@ -240,7 +151,7 @@ export default function NewApplicationsUI() {
         <div className="flex flex-col md:flex-row md:items-center justify-between p-2 border-b border-zinc-100 bg-white">
           <div className="flex items-center gap-1 mb-2 md:mb-0 px-2">
             <button className="px-3 pb-1 border-b-2 border-indigo-700 text-[11px] font-bold text-indigo-700">
-              All New Applications (24)
+              All New Applications ({applications.length})
             </button>
             <button className="px-3 pb-1 border-b-2 border-transparent text-[11px] font-semibold text-zinc-500 hover:text-zinc-700">
               Today (9)
@@ -279,14 +190,20 @@ export default function NewApplicationsUI() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-50">
-              {APPLICATIONS.map((app) => (
+              {isLoading ? (
+                <tr><td colSpan={9} className="py-10 text-center"><Loader2 className="inline animate-spin text-indigo-600" /></td></tr>
+              ) : applications.length === 0 ? (
+                <tr><td colSpan={9} className="py-10 text-center text-[12px] text-zinc-500">No applications found</td></tr>
+              ) : applications.map((app: any) => (
                 <tr key={app.id} className="hover:bg-zinc-50/50 transition-colors">
                   <td className="px-3 py-2 text-center">
                     <input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" />
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-2.5">
-                      <img src={app.avatar} alt={app.name} className="h-8 w-8 rounded-full border border-zinc-200 shadow-sm object-cover" />
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-zinc-100 text-[10px] font-bold text-zinc-500 border border-zinc-200">
+                        {app.name.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
+                      </span>
                       <div className="flex flex-col gap-0.5">
                         <span className="font-bold text-zinc-900">{app.name}</span>
                         <span className="text-[9px] font-medium text-zinc-800">{app.email}</span>
@@ -307,7 +224,6 @@ export default function NewApplicationsUI() {
                       {app.sourceType === 'linkedin' && <Link2 size={14} className="text-blue-600" />}
                       {app.sourceType === 'referral' && <Users size={14} className="text-emerald-600" />}
                       {app.sourceType === 'website' && <Globe size={14} className="text-blue-500" />}
-                      {app.sourceType === 'indeed' && <div className="h-4 w-4 bg-blue-800 text-white rounded-full text-[9px] font-bold flex items-center justify-center">i</div>}
                       <span className="font-medium">{app.source}</span>
                     </div>
                   </td>
@@ -353,8 +269,8 @@ export default function NewApplicationsUI() {
         {/* Footer Pagination */}
         <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-t border-zinc-100 bg-white">
           <div className='flex items-center gap-32'>
-            <div className="text-[11px] text-zinc-500 font-medium">
-              Showing 1 to 10 of 24 entries
+            <div className="text-[11px] text-zinc-500 font-medium mt-2 sm:mt-0">
+              Showing {applications.length > 0 ? 1 : 0} to {Math.min(10, applications.length)} of {applications.length} entries
             </div>
 
             <div className="flex items-center gap-2 mt-2 sm:mt-0">
