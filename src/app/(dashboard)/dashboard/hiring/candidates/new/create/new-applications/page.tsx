@@ -2,15 +2,12 @@
 
 import React from 'react';
 import Link from 'next/link';
-import {
-  Download, Upload, Plus, Search, Filter, RotateCcw, ChevronDown,
-  User, Calendar, Clock, Briefcase, Mail, Eye, MessageSquare, MoreVertical, LayoutGrid, FileText,
-  Link2, Globe, Users, Info, Loader2
-} from 'lucide-react';
+import { Download, Upload, Plus, Search, Filter, RotateCcw, ChevronDown, User, Calendar, Clock, Briefcase, Mail, Eye, MessageSquare, MoreVertical, LayoutGrid, FileText, Link2, Globe, Users, Info, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 
 export default function NewApplicationsPage() {
+  const [activeTab, setActiveTab] = React.useState<'all' | 'today' | 'week'>('all');
   const { data: candidatesResponse, isLoading } = useQuery({
     queryKey: ['new-applications'],
     queryFn: async () => {
@@ -18,6 +15,18 @@ export default function NewApplicationsPage() {
       return res.data;
     }
   });
+
+  const { data: departmentsRes } = useQuery({
+    queryKey: ['departments'],
+    queryFn: async () => {
+      const res = await api.get('/companies/departments');
+      return res.data;
+    }
+  });
+
+  const departments = React.useMemo(() => {
+    return Array.isArray(departmentsRes?.data) ? departmentsRes.data : [];
+  }, [departmentsRes]);
 
   const applications = React.useMemo(() => {
     const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
@@ -42,17 +51,51 @@ export default function NewApplicationsPage() {
 
   const stats = React.useMemo(() => {
     const total = applications.length;
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart = new Date(todayStart);
+    weekStart.setDate(todayStart.getDate() - todayStart.getDay());
+    const todayCount = applications.filter((a: any) => new Date(a.appliedOnDate) >= todayStart).length;
+    const weekCount = applications.filter((a: any) => new Date(a.appliedOnDate) >= weekStart).length;
     return [
-      { label: 'Total New Applications', value: total.toString(), sub1: 'Since last login', bg: 'bg-indigo-50', color: 'text-indigo-600', icon: User },
+      { label: 'Total New Applications', value: total.toString(), sub1: 'Since last login', subColor: '', bg: 'bg-indigo-50', color: 'text-indigo-600', icon: User },
       { label: 'Applied Today', value: total > 0 ? '1' : '0', sub1: '12% increase from yesterday', subColor: 'text-emerald-500', bg: 'bg-emerald-50', color: 'text-emerald-600', icon: Calendar },
       { label: 'Pending Review', value: total.toString(), sub1: 'Needs attention', subColor: 'text-rose-500', bg: 'bg-rose-50', color: 'text-rose-600', icon: Clock },
-      { label: 'Most Applied Job', value: 'Sales Manager', sub1: '32 applications', bg: 'bg-blue-50', color: 'text-blue-600', icon: Briefcase },
-      { label: 'Top Source', value: 'Naukri.com', sub1: '45% of total applications', bg: 'bg-amber-50', color: 'text-amber-600', icon: Globe },
+      { label: 'Most Applied Job', value: 'Sales Manager', sub1: '32 applications', subColor: '', bg: 'bg-blue-50', color: 'text-blue-600', icon: Briefcase },
+      { label: 'Top Source', value: 'Naukri.com', sub1: '45% of total applications', subColor: '', bg: 'bg-amber-50', color: 'text-amber-600', icon: Globe },
     ];
   }, [applications]);
 
+  const filteredApplications = React.useMemo(() => {
+    if (activeTab === 'all') return applications;
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart = new Date(todayStart);
+    weekStart.setDate(todayStart.getDate() - todayStart.getDay());
+    return applications.filter((a: any) => {
+      const appliedDate = new Date(a.appliedOnDate);
+      if (activeTab === 'today') return appliedDate >= todayStart;
+      if (activeTab === 'week') return appliedDate >= weekStart;
+      return true;
+    });
+  }, [applications, activeTab]);
+
+  const todayCount = React.useMemo(() => {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return applications.filter((a: any) => new Date(a.appliedOnDate) >= todayStart).length;
+  }, [applications]);
+
+  const weekCount = React.useMemo(() => {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart = new Date(todayStart);
+    weekStart.setDate(todayStart.getDate() - todayStart.getDay());
+    return applications.filter((a: any) => new Date(a.appliedOnDate) >= weekStart).length;
+  }, [applications]);
+
   return (
-    <div className="w-full max-w-[1600px] mx-auto px-1 py-0.5 lg:px-2 lg:py-1 space-y-4 font-sans text-zinc-900  min-h-screen">
+    <div className="w-full max-w-[1600px] mx-auto px-1 py-0.5 lg:px-2 lg:py-1 space-y-2.5 font-sans text-zinc-900  min-h-screen">
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -76,7 +119,7 @@ export default function NewApplicationsPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2">
         {stats.map((stat, i) => (
-          <div key={i} className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm flex items-start gap-3">
+          <div key={i} className="rounded-lg border border-zinc-200 bg-white p-3 shadow-sm flex items-start gap-3">
             <div className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center ${stat.bg}`}>
               <stat.icon size={18} className={stat.color} />
             </div>
@@ -112,23 +155,58 @@ export default function NewApplicationsPage() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2 pt-3 border-t border-zinc-100">
-          {[
-            { label: 'Job Opening', value: 'All Openings' },
-            { label: 'Department', value: 'All Departments' },
-            { label: 'Experience', value: 'All Experience' },
-            { label: 'Source', value: 'All Sources' },
-            { label: 'Location', value: 'All Locations' },
-          ].map((filter, i) => (
-            <div key={i} className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-zinc-700">{filter.label}</label>
-              <div className="relative">
-                <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm ">
-                  <option>{filter.value}</option>
-                </select>
-                <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
-              </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-zinc-700">Job Opening</label>
+            <div className="relative">
+              <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm ">
+                <option>All Openings</option>
+              </select>
+              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
             </div>
-          ))}
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-zinc-700">Department</label>
+            <div className="relative">
+              <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm ">
+                <option>All Departments</option>
+                {departments.map((dept: any) => (
+                  <option key={dept._id || dept.id} value={dept._id || dept.id}>{dept.name}</option>
+                ))}
+              </select>
+              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-zinc-700">Experience</label>
+            <div className="relative">
+              <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm ">
+                <option>All Experience</option>
+              </select>
+              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-zinc-700">Source</label>
+            <div className="relative">
+              <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm ">
+                <option>All Sources</option>
+              </select>
+              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-zinc-700">Location</label>
+            <div className="relative">
+              <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm ">
+                <option>All Locations</option>
+              </select>
+              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+            </div>
+          </div>
 
           <div className="flex flex-col gap-1">
             <label className="text-[10px] font-semibold text-zinc-700">Date Range</label>
@@ -150,14 +228,26 @@ export default function NewApplicationsPage() {
         {/* Table Tabs and Toolbar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between p-2 border-b border-zinc-100 bg-white">
           <div className="flex items-center gap-1 mb-2 md:mb-0 px-2">
-            <button className="px-3 pb-1 border-b-2 border-indigo-700 text-[11px] font-bold text-indigo-700">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`px-3 pb-1 border-b-2 text-[11px] font-bold transition-colors ${activeTab === 'all' ? 'border-indigo-700 text-indigo-700' : 'border-transparent text-zinc-500 hover:text-zinc-700'
+                }`}
+            >
               All New Applications ({applications.length})
             </button>
-            <button className="px-3 pb-1 border-b-2 border-transparent text-[11px] font-semibold text-zinc-500 hover:text-zinc-700">
-              Today (9)
+            <button
+              onClick={() => setActiveTab('today')}
+              className={`px-3 pb-1 border-b-2 text-[11px] font-semibold transition-colors ${activeTab === 'today' ? 'border-indigo-700 text-indigo-700' : 'border-transparent text-zinc-500 hover:text-zinc-700'
+                }`}
+            >
+              Today ({todayCount})
             </button>
-            <button className="px-3 pb-1 border-b-2 border-transparent text-[11px] font-semibold text-zinc-500 hover:text-zinc-700">
-              This Week (24)
+            <button
+              onClick={() => setActiveTab('week')}
+              className={`px-3 pb-1 border-b-2 text-[11px] font-semibold transition-colors ${activeTab === 'week' ? 'border-indigo-700 text-indigo-700' : 'border-transparent text-zinc-500 hover:text-zinc-700'
+                }`}
+            >
+              This Week ({weekCount})
             </button>
           </div>
           <div className="flex items-center gap-2 px-2">
@@ -192,9 +282,11 @@ export default function NewApplicationsPage() {
             <tbody className="divide-y divide-zinc-50">
               {isLoading ? (
                 <tr><td colSpan={9} className="py-10 text-center"><Loader2 className="inline animate-spin text-indigo-600" /></td></tr>
-              ) : applications.length === 0 ? (
-                <tr><td colSpan={9} className="py-10 text-center text-[12px] text-zinc-500">No applications found</td></tr>
-              ) : applications.map((app: any) => (
+              ) : filteredApplications.length === 0 ? (
+                <tr><td colSpan={9} className="py-10 text-center text-[12px] text-zinc-500">
+                  {activeTab === 'today' ? 'No applications received today' : activeTab === 'week' ? 'No applications this week' : 'No applications found'}
+                </td></tr>
+              ) : filteredApplications.map((app: any) => (
                 <tr key={app.id} className="hover:bg-zinc-50/50 transition-colors">
                   <td className="px-3 py-2 text-center">
                     <input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" />
@@ -270,7 +362,7 @@ export default function NewApplicationsPage() {
         <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-t border-zinc-100 bg-white">
           <div className='flex items-center gap-32'>
             <div className="text-[11px] text-zinc-500 font-medium mt-2 sm:mt-0">
-              Showing {applications.length > 0 ? 1 : 0} to {Math.min(10, applications.length)} of {applications.length} entries
+              Showing {filteredApplications.length > 0 ? 1 : 0} to {Math.min(10, filteredApplications.length)} of {filteredApplications.length} entries
             </div>
 
             <div className="flex items-center gap-2 mt-2 sm:mt-0">
