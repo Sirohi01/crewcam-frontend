@@ -26,8 +26,11 @@ import {
   Mail,
   Phone,
   Briefcase,
-  Award
+  Award,
+  Loader2
 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/axios';
 import { Candidate, FilterState, MetricCardData, ScreeningFactors } from './data';
 import {
   INITIAL_CANDIDATES,
@@ -41,7 +44,33 @@ import {
 
 export default function AiScreening() {
   // --- Core States ---
-  const [candidates, setCandidates] = useState<Candidate[]>(INITIAL_CANDIDATES);
+  const { data: candidatesResponse, isLoading, refetch } = useQuery({
+    queryKey: ['ai-screening-candidates'],
+    queryFn: async () => {
+      const res = await api.get('/hiring/candidates');
+      return res.data;
+    }
+  });
+
+  const candidates = useMemo(() => {
+    const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
+    return rawCandidates.map((c: any) => ({
+      id: c._id || c.id,
+      name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
+      email: c.email || 'N/A',
+      phone: c.phone || 'N/A',
+      jobAppliedFor: {
+        title: c.jobRole || 'N/A',
+        code: c.jobId || 'JOB-000'
+      },
+      experienceYears: Number(c.applicationDetails?.totalExperience) || 0,
+      aiMatchScore: c.rating ? c.rating * 20 : 50,
+      topMatchedSkills: c.applicationDetails?.technicalSkills?.map((s: any) => s.qualification) || ['General'],
+      aiSummary: 'Evaluated by AI model based on skills and experience.',
+      screeningStatus: c.status === 'Screening' ? 'Needs Review' : 'Medium Match'
+    }));
+  }, [candidatesResponse]);
+
   const [activeTab, setActiveTab] = useState<string>('All');
 
   // Dynamic metrics updated in real-time as candidates are added
@@ -107,14 +136,14 @@ export default function AiScreening() {
 
   // --- Filter and Sort Logic ---
   const filteredCandidates = useMemo(() => {
-    return candidates.filter(candidate => {
+    return candidates.filter((candidate: Candidate) => {
       // 1. Search Query (name, email, phone, job title, skills)
       const matchesSearch =
         candidate.name.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
         candidate.email.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
         candidate.phone.includes(filters.searchQuery) ||
         candidate.jobAppliedFor.title.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-        candidate.topMatchedSkills.some(skill => skill.toLowerCase().includes(filters.searchQuery.toLowerCase()));
+        candidate.topMatchedSkills.some((skill: string) => skill.toLowerCase().includes(filters.searchQuery.toLowerCase()));
 
       if (!matchesSearch) return false;
 
@@ -153,7 +182,7 @@ export default function AiScreening() {
       if (filters.screeningStatus !== 'All Status' && candidate.screeningStatus !== filters.screeningStatus) return false;
 
       return true;
-    }).sort((a, b) => {
+    }).sort((a: Candidate, b: Candidate) => {
       // Sort Logic
       if (sortBy === 'score-desc') return b.aiMatchScore - a.aiMatchScore;
       if (sortBy === 'score-asc') return a.aiMatchScore - b.aiMatchScore;
@@ -174,10 +203,10 @@ export default function AiScreening() {
   const tabCounts = useMemo(() => {
     const counts = {
       All: candidates.length,
-      'High Match': candidates.filter(c => c.screeningStatus === 'High Match').length,
-      'Medium Match': candidates.filter(c => c.screeningStatus === 'Medium Match').length,
-      'Low Match': candidates.filter(c => c.screeningStatus === 'Low Match').length,
-      'Needs Review': candidates.filter(c => c.screeningStatus === 'Needs Review').length,
+      'High Match': candidates.filter((c: Candidate) => c.screeningStatus === 'High Match').length,
+      'Medium Match': candidates.filter((c: Candidate) => c.screeningStatus === 'Medium Match').length,
+      'Low Match': candidates.filter((c: Candidate) => c.screeningStatus === 'Low Match').length,
+      'Needs Review': candidates.filter((c: Candidate) => c.screeningStatus === 'Needs Review').length,
     };
     return counts;
   }, [candidates]);
@@ -204,10 +233,10 @@ export default function AiScreening() {
   };
 
   const handleCheckboxToggleAll = () => {
-    const allCheckedOnPage = paginatedCandidates.every(c => selectedCandidates[c.id]);
+    const allCheckedOnPage = paginatedCandidates.every((c: Candidate) => selectedCandidates[c.id]);
     const nextSelected = { ...selectedCandidates };
 
-    paginatedCandidates.forEach(c => {
+    paginatedCandidates.forEach((c: Candidate) => {
       if (allCheckedOnPage) {
         delete nextSelected[c.id];
       } else {
@@ -260,14 +289,18 @@ export default function AiScreening() {
       screeningStatus: status
     };
 
+    // Note: To persist, we would post to API here.
+    // api.post('/hiring/candidates', newCandidateData).then(() => refetch());
+    
     const updatedList = [newCandidate, ...candidates];
-    setCandidates(updatedList);
+    // setCandidates(updatedList); // Replaced by API refetch
+
 
     // Dynamically update main dashboard Metric Counts to reflect the manual entries
-    const highCount = updatedList.filter(c => c.screeningStatus === 'High Match').length;
-    const medCount = updatedList.filter(c => c.screeningStatus === 'Medium Match').length;
-    const lowCount = updatedList.filter(c => c.screeningStatus === 'Low Match').length;
-    const revCount = updatedList.filter(c => c.screeningStatus === 'Needs Review').length;
+    const highCount = updatedList.filter((c: Candidate) => c.screeningStatus === 'High Match').length;
+    const medCount = updatedList.filter((c: Candidate) => c.screeningStatus === 'Medium Match').length;
+    const lowCount = updatedList.filter((c: Candidate) => c.screeningStatus === 'Low Match').length;
+    const revCount = updatedList.filter((c: Candidate) => c.screeningStatus === 'Needs Review').length;
 
     setMetrics(prev => prev.map(m => {
       if (m.id === 'resumes') return { ...m, value: updatedList.length };
@@ -304,7 +337,7 @@ export default function AiScreening() {
     setTimeout(() => {
       // Build dummy CSV contents
       const headers = "ID,Name,Email,Phone,Job Title,Job Code,Experience,Match Score,Screening Status\n";
-      const rows = filteredCandidates.map(c =>
+      const rows = filteredCandidates.map((c: Candidate) =>
         `"${c.id}","${c.name}","${c.email}","${c.phone}","${c.jobAppliedFor.title}","${c.jobAppliedFor.code}",${c.experienceYears},${c.aiMatchScore},"${c.screeningStatus}"`
       ).join("\n");
 
@@ -766,7 +799,7 @@ export default function AiScreening() {
                   <th className="w-8 pl-3 py-1.5">
                     <input
                       type="checkbox"
-                      checked={paginatedCandidates.length > 0 && paginatedCandidates.every(c => selectedCandidates[c.id])}
+                      checked={paginatedCandidates.length > 0 && paginatedCandidates.every((c: Candidate) => selectedCandidates[c.id])}
                       onChange={handleCheckboxToggleAll}
                       className="accent-violet-700 rounded cursor-pointer h-3.5 w-3.5"
                     />
@@ -783,7 +816,13 @@ export default function AiScreening() {
               </thead>
 
               <tbody className="divide-y divide-indigo-50/70">
-                {paginatedCandidates.length === 0 ? (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={9} className="py-8 text-center text-xs font-semibold text-indigo-900/60 bg-slate-50/30">
+                      <Loader2 className="inline animate-spin h-6 w-6 text-indigo-600 mb-1.5" />
+                    </td>
+                  </tr>
+                ) : paginatedCandidates.length === 0 ? (
                   <tr>
                     <td colSpan={9} className="py-8 text-center text-xs font-semibold text-indigo-900/60 bg-slate-50/30">
                       <Info className="h-6 w-6 text-violet-300 mx-auto mb-1.5" />
@@ -791,7 +830,7 @@ export default function AiScreening() {
                     </td>
                   </tr>
                 ) : (
-                  paginatedCandidates.map((candidate) => {
+                  paginatedCandidates.map((candidate: Candidate) => {
                     const isChecked = !!selectedCandidates[candidate.id];
 
                     // Score color logic
@@ -965,7 +1004,8 @@ export default function AiScreening() {
                               onClick={() => {
                                 // delete option
                                 if (confirm(`Remove ${candidate.name}?`)) {
-                                  setCandidates(prev => prev.filter(c => c.id !== candidate.id));
+                                  // setCandidates(prev => prev.filter((c: Candidate) => c.id !== candidate.id));
+                                  api.delete(`/hiring/candidates/${candidate.id}`).then(() => refetch());
                                 }
                               }}
                               title="Remove"
@@ -1362,9 +1402,9 @@ export default function AiScreening() {
                 {/* Key Skills tags */}
                 <div className="flex flex-col gap-1">
                   <span className="text-[10px] font-semibold text-indigo-900/80 uppercase">Top Match Skillsets</span>
-                  <div className="flex flex-wrap gap-1">
-                    {selectedCandidate.topMatchedSkills.map((skill, index) => (
-                      <span key={index} className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-950 border border-indigo-100">
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {selectedCandidate.topMatchedSkills.map((skill: string, index: number) => (
+                      <span key={index} className="px-1.5 py-0.5 rounded-[4px] bg-slate-100 text-slate-700 text-[9px] font-medium border border-slate-200 shadow-3xs">
                         {skill}
                       </span>
                     ))}

@@ -73,7 +73,7 @@ export default function CandidateRegister() {
     setStatusFilter('All Status');
   };
 
-  const statusOptions = ['All Status', 'Applied', 'Screening', 'Interviewing', 'Offered', 'Hired', 'Rejected'];
+  const statusOptions = ['All Status', 'Applied', 'Screening', 'Interviewing', 'Offered', 'Hired', 'Rejected', 'Hold'];
 
   const topCards = [
     { title: 'Total Candidates', value: totalEntries.toString(), subtitle: 'All Time', icon: Users, bg: 'bg-blue-50', text: 'text-blue-600' },
