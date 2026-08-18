@@ -1,5 +1,4 @@
 'use client';
-
 import React from 'react';
 import Link from 'next/link';
 import { Download, Upload, Plus, Search, Filter, RotateCcw, ChevronDown, User, Calendar, Clock, Briefcase, Mail, Eye, MessageSquare, MoreVertical, LayoutGrid, FileText, Link2, Globe, Users, Info, Loader2 } from 'lucide-react';
@@ -8,6 +7,24 @@ import api from '@/lib/axios';
 
 export default function NewApplicationsPage() {
   const [activeTab, setActiveTab] = React.useState<'all' | 'today' | 'week'>('all');
+  const [query, setQuery] = React.useState('');
+  const [department, setDepartment] = React.useState('All Departments');
+  const [experience, setExperience] = React.useState('All Experience');
+  const [sortField, setSortField] = React.useState('newest');
+
+  const [showColumnsDropdown, setShowColumnsDropdown] = React.useState(false);
+  const [visibleCols, setVisibleCols] = React.useState({
+    job: true,
+    experience: true,
+    source: true,
+    appliedOn: true,
+    resume: true,
+    status: true,
+  });
+
+  const toggleColumn = (col: keyof typeof visibleCols) => {
+    setVisibleCols(prev => ({ ...prev, [col]: !prev[col] }));
+  };
   const { data: candidatesResponse, isLoading } = useQuery({
     queryKey: ['new-applications'],
     queryFn: async () => {
@@ -38,6 +55,7 @@ export default function NewApplicationsPage() {
       phone: c.phone || 'N/A',
       jobRole: c.jobRole || 'N/A',
       jobId: 'N/A',
+      department: c.department || c.applicationDetails?.department || c.jobRole || 'N/A',
       experience: c.applicationDetails?.totalExperience ? `${c.applicationDetails.totalExperience} Years` : 'N/A',
       source: c.source || 'Direct',
       sourceType: c.source?.toLowerCase() === 'linkedin' ? 'linkedin' : c.source?.toLowerCase().includes('naukri') ? 'naukri' : 'website',
@@ -46,6 +64,7 @@ export default function NewApplicationsPage() {
       resumeName: 'Resume.pdf',
       resumeSize: '512 KB',
       status: 'New',
+      createdAt: c.createdAt || Date.now(),
     }));
   }, [candidatesResponse]);
 
@@ -67,18 +86,51 @@ export default function NewApplicationsPage() {
   }, [applications]);
 
   const filteredApplications = React.useMemo(() => {
-    if (activeTab === 'all') return applications;
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const weekStart = new Date(todayStart);
     weekStart.setDate(todayStart.getDate() - todayStart.getDay());
-    return applications.filter((a: any) => {
+
+    let result = applications.filter((a: any) => {
+      // Tab filter
+      let matchTab = true;
       const appliedDate = new Date(a.appliedOnDate);
-      if (activeTab === 'today') return appliedDate >= todayStart;
-      if (activeTab === 'week') return appliedDate >= weekStart;
-      return true;
+      if (activeTab === 'today') matchTab = appliedDate >= todayStart;
+      if (activeTab === 'week') matchTab = appliedDate >= weekStart;
+
+      // Query filter
+      const q = query.trim().toLowerCase();
+      const matchQuery = !q ||
+        a.name.toLowerCase().includes(q) ||
+        a.email.toLowerCase().includes(q) ||
+        a.phone.includes(q) ||
+        a.jobRole.toLowerCase().includes(q);
+
+      // Dept filter
+      const matchDept = department === 'All Departments' || a.department === department;
+
+      // Experience filter
+      let matchExp = true;
+      const exp = parseFloat(a.experience || 0);
+      if (experience === 'Entry Level') matchExp = !isNaN(exp) && exp >= 0 && exp <= 2;
+      if (experience === 'Mid Level') matchExp = !isNaN(exp) && exp > 2 && exp <= 6;
+      if (experience === 'Senior Level') matchExp = !isNaN(exp) && exp > 6;
+
+      return matchTab && matchQuery && matchDept && matchExp;
     });
-  }, [applications, activeTab]);
+
+    if (sortField === 'newest') {
+      result.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } else if (sortField === 'oldest') {
+      result.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    } else if (sortField === 'name-asc') {
+      result.sort((a: any, b: any) => a.name.localeCompare(b.name));
+    } else if (sortField === 'name-desc') {
+      result.sort((a: any, b: any) => b.name.localeCompare(a.name));
+    }
+
+    return result;
+  }, [applications, activeTab, query, department, experience, sortField]);
 
   const todayCount = React.useMemo(() => {
     const now = new Date();
@@ -96,7 +148,6 @@ export default function NewApplicationsPage() {
 
   return (
     <div className="w-full max-w-[1600px] mx-auto px-1 py-0.5 lg:px-2 lg:py-1 space-y-2.5 font-sans text-zinc-900  min-h-screen">
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -120,11 +171,11 @@ export default function NewApplicationsPage() {
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2">
         {stats.map((stat, i) => (
           <div key={i} className="rounded-lg border border-zinc-200 bg-white p-3 shadow-sm flex items-start gap-3">
-            <div className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center ${stat.bg}`}>
-              <stat.icon size={18} className={stat.color} />
+            <div className={`h-8 w-8 shrink-0 rounded-full flex items-center justify-center ${stat.bg}`}>
+              <stat.icon size={15} className={stat.color} />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-[18px] font-bold text-zinc-900 leading-tight mb-0.5">{stat.value}</span>
+              <span className="text-[15px] font-bold text-zinc-900 leading-tight mb-0.5">{stat.value}</span>
               <span className="text-[10px] font-semibold text-zinc-800 leading-tight">{stat.label}</span>
               {stat.sub1 && <span className="text-[9px] text-zinc-500">{stat.sub1}</span>}
             </div>
@@ -139,6 +190,8 @@ export default function NewApplicationsPage() {
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
             <input
               type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by name, email, phone, job title or skills..."
               className="w-1/2 text-[11px] pl-8 pr-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:border-indigo-500 transition-colors bg-zinc-50/50 placeholder:text-slate-500"
             />
@@ -148,7 +201,7 @@ export default function NewApplicationsPage() {
               <Filter size={13} /> Filters
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-indigo-700 text-[9px] text-white ml-1">0</span>
             </button>
-            <button className="flex flex-1 md:flex-none items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-[11px] font-semibold text-zinc-600 hover:bg-zinc-50 shadow-sm">
+            <button onClick={() => { setQuery(''); setDepartment('All Departments'); setActiveTab('all'); }} className="flex flex-1 md:flex-none items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-[11px] font-semibold text-zinc-600 hover:bg-zinc-50 shadow-sm">
               <RotateCcw size={13} /> Clear
             </button>
           </div>
@@ -168,10 +221,13 @@ export default function NewApplicationsPage() {
           <div className="flex flex-col gap-1">
             <label className="text-[10px] font-semibold text-zinc-700">Department</label>
             <div className="relative">
-              <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm ">
-                <option>All Departments</option>
+              <select
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm ">
+                <option value="All Departments">All Departments</option>
                 {departments.map((dept: any) => (
-                  <option key={dept._id || dept.id} value={dept._id || dept.id}>{dept.name}</option>
+                  <option key={dept._id || dept.id} value={dept.name}>{dept.name}</option>
                 ))}
               </select>
               <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
@@ -181,8 +237,15 @@ export default function NewApplicationsPage() {
           <div className="flex flex-col gap-1">
             <label className="text-[10px] font-semibold text-zinc-700">Experience</label>
             <div className="relative">
-              <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm ">
-                <option>All Experience</option>
+              <select
+                value={experience}
+                onChange={(e) => setExperience(e.target.value)}
+                className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm "
+              >
+                <option value="All Experience">All Experience</option>
+                <option value="Entry Level">Entry Level</option>
+                <option value="Mid Level">Mid Level</option>
+                <option value="Senior Level">Senior Level</option>
               </select>
               <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
             </div>
@@ -233,7 +296,8 @@ export default function NewApplicationsPage() {
               className={`px-3 pb-1 border-b-2 text-[11px] font-bold transition-colors ${activeTab === 'all' ? 'border-indigo-700 text-indigo-700' : 'border-transparent text-zinc-500 hover:text-zinc-700'
                 }`}
             >
-              All New Applications ({applications.length})
+              All New Applications
+              ({applications.length})
             </button>
             <button
               onClick={() => setActiveTab('today')}
@@ -250,13 +314,37 @@ export default function NewApplicationsPage() {
               This Week ({weekCount})
             </button>
           </div>
-          <div className="flex items-center gap-2 px-2">
-            <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[10px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
+          <div className="flex items-center gap-2 px-2 relative">
+            <button
+              onClick={() => setShowColumnsDropdown(!showColumnsDropdown)}
+              className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[10px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm"
+            >
               <LayoutGrid size={13} /> Columns
             </button>
+            {showColumnsDropdown && (
+              <div className="absolute top-full right-0 mt-1 w-48 bg-white border border-zinc-200 rounded-md shadow-lg z-10 p-2 py-2 flex flex-col gap-1">
+                {Object.keys(visibleCols).map((col) => (
+                  <label key={col} className="flex items-center gap-2 px-2 py-1 hover:bg-zinc-50 rounded cursor-pointer text-[11px] font-medium text-zinc-700 capitalize">
+                    <input
+                      type="checkbox"
+                      checked={visibleCols[col as keyof typeof visibleCols]}
+                      onChange={() => toggleColumn(col as keyof typeof visibleCols)}
+                      className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
+                    />
+                    {col.replace(/([A-Z])/g, ' $1').trim()}
+                  </label>
+                ))}
+              </div>
+            )}
             <div className="relative">
-              <select className="appearance-none rounded-md border border-zinc-200 bg-white pl-3 pr-7 py-1.5 text-[10px] font-semibold text-zinc-700 focus:outline-none shadow-sm min-w-[120px]">
-                <option>Newest First</option>
+              <select
+                value={sortField}
+                onChange={(e) => setSortField(e.target.value)}
+                className="appearance-none rounded-md border border-zinc-200 bg-white pl-3 pr-7 py-1.5 text-[10px] font-semibold text-zinc-700 focus:outline-none shadow-sm min-w-[120px]">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
               </select>
               <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
             </div>
@@ -270,12 +358,12 @@ export default function NewApplicationsPage() {
               <tr className="bg-blue-50 text-zinc-600 border-b border-zinc-100">
                 <th className="px-3 py-2 font-bold w-10 text-center"><input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" /></th>
                 <th className="px-3 py-2 font-bold">Candidate</th>
-                <th className="px-3 py-2 font-bold">Job Applied For</th>
-                <th className="px-3 py-2 font-bold">Experience</th>
-                <th className="px-3 py-2 font-bold">Source</th>
-                <th className="px-3 py-2 font-bold">Applied On</th>
-                <th className="px-3 py-2 font-bold">Resume</th>
-                <th className="px-3 py-2 font-bold">Status</th>
+                {visibleCols.job && <th className="px-3 py-2 font-bold">Job Applied For</th>}
+                {visibleCols.experience && <th className="px-3 py-2 font-bold">Experience</th>}
+                {visibleCols.source && <th className="px-3 py-2 font-bold">Source</th>}
+                {visibleCols.appliedOn && <th className="px-3 py-2 font-bold">Applied On</th>}
+                {visibleCols.resume && <th className="px-3 py-2 font-bold">Resume</th>}
+                {visibleCols.status && <th className="px-3 py-2 font-bold">Status</th>}
                 <th className="px-3 py-2 font-bold text-center">Actions</th>
               </tr>
             </thead>
@@ -303,42 +391,52 @@ export default function NewApplicationsPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-3 py-2">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-zinc-900 font-bold">{app.jobRole}</span>
-                      <span className="text-zinc-500 text-[9px]">{app.jobId}</span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2 font-medium text-zinc-700">{app.experience}</td>
-                  <td className="px-3 py-2">
-                    <div className="flex items-center gap-1.5 text-zinc-700">
-                      {app.sourceType === 'naukri' && <div className="h-4 w-4 bg-blue-600 text-white rounded text-[8px] font-bold flex items-center justify-center">n</div>}
-                      {app.sourceType === 'linkedin' && <Link2 size={14} className="text-blue-600" />}
-                      {app.sourceType === 'referral' && <Users size={14} className="text-emerald-600" />}
-                      {app.sourceType === 'website' && <Globe size={14} className="text-blue-500" />}
-                      <span className="font-medium">{app.source}</span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-zinc-900 font-medium">{app.appliedOnDate}</span>
-                      <span className="text-zinc-500 text-[9px]">{app.appliedOnTime}</span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="flex items-center gap-1.5">
-                      <FileText size={16} className="text-rose-500" />
+                  {visibleCols.job && (
+                    <td className="px-3 py-2">
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-zinc-800 font-medium">{app.resumeName}</span>
-                        <span className="text-zinc-500 text-[9px]">({app.resumeSize})</span>
+                        <span className="text-zinc-900 font-bold">{app.jobRole}</span>
+                        <span className="text-zinc-500 text-[9px]">{app.jobId}</span>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2">
-                    <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
-                      {app.status}
-                    </span>
-                  </td>
+                    </td>
+                  )}
+                  {visibleCols.experience && <td className="px-3 py-2 font-medium text-zinc-700">{app.experience}</td>}
+                  {visibleCols.source && (
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-1.5 text-zinc-700">
+                        {app.sourceType === 'naukri' && <div className="h-4 w-4 bg-blue-600 text-white rounded text-[8px] font-bold flex items-center justify-center">n</div>}
+                        {app.sourceType === 'linkedin' && <Link2 size={14} className="text-blue-600" />}
+                        {app.sourceType === 'referral' && <Users size={14} className="text-emerald-600" />}
+                        {app.sourceType === 'website' && <Globe size={14} className="text-blue-500" />}
+                        <span className="font-medium">{app.source}</span>
+                      </div>
+                    </td>
+                  )}
+                  {visibleCols.appliedOn && (
+                    <td className="px-3 py-2">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-zinc-900 font-medium">{app.appliedOnDate}</span>
+                        <span className="text-zinc-500 text-[9px]">{app.appliedOnTime}</span>
+                      </div>
+                    </td>
+                  )}
+                  {visibleCols.resume && (
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-1.5">
+                        <FileText size={16} className="text-rose-500" />
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-zinc-800 font-medium">{app.resumeName}</span>
+                          <span className="text-zinc-500 text-[9px]">({app.resumeSize})</span>
+                        </div>
+                      </div>
+                    </td>
+                  )}
+                  {visibleCols.status && (
+                    <td className="px-3 py-2">
+                      <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
+                        {app.status}
+                      </span>
+                    </td>
+                  )}
                   <td className="px-3 py-2">
                     <div className="flex items-center justify-center gap-1.5">
                       <button className="h-6 w-6 flex items-center justify-center rounded border border-indigo-100 text-indigo-700 hover:bg-indigo-50 bg-white shadow-sm transition-colors">
@@ -383,22 +481,15 @@ export default function NewApplicationsPage() {
             <button className="h-6 w-6 rounded border border-zinc-200 flex items-center justify-center text-zinc-400 hover:bg-zinc-50 bg-white shadow-sm">
               <span className="text-[10px]">←</span>
             </button>
-            <button className="h-6 w-6 rounded bg-indigo-700 text-white text-[10px] font-bold flex items-center justify-center shadow-sm">
-              1
-            </button>
-            <button className="h-6 w-6 rounded border border-zinc-200 text-[10px] font-medium text-zinc-600 flex items-center justify-center hover:bg-zinc-50 bg-white shadow-sm">
-              2
-            </button>
-            <button className="h-6 w-6 rounded border border-zinc-200 text-[10px] font-medium text-zinc-600 flex items-center justify-center hover:bg-zinc-50 bg-white shadow-sm">
-              3
-            </button>
+            <button className="h-6 w-6 rounded bg-indigo-700 text-white text-[10px] font-bold flex items-center justify-center shadow-sm">1</button>
+            <button className="h-6 w-6 rounded border border-zinc-200 text-[10px] font-medium text-zinc-600 flex items-center justify-center hover:bg-zinc-50 bg-white shadow-sm">2</button>
+            <button className="h-6 w-6 rounded border border-zinc-200 text-[10px] font-medium text-zinc-600 flex items-center justify-center hover:bg-zinc-50 bg-white shadow-sm">3</button>
             <button className="h-6 w-6 rounded border border-zinc-200 flex items-center justify-center text-zinc-400 hover:bg-zinc-50 bg-white shadow-sm">
               <span className="text-[10px]">→</span>
             </button>
           </div>
         </div>
       </div>
-
     </div>
   );
 }

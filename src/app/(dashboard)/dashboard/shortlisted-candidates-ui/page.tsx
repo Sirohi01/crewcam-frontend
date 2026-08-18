@@ -9,6 +9,8 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 
 export default function ShortlistedCandidatesUI() {
+  const [department, setDepartment] = React.useState('All Departments');
+
   const { data: candidatesResponse, isLoading } = useQuery({
     queryKey: ['shortlisted-candidates'],
     queryFn: async () => {
@@ -17,10 +19,23 @@ export default function ShortlistedCandidatesUI() {
     }
   });
 
+  const { data: departmentsRes } = useQuery({
+    queryKey: ['departments'],
+    queryFn: async () => {
+      const res = await api.get('/companies/departments');
+      return res.data;
+    }
+  });
+
+  const departmentsList = React.useMemo(() => {
+    return Array.isArray(departmentsRes?.data) ? departmentsRes.data : [];
+  }, [departmentsRes]);
+
   const candidates = React.useMemo(() => {
     const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
     return rawCandidates
       .filter((c: any) => c.status === 'Screening' || c.status === 'Interviewing')
+      .filter((c: any) => department === 'All Departments' || c.department?.name === department)
       .map((c: any) => ({
         id: c._id || c.id,
         name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
@@ -40,7 +55,7 @@ export default function ShortlistedCandidatesUI() {
         nextStepDesc: 'Pending Action',
         statusBg: c.status === 'Interviewing' ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600',
       }));
-  }, [candidatesResponse]);
+  }, [candidatesResponse, department]);
 
   const stats = React.useMemo(() => {
     const total = candidates.length;
@@ -118,22 +133,51 @@ export default function ShortlistedCandidatesUI() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2 pt-3 border-t border-zinc-100">
-          {[
-            { label: 'Job Opening', value: 'All Openings' },
-            { label: 'Department', value: 'All Departments' },
-            { label: 'Experience', value: 'All Experience' },
-            { label: 'Current Location', value: 'All Locations' },
-          ].map((filter, i) => (
-            <div key={i} className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-zinc-700">{filter.label}</label>
-              <div className="relative">
-                <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm font-medium">
-                  <option>{filter.value}</option>
-                </select>
-                <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
-              </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-zinc-700">Job Opening</label>
+            <div className="relative">
+              <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm font-medium">
+                <option>All Openings</option>
+              </select>
+              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
             </div>
-          ))}
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-zinc-700">Department</label>
+            <div className="relative">
+              <select
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm font-medium">
+                <option value="All Departments">All Departments</option>
+                {departmentsList.map((dept: any) => (
+                  <option key={dept._id || dept.id} value={dept.name}>{dept.name}</option>
+                ))}
+              </select>
+              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-zinc-700">Experience</label>
+            <div className="relative">
+              <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm font-medium">
+                <option>All Experience</option>
+              </select>
+              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold text-zinc-700">Current Location</label>
+            <div className="relative">
+              <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm font-medium">
+                <option>All Locations</option>
+              </select>
+              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+            </div>
+          </div>
 
           <div className="flex flex-col gap-1">
             <label className="text-[10px] font-semibold text-zinc-700">Shortlisted On</label>
