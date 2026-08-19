@@ -42,7 +42,7 @@ export default function NewApplicationsPage() {
   });
 
   const departments = React.useMemo(() => {
-    return Array.isArray(departmentsRes?.data) ? departmentsRes.data : [];
+    return Array.isArray(departmentsRes?.data) ? departmentsRes.data : (Array.isArray(departmentsRes) ? departmentsRes : []);
   }, [departmentsRes]);
 
   const applications = React.useMemo(() => {
@@ -193,8 +193,7 @@ export default function NewApplicationsPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by name, email, phone, job title or skills..."
-              className="w-1/2 text-[11px] pl-8 pr-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:border-indigo-500 transition-colors bg-zinc-50/50 placeholder:text-slate-500"
-            />
+              className="w-1/2 text-[11px] pl-8 pr-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:border-indigo-500 transition-colors bg-zinc-50/50 placeholder:text-slate-500" />
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
             <button className="flex flex-1 md:flex-none items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
@@ -240,8 +239,7 @@ export default function NewApplicationsPage() {
               <select
                 value={experience}
                 onChange={(e) => setExperience(e.target.value)}
-                className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm "
-              >
+                className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm">
                 <option value="All Experience">All Experience</option>
                 <option value="Entry Level">Entry Level</option>
                 <option value="Mid Level">Mid Level</option>
@@ -294,31 +292,27 @@ export default function NewApplicationsPage() {
             <button
               onClick={() => setActiveTab('all')}
               className={`px-3 pb-1 border-b-2 text-[11px] font-bold transition-colors ${activeTab === 'all' ? 'border-indigo-700 text-indigo-700' : 'border-transparent text-zinc-500 hover:text-zinc-700'
-                }`}
-            >
+                }`} >
               All New Applications
               ({applications.length})
             </button>
             <button
               onClick={() => setActiveTab('today')}
               className={`px-3 pb-1 border-b-2 text-[11px] font-semibold transition-colors ${activeTab === 'today' ? 'border-indigo-700 text-indigo-700' : 'border-transparent text-zinc-500 hover:text-zinc-700'
-                }`}
-            >
+                }`} >
               Today ({todayCount})
             </button>
             <button
               onClick={() => setActiveTab('week')}
               className={`px-3 pb-1 border-b-2 text-[11px] font-semibold transition-colors ${activeTab === 'week' ? 'border-indigo-700 text-indigo-700' : 'border-transparent text-zinc-500 hover:text-zinc-700'
-                }`}
-            >
+                }`} >
               This Week ({weekCount})
             </button>
           </div>
           <div className="flex items-center gap-2 px-2 relative">
             <button
               onClick={() => setShowColumnsDropdown(!showColumnsDropdown)}
-              className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[10px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm"
-            >
+              className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[10px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
               <LayoutGrid size={13} /> Columns
             </button>
             {showColumnsDropdown && (
@@ -329,8 +323,7 @@ export default function NewApplicationsPage() {
                       type="checkbox"
                       checked={visibleCols[col as keyof typeof visibleCols]}
                       onChange={() => toggleColumn(col as keyof typeof visibleCols)}
-                      className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
-                    />
+                      className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" />
                     {col.replace(/([A-Z])/g, ' $1').trim()}
                   </label>
                 ))}
