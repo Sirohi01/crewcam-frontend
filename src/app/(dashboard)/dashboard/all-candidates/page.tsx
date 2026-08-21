@@ -27,11 +27,6 @@ const JOB_OPENINGS = [
   'Frontend Developer',
   'Backend Developer',
   'Full Stack Developer',
-  'Product Manager',
-  'HR Executive',
-  'Sales Executive',
-  'Data Analyst',
-  'UI/UX Designer',
 ];
 
 const LOCATIONS = [
@@ -40,11 +35,7 @@ const LOCATIONS = [
   'Noida, UP',
   'Delhi, NCR',
   'Gurugram, HR',
-  'Bengaluru, KA',
-  'Mumbai, MH',
   'Pune, MH',
-  'Hyderabad, TS',
-  'Chennai, TN',
 ];
 
 const SOURCES = [
