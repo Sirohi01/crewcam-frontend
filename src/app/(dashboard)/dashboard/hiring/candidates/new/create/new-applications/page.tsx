@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import Link from 'next/link';
-import { Download, Upload, Plus, Search, Filter, RotateCcw, ChevronDown, User, Calendar, Clock, Briefcase, Mail, Eye, MessageSquare, MoreVertical, LayoutGrid, FileText, Link2, Globe, Users, Info, Loader2 } from 'lucide-react';
+import { Download, Upload, Plus, Search, Filter, RotateCcw, ChevronDown, User, Calendar, Clock, Briefcase, Mail, Eye, MessageSquare, MoreVertical, LayoutGrid, FileText, Link2, Globe, Users, Info, Loader2, Trash2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 
@@ -21,6 +21,45 @@ export default function NewApplicationsPage() {
     resume: true,
     status: true,
   });
+
+  // ── Selection State ──
+  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
+  // ── Locally deleted rows ──
+  const [deletedIds, setDeletedIds] = React.useState<Set<string>>(new Set());
+  // ── 3-dot menu dropdown state ──
+  const [openMenuId, setOpenMenuId] = React.useState<string | null>(null);
+
+  // Close dropdown on click outside
+  React.useEffect(() => {
+    const handleOutsideClick = () => setOpenMenuId(null);
+    document.addEventListener('click', handleOutsideClick);
+    return () => document.removeEventListener('click', handleOutsideClick);
+  }, []);
+
+  const handleToggle = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const handleToggleAll = (checked: boolean, visibleIds: string[]) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      visibleIds.forEach((id) => (checked ? next.add(id) : next.delete(id)));
+      return next;
+    });
+  };
+
+  const handleDeleteSelected = () => {
+    setDeletedIds((prev) => {
+      const next = new Set(prev);
+      selectedIds.forEach((id) => next.add(id));
+      return next;
+    });
+    setSelectedIds(new Set());
+  };
 
   const toggleColumn = (col: keyof typeof visibleCols) => {
     setVisibleCols(prev => ({ ...prev, [col]: !prev[col] }));
@@ -69,21 +108,22 @@ export default function NewApplicationsPage() {
   }, [candidatesResponse]);
 
   const stats = React.useMemo(() => {
-    const total = applications.length;
+    const activeApps = applications.filter((a: any) => !deletedIds.has(a.id));
+    const total = activeApps.length;
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const weekStart = new Date(todayStart);
     weekStart.setDate(todayStart.getDate() - todayStart.getDay());
-    const todayCount = applications.filter((a: any) => new Date(a.appliedOnDate) >= todayStart).length;
-    const weekCount = applications.filter((a: any) => new Date(a.appliedOnDate) >= weekStart).length;
+    const todayCount = activeApps.filter((a: any) => new Date(a.appliedOnDate) >= todayStart).length;
+    const weekCount = activeApps.filter((a: any) => new Date(a.appliedOnDate) >= weekStart).length;
     return [
       { label: 'Total New Applications', value: total.toString(), sub1: 'Since last login', subColor: '', bg: 'bg-indigo-50', color: 'text-indigo-600', icon: User },
-      { label: 'Applied Today', value: total > 0 ? '1' : '0', sub1: '12% increase from yesterday', subColor: 'text-emerald-500', bg: 'bg-emerald-50', color: 'text-emerald-600', icon: Calendar },
+      { label: 'Applied Today', value: total > 0 ? todayCount.toString() : '0', sub1: '12% increase from yesterday', subColor: 'text-emerald-500', bg: 'bg-emerald-50', color: 'text-emerald-600', icon: Calendar },
       { label: 'Pending Review', value: total.toString(), sub1: 'Needs attention', subColor: 'text-rose-500', bg: 'bg-rose-50', color: 'text-rose-600', icon: Clock },
       { label: 'Most Applied Job', value: 'Sales Manager', sub1: '32 applications', subColor: '', bg: 'bg-blue-50', color: 'text-blue-600', icon: Briefcase },
       { label: 'Top Source', value: 'Naukri.com', sub1: '45% of total applications', subColor: '', bg: 'bg-amber-50', color: 'text-amber-600', icon: Globe },
     ];
-  }, [applications]);
+  }, [applications, deletedIds]);
 
   const filteredApplications = React.useMemo(() => {
     const now = new Date();
@@ -91,38 +131,40 @@ export default function NewApplicationsPage() {
     const weekStart = new Date(todayStart);
     weekStart.setDate(todayStart.getDate() - todayStart.getDay());
 
-    let result = applications.filter((a: any) => {
-      // Tab filter
-      let matchTab = true;
-      const appliedDate = new Date(a.appliedOnDate);
-      if (activeTab === 'today') matchTab = appliedDate >= todayStart;
-      if (activeTab === 'week') matchTab = appliedDate >= weekStart;
+    let result = applications
+      .filter((a: any) => !deletedIds.has(a.id))
+      .filter((a: any) => {
+        // Tab filter
+        let matchTab = true;
+        const appliedDate = new Date(a.appliedOnDate);
+        if (activeTab === 'today') matchTab = appliedDate >= todayStart;
+        if (activeTab === 'week') matchTab = appliedDate >= weekStart;
 
-      // Query filter
-      const q = query.trim().toLowerCase();
-      const matchQuery = !q ||
-        a.name.toLowerCase().includes(q) ||
-        a.email.toLowerCase().includes(q) ||
-        a.phone.includes(q) ||
-        a.jobRole.toLowerCase().includes(q);
+        // Query filter
+        const q = query.trim().toLowerCase();
+        const matchQuery = !q ||
+          a.name.toLowerCase().includes(q) ||
+          a.email.toLowerCase().includes(q) ||
+          a.phone.includes(q) ||
+          a.jobRole.toLowerCase().includes(q);
 
-      // Dept filter
-      const matchDept = department === 'All Departments' || a.department === department;
+        // Dept filter
+        const matchDept = department === 'All Departments' || a.department === department;
 
-      // Experience filter
-      let matchExp = true;
-      const exp = parseFloat(a.experience || 0);
-      if (experience === 'Entry Level') matchExp = !isNaN(exp) && exp >= 0 && exp <= 2;
-      if (experience === 'Mid Level') matchExp = !isNaN(exp) && exp > 2 && exp <= 6;
-      if (experience === 'Senior Level') matchExp = !isNaN(exp) && exp > 6;
+        // Experience filter
+        let matchExp = true;
+        const exp = parseFloat(a.experience || 0);
+        if (experience === 'Entry Level') matchExp = !isNaN(exp) && exp >= 0 && exp <= 2;
+        if (experience === 'Mid Level') matchExp = !isNaN(exp) && exp > 2 && exp <= 6;
+        if (experience === 'Senior Level') matchExp = !isNaN(exp) && exp > 6;
 
-      return matchTab && matchQuery && matchDept && matchExp;
-    });
+        return matchTab && matchQuery && matchDept && matchExp;
+      });
 
     if (sortField === 'newest') {
       result.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } else if (sortField === 'oldest') {
-      result.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      result.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(a.createdAt).getTime());
     } else if (sortField === 'name-asc') {
       result.sort((a: any, b: any) => a.name.localeCompare(b.name));
     } else if (sortField === 'name-desc') {
@@ -130,21 +172,25 @@ export default function NewApplicationsPage() {
     }
 
     return result;
-  }, [applications, activeTab, query, department, experience, sortField]);
+  }, [applications, deletedIds, activeTab, query, department, experience, sortField]);
 
   const todayCount = React.useMemo(() => {
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    return applications.filter((a: any) => new Date(a.appliedOnDate) >= todayStart).length;
-  }, [applications]);
+    return applications
+      .filter((a: any) => !deletedIds.has(a.id))
+      .filter((a: any) => new Date(a.appliedOnDate) >= todayStart).length;
+  }, [applications, deletedIds]);
 
   const weekCount = React.useMemo(() => {
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const weekStart = new Date(todayStart);
     weekStart.setDate(todayStart.getDate() - todayStart.getDay());
-    return applications.filter((a: any) => new Date(a.appliedOnDate) >= weekStart).length;
-  }, [applications]);
+    return applications
+      .filter((a: any) => !deletedIds.has(a.id))
+      .filter((a: any) => new Date(a.appliedOnDate) >= weekStart).length;
+  }, [applications, deletedIds]);
 
   return (
     <div className="w-full max-w-[1600px] mx-auto px-1 py-0.5 lg:px-2 lg:py-1 space-y-2.5 font-sans text-zinc-900  min-h-screen">
@@ -294,7 +340,7 @@ export default function NewApplicationsPage() {
               className={`px-3 pb-1 border-b-2 text-[11px] font-bold transition-colors ${activeTab === 'all' ? 'border-indigo-700 text-indigo-700' : 'border-transparent text-zinc-500 hover:text-zinc-700'
                 }`} >
               All New Applications
-              ({applications.length})
+              ({applications.filter((a: any) => !deletedIds.has(a.id)).length})
             </button>
             <button
               onClick={() => setActiveTab('today')}
@@ -310,6 +356,14 @@ export default function NewApplicationsPage() {
             </button>
           </div>
           <div className="flex items-center gap-2 px-2 relative">
+            {selectedIds.size > 0 && (
+              <button
+                onClick={handleDeleteSelected}
+                className="flex items-center gap-1.5 rounded-md border border-rose-200 bg-rose-50 px-3 py-1.5 text-[10px] font-semibold text-rose-600 hover:bg-rose-100 shadow-sm transition-colors"
+              >
+                <Trash2 size={12} /> Delete Selected ({selectedIds.size})
+              </button>
+            )}
             <button
               onClick={() => setShowColumnsDropdown(!showColumnsDropdown)}
               className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[10px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
@@ -349,7 +403,19 @@ export default function NewApplicationsPage() {
           <table className="w-full text-left text-[10px] whitespace-nowrap">
             <thead>
               <tr className="bg-blue-50 text-zinc-600 border-b border-zinc-100">
-                <th className="px-3 py-2 font-bold w-10 text-center"><input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" /></th>
+                <th className="px-3 py-2 font-bold w-10 text-center">
+                  <input
+                    type="checkbox"
+                    checked={filteredApplications.length > 0 && filteredApplications.every((app: any) => selectedIds.has(app.id))}
+                    ref={(el) => {
+                      if (el) el.indeterminate =
+                        filteredApplications.some((app: any) => selectedIds.has(app.id)) &&
+                        !filteredApplications.every((app: any) => selectedIds.has(app.id));
+                    }}
+                    onChange={(e) => handleToggleAll(e.target.checked, filteredApplications.map((app: any) => app.id))}
+                    className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer accent-indigo-600"
+                  />
+                </th>
                 <th className="px-3 py-2 font-bold">Candidate</th>
                 {visibleCols.job && <th className="px-3 py-2 font-bold">Job Applied For</th>}
                 {visibleCols.experience && <th className="px-3 py-2 font-bold">Experience</th>}
@@ -368,9 +434,14 @@ export default function NewApplicationsPage() {
                   {activeTab === 'today' ? 'No applications received today' : activeTab === 'week' ? 'No applications this week' : 'No applications found'}
                 </td></tr>
               ) : filteredApplications.map((app: any) => (
-                <tr key={app.id} className="hover:bg-zinc-50/50 transition-colors">
+                <tr key={app.id} className={`transition-colors ${selectedIds.has(app.id) ? 'bg-indigo-50/60' : 'hover:bg-zinc-50/50'}`}>
                   <td className="px-3 py-2 text-center">
-                    <input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" />
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(app.id)}
+                      onChange={() => handleToggle(app.id)}
+                      className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer accent-indigo-600"
+                    />
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-2.5">
@@ -378,7 +449,7 @@ export default function NewApplicationsPage() {
                         {app.name.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
                       </span>
                       <div className="flex flex-col gap-0.5">
-                        <span className="font-bold text-zinc-900">{app.name}</span>
+                        <Link href={`/dashboard/hiring/candidates/${app.id}`} className="font-bold text-indigo-700 hover:underline">{app.name}</Link>
                         <span className="text-[9px] font-medium text-zinc-800">{app.email}</span>
                         <span className="text-[9px] text-zinc-500">{app.phone}</span>
                       </div>
@@ -432,15 +503,44 @@ export default function NewApplicationsPage() {
                   )}
                   <td className="px-3 py-2">
                     <div className="flex items-center justify-center gap-1.5">
-                      <button className="h-6 w-6 flex items-center justify-center rounded border border-indigo-100 text-indigo-700 hover:bg-indigo-50 bg-white shadow-sm transition-colors">
+                      <Link
+                        href={`/dashboard/hiring/candidates/${app.id}`}
+                        className="h-6 w-6 flex items-center justify-center rounded border border-indigo-100 text-indigo-700 hover:bg-indigo-50 bg-white shadow-sm transition-colors"
+                      >
                         <Eye size={12} />
-                      </button>
+                      </Link>
                       <button className="h-6 w-6 flex items-center justify-center rounded border border-indigo-100 text-indigo-700 hover:bg-indigo-50 bg-white shadow-sm transition-colors">
                         <MessageSquare size={12} />
                       </button>
-                      <button className="h-6 w-6 flex items-center justify-center rounded border border-zinc-200 text-zinc-500 hover:bg-zinc-50 bg-white shadow-sm transition-colors">
-                        <MoreVertical size={12} />
-                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(openMenuId === app.id ? null : app.id);
+                          }}
+                          className="h-6 w-6 flex items-center justify-center rounded border border-zinc-200 text-zinc-500 hover:bg-zinc-50 bg-white shadow-sm transition-colors"
+                        >
+                          <MoreVertical size={12} />
+                        </button>
+                        {openMenuId === app.id && (
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute right-0 top-full mt-1 z-50 w-36 bg-white border border-zinc-200 rounded-lg shadow-lg py-1 text-[11px]"
+                          >
+                            <button
+                              onClick={() => {
+                                setDeletedIds((prev) => new Set([...prev, app.id]));
+                                setSelectedIds((prev) => { const n = new Set(prev); n.delete(app.id); return n; });
+                                setOpenMenuId(null);
+                              }}
+                              className="w-full flex items-center gap-2 px-3 py-1.5 text-rose-600 hover:bg-rose-50 transition-colors font-semibold"
+                            >
+                              <Trash2 size={12} />
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </td>
                 </tr>
