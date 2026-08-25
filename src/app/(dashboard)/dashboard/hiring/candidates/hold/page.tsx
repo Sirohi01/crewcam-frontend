@@ -32,12 +32,12 @@ interface HoldCandidate {
   checked?: boolean;
 }
 
-// Data fetched dynamically.
-const TABS: { key: TabKey; label: string; count: number }[] = [
-  { key: 'all', label: 'All Hold Candidates', count: 48 },
-  { key: 'followup', label: 'Follow Up Due', count: 12 },
-  { key: 'longterm', label: 'Long Term Hold', count: 18 },
-  { key: 'ready', label: 'Ready to Move', count: 8 },
+// Tab definitions — counts are computed dynamically from live data.
+const TAB_DEFS: { key: TabKey; label: string }[] = [
+  { key: 'all', label: 'All Hold Candidates' },
+  { key: 'followup', label: 'Follow Up Due' },
+  { key: 'longterm', label: 'Long Term Hold' },
+  { key: 'ready', label: 'Ready to Move' },
 ];
 
 const SUMMARY = [
@@ -159,16 +159,22 @@ function FiltersBar({
 }
 
 // ─── Tabs ───────────────────────────────────────────────────────────────────
-function TabsBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) => void; }) {
+function TabsBar({ active, onChange, counts }: {
+  active: TabKey;
+  onChange: (t: TabKey) => void;
+  counts: Record<TabKey, number>;
+}) {
   return (
     <div className="flex flex-wrap items-center gap-1 border-b border-zinc-100 px-1">
-      {TABS.map((tab) => (
+      {TAB_DEFS.map((tab) => (
         <button
           key={tab.key}
           onClick={() => onChange(tab.key)}
-          className={`relative px-3 py-2.5 text-[12.5px] font-semibold whitespace-nowrap transition-colors ${active === tab.key ? 'text-violet-700' : 'text-zinc-500 hover:text-zinc-700'
-            }`}>
-          {tab.label} <span className={active === tab.key ? 'text-violet-400' : 'text-zinc-400'}>({tab.count})</span>
+          className={`relative px-3 py-2.5 text-[12.5px] font-semibold whitespace-nowrap transition-colors ${
+            active === tab.key ? 'text-violet-700' : 'text-zinc-500 hover:text-zinc-700'
+          }`}>
+          {tab.label}{' '}
+          <span className={active === tab.key ? 'text-violet-400' : 'text-zinc-400'}>({counts[tab.key]})</span>
           {active === tab.key && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-violet-600 rounded-full" />}
         </button>
       ))}
@@ -440,7 +446,6 @@ export default function HoldCandidatesPage() {
     reason !== 'All Reasons',
   ].filter(Boolean).length;
 
-  const tabCount = TABS.find((t) => t.key === activeTab)?.count ?? 0;
 
   const handleClear = () => {
     setSearch('');
@@ -484,6 +489,14 @@ export default function HoldCandidatesPage() {
     });
   }, [candidatesResponse]);
 
+  // ── Dynamic tab counts – computed after liveCandidates is ready ──
+  const tabCounts: Record<TabKey, number> = useMemo(() => ({
+    all: liveCandidates.length,
+    followup: liveCandidates.filter((c) => c.tab === 'followup').length,
+    longterm: liveCandidates.filter((c) => c.tab === 'longterm').length,
+    ready: liveCandidates.filter((c) => c.tab === 'ready').length,
+  }), [liveCandidates]);
+
   const filtered = useMemo(() => {
     return liveCandidates.filter((c) => {
       if (activeTab !== 'all' && c.tab !== activeTab) return false;
@@ -494,7 +507,7 @@ export default function HoldCandidatesPage() {
       const matchesReason = reason === 'All Reasons' || c.reasonForHold === reason;
       return matchesSearch && matchesSkill && matchesNotice && matchesReason;
     });
-  }, [activeTab, search, skill, noticePeriod, reason]);
+  }, [liveCandidates, activeTab, search, skill, noticePeriod, reason]);
 
   const toggleCheck = (id: string) => {
     setCheckedIds((prev) => {
@@ -565,13 +578,13 @@ export default function HoldCandidatesPage() {
       <Card className="border-zinc-200/80 shadow-sm">
         <CardContent className="p-0">
           <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 pt-1">
-            <TabsBar active={activeTab} onChange={(t) => { setActiveTab(t); setPage(1); }} />
+            <TabsBar active={activeTab} onChange={(t) => { setActiveTab(t); setPage(1); }} counts={tabCounts} />
           </div>
 
           <div className="p-3.5">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <h3 className="text-[13px] font-semibold text-zinc-900">
-                {TABS.find((t) => t.key === activeTab)?.label} ({filtered.length})
+                {TAB_DEFS.find((t) => t.key === activeTab)?.label} ({filtered.length})
               </h3>
               <div className="flex items-center gap-2">
                 <div className="relative">

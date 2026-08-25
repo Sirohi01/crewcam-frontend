@@ -1,8 +1,7 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Download, Upload, Plus, Search, Filter, RotateCcw, ChevronDown, ChevronLeft, ChevronRight, Users, FileText, Star, Briefcase, XCircle, UserCheck, Eye, MessageSquare, LayoutGrid, Loader2, Trash2 } from 'lucide-react';
 import api from '@/lib/axios';
 
@@ -59,11 +58,14 @@ export default function CandidateRegisterUI() {
   const [source, setSource] = useState('All Sources');
   const [page, setPage] = useState(1);
   const [sortField, setSortField] = useState('newest');
-
   // ── Bulk selection ──
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   // ── Locally deleted rows ──
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
+  // ── Confirm delete dialog ──
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const handleToggle = (id: string) => {
     setSelectedIds((prev) => {
@@ -91,14 +93,36 @@ export default function CandidateRegisterUI() {
     setSelectedIds(new Set());
   };
 
-  // ── Single row delete (direct icon, no dropdown) ──
+  // ── Single row delete via API ──
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/hiring/candidates/${id}`);
+    },
+    onSuccess: (_, id) => {
+      // Optimistically hide the row and refresh cache
+      setDeletedIds((prev) => new Set([...prev, id]));
+      setSelectedIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
+      queryClient.invalidateQueries({ queryKey: ['all-candidates'] });
+      setConfirmDeleteId(null);
+      setDeleteError(null);
+    },
+    onError: (err: any) => {
+      setDeleteError(err?.response?.data?.message || 'Failed to delete candidate. Please try again.');
+    },
+  });
+
   const handleDeleteRow = (id: string) => {
-    setDeletedIds((prev) => new Set([...prev, id]));
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      next.delete(id);
-      return next;
-    });
+    setDeleteError(null);
+    setConfirmDeleteId(id);
+  };
+
+  const confirmDelete = () => {
+    if (confirmDeleteId) deleteMutation.mutate(confirmDeleteId);
+  };
+
+  const cancelDelete = () => {
+    setConfirmDeleteId(null);
+    setDeleteError(null);
   };
 
   const [showColumnsDropdown, setShowColumnsDropdown] = useState(false);
@@ -119,7 +143,6 @@ export default function CandidateRegisterUI() {
   };
 
   useEffect(() => setPage(1), [query, status, department, experience, jobOpening, location, source]);
-
   const params = {
     page,
     limit: PAGE_SIZE,
@@ -246,7 +269,6 @@ export default function CandidateRegisterUI() {
 
   return (
     <div className="w-full max-w-[1600px] px-1 py-0.5 lg:px-2 lg:py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -292,8 +314,7 @@ export default function CandidateRegisterUI() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by name, email, phone, skills or job title..."
-              className="w-full text-[11px] pl-8 pr-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:border-indigo-500 transition-colors bg-zinc-50/50 placeholder:text-slate-400"
-            />
+              className="w-full text-[11px] pl-8 pr-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:border-indigo-500 transition-colors bg-zinc-50/50 placeholder:text-slate-400" />
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
             <button className="flex flex-1 md:flex-none items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
@@ -301,8 +322,7 @@ export default function CandidateRegisterUI() {
             </button>
             <button
               onClick={handleClearAll}
-              className="flex flex-1 md:flex-none items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-[11px] font-semibold text-zinc-600 hover:bg-zinc-50 shadow-sm"
-            >
+              className="flex flex-1 md:flex-none items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-[11px] font-semibold text-zinc-600 hover:bg-zinc-50 shadow-sm">
               <RotateCcw size={13} /> Clear All
             </button>
           </div>
@@ -316,8 +336,7 @@ export default function CandidateRegisterUI() {
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-gray-800 focus:outline-none focus:border-indigo-500 shadow-sm font-medium"
-              >
+                className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-gray-800 focus:outline-none focus:border-indigo-500 shadow-sm font-medium">
                 <option>All Status</option>
                 <option>Applied</option>
                 <option>Screening</option>
@@ -337,8 +356,7 @@ export default function CandidateRegisterUI() {
               <select
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-                className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-gray-800 focus:outline-none focus:border-indigo-500 shadow-sm font-medium"
-              >
+                className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-gray-800 focus:outline-none focus:border-indigo-500 shadow-sm font-medium">
                 <option value="All Departments">All Departments</option>
                 {departments.map((d: any) => (
                   <option key={d._id} value={d.name}>{d.name}</option>
@@ -355,8 +373,7 @@ export default function CandidateRegisterUI() {
               <select
                 value={jobOpening}
                 onChange={(e) => setJobOpening(e.target.value)}
-                className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-gray-800 focus:outline-none focus:border-indigo-500 shadow-sm font-medium"
-              >
+                className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-gray-800 focus:outline-none focus:border-indigo-500 shadow-sm font-medium">
                 {JOB_OPENINGS.map((opt) => (
                   <option key={opt} value={opt}>{opt}</option>
                 ))}
@@ -372,8 +389,7 @@ export default function CandidateRegisterUI() {
               <select
                 value={experience}
                 onChange={(e) => setExperience(e.target.value)}
-                className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm"
-              >
+                className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm">
                 <option value="All Experience">All Experience</option>
                 <option value="Entry Level">Entry Level</option>
                 <option value="Mid Level">Mid Level</option>
@@ -390,8 +406,7 @@ export default function CandidateRegisterUI() {
               <select
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-gray-800 focus:outline-none focus:border-indigo-500 shadow-sm font-medium"
-              >
+                className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-gray-800 focus:outline-none focus:border-indigo-500 shadow-sm font-medium">
                 {LOCATIONS.map((opt) => (
                   <option key={opt} value={opt}>{opt}</option>
                 ))}
@@ -407,8 +422,7 @@ export default function CandidateRegisterUI() {
               <select
                 value={source}
                 onChange={(e) => setSource(e.target.value)}
-                className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-gray-800 focus:outline-none focus:border-indigo-500 shadow-sm font-medium"
-              >
+                className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-gray-800 focus:outline-none focus:border-indigo-500 shadow-sm font-medium">
                 {SOURCES.map((opt) => (
                   <option key={opt} value={opt}>{opt}</option>
                 ))}
@@ -430,17 +444,13 @@ export default function CandidateRegisterUI() {
           </div>
           <div className="flex items-center gap-2 mt-2 sm:mt-0 relative">
             {selectedIds.size > 0 && (
-              <button
-                onClick={handleDeleteSelected}
-                className="flex items-center gap-1.5 rounded-md border border-rose-200 bg-rose-50 px-3 py-1.5 text-[10px] font-semibold text-rose-600 hover:bg-rose-100 shadow-sm transition-colors"
-              >
+              <button onClick={handleDeleteSelected}
+                className="flex items-center gap-1.5 rounded-md border border-rose-200 bg-rose-50 px-3 py-1.5 text-[10px] font-semibold text-rose-600 hover:bg-rose-100 shadow-sm transition-colors">
                 <Trash2 size={12} /> Delete Selected ({selectedIds.size})
               </button>
             )}
-            <button
-              onClick={() => setShowColumnsDropdown(!showColumnsDropdown)}
-              className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[10px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm"
-            >
+            <button onClick={() => setShowColumnsDropdown(!showColumnsDropdown)}
+              className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[10px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
               <LayoutGrid size={13} /> Columns
             </button>
             {showColumnsDropdown && (
@@ -451,8 +461,7 @@ export default function CandidateRegisterUI() {
                       type="checkbox"
                       checked={visibleCols[col as keyof typeof visibleCols]}
                       onChange={() => toggleColumn(col as keyof typeof visibleCols)}
-                      className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
-                    />
+                      className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" />
                     {col.replace(/([A-Z])/g, ' $1').trim()}
                   </label>
                 ))}
@@ -462,8 +471,7 @@ export default function CandidateRegisterUI() {
               <select
                 value={sortField}
                 onChange={(e) => setSortField(e.target.value)}
-                className="appearance-none rounded-md border border-zinc-200 bg-white pl-3 pr-7 py-1.5 text-[10px] font-semibold text-zinc-700 focus:outline-none shadow-sm min-w-[120px]"
-              >
+                className="appearance-none rounded-md border border-zinc-200 bg-white pl-3 pr-7 py-1.5 text-[10px] font-semibold text-zinc-700 focus:outline-none shadow-sm min-w-[120px]">
                 <option value="newest">Recently Added</option>
                 <option value="oldest">Oldest First</option>
                 <option value="name-asc">Name (A-Z)</option>
@@ -488,8 +496,7 @@ export default function CandidateRegisterUI() {
                         !filteredCandidates.every((c: any) => selectedIds.has(c.id));
                     }}
                     onChange={(e) => handleToggleAll(e.target.checked, filteredCandidates.map((c: any) => c.id))}
-                    className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer accent-indigo-600"
-                  />
+                    className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer accent-indigo-600" />
                 </th>
                 <th className="px-2 py-2 font-bold">Candidate</th>
                 {visibleCols.contact && <th className="px-6 py-2 font-bold">Contact</th>}
@@ -516,8 +523,7 @@ export default function CandidateRegisterUI() {
                       type="checkbox"
                       checked={selectedIds.has(c.id)}
                       onChange={() => handleToggle(c.id)}
-                      className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer accent-indigo-600"
-                    />
+                      className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer accent-indigo-600" />
                   </td>
                   <td className="px-2 py-2">
                     <div className="flex items-center gap-2">
@@ -595,8 +601,7 @@ export default function CandidateRegisterUI() {
                       {/* View — same page as candidate name */}
                       <Link
                         href={`/dashboard/hiring/candidates/${c.id}`}
-                        className="h-6 w-6 flex items-center justify-center rounded border border-indigo-100 text-indigo-700 hover:bg-indigo-50 bg-white shadow-sm transition-colors"
-                      >
+                        className="h-6 w-6 flex items-center justify-center rounded border border-indigo-100 text-indigo-700 hover:bg-indigo-50 bg-white shadow-sm transition-colors">
                         <Eye size={12} />
                       </Link>
                       {/* Message */}
@@ -607,8 +612,7 @@ export default function CandidateRegisterUI() {
                       <button
                         onClick={() => handleDeleteRow(c.id)}
                         title="Delete"
-                        className="h-6 w-6 flex items-center justify-center rounded border border-rose-100 text-rose-600 hover:bg-rose-50 bg-white shadow-sm transition-colors"
-                      >
+                        className="h-6 w-6 flex items-center justify-center rounded border border-rose-100 text-rose-600 hover:bg-rose-50 bg-white shadow-sm transition-colors">
                         <Trash2 size={12} />
                       </button>
                     </div>
@@ -642,29 +646,69 @@ export default function CandidateRegisterUI() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1 || isLoading}
-              className="h-6 w-6 rounded border border-zinc-200 flex items-center justify-center text-zinc-400 hover:bg-zinc-50 bg-white shadow-sm disabled:opacity-40"
-            >
+              className="h-6 w-6 rounded border border-zinc-200 flex items-center justify-center text-zinc-400 hover:bg-zinc-50 bg-white shadow-sm disabled:opacity-40">
               <ChevronLeft size={12} />
             </button>
             {Array.from({ length: Math.min(meta.totalPages || 1, 5) }, (_, i) => i + 1).map((p) => (
               <button
                 key={p}
                 onClick={() => setPage(p)}
-                className={`h-6 w-6 rounded text-[10px] font-bold flex items-center justify-center shadow-sm ${p === page ? 'bg-indigo-700 text-white' : 'border border-zinc-200 text-zinc-600 hover:bg-zinc-50 bg-white'}`}
-              >
+                className={`h-6 w-6 rounded text-[10px] font-bold flex items-center justify-center shadow-sm ${p === page ? 'bg-indigo-700 text-white' : 'border border-zinc-200 text-zinc-600 hover:bg-zinc-50 bg-white'}`}>
                 {p}
               </button>
             ))}
             <button
               onClick={() => setPage((p) => Math.min(meta.totalPages || 1, p + 1))}
               disabled={page >= (meta.totalPages || 1) || isLoading}
-              className="h-6 w-6 rounded border border-zinc-200 flex items-center justify-center text-zinc-400 hover:bg-zinc-50 bg-white shadow-sm disabled:opacity-40"
-            >
+              className="h-6 w-6 rounded border border-zinc-200 flex items-center justify-center text-zinc-400 hover:bg-zinc-50 bg-white shadow-sm disabled:opacity-40">
               <ChevronRight size={12} />
             </button>
           </div>
         </div>
       </div>
+
+      {/* ── Confirm Delete Dialog ── */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center gap-3 px-6 pt-6 pb-4">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100">
+                <Trash2 size={20} className="text-rose-600" />
+              </span>
+              <div>
+                <h3 className="text-[15px] font-bold text-zinc-800">Delete Candidate?</h3>
+                <p className="text-[12px] text-zinc-500 mt-0.5">This action cannot be undone.</p>
+              </div>
+            </div>
+            {/* Error */}
+            {deleteError && (
+              <div className="mx-6 mb-3 rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-[11px] text-rose-700 font-medium">
+                {deleteError}
+              </div>
+            )}
+            {/* Footer */}
+            <div className="flex gap-2 px-6 pb-6 pt-2">
+              <button
+                onClick={cancelDelete}
+                disabled={deleteMutation.isPending}
+                className="flex-1 rounded-lg border border-zinc-200 bg-white py-2 text-[13px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors disabled:opacity-50">
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleteMutation.isPending}
+                className="flex-1 rounded-lg bg-rose-600 py-2 text-[13px] font-semibold text-white hover:bg-rose-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                {deleteMutation.isPending ? (
+                  <><Loader2 size={14} className="animate-spin" /> Deleting…</>
+                ) : (
+                  <><Trash2 size={14} /> Delete</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
