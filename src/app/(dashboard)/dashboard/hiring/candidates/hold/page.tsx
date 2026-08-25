@@ -1,11 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import {
-  FolderClock, Briefcase, Clock, Tag, RefreshCw, Search, SlidersHorizontal,
-  RotateCcw, Bookmark, Columns3, Download, ChevronDown, Eye, MessageSquare,
-  MoreHorizontal, Mail, Plus, ChevronLeft, ChevronRight,
-} from 'lucide-react';
+import { FolderClock, Briefcase, Clock, Tag, RefreshCw, Search, SlidersHorizontal, RotateCcw, Bookmark, Columns3, Download, ChevronDown, Eye, MessageSquare, MoreHorizontal, Mail, Plus, ChevronLeft, ChevronRight, } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
@@ -36,13 +32,12 @@ interface HoldCandidate {
   checked?: boolean;
 }
 
-// Data fetched dynamically.
-
-const TABS: { key: TabKey; label: string; count: number }[] = [
-  { key: 'all', label: 'All Hold Candidates', count: 48 },
-  { key: 'followup', label: 'Follow Up Due', count: 12 },
-  { key: 'longterm', label: 'Long Term Hold', count: 18 },
-  { key: 'ready', label: 'Ready to Move', count: 8 },
+// Tab definitions — counts are computed dynamically from live data.
+const TAB_DEFS: { key: TabKey; label: string }[] = [
+  { key: 'all', label: 'All Hold Candidates' },
+  { key: 'followup', label: 'Follow Up Due' },
+  { key: 'longterm', label: 'Long Term Hold' },
+  { key: 'ready', label: 'Ready to Move' },
 ];
 
 const SUMMARY = [
@@ -75,11 +70,8 @@ function FilterSelect({ label, value, options, onChange }: { label: string; valu
     <div className="flex flex-col gap-1 min-w-[130px] flex-1 basis-[130px]">
       <label className="text-[11px] font-medium text-zinc-500">{label}</label>
       <div className="relative">
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full appearance-none rounded-lg border border-zinc-200 bg-white px-3 py-1.5 pr-7 text-[12px] font-medium text-zinc-700 shadow-sm hover:border-violet-300 focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors cursor-pointer"
-        >
+        <select value={value} onChange={(e) => onChange(e.target.value)}
+          className="w-full appearance-none rounded-lg border border-zinc-200 bg-white px-3 py-1.5 pr-7 text-[12px] font-medium text-zinc-700 shadow-sm hover:border-violet-300 focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors cursor-pointer">
           {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
         </select>
         <ChevronDown size={13} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400" />
@@ -138,12 +130,9 @@ function FiltersBar({
       <CardContent className="p-3.5 space-y-3">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <input
-              value={search}
-              onChange={(e) => onSearch(e.target.value)}
+            <input value={search} onChange={(e) => onSearch(e.target.value)}
               placeholder="Search by name, email, phone, skills or job title..."
-              className="w-full rounded-lg border border-zinc-200 bg-white pl-3.5 pr-9 py-2 text-[12px] text-zinc-700 placeholder:text-zinc-400 shadow-sm focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors"
-            />
+              className="w-full rounded-lg border border-zinc-200 bg-white pl-3.5 pr-9 py-2 text-[12px] text-zinc-700 placeholder:text-zinc-400 shadow-sm focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors" />
             <Search size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
           </div>
           <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:border-violet-300 transition-colors shrink-0">
@@ -151,13 +140,9 @@ function FiltersBar({
             Filters
             <span className="ml-0.5 grid h-4 w-4 place-items-center rounded-full bg-violet-600 text-white text-[9px] font-bold">{activeCount}</span>
           </button>
-          <button
-            onClick={onClear}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:border-violet-300 transition-colors shrink-0"
-          >
-            <RotateCcw size={13} className="text-zinc-400" />
-            Clear All
-          </button>
+          <button onClick={onClear}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-700 shadow-sm hover:border-violet-300 transition-colors shrink-0">
+            <RotateCcw size={13} className="text-zinc-400" /> Clear All </button>
         </div>
 
         <div className="flex flex-wrap gap-2.5">
@@ -174,17 +159,22 @@ function FiltersBar({
 }
 
 // ─── Tabs ───────────────────────────────────────────────────────────────────
-function TabsBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) => void; }) {
+function TabsBar({ active, onChange, counts }: {
+  active: TabKey;
+  onChange: (t: TabKey) => void;
+  counts: Record<TabKey, number>;
+}) {
   return (
     <div className="flex flex-wrap items-center gap-1 border-b border-zinc-100 px-1">
-      {TABS.map((tab) => (
+      {TAB_DEFS.map((tab) => (
         <button
           key={tab.key}
           onClick={() => onChange(tab.key)}
-          className={`relative px-3 py-2.5 text-[12.5px] font-semibold whitespace-nowrap transition-colors ${active === tab.key ? 'text-violet-700' : 'text-zinc-500 hover:text-zinc-700'
-            }`}
-        >
-          {tab.label} <span className={active === tab.key ? 'text-violet-400' : 'text-zinc-400'}>({tab.count})</span>
+          className={`relative px-3 py-2.5 text-[12.5px] font-semibold whitespace-nowrap transition-colors ${
+            active === tab.key ? 'text-violet-700' : 'text-zinc-500 hover:text-zinc-700'
+          }`}>
+          {tab.label}{' '}
+          <span className={active === tab.key ? 'text-violet-400' : 'text-zinc-400'}>({counts[tab.key]})</span>
           {active === tab.key && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-violet-600 rounded-full" />}
         </button>
       ))}
@@ -194,9 +184,9 @@ function TabsBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) =
 
 // ─── Table ──────────────────────────────────────────────────────────────────
 function HoldCandidatesTable({
-  rows, checkedIds, onToggleCheck, onToggleAll,
+  rows, checkedIds, onToggleCheck, onToggleAll, visibleColumns,
 }: {
-  rows: HoldCandidate[]; checkedIds: Set<string>; onToggleCheck: (id: string) => void; onToggleAll: (checked: boolean) => void;
+  rows: HoldCandidate[]; checkedIds: Set<string>; onToggleCheck: (id: string) => void; onToggleAll: (checked: boolean) => void; visibleColumns: Record<string, boolean>;
 }) {
   const allChecked = rows.length > 0 && rows.every((r) => checkedIds.has(r.id));
 
@@ -205,16 +195,16 @@ function HoldCandidatesTable({
       <table className="w-full table-fixed border-collapse">
         <colgroup>
           <col className="w-[28px]" />
-          <col className="w-[17%]" />
-          <col className="hidden md:table-column md:w-[13%]" />
-          <col className="hidden sm:table-column sm:w-[8%]" />
-          <col className="hidden lg:table-column lg:w-[16%]" />
-          <col className="w-[10%]" />
-          <col className="hidden md:table-column md:w-[13%]" />
-          <col className="hidden sm:table-column sm:w-[8%]" />
-          <col className="hidden lg:table-column lg:w-[8%]" />
-          <col className="w-[11%]" />
-          <col className="w-[84px]" />
+          {visibleColumns.candidate && <col className="w-[17%]" />}
+          {visibleColumns.currentRole && <col className="hidden md:table-column md:w-[13%]" />}
+          {visibleColumns.experience && <col className="hidden sm:table-column sm:w-[8%]" />}
+          {visibleColumns.keySkills && <col className="hidden lg:table-column lg:w-[16%]" />}
+          {visibleColumns.noticePeriod && <col className="w-[10%]" />}
+          {visibleColumns.reasonForHold && <col className="hidden md:table-column md:w-[13%]" />}
+          {visibleColumns.addedOn && <col className="hidden sm:table-column sm:w-[8%]" />}
+          {visibleColumns.lastContact && <col className="hidden lg:table-column lg:w-[8%]" />}
+          {visibleColumns.nextFollowUp && <col className="w-[11%]" />}
+          {visibleColumns.actions && <col className="w-[84px]" />}
         </colgroup>
         <thead>
           <tr className="border-b border-zinc-100 text-left text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
@@ -223,19 +213,18 @@ function HoldCandidatesTable({
                 type="checkbox"
                 checked={allChecked}
                 onChange={(e) => onToggleAll(e.target.checked)}
-                className="h-3.5 w-3.5 rounded border-zinc-300 text-violet-600 focus:ring-violet-500 cursor-pointer"
-              />
+                className="h-3.5 w-3.5 rounded border-zinc-300 text-violet-600 focus:ring-violet-500 cursor-pointer" />
             </th>
-            <th className="py-2.5 pr-3">Candidate</th>
-            <th className="hidden md:table-cell py-2.5 pr-3">Current Role</th>
-            <th className="hidden sm:table-cell py-2.5 pr-3">Experience</th>
-            <th className="hidden lg:table-cell py-2.5 pr-3">Key Skills</th>
-            <th className="py-2.5 pr-3">Notice Period</th>
-            <th className="hidden md:table-cell py-2.5 pr-3">Reason for Hold</th>
-            <th className="hidden sm:table-cell py-2.5 pr-3">Added On</th>
-            <th className="hidden lg:table-cell py-2.5 pr-3">Last Contact</th>
-            <th className="py-2.5 pr-3">Next Follow Up</th>
-            <th className="py-2.5 pr-1 text-right">Actions</th>
+            {visibleColumns.candidate && <th className="py-2.5 pr-3">Candidate</th>}
+            {visibleColumns.currentRole && <th className="hidden md:table-cell py-2.5 pr-3">Current Role</th>}
+            {visibleColumns.experience && <th className="hidden sm:table-cell py-2.5 pr-3">Experience</th>}
+            {visibleColumns.keySkills && <th className="hidden lg:table-cell py-2.5 pr-3">Key Skills</th>}
+            {visibleColumns.noticePeriod && <th className="py-2.5 pr-3">Notice Period</th>}
+            {visibleColumns.reasonForHold && <th className="hidden md:table-cell py-2.5 pr-3">Reason for Hold</th>}
+            {visibleColumns.addedOn && <th className="hidden sm:table-cell py-2.5 pr-3">Added On</th>}
+            {visibleColumns.lastContact && <th className="hidden lg:table-cell py-2.5 pr-3">Last Contact</th>}
+            {visibleColumns.nextFollowUp && <th className="py-2.5 pr-3">Next Follow Up</th>}
+            {visibleColumns.actions && <th className="py-2.5 pr-1 text-right">Actions</th>}
           </tr>
         </thead>
         <tbody>
@@ -246,63 +235,82 @@ function HoldCandidatesTable({
                   type="checkbox"
                   checked={checkedIds.has(c.id)}
                   onChange={() => onToggleCheck(c.id)}
-                  className="h-3.5 w-3.5 rounded border-zinc-300 text-violet-600 focus:ring-violet-500 cursor-pointer"
-                />
+                  className="h-3.5 w-3.5 rounded border-zinc-300 text-violet-600 focus:ring-violet-500 cursor-pointer" />
               </td>
-              <td className="py-2.5 pr-3">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <img
-                    src={`https://i.pravatar.cc/150?u=${c.avatar}`}
-                    alt={c.name}
-                    className="w-9 h-9 rounded-full object-cover border border-zinc-100 shadow-sm shrink-0"
-                  />
-                  <div className="min-w-0">
-                    <p className="text-[12.5px] font-semibold text-zinc-800 leading-tight truncate">{c.name}</p>
-                    <p className="text-[10px] text-zinc-400 leading-tight truncate">{c.email}</p>
-                    <p className="text-[10px] text-zinc-400 leading-tight truncate">{c.phone}</p>
+              {visibleColumns.candidate && (
+                <td className="py-2.5 pr-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <img
+                      src={`https://i.pravatar.cc/150?u=${c.avatar}`}
+                      alt={c.name}
+                      className="w-9 h-9 rounded-full object-cover border border-zinc-100 shadow-sm shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-[12.5px] font-semibold text-zinc-800 leading-tight truncate">{c.name}</p>
+                      <p className="text-[10px] text-zinc-400 leading-tight truncate">{c.email}</p>
+                      <p className="text-[10px] text-zinc-400 leading-tight truncate">{c.phone}</p>
+                    </div>
                   </div>
-                </div>
-              </td>
-              <td className="hidden md:table-cell py-2.5 pr-3">
-                <p className="text-[12px] font-medium text-zinc-700 leading-tight truncate">{c.currentRole}</p>
-                <p className="text-[10px] text-zinc-400 leading-tight truncate">{c.company}</p>
-              </td>
-              <td className="hidden sm:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 whitespace-nowrap">{c.experience}</td>
-              <td className="hidden lg:table-cell py-2.5 pr-3">
-                <div className="flex flex-wrap gap-1">
-                  {c.skills.map((s) => (
-                    <span key={s} className="inline-flex items-center rounded-full bg-zinc-100 text-zinc-600 px-1.5 py-0.5 text-[9.5px] font-medium whitespace-nowrap">
-                      {s}
-                    </span>
-                  ))}
-                  {c.extraSkills > 0 && (
-                    <span className="inline-flex items-center rounded-full bg-violet-50 text-violet-600 px-1.5 py-0.5 text-[9.5px] font-semibold">
-                      +{c.extraSkills}
-                    </span>
-                  )}
-                </div>
-              </td>
-              <td className="py-2.5 pr-3"><NoticeBadge noticePeriod={c.noticePeriod} /></td>
-              <td className="hidden md:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 truncate">{c.reasonForHold}</td>
-              <td className="hidden sm:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 whitespace-nowrap">{c.addedOn}</td>
-              <td className="hidden lg:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 whitespace-nowrap">{c.lastContact}</td>
-              <td className="py-2.5 pr-3">
-                <p className="text-[12px] text-zinc-700 leading-tight whitespace-nowrap">{c.nextFollowUp}</p>
-                <p className="text-[10px] text-zinc-400 leading-tight">({c.daysLeft} days left)</p>
-              </td>
-              <td className="py-2.5 pr-1">
-                <div className="flex items-center justify-end gap-1">
-                  <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 transition-colors">
-                    <Eye size={13} />
-                  </button>
-                  <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 transition-colors">
-                    <MessageSquare size={13} />
-                  </button>
-                  <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 transition-colors">
-                    <MoreHorizontal size={13} />
-                  </button>
-                </div>
-              </td>
+                </td>
+              )}
+              {visibleColumns.currentRole && (
+                <td className="hidden md:table-cell py-2.5 pr-3">
+                  <p className="text-[12px] font-medium text-zinc-700 leading-tight truncate">{c.currentRole}</p>
+                  <p className="text-[10px] text-zinc-400 leading-tight truncate">{c.company}</p>
+                </td>
+              )}
+              {visibleColumns.experience && (
+                <td className="hidden sm:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 whitespace-nowrap">{c.experience}</td>
+              )}
+              {visibleColumns.keySkills && (
+                <td className="hidden lg:table-cell py-2.5 pr-3">
+                  <div className="flex flex-wrap gap-1">
+                    {c.skills.map((s) => (
+                      <span key={s} className="inline-flex items-center rounded-full bg-zinc-100 text-zinc-600 px-1.5 py-0.5 text-[9.5px] font-medium whitespace-nowrap">
+                        {s}
+                      </span>
+                    ))}
+                    {c.extraSkills > 0 && (
+                      <span className="inline-flex items-center rounded-full bg-violet-50 text-violet-600 px-1.5 py-0.5 text-[9.5px] font-semibold">
+                        +{c.extraSkills}
+                      </span>
+                    )}
+                  </div>
+                </td>
+              )}
+              {visibleColumns.noticePeriod && (
+                <td className="py-2.5 pr-3"><NoticeBadge noticePeriod={c.noticePeriod} /></td>
+              )}
+              {visibleColumns.reasonForHold && (
+                <td className="hidden md:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 truncate">{c.reasonForHold}</td>
+              )}
+              {visibleColumns.addedOn && (
+                <td className="hidden sm:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 whitespace-nowrap">{c.addedOn}</td>
+              )}
+              {visibleColumns.lastContact && (
+                <td className="hidden lg:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 whitespace-nowrap">{c.lastContact}</td>
+              )}
+              {visibleColumns.nextFollowUp && (
+                <td className="py-2.5 pr-3">
+                  <p className="text-[12px] text-zinc-700 leading-tight whitespace-nowrap">{c.nextFollowUp}</p>
+                  <p className="text-[10px] text-zinc-400 leading-tight">({c.daysLeft} days left)</p>
+                </td>
+              )}
+              {visibleColumns.actions && (
+                <td className="py-2.5 pr-1">
+                  <div className="flex items-center justify-end gap-1">
+                    <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 transition-colors">
+                      <Eye size={13} />
+                    </button>
+                    <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 transition-colors">
+                      <MessageSquare size={13} />
+                    </button>
+                    <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 transition-colors">
+                      <MoreHorizontal size={13} />
+                    </button>
+                  </div>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
@@ -416,6 +424,20 @@ export default function HoldCandidatesPage() {
   const [page, setPage] = useState(1);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
 
+  const [showColumnsMenu, setShowColumnsMenu] = useState(false);
+  const [visibleColumns, setVisibleColumns] = useState({
+    candidate: true,
+    currentRole: true,
+    experience: true,
+    keySkills: true,
+    noticePeriod: true,
+    reasonForHold: true,
+    addedOn: true,
+    lastContact: true,
+    nextFollowUp: true,
+    actions: true,
+  });
+
   const activeCount = [
     department !== 'All Departments',
     skill !== 'All Skills',
@@ -424,7 +446,6 @@ export default function HoldCandidatesPage() {
     reason !== 'All Reasons',
   ].filter(Boolean).length;
 
-  const tabCount = TABS.find((t) => t.key === activeTab)?.count ?? 0;
 
   const handleClear = () => {
     setSearch('');
@@ -468,6 +489,14 @@ export default function HoldCandidatesPage() {
     });
   }, [candidatesResponse]);
 
+  // ── Dynamic tab counts – computed after liveCandidates is ready ──
+  const tabCounts: Record<TabKey, number> = useMemo(() => ({
+    all: liveCandidates.length,
+    followup: liveCandidates.filter((c) => c.tab === 'followup').length,
+    longterm: liveCandidates.filter((c) => c.tab === 'longterm').length,
+    ready: liveCandidates.filter((c) => c.tab === 'ready').length,
+  }), [liveCandidates]);
+
   const filtered = useMemo(() => {
     return liveCandidates.filter((c) => {
       if (activeTab !== 'all' && c.tab !== activeTab) return false;
@@ -478,7 +507,7 @@ export default function HoldCandidatesPage() {
       const matchesReason = reason === 'All Reasons' || c.reasonForHold === reason;
       return matchesSearch && matchesSkill && matchesNotice && matchesReason;
     });
-  }, [activeTab, search, skill, noticePeriod, reason]);
+  }, [liveCandidates, activeTab, search, skill, noticePeriod, reason]);
 
   const toggleCheck = (id: string) => {
     setCheckedIds((prev) => {
@@ -490,6 +519,45 @@ export default function HoldCandidatesPage() {
 
   const toggleAll = (checked: boolean) => {
     setCheckedIds(checked ? new Set(filtered.slice((page - 1) * pageSize, page * pageSize).map((c) => c.id)) : new Set());
+  };
+
+  const handleDownloadCSV = () => {
+    if (!filtered.length) return;
+
+    const headers = [];
+    if (visibleColumns.candidate) headers.push('Candidate Name', 'Email', 'Phone');
+    if (visibleColumns.currentRole) headers.push('Current Role', 'Company');
+    if (visibleColumns.experience) headers.push('Experience');
+    if (visibleColumns.keySkills) headers.push('Key Skills');
+    if (visibleColumns.noticePeriod) headers.push('Notice Period');
+    if (visibleColumns.reasonForHold) headers.push('Reason for Hold');
+    if (visibleColumns.addedOn) headers.push('Added On');
+    if (visibleColumns.lastContact) headers.push('Last Contact');
+    if (visibleColumns.nextFollowUp) headers.push('Next Follow Up', 'Days Left');
+
+    const rows = filtered.map((c: any) => {
+      const row = [];
+      if (visibleColumns.candidate) row.push(`"${c.name}"`, `"${c.email}"`, `"${c.phone}"`);
+      if (visibleColumns.currentRole) row.push(`"${c.currentRole}"`, `"${c.company}"`);
+      if (visibleColumns.experience) row.push(`"${c.experience}"`);
+      if (visibleColumns.keySkills) row.push(`"${c.skills.join(', ')}"`);
+      if (visibleColumns.noticePeriod) row.push(`"${c.noticePeriod}"`);
+      if (visibleColumns.reasonForHold) row.push(`"${c.reasonForHold}"`);
+      if (visibleColumns.addedOn) row.push(`"${c.addedOn}"`);
+      if (visibleColumns.lastContact) row.push(`"${c.lastContact}"`);
+      if (visibleColumns.nextFollowUp) row.push(`"${c.nextFollowUp}"`, `"${c.daysLeft}"`);
+      return row.join(',');
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `hold_candidates_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -510,23 +578,44 @@ export default function HoldCandidatesPage() {
       <Card className="border-zinc-200/80 shadow-sm">
         <CardContent className="p-0">
           <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 pt-1">
-            <TabsBar active={activeTab} onChange={(t) => { setActiveTab(t); setPage(1); }} />
+            <TabsBar active={activeTab} onChange={(t) => { setActiveTab(t); setPage(1); }} counts={tabCounts} />
           </div>
 
           <div className="p-3.5">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <h3 className="text-[13px] font-semibold text-zinc-900">
-                {TABS.find((t) => t.key === activeTab)?.label} ({filtered.length})
+                {TAB_DEFS.find((t) => t.key === activeTab)?.label} ({filtered.length})
               </h3>
               <div className="flex items-center gap-2">
-                <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-violet-300 transition-colors">
-                  <Columns3 size={13} />
-                  Columns
-                </button>
-                <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-violet-300 transition-colors">
+                <div className="relative">
+                  <button
+                    onClick={() => setShowColumnsMenu(!showColumnsMenu)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-violet-300 transition-colors">
+                    <Columns3 size={13} />
+                    Columns
+                  </button>
+                  {showColumnsMenu && (
+                    <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-zinc-200 rounded-lg shadow-lg z-50 p-2">
+                      <div className="text-[10px] font-bold text-zinc-500 mb-2 px-1">Toggle Columns</div>
+                      {Object.entries(visibleColumns).map(([key, isVisible]) => (
+                        <label key={key} className="flex items-center gap-2 px-2 py-1.5 hover:bg-zinc-50 rounded cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isVisible as boolean}
+                            onChange={() => setVisibleColumns(prev => ({ ...prev, [key]: !prev[key as keyof typeof visibleColumns] }))}
+                            className="rounded border-zinc-300 text-violet-600 focus:ring-violet-600"
+                          />
+                          <span className="text-[11px] text-zinc-700 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={handleDownloadCSV}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-violet-300 transition-colors">
                   <Download size={13} />
                   Download List
-                  <ChevronDown size={12} />
                 </button>
               </div>
             </div>
@@ -539,6 +628,7 @@ export default function HoldCandidatesPage() {
                 checkedIds={checkedIds}
                 onToggleCheck={toggleCheck}
                 onToggleAll={toggleAll}
+                visibleColumns={visibleColumns}
               />
             )}
 

@@ -96,6 +96,8 @@ function SelectBox({ placeholder, options }: { placeholder: string; options?: st
 export default function SelectedCandidatesPage() {
   const [tab, setTab] = useState('All Selected');
   const [view, setView] = useState<'table' | 'kanban'>('table');
+  const [department, setDepartment] = useState('All Departments');
+
   const { data: candidatesResponse, isLoading } = useQuery({
     queryKey: ['selected-candidates'],
     queryFn: async () => {
@@ -104,10 +106,23 @@ export default function SelectedCandidatesPage() {
     }
   });
 
+  const { data: departmentsRes } = useQuery({
+    queryKey: ['departments'],
+    queryFn: async () => {
+      const res = await api.get('/companies/departments');
+      return res.data;
+    }
+  });
+
+  const departmentsList = React.useMemo(() => {
+    return Array.isArray(departmentsRes?.data) ? departmentsRes.data : [];
+  }, [departmentsRes]);
+
   const candidates = React.useMemo(() => {
     const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
     return rawCandidates
       .filter((c: any) => c.status === 'Hired' || c.status === 'Offered' || c.status === 'Hold') // Mock statuses include hold
+      .filter((c: any) => department === 'All Departments' || c.department?.name === department)
       .map((c: any) => ({
         id: c._id || c.id,
         name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
@@ -122,7 +137,7 @@ export default function SelectedCandidatesPage() {
         status: c.status === 'Hired' ? 'Joined' : c.status === 'Offered' ? 'Offer Released' : c.status === 'Hold' ? 'On Hold' : 'Ready for Offer',
         selected: false
       }));
-  }, [candidatesResponse]);
+  }, [candidatesResponse, department]);
 
   const active = candidates[0];
 
@@ -194,7 +209,18 @@ export default function SelectedCandidatesPage() {
                 <input className={`${inputCls} pl-7`} placeholder="Search by name, job title, email or mobile..." />
               </div>
               <div className="w-36"><SelectBox placeholder="Select Job Opening" /></div>
-              <div className="w-36"><SelectBox placeholder="Select Department" /></div>
+              <div className="w-36 relative">
+                <select
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  className="h-8 w-full rounded-[2px] border border-zinc-200 bg-white px-2.5 text-[11.5px] text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 appearance-none">
+                  <option value="All Departments">Select Department</option>
+                  {departmentsList.map((dept: any) => (
+                    <option key={dept._id || dept.id} value={dept.name}>{dept.name}</option>
+                  ))}
+                </select>
+                <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+              </div>
               <div className="w-32"><SelectBox placeholder="Select Status" /></div>
               <button type="button" className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
                 <Filter size={12} /> More Filters
@@ -324,7 +350,18 @@ export default function SelectedCandidatesPage() {
             >
               <div className="space-y-0.5">
                 <label className="block"><span className={labelCls}>Job Opening</span><div><SelectBox placeholder="Select Job" /></div></label>
-                <label className="block"><span className={labelCls}>Department</span><div><SelectBox placeholder="Select Department" /></div></label>
+                <label className="block"><span className={labelCls}>Department</span><div className="relative">
+                  <select
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    className="h-8 w-full rounded-[2px] border border-zinc-200 bg-white px-2.5 text-[11.5px] text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 appearance-none">
+                    <option value="All Departments">Select Department</option>
+                    {departmentsList.map((dept: any) => (
+                      <option key={dept._id || dept.id} value={dept.name}>{dept.name}</option>
+                    ))}
+                  </select>
+                  <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                </div></label>
                 <label className="block"><span className={labelCls}>Current Stage</span><div><SelectBox placeholder="Select Stage" /></div></label>
                 <label className="block"><span className={labelCls}>Status</span><div><SelectBox placeholder="Select Status" /></div></label>
                 <label className="block">

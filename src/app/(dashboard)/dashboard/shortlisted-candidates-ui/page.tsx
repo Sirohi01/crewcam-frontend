@@ -1,14 +1,18 @@
 'use client';
 
 import React from 'react';
-import {
-  Download, Upload, Plus, Search, Filter, RotateCcw, ChevronDown,
-  Users, Briefcase, Calendar, Hourglass, XCircle, Star, Eye, MessageSquare, MoreVertical, LayoutGrid, Mail, Loader2
-} from 'lucide-react';
+import { Download, Upload, Plus, Search, Filter, RotateCcw, ChevronDown, Users, Briefcase, Calendar, Hourglass, XCircle, Star, Eye, MessageSquare, MoreVertical, LayoutGrid, Mail, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 
 export default function ShortlistedCandidatesUI() {
+  const [department, setDepartment] = React.useState('All Departments');
+  const [jobOpening, setJobOpening] = React.useState('All Openings');
+  const [experience, setExperience] = React.useState('All Experience');
+  const [location, setLocation] = React.useState('All Locations');
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [showFilters, setShowFilters] = React.useState(true);
+
   const { data: candidatesResponse, isLoading } = useQuery({
     queryKey: ['shortlisted-candidates'],
     queryFn: async () => {
@@ -17,10 +21,40 @@ export default function ShortlistedCandidatesUI() {
     }
   });
 
+  const { data: departmentsRes } = useQuery({
+    queryKey: ['departments'],
+    queryFn: async () => {
+      const res = await api.get('/companies/departments');
+      return res.data;
+    }
+  });
+
+  const departmentsList = React.useMemo(() => {
+    return Array.isArray(departmentsRes?.data) ? departmentsRes.data : [];
+  }, [departmentsRes]);
+
+  const [activeTab, setActiveTab] = React.useState('all');
+  const [sortBy, setSortBy] = React.useState('latest');
+  const [showColumnsMenu, setShowColumnsMenu] = React.useState(false);
+  const [visibleColumns, setVisibleColumns] = React.useState({
+    candidate: true,
+    jobOpening: true,
+    department: true,
+    experience: true,
+    rating: true,
+    shortlistedOn: true,
+    nextStep: true,
+    actions: true,
+  });
+
   const candidates = React.useMemo(() => {
     const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
     return rawCandidates
-      .filter((c: any) => c.status === 'Screening' || c.status === 'Interviewing')
+      .filter((c: any) => ['Screening', 'Interviewing', 'Hold'].includes(c.status))
+      .filter((c: any) => department === 'All Departments' || c.department?.name === department)
+      .filter((c: any) => jobOpening === 'All Openings' || c.jobRole === jobOpening)
+      .filter((c: any) => experience === 'All Experience' || (c.applicationDetails?.totalExperience ? `${c.applicationDetails.totalExperience} Years` : 'N/A') === experience)
+      .filter((c: any) => location === 'All Locations' || c.currentLocation === location)
       .map((c: any) => ({
         id: c._id || c.id,
         name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
@@ -29,31 +63,150 @@ export default function ShortlistedCandidatesUI() {
         phone: c.phone || 'N/A',
         jobRole: c.jobRole || 'N/A',
         jobId: 'N/A',
-        department: c.department?.name || 'N/A',
+        department: c.department?.name || c.department || 'N/A',
         experience: c.applicationDetails?.totalExperience ? `${c.applicationDetails.totalExperience} Years` : 'N/A',
         rating: c.rating || 4.0,
         matchLevel: c.rating > 4.5 ? 'Excellent Match' : c.rating > 4.0 ? 'Very Good Match' : 'Good Match',
         matchColor: c.rating > 4.0 ? 'text-emerald-500' : 'text-blue-500',
         shortlistedDate: new Date(c.updatedAt || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
         shortlistedTime: new Date(c.updatedAt || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        nextStepStatus: c.status === 'Interviewing' ? 'Interview Scheduled' : 'Screening',
+        nextStepStatus: c.status === 'Interviewing' ? 'Interview Scheduled' : c.status === 'Hold' ? 'Moved to Hold' : 'Awaiting Feedback',
         nextStepDesc: 'Pending Action',
-        statusBg: c.status === 'Interviewing' ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600',
+        statusBg: c.status === 'Interviewing' ? 'bg-blue-50 text-blue-600' : c.status === 'Hold' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600',
+        rawDate: c.updatedAt || Date.now(),
       }));
+  }, [candidatesResponse, department, jobOpening, experience, location]);
+
+  const jobOpeningsList = React.useMemo(() => {
+    const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
+    return [...new Set(rawCandidates.map((c: any) => c.jobRole).filter(Boolean))];
   }, [candidatesResponse]);
 
+  const experienceList = React.useMemo(() => {
+    const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
+    return [...new Set(rawCandidates.map((c: any) => c.applicationDetails?.totalExperience ? `${c.applicationDetails.totalExperience} Years` : '').filter(Boolean))];
+  }, [candidatesResponse]);
+
+  const locationsList = React.useMemo(() => {
+    const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
+    return [...new Set(rawCandidates.map((c: any) => c.currentLocation).filter(Boolean))];
+  }, [candidatesResponse]);
+
+  const activeFiltersCount = (department !== 'All Departments' ? 1 : 0) +
+    (jobOpening !== 'All Openings' ? 1 : 0) +
+    (experience !== 'All Experience' ? 1 : 0) +
+    (location !== 'All Locations' ? 1 : 0);
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setDepartment('All Departments');
+    setJobOpening('All Openings');
+    setExperience('All Experience');
+    setLocation('All Locations');
+    setSortBy('latest');
+  };
+
+  const counts = React.useMemo(() => {
+    return {
+      all: candidates.length,
+      interview: candidates.filter((c: any) => c.nextStepStatus === 'Interview Scheduled').length,
+      feedback: candidates.filter((c: any) => c.nextStepStatus === 'Awaiting Feedback').length,
+      hold: candidates.filter((c: any) => c.nextStepStatus === 'Moved to Hold').length,
+    };
+  }, [candidates]);
+
+  const filteredCandidates = React.useMemo(() => {
+    let result = candidates;
+
+    if (activeTab === 'interview') result = result.filter((c: any) => c.nextStepStatus === 'Interview Scheduled');
+    else if (activeTab === 'feedback') result = result.filter((c: any) => c.nextStepStatus === 'Awaiting Feedback');
+    else if (activeTab === 'hold') result = result.filter((c: any) => c.nextStepStatus === 'Moved to Hold');
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter((c: any) =>
+        c.name.toLowerCase().includes(q) ||
+        c.email.toLowerCase().includes(q) ||
+        c.phone.includes(q) ||
+        c.jobRole.toLowerCase().includes(q) ||
+        c.department.toLowerCase().includes(q)
+      );
+    }
+
+    return result;
+  }, [candidates, activeTab, searchQuery]);
+
+  const sortedCandidates = React.useMemo(() => {
+    const sorted = [...filteredCandidates];
+    switch (sortBy) {
+      case 'oldest':
+        sorted.sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime());
+        break;
+      case 'rating_high':
+        sorted.sort((a, b) => b.rating - a.rating);
+        break;
+      case 'rating_low':
+        sorted.sort((a, b) => a.rating - b.rating);
+        break;
+      case 'name_asc':
+        sorted.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'latest':
+      default:
+        sorted.sort((a, b) => new Date(b.rawDate).getTime() - new Date(a.rawDate).getTime());
+        break;
+    }
+    return sorted;
+  }, [filteredCandidates, sortBy]);
+
+  const handleDownloadCSV = () => {
+    if (!sortedCandidates.length) return;
+
+    const headers = [];
+    if (visibleColumns.candidate) headers.push('Candidate Name', 'Email', 'Phone');
+    if (visibleColumns.jobOpening) headers.push('Job Role', 'Job ID');
+    if (visibleColumns.department) headers.push('Department');
+    if (visibleColumns.experience) headers.push('Experience');
+    if (visibleColumns.rating) headers.push('Rating', 'Match Level');
+    if (visibleColumns.shortlistedOn) headers.push('Shortlisted Date', 'Shortlisted Time');
+    if (visibleColumns.nextStep) headers.push('Next Step Status');
+
+    const rows = sortedCandidates.map((c: any) => {
+      const row = [];
+      if (visibleColumns.candidate) row.push(`"${c.name}"`, `"${c.email}"`, `"${c.phone}"`);
+      if (visibleColumns.jobOpening) row.push(`"${c.jobRole}"`, `"${c.jobId}"`);
+      if (visibleColumns.department) row.push(`"${c.department}"`);
+      if (visibleColumns.experience) row.push(`"${c.experience}"`);
+      if (visibleColumns.rating) row.push(`"${c.rating}"`, `"${c.matchLevel}"`);
+      if (visibleColumns.shortlistedOn) row.push(`"${c.shortlistedDate}"`, `"${c.shortlistedTime}"`);
+      if (visibleColumns.nextStep) row.push(`"${c.nextStepStatus}"`);
+      return row.join(',');
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `shortlisted_candidates_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const stats = React.useMemo(() => {
-    const total = candidates.length;
-    const interviewing = candidates.filter((c: any) => c.nextStepStatus === 'Interview Scheduled').length;
-    const screening = candidates.filter((c: any) => c.nextStepStatus === 'Screening').length;
+    const total = counts.all;
+    const interviewing = counts.interview;
+    const screening = counts.feedback;
+    const hold = counts.hold;
     return [
       { value: total.toString(), label: 'Total Shortlisted', sub: 'In pipeline', icon: Users, bg: 'bg-indigo-50', color: 'text-indigo-600' },
       { value: interviewing.toString(), label: 'Interview Scheduled', sub: total ? `${((interviewing / total) * 100).toFixed(1)}% of shortlisted` : '0%', icon: Calendar, bg: 'bg-emerald-50', color: 'text-emerald-500' },
       { value: screening.toString(), label: 'Awaiting Feedback', sub: total ? `${((screening / total) * 100).toFixed(1)}% of shortlisted` : '0%', icon: Hourglass, bg: 'bg-amber-50', color: 'text-amber-500' },
       { value: '0', label: 'Task Assigned', sub: '0% of shortlisted', icon: Briefcase, bg: 'bg-blue-50', color: 'text-blue-500' },
-      { value: '0', label: 'Moved to Hold', sub: '0% of shortlisted', icon: XCircle, bg: 'bg-rose-50', color: 'text-rose-500' },
+      { value: hold.toString(), label: 'Moved to Hold', sub: total ? `${((hold / total) * 100).toFixed(1)}% of shortlisted` : '0%', icon: XCircle, bg: 'bg-rose-50', color: 'text-rose-500' },
     ];
-  }, [candidates]);
+  }, [counts]);
 
   return (
     <div className="w-full max-w-[1600px] mx-auto px-1 py-0.5 lg:px-2 lg:py-1 space-y-4 font-sans text-zinc-900 min-h-screen">
@@ -102,62 +255,124 @@ export default function ShortlistedCandidatesUI() {
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by name, email, phone, skills or job title..."
               className="w-1/2 text-[11px] pl-8 pr-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:border-indigo-500 transition-colors bg-zinc-50/50 placeholder:text-slate-400"
             />
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
-            <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[11px] font-semibold shadow-sm ${showFilters ? 'border-indigo-200 bg-indigo-50 text-indigo-700' : 'border-zinc-200 bg-white text-indigo-700 hover:bg-zinc-50'}`}>
               <Filter size={13} /> Filters
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-indigo-700 text-[9px] text-white ml-1">0</span>
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-indigo-700 text-[9px] text-white ml-1">{activeFiltersCount}</span>
             </button>
-            <button className="flex flex-1 md:flex-none items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-[11px] font-semibold text-zinc-600 hover:bg-zinc-50 shadow-sm">
+            <button
+              onClick={handleClearFilters}
+              className="flex flex-1 md:flex-none items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-[11px] font-semibold text-zinc-600 hover:bg-zinc-50 shadow-sm">
               <RotateCcw size={13} /> Clear All
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2 pt-3 border-t border-zinc-100">
-          {[
-            { label: 'Job Opening', value: 'All Openings' },
-            { label: 'Department', value: 'All Departments' },
-            { label: 'Experience', value: 'All Experience' },
-            { label: 'Current Location', value: 'All Locations' },
-          ].map((filter, i) => (
-            <div key={i} className="flex flex-col gap-1">
-              <label className="text-[10px] font-semibold text-zinc-700">{filter.label}</label>
+        {showFilters && (
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2 pt-3 border-t border-zinc-100">
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-zinc-700">Job Opening</label>
               <div className="relative">
-                <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm font-medium">
-                  <option>{filter.value}</option>
+                <select
+                  value={jobOpening}
+                  onChange={(e) => setJobOpening(e.target.value)}
+                  className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm font-medium">
+                  <option value="All Openings">All Openings</option>
+                  {jobOpeningsList.map((job: any) => (
+                    <option key={job} value={job}>{job}</option>
+                  ))}
                 </select>
                 <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
               </div>
             </div>
-          ))}
 
-          <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-semibold text-zinc-700">Shortlisted On</label>
-            <div className="relative">
-              <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-7 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm">
-                <option>01 Jun 2026 - 15 Jun 2026</option>
-              </select>
-              <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center h-[14px] w-[14px] border border-zinc-400 rounded-[3px] pointer-events-none">
-                <span className="text-[7px] text-zinc-500">📅</span>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-zinc-700">Department</label>
+              <div className="relative">
+                <select
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm font-medium">
+                  <option value="All Departments">All Departments</option>
+                  {departmentsList.map((dept: any) => (
+                    <option key={dept._id || dept.id} value={dept.name}>{dept.name}</option>
+                  ))}
+                </select>
+                <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
               </div>
-              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
             </div>
-          </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-semibold text-zinc-700">Sort By</label>
-            <div className="relative">
-              <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm">
-                <option>Latest Shortlisted</option>
-              </select>
-              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-zinc-700">Experience</label>
+              <div className="relative">
+                <select
+                  value={experience}
+                  onChange={(e) => setExperience(e.target.value)}
+                  className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm font-medium">
+                  <option value="All Experience">All Experience</option>
+                  {experienceList.map((exp: any) => (
+                    <option key={exp} value={exp}>{exp}</option>
+                  ))}
+                </select>
+                <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-zinc-700">Current Location</label>
+              <div className="relative">
+                <select
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm font-medium">
+                  <option value="All Locations">All Locations</option>
+                  {locationsList.map((loc: any) => (
+                    <option key={loc} value={loc}>{loc}</option>
+                  ))}
+                </select>
+                <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-zinc-700">Shortlisted On</label>
+              <div className="relative">
+                <select className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-7 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm">
+                  <option>01 Jun 2026 - 15 Jun 2026</option>
+                </select>
+                <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center h-[14px] w-[14px] border border-zinc-400 rounded-[3px] pointer-events-none">
+                  <span className="text-[7px] text-zinc-500">📅</span>
+                </div>
+                <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold text-zinc-700">Sort By</label>
+              <div className="relative">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] text-zinc-600 focus:outline-none focus:border-indigo-500 shadow-sm">
+                  <option value="latest">Latest Shortlisted</option>
+                  <option value="oldest">Oldest Shortlisted</option>
+                  <option value="rating_high">Highest Rated</option>
+                  <option value="rating_low">Lowest Rated</option>
+                  <option value="name_asc">Name (A-Z)</option>
+                </select>
+                <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Main Content Area */}
@@ -165,25 +380,56 @@ export default function ShortlistedCandidatesUI() {
         {/* Table Tabs and Toolbar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between p-2 border-b border-zinc-100 bg-white">
           <div className="flex flex-wrap items-center gap-1 mb-2 md:mb-0 px-2">
-            <button className="px-3 pb-1 border-b-2 border-indigo-700 text-[11px] font-bold text-indigo-700">
-              All Shortlisted ({candidates.length})
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`px-3 pb-1 border-b-2 text-[11px] font-bold ${activeTab === 'all' ? 'border-indigo-700 text-indigo-700' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>
+              All Shortlisted ({counts.all})
             </button>
-            <button className="px-3 pb-1 border-b-2 border-transparent text-[11px] font-semibold text-zinc-500 hover:text-zinc-700">
-              Interview Scheduled (18)
+            <button
+              onClick={() => setActiveTab('interview')}
+              className={`px-3 pb-1 border-b-2 text-[11px] font-semibold ${activeTab === 'interview' ? 'border-indigo-700 text-indigo-700' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>
+              Interview Scheduled ({counts.interview})
             </button>
-            <button className="px-3 pb-1 border-b-2 border-transparent text-[11px] font-semibold text-zinc-500 hover:text-zinc-700">
-              Awaiting Feedback (6)
+            <button
+              onClick={() => setActiveTab('feedback')}
+              className={`px-3 pb-1 border-b-2 text-[11px] font-semibold ${activeTab === 'feedback' ? 'border-indigo-700 text-indigo-700' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>
+              Awaiting Feedback ({counts.feedback})
             </button>
-            <button className="px-3 pb-1 border-b-2 border-transparent text-[11px] font-semibold text-zinc-500 hover:text-zinc-700">
-              Moved to Hold (3)
+            <button
+              onClick={() => setActiveTab('hold')}
+              className={`px-3 pb-1 border-b-2 text-[11px] font-semibold ${activeTab === 'hold' ? 'border-indigo-700 text-indigo-700' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>
+              Moved to Hold ({counts.hold})
             </button>
           </div>
           <div className="flex items-center gap-2 px-2">
-            <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[10px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
-              <LayoutGrid size={13} /> Columns
-            </button>
-            <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
-              <Download size={13} /> Download List <ChevronDown size={12} className="ml-1 text-zinc-400" />
+            <div className="relative">
+              <button
+                onClick={() => setShowColumnsMenu(!showColumnsMenu)}
+                className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[10px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
+                <LayoutGrid size={13} /> Columns
+              </button>
+
+              {showColumnsMenu && (
+                <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-zinc-200 rounded-lg shadow-lg z-50 p-2">
+                  <div className="text-[10px] font-bold text-zinc-500 mb-2 px-1">Toggle Columns</div>
+                  {Object.entries(visibleColumns).map(([key, isVisible]) => (
+                    <label key={key} className="flex items-center gap-2 px-2 py-1.5 hover:bg-zinc-50 rounded cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={isVisible as boolean}
+                        onChange={() => setVisibleColumns(prev => ({ ...prev, [key]: !prev[key as keyof typeof visibleColumns] }))}
+                        className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
+                      />
+                      <span className="text-[11px] text-zinc-700 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={handleDownloadCSV}
+              className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
+              <Download size={13} /> Download List
             </button>
           </div>
         </div>
@@ -194,84 +440,100 @@ export default function ShortlistedCandidatesUI() {
             <thead>
               <tr className="bg-zinc-50/50 text-zinc-600 border-b border-zinc-100">
                 <th className="px-3 py-2 font-bold w-10 text-center"><input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" /></th>
-                <th className="px-3 py-2 font-bold">Candidate</th>
-                <th className="px-3 py-2 font-bold">Job Opening</th>
-                <th className="px-3 py-2 font-bold">Department</th>
-                <th className="px-3 py-2 font-bold">Experience</th>
-                <th className="px-3 py-2 font-bold">Overall Rating</th>
-                <th className="px-3 py-2 font-bold">Shortlisted On</th>
-                <th className="px-3 py-2 font-bold">Next Step</th>
-                <th className="px-3 py-2 font-bold text-center">Actions</th>
+                {visibleColumns.candidate && <th className="px-3 py-2 font-bold">Candidate</th>}
+                {visibleColumns.jobOpening && <th className="px-3 py-2 font-bold">Job Opening</th>}
+                {visibleColumns.department && <th className="px-3 py-2 font-bold">Department</th>}
+                {visibleColumns.experience && <th className="px-3 py-2 font-bold">Experience</th>}
+                {visibleColumns.rating && <th className="px-3 py-2 font-bold">Overall Rating</th>}
+                {visibleColumns.shortlistedOn && <th className="px-3 py-2 font-bold">Shortlisted On</th>}
+                {visibleColumns.nextStep && <th className="px-3 py-2 font-bold">Next Step</th>}
+                {visibleColumns.actions && <th className="px-3 py-2 font-bold text-center">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-50">
               {isLoading ? (
                 <tr><td colSpan={9} className="py-10 text-center"><Loader2 className="inline animate-spin text-indigo-600" /></td></tr>
-              ) : candidates.length === 0 ? (
+              ) : sortedCandidates.length === 0 ? (
                 <tr><td colSpan={9} className="py-10 text-center text-[12px] text-zinc-500">No shortlisted candidates</td></tr>
-              ) : candidates.map((app: any) => (
+              ) : sortedCandidates.map((app: any) => (
                 <tr key={app.id} className="hover:bg-zinc-50/50 transition-colors">
                   <td className="px-3 py-2 text-center">
                     <input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" />
                   </td>
-                  <td className="px-3 py-2">
-                    <div className="flex items-center gap-2.5">
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-zinc-100 text-[10px] font-bold text-zinc-500 border border-zinc-200">
-                        {app.name.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
-                      </span>
+                  {visibleColumns.candidate && (
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-2.5">
+                        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-zinc-100 text-[10px] font-bold text-zinc-500 border border-zinc-200">
+                          {app.name.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
+                        </span>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-bold text-zinc-900">{app.name}</span>
+                          <span className="text-[9px] font-medium text-zinc-800">{app.email}</span>
+                          <span className="text-[9px] text-zinc-500">{app.phone}</span>
+                        </div>
+                      </div>
+                    </td>
+                  )}
+                  {visibleColumns.jobOpening && (
+                    <td className="px-3 py-2">
                       <div className="flex flex-col gap-0.5">
-                        <span className="font-bold text-zinc-900">{app.name}</span>
-                        <span className="text-[9px] font-medium text-zinc-800">{app.email}</span>
-                        <span className="text-[9px] text-zinc-500">{app.phone}</span>
+                        <span className="text-zinc-900 font-bold">{app.jobRole}</span>
+                        <span className="text-zinc-500 text-[9px]">{app.jobId}</span>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-zinc-900 font-bold">{app.jobRole}</span>
-                      <span className="text-zinc-500 text-[9px]">{app.jobId}</span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2 text-zinc-700 font-medium">{app.department}</td>
-                  <td className="px-3 py-2 font-medium text-zinc-700">{app.experience}</td>
-                  <td className="px-3 py-2">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-zinc-900 font-bold">{app.rating}/5</span>
-                      <div className="flex items-center gap-0.5">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star key={star} size={9} className={star <= Math.floor(app.rating) ? "fill-amber-400 text-amber-400" : (star === Math.ceil(app.rating) ? "fill-amber-400/50 text-amber-400" : "fill-zinc-200 text-zinc-200")} />
-                        ))}
+                    </td>
+                  )}
+                  {visibleColumns.department && (
+                    <td className="px-3 py-2 text-zinc-700 font-medium">{app.department}</td>
+                  )}
+                  {visibleColumns.experience && (
+                    <td className="px-3 py-2 font-medium text-zinc-700">{app.experience}</td>
+                  )}
+                  {visibleColumns.rating && (
+                    <td className="px-3 py-2">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-zinc-900 font-bold">{app.rating}/5</span>
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star key={star} size={9} className={star <= Math.floor(app.rating) ? "fill-amber-400 text-amber-400" : (star === Math.ceil(app.rating) ? "fill-amber-400/50 text-amber-400" : "fill-zinc-200 text-zinc-200")} />
+                          ))}
+                        </div>
+                        <span className={`text-[9px] font-bold ${app.matchColor}`}>{app.matchLevel}</span>
                       </div>
-                      <span className={`text-[9px] font-bold ${app.matchColor}`}>{app.matchLevel}</span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-zinc-900 font-medium">{app.shortlistedDate}</span>
-                      <span className="text-zinc-500 text-[9px]">{app.shortlistedTime}</span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="flex flex-col gap-1 items-start">
-                      <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold ${app.statusBg}`}>
-                        {app.nextStepStatus}
-                      </span>
-                      <span className="text-zinc-700 font-medium">{app.nextStepDesc}</span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="flex items-center justify-center gap-1.5">
-                      <button className="h-6 w-6 flex items-center justify-center rounded border border-indigo-100 text-indigo-700 hover:bg-indigo-50 bg-white shadow-sm transition-colors">
-                        <Eye size={12} />
-                      </button>
-                      <button className="h-6 w-6 flex items-center justify-center rounded border border-indigo-100 text-indigo-700 hover:bg-indigo-50 bg-white shadow-sm transition-colors">
-                        <MessageSquare size={12} />
-                      </button>
-                      <button className="h-6 w-6 flex items-center justify-center rounded border border-zinc-200 text-zinc-500 hover:bg-zinc-50 bg-white shadow-sm transition-colors">
-                        <MoreVertical size={12} />
-                      </button>
-                    </div>
-                  </td>
+                    </td>
+                  )}
+                  {visibleColumns.shortlistedOn && (
+                    <td className="px-3 py-2">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-zinc-900 font-medium">{app.shortlistedDate}</span>
+                        <span className="text-zinc-500 text-[9px]">{app.shortlistedTime}</span>
+                      </div>
+                    </td>
+                  )}
+                  {visibleColumns.nextStep && (
+                    <td className="px-3 py-2">
+                      <div className="flex flex-col gap-1 items-start">
+                        <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold ${app.statusBg}`}>
+                          {app.nextStepStatus}
+                        </span>
+                        <span className="text-zinc-700 font-medium">{app.nextStepDesc}</span>
+                      </div>
+                    </td>
+                  )}
+                  {visibleColumns.actions && (
+                    <td className="px-3 py-2">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button className="h-6 w-6 flex items-center justify-center rounded border border-indigo-100 text-indigo-700 hover:bg-indigo-50 bg-white shadow-sm transition-colors">
+                          <Eye size={12} />
+                        </button>
+                        <button className="h-6 w-6 flex items-center justify-center rounded border border-indigo-100 text-indigo-700 hover:bg-indigo-50 bg-white shadow-sm transition-colors">
+                          <MessageSquare size={12} />
+                        </button>
+                        <button className="h-6 w-6 flex items-center justify-center rounded border border-zinc-200 text-zinc-500 hover:bg-zinc-50 bg-white shadow-sm transition-colors">
+                          <MoreVertical size={12} />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -281,7 +543,7 @@ export default function ShortlistedCandidatesUI() {
         {/* Footer Pagination */}
         <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-t border-zinc-100 bg-white">
           <div className="text-[11px] text-zinc-500 font-medium">
-            Showing {candidates.length > 0 ? 1 : 0} to {Math.min(10, candidates.length)} of {candidates.length} entries
+            Showing {sortedCandidates.length > 0 ? 1 : 0} to {Math.min(10, sortedCandidates.length)} of {sortedCandidates.length} entries
           </div>
 
           <div className="flex items-center gap-2 mt-2 sm:mt-0">
