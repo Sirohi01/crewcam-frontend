@@ -12,6 +12,7 @@ export default function ShortlistedCandidatesUI() {
   const [location, setLocation] = React.useState('All Locations');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [showFilters, setShowFilters] = React.useState(true);
+  const [checkedIds, setCheckedIds] = React.useState<string[]>([]);
 
   const { data: candidatesResponse, isLoading } = useQuery({
     queryKey: ['shortlisted-candidates'],
@@ -158,6 +159,19 @@ export default function ShortlistedCandidatesUI() {
     }
     return sorted;
   }, [filteredCandidates, sortBy]);
+
+  const toggleCheck = (id: string) => {
+    setCheckedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleAll = (checked: boolean) => {
+    setCheckedIds(checked ? sortedCandidates.map((c: any) => c.id) : []);
+  };
+
+  const allChecked = sortedCandidates.length > 0 && sortedCandidates.every((c: any) => checkedIds.includes(c.id));
+  const someChecked = sortedCandidates.some((c: any) => checkedIds.includes(c.id));
 
   const handleDownloadCSV = () => {
     if (!sortedCandidates.length) return;
@@ -439,7 +453,14 @@ export default function ShortlistedCandidatesUI() {
           <table className="w-full text-left text-[10px] whitespace-nowrap">
             <thead>
               <tr className="bg-zinc-50/50 text-zinc-600 border-b border-zinc-100">
-                <th className="px-3 py-2 font-bold w-10 text-center"><input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" /></th>
+                <th className="px-3 py-2 font-bold w-10 text-center">
+                  <input
+                    type="checkbox"
+                    checked={allChecked}
+                    ref={(el) => { if (el) el.indeterminate = !allChecked && someChecked; }}
+                    onChange={(e) => toggleAll(e.target.checked)}
+                    className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" />
+                </th>
                 {visibleColumns.candidate && <th className="px-3 py-2 font-bold">Candidate</th>}
                 {visibleColumns.jobOpening && <th className="px-3 py-2 font-bold">Job Opening</th>}
                 {visibleColumns.department && <th className="px-3 py-2 font-bold">Department</th>}
@@ -458,7 +479,11 @@ export default function ShortlistedCandidatesUI() {
               ) : sortedCandidates.map((app: any) => (
                 <tr key={app.id} className="hover:bg-zinc-50/50 transition-colors">
                   <td className="px-3 py-2 text-center">
-                    <input type="checkbox" className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" />
+                    <input
+                      type="checkbox"
+                      checked={checkedIds.includes(app.id)}
+                      onChange={() => toggleCheck(app.id)}
+                      className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" />
                   </td>
                   {visibleColumns.candidate && (
                     <td className="px-3 py-2">
