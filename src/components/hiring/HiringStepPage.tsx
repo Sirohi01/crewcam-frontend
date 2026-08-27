@@ -11,13 +11,15 @@ import { ArrowLeft, FileText, Plus, Save, ShieldCheck, Trash2, CheckCircle, XCir
 import api from '@/lib/axios';
 import { ArrayFieldConfig, getHiringStepById, HiringStepConfig, StepField } from '@/lib/hiringSteps';
 import { openFileUrl } from '@/lib/fileUrls';
+
+import { HiringStepLayout } from './HiringStepLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StepGate from './StepGate';
 import StepChecklist from './StepChecklist';
 import toast from 'react-hot-toast';
 
-const inputClass = 'w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950';
+const inputClass = 'w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 min-h-[38px]';
 
 interface Candidate {
   _id: string;
@@ -101,7 +103,7 @@ const defaultValuesFor = (step: HiringStepConfig) => {
 };
 
 const normalizePayload = (values: FieldValues, step: HiringStepConfig, entityId: string) => {
-  const payload: Record<string, unknown> = { [step.entityField]: entityId, ...values };
+  const payload: Record<string, unknown> = { ...values, [step.entityField]: entityId };
   for (const arrayField of step.arrayFields || []) {
     const rows = Array.isArray(values[arrayField.name]) ? values[arrayField.name] : [];
     if (arrayField.scalarArray) {
@@ -133,8 +135,18 @@ const recordDisplayValue = (key: string, value: any) => {
     const name = typeof approver === 'object' ? `${approver.firstName || ''} ${approver.lastName || ''}`.trim() : 'Selected approver';
     return `${entry.role || 'Approver'}: ${name} — ${entry.status || 'Pending'}`;
   }).join(' | ');
-  if (Array.isArray(value)) return value.map((entry) => typeof entry === 'number' ? Math.round(entry).toLocaleString('en-IN') : (typeof entry === 'object' ? JSON.stringify(entry) : String(entry))).join(', ');
+  if (Array.isArray(value)) return value.map((entry) => {
+    if (typeof entry === 'number') return Math.round(entry).toLocaleString('en-IN');
+    if (typeof entry === 'object' && entry !== null) {
+      return Object.entries(entry)
+        .filter(([k]) => k !== '_id' && k !== '__v')
+        .map(([k, v]) => `${recordLabel(k)}: ${v}`)
+        .join(', ');
+    }
+    return String(entry);
+  }).join(' | ');
   if (typeof value === 'object') return value.firstName ? `${value.firstName} ${value.lastName || ''}`.trim() : (value.name || value.title || 'Saved details');
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}(T|$)/.test(value)) return new Date(value).toLocaleDateString('en-GB');
   return maskSensitive(key, value);
 };
 const recordLabel = (key: string) => key
@@ -315,6 +327,8 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
       'positionDetails.workLocation': position.workLocation || manpower.workLocation || '',
       strengths: evaluation.strengths || '',
       areasOfImprovement: evaluation.improvementAreas || '',
+      uniqueId: hiringProfile.employee?.employeeCode || position.empCode || records[0]?.uniqueId || '',
+      employeeId: hiringProfile.employee?.employeeCode || position.empCode || records[0]?.employeeId || records[0]?.uniqueId || '',
     };
     const values: Record<string, any> = defaultValuesFor(step);
     Object.entries(shared).forEach(([key, value]) => {
@@ -326,7 +340,7 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
       cursor[parts[parts.length - 1]] = value instanceof Date ? value.toISOString().slice(0, 10) : (isDateField && typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value) ? value.slice(0, 10) : value);
     });
     form.reset(values);
-  }, [form, hiringProfile, step]);
+  }, [form, hiringProfile, step, records[0]?.uniqueId]);
 
   // When editing an existing record from the register table (?edit=recordId),
   // override the form with the saved record's exact field values.
@@ -359,8 +373,8 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
       const parts = field.name.split('.');
       let cursor = values;
       parts.slice(0, -1).forEach((part) => { cursor[part] = cursor[part] || {}; cursor = cursor[part]; });
-      const isDate = /date$/i.test(parts[parts.length - 1]);
-      cursor[parts[parts.length - 1]] = isDate && typeof val === 'string' && /^\d{4}-\d{2}-\d{2}/.test(val) ? val.slice(0, 10) : val;
+      const isDate = field.type === 'date' || /date$/i.test(parts[parts.length - 1]);
+      cursor[parts[parts.length - 1]] = isDate ? (val instanceof Date ? val.toISOString().slice(0, 10) : (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}/.test(val) ? val.slice(0, 10) : val)) : val;
     }
 
     // Populate array fields from the saved record
@@ -384,7 +398,7 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
     }
 
     form.reset(values);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editId, records, step]);
   const annualCtc = Number(form.watch('annualCTC') || 0);
   const monthlyGross = annualCtc > 0 ? annualCtc / 12 : 0;
@@ -457,151 +471,127 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
   }
 
   const latest = records[0];
-  const locked = step.entityField === 'employeeId' ? !entityId : stepState?.gate.unlocked === false;
+  const locked = (step.entityField === 'employeeId' && !entityId) ? true : stepState?.gate.unlocked === false;
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-10 px-2 lg:px-4">
-      <div className="flex items-center justify-between border-b border-zinc-200 pb-3 dark:border-zinc-800">
-        <Button variant="ghost" className="h-8 gap-2 px-2 text-xs" onClick={() => router.push(`/dashboard/hiring/${candidateId}`)}>
-          <ArrowLeft size={14} /> Candidate Workflow
-        </Button>
-        <StepGate unlocked={!locked} blockedBy={step.entityField === 'employeeId' && !entityId ? ['employeeId'] : stepState?.gate.blockedBy || []} compact />
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
-        <div className="space-y-4">
-          <Card className="rounded-md border-zinc-200/80 shadow-sm dark:border-zinc-800">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Step {step.step}. {step.title}{editId ? ' — Editing Record' : ''}</CardTitle>
-              {candidate && <div className="text-xs text-zinc-500">{candidate.firstName} {candidate.lastName} · {candidate.jobRole} · {candidate.email}</div>}
-              {editId && <div className="mt-1 rounded-md bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs text-amber-700">You are editing an existing record. Changes will update the saved entry.</div>}
-            </CardHeader>
-            <CardContent>
-              {locked ? (
-                <StepGate unlocked={false} blockedBy={step.entityField === 'employeeId' && !entityId ? ['employeeId'] : stepState?.gate.blockedBy || []} />
-              ) : (
-                <form onSubmit={form.handleSubmit((values) => createMutation.mutate(values))} className="space-y-4">
-                  {step.id === 'evaluation' && (
-                    <div className="rounded-md border border-dashed border-zinc-300 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-900">
-                      <div className="text-sm font-md text-zinc-800 dark:text-zinc-100">AI Evaluation Rows</div>
-                      <div className="mt-1 text-xs text-zinc-500">No AI resume, voice, or video evaluation rows yet.</div>
-                    </div>
-                  )}
-
-                  {step.id === 'ctc-breakup' && annualCtc > 0 && (
-                    <div className="grid gap-3 rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-900 md:grid-cols-3">
-                      <div>
-                        <div className="text-xs font-md uppercase text-zinc-500">Annual CTC</div>
-                        <div className="mt-1 font-md text-zinc-900 dark:text-zinc-100">{annualCtc.toLocaleString()}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs font-md uppercase text-zinc-500">Monthly Gross</div>
-                        <div className="mt-1 font-md text-zinc-900 dark:text-zinc-100">{monthlyGross.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs font-md uppercase text-zinc-500">Backend Calculator</div>
-                        <div className="mt-1 text-zinc-600 dark:text-zinc-300">Final take-home is calculated after save.</div>
-                      </div>
-                    </div>
-                  )}
-
-                  {step.id === 'bgv' && (
-                    <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
-                      BGV report actions are restricted to the backend permission gate; sensitive discrepancy detail is not rendered in this list view.
-                    </div>
-                  )}
-
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {step.fields.map((field) => (
-                      <label key={field.name} className={field.type === 'textarea' ? 'text-xs font-md text-zinc-600 dark:text-zinc-300 md:col-span-2' : 'text-xs font-md text-zinc-600 dark:text-zinc-300'}>
-                        {field.label}
-                        <div className="mt-1">
-                          <FieldInput field={field} register={form.register} error={(form.formState.errors as any)[field.name]?.message} />
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-
-                  {(step.arrayFields || []).map((field) => (
-                    <ArrayFieldEditor key={field.name} field={field} control={form.control} register={form.register} setValue={form.setValue} employees={approvalEmployees} />
-                  ))}
-
-                  <Button type="submit" disabled={createMutation.isPending} className="gap-2 bg-zinc-900 text-white hover:bg-zinc-800">
-                    <Save size={16} /> {createMutation.isPending ? (editId ? 'Updating...' : 'Saving...') : (editId ? 'Update Record' : 'Save Step Record')}
-                  </Button>
-                </form>
+    <HiringStepLayout candidateId={candidateId} stepId={stepId}>
+      <Card className="rounded-md border-zinc-200/80 shadow-sm dark:border-zinc-800">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Step {step.step}. {step.title}{editId ? ' — Editing Record' : ''}</CardTitle>
+          {candidate && <div className="text-xs text-zinc-500">{candidate.firstName} {candidate.lastName} · {candidate.jobRole} · {candidate.email}</div>}
+          {editId && <div className="mt-1 rounded-md bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs text-amber-700">You are editing an existing record. Changes will update the saved entry.</div>}
+        </CardHeader>
+        <CardContent>
+          {locked ? (
+            <StepGate unlocked={false} blockedBy={step.entityField === 'employeeId' && !entityId ? ['employeeId'] : stepState?.gate.blockedBy || []} />
+          ) : (
+            <form onSubmit={form.handleSubmit((values) => createMutation.mutate(values))} className="space-y-4">
+              {step.id === 'evaluation' && (
+                <div className="rounded-md border border-dashed border-zinc-300 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-900">
+                  <div className="text-sm font-medium text-zinc-800 dark:text-zinc-100">AI Evaluation Rows</div>
+                  <div className="mt-1 text-xs text-zinc-500">No AI resume, voice, or video evaluation rows yet.</div>
+                </div>
               )}
-            </CardContent>
-          </Card>
 
-          <Card className="rounded-md border-zinc-200/80 shadow-sm dark:border-zinc-800">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Records</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {records.length === 0 && <div className="text-sm text-zinc-500">No records for this step yet.</div>}
-              {records.map((record) => (
-                <div key={record._id} className="rounded-md border border-zinc-200 p-3 text-sm dark:border-zinc-800">
-                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                      <div className="font-md text-zinc-900 dark:text-zinc-100">{record.status || record.finalStatus || record.overallStatus || record.signedStatus || 'Saved'}</div>
-                      <div className="flex gap-2">
-                      {step.id === 'loi' && <select value={record.status || 'Draft'} onChange={(event) => loiStatusMutation.mutate({ recordId: record._id, status: event.target.value })} className="h-8 rounded-md border border-zinc-300 bg-white px-2 text-xs dark:border-zinc-700 dark:bg-zinc-950"><option>Draft</option><option>Sent</option><option>Accepted</option><option>Declined</option><option>Expired</option></select>}
-                      {step.hasPdf && (
-                        <Button type="button" variant="outline" className="h-8 gap-2 px-2 text-xs" onClick={() => pdfMutation.mutate(record._id)}>
-                          <FileText size={14} /> {step.id === 'loi' && record.status === 'Draft' ? 'Generate & Send LOI' : 'PDF'}
-                        </Button>
-                      )}
-                      {(step.postCreateActions || []).filter((action) => !(step.id === 'selection-approval' && record.finalStatus && record.finalStatus !== 'Pending')).map((action) => {
-                        const lower = action.label.toLowerCase();
-                        const isApprove = lower.includes('approve') || lower.includes('accept') || lower.includes('confirm') || lower.includes('verify') || lower.includes('issue');
-                        const isReject = lower.includes('reject') || lower.includes('decline') || lower.includes('terminate');
-                        return (
-                          <Button
-                            key={action.label}
-                            type="button"
-                            variant="outline"
-                            className={`h-8 gap-2 px-2 text-xs ${isApprove ? 'text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700' : isReject ? 'text-red-600 hover:bg-red-50 hover:text-red-700' : ''}`}
-                            onClick={() => actionMutation.mutate({ recordId: record._id, action })}
-                          >
-                            {isApprove ? <CheckCircle size={14} /> : isReject ? <XCircle size={14} /> : <ShieldCheck size={14} />} {action.label}
-                          </Button>
-                        );
-                      })}
-                    </div>
+              {step.id === 'ctc-breakup' && annualCtc > 0 && (
+                <div className="grid gap-3 rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-900 md:grid-cols-3">
+                  <div>
+                    <div className="text-xs font-medium uppercase text-zinc-500">Annual CTC</div>
+                    <div className="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{annualCtc.toLocaleString()}</div>
                   </div>
-                  <div className="grid gap-x-5 gap-y-2 text-xs text-zinc-500 md:grid-cols-2">
-                    {Object.entries(record).filter(([key]) => !['_id', '__v', 'tenantId', 'createdAt', 'updatedAt'].includes(key)).map(([key, value]) => (
-                      <div key={key} className={key === 'approvalChain' || typeof value === 'object' ? 'md:col-span-2' : ''}>
-                        <span className="font-md text-zinc-600 dark:text-zinc-300">{recordLabel(key)}: </span>
-                        <span className="break-words">{recordDisplayValue(key, value)}</span>
-                      </div>
-                    ))}
+                  <div>
+                    <div className="text-xs font-medium uppercase text-zinc-500">Monthly Gross</div>
+                    <div className="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{monthlyGross.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-medium uppercase text-zinc-500">Backend Calculator</div>
+                    <div className="mt-1 text-zinc-600 dark:text-zinc-300">Final take-home is calculated after save.</div>
                   </div>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-4">
-          <StepChecklist items={stepState?.checklist} />
-          <Card className="rounded-md border-zinc-200/80 shadow-sm dark:border-zinc-800">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Pipeline State</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-zinc-500">Status</span><span className="font-md">{stepState?.status || 'pending'}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-500">Current Step</span><span className="font-md">{pipeline?.currentStep || 1}</span></div>
-              {step.entityField === 'employeeId' && !entityId && (
-                <div className="rounded-md bg-amber-50 p-2 text-xs text-amber-700">Link an employee through Step 9 before this post-joining step can be used.</div>
               )}
-              <Link href={`/dashboard/hiring/${candidateId}`} className="block pt-2 text-xs font-md text-zinc-700 underline dark:text-zinc-200">
-                View all hiring steps
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
+
+              {step.id === 'bgv' && (
+                <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+                  BGV report actions are restricted to the backend permission gate; sensitive discrepancy detail is not rendered in this list view.
+                </div>
+              )}
+
+              <div className="grid gap-3 md:grid-cols-2">
+                {step.fields.map((field) => (
+                  <label key={field.name} className={field.type === 'textarea' ? 'text-xs font-medium text-zinc-600 dark:text-zinc-300 md:col-span-2' : 'text-xs font-medium text-zinc-600 dark:text-zinc-300'}>
+                    {field.label}
+                    <div className="mt-1">
+                      <FieldInput field={field} register={form.register} error={(form.formState.errors as any)[field.name]?.message} />
+                    </div>
+                  </label>
+                ))}
+              </div>
+
+              {(step.arrayFields || []).map((field) => (
+                <ArrayFieldEditor key={field.name} field={field} control={form.control} register={form.register} setValue={form.setValue} employees={approvalEmployees} />
+              ))}
+
+              <Button type="submit" disabled={createMutation.isPending} className="gap-2 bg-zinc-900 text-white hover:bg-zinc-800">
+                <Save size={16} /> {createMutation.isPending ? (editId ? 'Updating...' : 'Saving...') : (editId ? 'Update Record' : 'Save Step Record')}
+              </Button>
+            </form>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-md border-zinc-200/80 shadow-sm dark:border-zinc-800">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm">Records</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {records.length === 0 && <div className="text-sm text-zinc-500">No records for this step yet.</div>}
+          {records.map((record) => (
+            <div key={record._id} className="rounded-md border border-zinc-200 p-3 text-sm dark:border-zinc-800">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <div className="font-medium text-zinc-900 dark:text-zinc-100">{record.status || record.finalStatus || record.overallStatus || record.signedStatus || 'Saved'}</div>
+                <div className="flex gap-2">
+                  {step.id === 'loi' && <select value={record.status || 'Draft'} onChange={(event) => loiStatusMutation.mutate({ recordId: record._id, status: event.target.value })} className="h-8 rounded-md border border-zinc-300 bg-white px-2 text-xs dark:border-zinc-700 dark:bg-zinc-950"><option>Draft</option><option>Sent</option><option>Accepted</option><option>Declined</option><option>Expired</option></select>}
+                  {step.hasPdf && (
+                    <Button type="button" variant="outline" className="h-8 gap-2 px-2 text-xs" onClick={() => {
+                      if (step.id === 'selection-approval' || step.id === 'probation-review') {
+                        window.open(`/dashboard/hiring/print/${step.id}/${record._id}`, '_blank');
+                      } else {
+                        pdfMutation.mutate(record._id);
+                      }
+                    }}>
+                      <FileText size={14} /> {step.id === 'loi' && record.status === 'Draft' ? 'Generate & Send LOI' : 'PDF'}
+                    </Button>
+                  )}
+                  {(step.postCreateActions || []).filter((action) => !(step.id === 'selection-approval' && record.finalStatus && record.finalStatus !== 'Pending')).map((action) => {
+                    const lower = action.label.toLowerCase();
+                    const isApprove = lower.includes('approve') || lower.includes('accept') || lower.includes('confirm') || lower.includes('verify') || lower.includes('issue');
+                    const isReject = lower.includes('reject') || lower.includes('decline') || lower.includes('terminate');
+                    return (
+                      <Button
+                        key={action.label}
+                        type="button"
+                        variant="outline"
+                        className={`h-8 gap-2 px-2 text-xs ${isApprove ? 'text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700' : isReject ? 'text-red-600 hover:bg-red-50 hover:text-red-700' : ''}`}
+                        onClick={() => actionMutation.mutate({ recordId: record._id, action })}
+                      >
+                        {isApprove ? <CheckCircle size={14} /> : isReject ? <XCircle size={14} /> : <ShieldCheck size={14} />} {action.label}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="grid gap-x-5 gap-y-2 text-xs text-zinc-500 md:grid-cols-2">
+                {Object.entries(record).filter(([key]) => !['_id', '__v', 'tenantId', 'createdAt', 'updatedAt'].includes(key)).map(([key, value]) => (
+                  <div key={key} className={key === 'approvalChain' || typeof value === 'object' ? 'md:col-span-2' : ''}>
+                    <span className="font-medium text-zinc-600 dark:text-zinc-300">{recordLabel(key)}: </span>
+                    <span className="break-words">{recordDisplayValue(key, value)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </HiringStepLayout>
   );
 }
