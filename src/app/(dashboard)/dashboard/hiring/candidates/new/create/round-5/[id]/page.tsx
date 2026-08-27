@@ -177,10 +177,10 @@ function PageHeader({ candidateId }: { candidateId: string }) {
             <ArrowLeft className="w-3 h-3 mr-1" /> Back to Round 4
           </button>
           <button onClick={() => {
-            window.open('/dashboard/offers', '_blank');
-            toast.success("Proceeding to Offer stage");
+            router.push('/dashboard/hiring/steps/ctc-breakup');
+            toast.success("Proceeding to CTC Breakup stage");
           }} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
-            End & Generate Offer <LogOut className="w-3 h-3 ml-1" />
+            End Exam & Next Step <LogOut className="w-3 h-3 ml-1" />
           </button>
         </div>
       </div>

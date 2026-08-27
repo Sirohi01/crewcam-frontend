@@ -10,6 +10,7 @@ import {
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
+import { useAuthStore } from '@/store/authStore';
 
 const DUMMY_QUESTIONS = [
   { category: 'Time Management', text: 'How do you prioritize multiple tasks when working under tight deadlines?', insight: 'This evaluates your ability to manage stress and organize tasks efficiently.' },
@@ -25,6 +26,7 @@ const DUMMY_QUESTIONS = [
 ];
 
 export default function InterviewUI() {
+  const user = useAuthStore(state => state.user);
   const [candidate, setCandidate] = React.useState<any>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(0);
@@ -37,9 +39,14 @@ export default function InterviewUI() {
   const [timeElapsed, setTimeElapsed] = React.useState(0);
   const [activeQuestions, setActiveQuestions] = React.useState(DUMMY_QUESTIONS);
 
+  const [activeTab, setActiveTab] = React.useState('Interview');
+  const [isCompleted, setIsCompleted] = React.useState(false);
+  const [hasStarted, setHasStarted] = React.useState(false);
+  const [interviewId, setInterviewId] = React.useState<string | null>(null);
+
   React.useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (isAiConnected) {
+    if (hasStarted && !isCompleted) {
       timer = setInterval(() => {
         setTimeElapsed(prev => prev + 1);
       }, 1000);
@@ -47,53 +54,130 @@ export default function InterviewUI() {
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [isAiConnected]);
+  }, [hasStarted, isCompleted]);
 
-  const handleAiConnect = async () => {
-    setIsConnecting(true);
-    // Check if offline
-    if (!navigator.onLine) {
-      setTimeout(() => {
-        setIsOffline(true);
+  const initInterview = async () => {
+    const userId = user?._id || user?.id;
+    if (!candidate || !userId) return;
+    try {
+      setIsConnecting(true);
+      // Fetch candidate's interviews
+      const { data: interviews } = await api.get(`/hiring/interviews/${candidate._id}`);
+      let activeInterview = interviews.find((i: any) => i.roundType === 'Technical');
+
+      if (!activeInterview) {
+        const res = await api.post('/hiring/interviews', {
+          candidateId: candidate._id,
+          interviewerId: userId,
+          roundType: 'Technical',
+          scheduledDate: new Date().toISOString(),
+        });
+        activeInterview = res.data;
+      }
+
+      setInterviewId(activeInterview._id);
+
+      if (activeInterview.interviewQuestions && activeInterview.interviewQuestions.length > 0) {
+        const mappedQuestions = activeInterview.interviewQuestions.map((q: any) => ({
+          ...q,
+          category: 'Technical',
+          text: q.question,
+          insight: q.answerAnalysis?.reasoning || 'Evaluates candidate response.'
+        }));
+        setActiveQuestions(mappedQuestions);
+        setAnswers(mappedQuestions.map((q: any) => q.transcript || ''));
+      } else {
+        const role = candidate.appliedFor || 'Full Stack Developer';
+        const generatedQuestions = [
+          { category: 'Technical Architecture', text: `Based on your experience as a ${role}, how would you design a scalable architecture to handle high-throughput real-time data?`, insight: `Evaluates your ability to apply past experience to complex new scenarios specific to ${role}.` },
+          { category: 'Problem Solving', text: `Describe a challenging technical issue you faced while working as a ${role}. What steps did you take to debug and resolve it?`, insight: `Assesses analytical skills, debugging methodology, and resilience under pressure.` },
+          { category: 'Best Practices & Security', text: `What are the core security and performance best practices you implement in your day-to-day work as a ${role}?`, insight: `Checks your adherence to industry standards, security-first mindset, and proactive quality assurance.` },
+          { category: 'Cross-functional Collaboration', text: `How do you handle disagreements on technical approaches with other engineers or product managers when delivering ${role} features?`, insight: `Evaluates teamwork, communication skills, and ability to influence without authority.` },
+          { category: 'Continuous Innovation', text: `What recent technological advancements in the field of ${role} are you most excited about, and how have you experimented with them?`, insight: `Checks continuous learning, passion for the domain, and proactive upskilling.` }
+        ];
+
+        const dbQuestions = generatedQuestions.map(q => ({
+          question: q.text,
+          answerAnalysis: { verdict: 'no_answer', reasoning: q.insight }
+        }));
+
+        await api.put(`/hiring/interviews/${activeInterview._id}/questions`, { questions: dbQuestions });
+
+        setActiveQuestions(generatedQuestions);
+        setAnswers(Array(generatedQuestions.length).fill(''));
+      }
+
+      if (activeInterview.status === 'Completed') {
+        setIsCompleted(true);
+        setActiveTab('AI Questions');
+        setIsAiConnected(false);
+        setIsConnecting(false);
+        setHasStarted(true);
+      } else {
+        setIsOffline(false);
         setIsAiConnected(true);
         setIsConnecting(false);
-        setActiveQuestions(DUMMY_QUESTIONS);
-        setCurrentQuestionIndex(0);
-        setTimeElapsed(0);
-        toast.error('You are offline. Using offline questions.');
-      }, 1000);
-      return;
-    }
-
-    // Simulate AI connection and auto-generation
-    setTimeout(() => {
-      setIsOffline(false);
+        setHasStarted(true);
+        toast.success('Interview Session Started!');
+      }
+    } catch (error) {
+      setIsOffline(true);
       setIsAiConnected(true);
       setIsConnecting(false);
-      
-      const role = candidate?.appliedFor || 'Full Stack Developer';
-      
-      // Simulate auto-generated questions based on the candidate's applied role
-      const generatedQuestions = [
-        { category: 'Technical Architecture', text: `Based on your experience as a ${role}, how would you design a scalable architecture to handle high-throughput real-time data?`, insight: `Evaluates your ability to apply past experience to complex new scenarios specific to ${role}.` },
-        { category: 'Problem Solving', text: `Describe a challenging technical issue you faced while working as a ${role}. What steps did you take to debug and resolve it?`, insight: `Assesses analytical skills, debugging methodology, and resilience under pressure.` },
-        { category: 'Best Practices & Security', text: `What are the core security and performance best practices you implement in your day-to-day work as a ${role}?`, insight: `Checks your adherence to industry standards, security-first mindset, and proactive quality assurance.` },
-        { category: 'Cross-functional Collaboration', text: `How do you handle disagreements on technical approaches with other engineers or product managers when delivering ${role} features?`, insight: `Evaluates teamwork, communication skills, and ability to influence without authority.` },
-        { category: 'Continuous Innovation', text: `What recent technological advancements in the field of ${role} are you most excited about, and how have you experimented with them?`, insight: `Checks continuous learning, passion for the domain, and proactive upskilling.` }
-      ];
-      
-      setActiveQuestions(generatedQuestions);
-      setAnswers(Array(generatedQuestions.length).fill(''));
-      setCurrentQuestionIndex(0);
-      setTimeElapsed(0);
-      toast.success('AI Connected! Questions auto-generated.');
-    }, 2000);
+      setHasStarted(true);
+      setActiveQuestions(DUMMY_QUESTIONS);
+      setAnswers(Array(DUMMY_QUESTIONS.length).fill(''));
+      toast.success('Interview Session Started (Offline Mode)');
+    }
   };
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const handleEndExam = async () => {
+    try {
+      if (interviewId) {
+        await api.put(`/hiring/interviews/${interviewId}/feedback`, { status: 'Completed', rating: 0, feedback: 'Completed via AI Round 2' });
+      }
+      setIsCompleted(true);
+      setActiveTab('AI Questions');
+      setIsAiConnected(false);
+      setHasStarted(false);
+      toast.success('Interview Completed!');
+      window.open(`/dashboard/hiring/candidates/new/create/round-3/${candidateId}`, '_blank');
+    } catch (e) {
+      toast.error('Failed to end interview');
+    }
+  };
+
+  const [isSaving, setIsSaving] = React.useState(false);
+  
+  const handleSaveAnswer = async () => {
+    if (!interviewId) return;
+    const currentAns = answers[currentQuestionIndex];
+    if (!currentAns) return;
+
+    try {
+      setIsSaving(true);
+      const dbQuestions = activeQuestions.map((q: any, idx: number) => ({
+        question: q.text,
+        transcript: answers[idx] || '',
+        answerAnalysis: {
+          verdict: idx === currentQuestionIndex ? (currentAns.length > 50 ? 'adequate' : 'weak') : (q.answerAnalysis?.verdict || 'no_answer'),
+          reasoning: q.insight
+        }
+      }));
+
+      await api.put(`/hiring/interviews/${interviewId}/questions`, { questions: dbQuestions });
+      toast.success('Answer auto-saved');
+    } catch (error) {
+      toast.error('Failed to save answer');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const currentQuestion = activeQuestions[currentQuestionIndex];
@@ -124,6 +208,7 @@ export default function InterviewUI() {
           const appDetails = data.applicationDetails || {};
           
           setCandidate({
+            _id: data._id,
             fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
             email: data.email || '',
             mobile: data.phone || '',
@@ -191,9 +276,11 @@ export default function InterviewUI() {
           <button onClick={() => router.push(`/dashboard/hiring/candidates/new/create/interview-process/${candidateId}`)} className="flex items-center justify-center h-8 px-3 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
             <ArrowLeft className="w-3 h-3 mr-1" /> Back to Process
           </button>
-          <button onClick={() => window.open(`/dashboard/hiring/candidates/new/create/round-3/${candidateId}`, '_blank')} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
-            End & Next Round <StopCircle className="w-3 h-3 ml-1" />
-          </button>
+          {!isCompleted && hasStarted && (
+            <button onClick={handleEndExam} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
+              End Exam & Next Round <StopCircle className="w-3 h-3 ml-1" />
+            </button>
+          )}
         </div>
       </div>
       <div className="h-[1px] bg-zinc-200 w-full mb-2 shrink-0"></div>
@@ -292,14 +379,25 @@ export default function InterviewUI() {
 
       {/* Tabs */}
       <div className="flex items-center gap-6 border-b border-zinc-200 px-2">
-        <button className="pb-2 text-[12px] font-bold text-indigo-700 border-b-2 border-indigo-700">Interview</button>
-        <button className="pb-2 text-[12px] font-semibold text-zinc-500 hover:text-zinc-700 border-b-2 border-transparent">AI Questions</button>
-        <button className="pb-2 text-[12px] font-semibold text-zinc-500 hover:text-zinc-700 border-b-2 border-transparent">Notes</button>
-        <button className="pb-2 text-[12px] font-semibold text-zinc-500 hover:text-zinc-700 border-b-2 border-transparent">Attachments</button>
+        {['Interview', 'AI Questions', 'Notes', 'Attachments'].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`pb-2 text-[12px] font-bold border-b-2 transition-colors ${
+              activeTab === tab
+                ? 'text-indigo-700 border-indigo-700'
+                : 'text-zinc-500 border-transparent hover:text-zinc-700'
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 mt-2">
+      {activeTab === 'Interview' && (
+        <>
+          {/* Main Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 mt-2">
 
         {/* Left Column (Progress) */}
         <div className="lg:col-span-3 flex flex-col gap-4 h-full">
@@ -380,6 +478,7 @@ export default function InterviewUI() {
                 className="flex-1 w-full resize-none p-3 text-[12px] text-zinc-800 outline-none min-h-[150px]"
                 placeholder="Type your answer here..."
                 value={answers[currentQuestionIndex]}
+                onBlur={handleSaveAnswer}
                 onChange={(e) => {
                   const newAnswers = [...answers];
                   newAnswers[currentQuestionIndex] = e.target.value;
@@ -394,7 +493,9 @@ export default function InterviewUI() {
 
             <div className="flex items-center gap-1.5 text-emerald-600 mt-3 mb-4">
               <CheckCircle2 size={13} />
-              <span className="text-[10px] font-medium">Your answer is auto-saved</span>
+              <span className="text-[10px] font-medium">
+                {isSaving ? 'Saving...' : 'Your answer is auto-saved'}
+              </span>
             </div>
 
             <div className="flex items-center justify-between mt-auto">
@@ -424,14 +525,14 @@ export default function InterviewUI() {
               <h3 className="text-[12px] font-bold text-indigo-900">AI Interview Assistant</h3>
               <span className="text-[8px] font-bold bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">BETA</span>
             </div>
-            {!isAiConnected && (
+            {!hasStarted && !isCompleted && (
               <div className="mb-4">
                 <button 
-                  onClick={handleAiConnect}
+                  onClick={initInterview}
                   disabled={isConnecting}
                   className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold py-2 rounded-lg shadow-sm transition-colors disabled:opacity-70"
                 >
-                  {isConnecting ? <><Loader2 size={13} className="animate-spin" /> Connecting...</> : <><Sparkles size={13} /> Connect AI</>}
+                  {isConnecting ? <><Loader2 size={13} className="animate-spin" /> Connecting...</> : 'Start Test'}
                 </button>
               </div>
             )}
@@ -595,6 +696,46 @@ export default function InterviewUI() {
           </button>
         </div>
       </div>
+      </>
+      )}
+
+      {activeTab === 'AI Questions' && (
+        <div className="mt-4 p-5 rounded-xl border border-zinc-100 bg-white shadow-sm">
+          <h3 className="text-[14px] font-bold text-zinc-900 mb-4">AI Interview Questions & Answers</h3>
+          <div className="flex flex-col gap-6">
+            {activeQuestions.length === 0 ? (
+              <p className="text-[12px] text-zinc-500">No questions available yet.</p>
+            ) : (
+              activeQuestions.map((q: any, idx: number) => (
+                <div key={idx} className="flex flex-col gap-2 border-b border-zinc-100 pb-4 last:border-0 last:pb-0">
+                  <div className="flex items-start gap-2">
+                    <span className="h-5 w-5 bg-indigo-50 text-indigo-600 rounded flex items-center justify-center shrink-0 font-bold text-[9px] border border-indigo-100 mt-0.5">
+                      Q.{idx + 1}
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-bold text-indigo-600 mb-0.5">{q.category}</span>
+                      <p className="text-[12px] font-bold text-zinc-900 leading-relaxed">{q.text || q.question}</p>
+                    </div>
+                  </div>
+                  <div className="ml-7 bg-zinc-50 p-3 rounded-lg border border-zinc-200">
+                    <p className="text-[11px] text-zinc-700 whitespace-pre-wrap leading-relaxed">
+                      {answers[idx] ? answers[idx] : <span className="italic text-zinc-400">No answer provided.</span>}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {(activeTab === 'Notes' || activeTab === 'Attachments') && (
+        <div className="mt-4 p-8 rounded-xl border border-dashed border-zinc-200 bg-white shadow-sm flex flex-col items-center justify-center text-center">
+          <FileText className="text-zinc-300 w-8 h-8 mb-2" />
+          <h3 className="text-[13px] font-bold text-zinc-900">{activeTab}</h3>
+          <p className="text-[11px] text-zinc-500 mt-1 max-w-sm">This section is coming soon. You will be able to manage {activeTab.toLowerCase()} here.</p>
+        </div>
+      )}
 
       {isModalOpen && currentQuestionIndex > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 p-4 backdrop-blur-sm">
