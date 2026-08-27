@@ -287,20 +287,35 @@ export default function CreateCandidatePage() {
       const { data: extractData } = await api.post('/ai/hiring/extract-resume-profile', { resumeUrl: rUrl });
 
       sessionStorage.setItem('extractedCandidate', JSON.stringify({ ...extractData, resumeUrl: rUrl }));
-      setCandidate(prev => ({
-        ...prev,
-        fullName: extractData.name || extractData.fullName || '',
-        email: extractData.email || '',
-        mobile: extractData.phone || extractData.mobile || '',
-        currentLocation: extractData.location || extractData.currentLocation || '',
-        totalExperience: extractData.totalExperience || '',
-        highestQualification: extractData.education?.[0]?.degree || '',
-        university: extractData.education?.[0]?.institution || '',
-        yearOfPassing: extractData.education?.[0]?.year || '',
-        skills: extractData.skills || [],
-        experiences: extractData.experiences || [],
-        education: extractData.education || [],
-      }));
+      setCandidate(prev => {
+        const firstEdu = extractData.education?.[0] || {};
+        return {
+          ...prev,
+          fullName: `${extractData.firstName || ''} ${extractData.lastName || ''}`.trim(),
+          email: extractData.email || '',
+          mobile: extractData.phone || extractData.mobile || '',
+          currentLocation: [extractData.city, extractData.state, extractData.country].filter(Boolean).join(', ') || extractData.address || '',
+          totalExperience: extractData.totalExperience || '',
+          highestQualification: firstEdu.qualification || firstEdu.degree || '',
+          university: firstEdu.university || firstEdu.institute || firstEdu.institution || '',
+          yearOfPassing: firstEdu.monthYear || firstEdu.year || '',
+          skills: extractData.technicalSkills || extractData.skills || [],
+          experiences: (extractData.employmentHistory || extractData.experiences || []).map((exp: any, i: number) => ({
+            id: `exp-${Date.now()}-${i}`,
+            role: exp.designation || exp.role || '',
+            company: exp.employer || exp.company || '',
+            employmentType: 'Full Time',
+            startDate: exp.periodFrom || exp.startDate || '',
+            endDate: exp.periodTo || exp.endDate || '',
+            bullets: ['']
+          })),
+          education: (extractData.education || []).map((edu: any) => ({
+            degree: edu.qualification || edu.degree || '',
+            school: edu.university || edu.institute || edu.institution || edu.school || '',
+            period: edu.monthYear || edu.year || edu.period || ''
+          })),
+        };
+      });
       toast.success('Extraction complete!');
       setIsExtracting(false);
     } catch (err: any) {
@@ -389,7 +404,7 @@ export default function CreateCandidatePage() {
                   </p>
                   <input
                     type="file"
-                    accept=".pdf"
+                    accept=".pdf,.doc,.docx"
                     ref={fileInputRef}
                     onChange={handleFileChange}
                     className="hidden"
@@ -423,13 +438,22 @@ export default function CreateCandidatePage() {
             </Card>
 
             <Card title="AI Extraction Confidence" className="text-center">
-              <div className="relative mx-auto grid h-16 w-16 place-items-center rounded-full" style={{ background: 'conic-gradient(#4f46e5 92%, #e5e7eb 0)' }}>
-                <div className="grid h-[50px] w-[50px] place-items-center rounded-full bg-white">
-                  <span className="text-[13px] font-bold text-zinc-900">92%</span>
-                </div>
-              </div>
-              <p className="mt-0.5 text-[10.5px] font-semibold text-emerald-600">High Accuracy</p>
-              <p className="mt-0.5 text-[9.5px] leading-snug text-zinc-400">The extracted information is highly accurate.</p>
+              {(() => {
+                const fieldsToCheck = [candidate.fullName, candidate.email, candidate.mobile, candidate.highestQualification, candidate.totalExperience];
+                const filledFields = fieldsToCheck.filter(f => typeof f === 'string' ? f.trim().length > 0 : !!f).length;
+                const score = (file && !isExtracting) ? Math.max(30, Math.round((filledFields / fieldsToCheck.length) * 100)) : 0;
+                return (
+                  <>
+                    <div className="relative mx-auto grid h-16 w-16 place-items-center rounded-full" style={{ background: `conic-gradient(#4f46e5 ${score}%, #e5e7eb 0)` }}>
+                      <div className="grid h-[50px] w-[50px] place-items-center rounded-full bg-white">
+                        <span className="text-[13px] font-bold text-zinc-900">{score}%</span>
+                      </div>
+                    </div>
+                    <p className="mt-0.5 text-[10.5px] font-semibold text-emerald-600">{score >= 80 ? 'High Accuracy' : (score >= 50 ? 'Medium Accuracy' : 'Low Accuracy')}</p>
+                    <p className="mt-0.5 text-[9.5px] leading-snug text-zinc-400">The extracted information is {score >= 80 ? 'highly accurate' : 'partially accurate'}.</p>
+                  </>
+                );
+              })()}
             </Card>
           </div>
 
@@ -474,19 +498,19 @@ export default function CreateCandidatePage() {
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-[10.5px]">
                       <span className="text-zinc-500">Personal Information</span>
-                      <span className="font-semibold text-emerald-600">98%</span>
+                      <span className="font-semibold text-emerald-600">{candidate.fullName && candidate.email && candidate.mobile ? '100%' : '50%'}</span>
                     </div>
                     <div className="flex items-center justify-between text-[10.5px]">
                       <span className="text-zinc-500">Experience</span>
-                      <span className="font-semibold text-emerald-600">92%</span>
+                      <span className="font-semibold text-emerald-600">{candidate.experiences?.length > 0 ? '100%' : '0%'}</span>
                     </div>
                     <div className="flex items-center justify-between text-[10.5px]">
                       <span className="text-zinc-500">Education</span>
-                      <span className="font-semibold text-emerald-600">95%</span>
+                      <span className="font-semibold text-emerald-600">{candidate.education?.length > 0 ? '100%' : '0%'}</span>
                     </div>
                     <div className="flex items-center justify-between text-[10.5px]">
                       <span className="text-zinc-500">Skills</span>
-                      <span className="font-semibold text-emerald-600">90%</span>
+                      <span className="font-semibold text-emerald-600">{candidate.skills?.length > 0 ? '100%' : '0%'}</span>
                     </div>
                   </div>
                 ) : (
@@ -560,7 +584,7 @@ export default function CreateCandidatePage() {
 
                   <Field title="Available From" required>
                     <div className="relative">
-                      <FormInput variant="compact" className="pl-7" value={candidate.availableFrom} onChange={(e) => handleInputChange('availableFrom', e.target.value)} placeholder="15 June 2026" />
+                      <FormInput type="date" variant="compact" className="pl-7" value={candidate.availableFrom} onChange={(e) => handleInputChange('availableFrom', e.target.value)} placeholder="15 June 2026" />
                       <Calendar size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                     </div>
                   </Field>

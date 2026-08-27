@@ -47,34 +47,36 @@ export default function AiScreening() {
   const { data: candidatesResponse, isLoading, refetch } = useQuery({
     queryKey: ['ai-screening-candidates'],
     queryFn: async () => {
-      const res = await api.get('/hiring/candidates');
+      // Use the resume-screenings endpoint to get candidates with latestScreening details
+      const res = await api.get('/ai/hiring/resume-screenings');
       return res.data;
     }
   });
 
   const candidates = useMemo(() => {
     const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
-    return rawCandidates.map((c: any) => ({
-      id: c._id || c.id,
-      name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
-      email: c.email || 'N/A',
-      phone: c.phone || 'N/A',
-      jobAppliedFor: {
-        title: c.jobRole || 'N/A',
-        code: c.jobId || 'JOB-000'
-      },
-      experienceYears: Number(c.applicationDetails?.totalExperience) || 0,
-      aiMatchScore: c.rating ? c.rating * 20 : 50,
-      topMatchedSkills: c.applicationDetails?.technicalSkills?.map((s: any) => s.qualification) || ['General'],
-      aiSummary: 'Evaluated by AI model based on skills and experience.',
-      screeningStatus: c.status === 'Screening' ? 'Needs Review' : 'Medium Match'
-    }));
+    return rawCandidates.map((c: any) => {
+      const screening = c.latestScreening;
+      const fitScore = screening ? screening.fitScore || screening.starRating * 20 : (c.rating ? c.rating * 20 : 50);
+      return {
+        id: c._id || c.id,
+        name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
+        email: c.email || 'N/A',
+        phone: c.phone || 'N/A',
+        jobAppliedFor: {
+          title: c.jobRole || 'N/A',
+          code: c.jobId || 'JOB-000'
+        },
+        experienceYears: Number(c.applicationDetails?.totalExperience) || 0,
+        aiMatchScore: fitScore,
+        topMatchedSkills: screening?.matchedSkills?.length > 0 ? screening.matchedSkills : (c.applicationDetails?.technicalSkills?.map((s: any) => s.qualification) || ['General']),
+        aiSummary: screening?.summary || 'Evaluated by AI model based on skills and experience.',
+        screeningStatus: screening ? (fitScore >= 70 ? 'High Match' : fitScore >= 40 ? 'Medium Match' : 'Low Match') : 'Needs Review'
+      };
+    });
   }, [candidatesResponse]);
 
   const [activeTab, setActiveTab] = useState<string>('All');
-
-  // Dynamic metrics updated in real-time as candidates are added
-  const [metrics, setMetrics] = useState<MetricCardData[]>(INITIAL_METRIC_CARDS);
 
   // Custom interactive model factors and confidence score from Settings
   const [confidenceScore, setConfidenceScore] = useState<number>(92);
@@ -211,6 +213,18 @@ export default function AiScreening() {
     return counts;
   }, [candidates]);
 
+  // Dynamic metrics updated in real-time as candidates are updated
+  const metrics = useMemo(() => {
+    return INITIAL_METRIC_CARDS.map(m => {
+      if (m.id === 'resumes') return { ...m, value: tabCounts.All };
+      if (m.id === 'high') return { ...m, value: tabCounts['High Match'] };
+      if (m.id === 'medium') return { ...m, value: tabCounts['Medium Match'] };
+      if (m.id === 'low') return { ...m, value: tabCounts['Low Match'] };
+      if (m.id === 'review') return { ...m, value: tabCounts['Needs Review'] };
+      return m;
+    });
+  }, [tabCounts]);
+
   // --- Handlers ---
   const handleFilterChange = (key: keyof FilterState, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -292,25 +306,6 @@ export default function AiScreening() {
     // Note: To persist, we would post to API here.
     // api.post('/hiring/candidates', newCandidateData).then(() => refetch());
     
-    const updatedList = [newCandidate, ...candidates];
-    // setCandidates(updatedList); // Replaced by API refetch
-
-
-    // Dynamically update main dashboard Metric Counts to reflect the manual entries
-    const highCount = updatedList.filter((c: Candidate) => c.screeningStatus === 'High Match').length;
-    const medCount = updatedList.filter((c: Candidate) => c.screeningStatus === 'Medium Match').length;
-    const lowCount = updatedList.filter((c: Candidate) => c.screeningStatus === 'Low Match').length;
-    const revCount = updatedList.filter((c: Candidate) => c.screeningStatus === 'Needs Review').length;
-
-    setMetrics(prev => prev.map(m => {
-      if (m.id === 'resumes') return { ...m, value: updatedList.length };
-      if (m.id === 'high') return { ...m, value: 96 + (highCount - 5) }; // scaled relative to base image count
-      if (m.id === 'medium') return { ...m, value: 28 + (medCount - 3) };
-      if (m.id === 'low') return { ...m, value: 18 + (lowCount - 2) };
-      if (m.id === 'review') return { ...m, value: 4 + (revCount - 1) };
-      return m;
-    }));
-
     // Reset Form & Close Modal
     setNewCandidateForm({
       name: '',

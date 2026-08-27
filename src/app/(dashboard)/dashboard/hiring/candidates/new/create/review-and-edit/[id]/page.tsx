@@ -97,52 +97,63 @@ export default function ReviewPage() {
             if (match) cId = match._id;
             else throw new Error("Candidate not found");
           }
-          
+
           const res = await api.get(`/hiring/candidates/${cId}`);
           const data = res.data;
           const appDetails = data.applicationDetails || {};
-          
+
           setCandidate({
             manpowerRequestId: appDetails.manpowerRequestId || data.manpowerRequestId || '',
             fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
             email: data.email || '',
-          mobile: data.phone || '',
-          currentLocation: appDetails.currentLocation || '',
-          preferredLocation: appDetails.preferredLocation || '',
-          linkedin: appDetails.linkedin || '',
-          appliedFor: data.jobRole || '',
-          department: data.departmentId?._id || data.departmentId || '',
-          employmentType: appDetails.employmentType || 'Full Time',
-          totalExperience: appDetails.totalExperience || '',
-          relevantExperience: appDetails.relevantExperience || '',
-          currentCompany: appDetails.currentCompany || '',
-          currentCTC: appDetails.currentCTC || '',
-          expectedCTC: appDetails.expectedCTC || '',
-          noticePeriod: appDetails.noticePeriod || '',
-          availableFrom: appDetails.availableFrom || '',
-          relocation: appDetails.relocation || '',
-          willingToTravel: appDetails.willingToTravel || '',
-          highestQualification: appDetails.highestQualification || '',
-          university: appDetails.university || '',
-          yearOfPassing: appDetails.yearOfPassing || '',
-          cgpa: appDetails.cgpa || '',
-          skills: appDetails.skills || [],
-          experiences: appDetails.experiences || [],
-          education: appDetails.education || []
-        });
+            mobile: data.phone || '',
+            currentLocation: appDetails.currentLocation || '',
+            preferredLocation: appDetails.preferredLocation || '',
+            linkedin: appDetails.linkedin || '',
+            appliedFor: data.jobRole || '',
+            department: data.departmentId?._id || data.departmentId || '',
 
-        if (appDetails.experiences && appDetails.experiences.length > 0) {
-          setExperiences(appDetails.experiences);
+            departmentName: data.departmentId?.name || '',
+            employmentType: appDetails.employmentType || 'Full Time',
+            totalExperience: appDetails.totalExperience || '',
+            relevantExperience: appDetails.relevantExperience || '',
+            currentCompany: appDetails.currentCompany || '',
+            currentCTC: appDetails.currentCTC || '',
+            expectedCTC: appDetails.expectedCTC || '',
+            noticePeriod: appDetails.noticePeriod || '',
+            availableFrom: appDetails.availableFrom || '',
+            relocation: appDetails.relocation || '',
+            willingToTravel: appDetails.willingToTravel || '',
+            highestQualification: appDetails.highestQualification || '',
+            university: appDetails.university || '',
+            yearOfPassing: appDetails.yearOfPassing || '',
+            cgpa: appDetails.cgpa || '',
+            skills: appDetails.skills || [],
+            experiences: appDetails.experiences || [],
+            education: appDetails.education || []
+          });
+
+          if (appDetails.experiences && appDetails.experiences.length > 0) {
+            const safeExperiences = appDetails.experiences.map((exp: any, i: number) => ({
+              id: exp.id || `exp-${Date.now()}-${i}`,
+              role: exp.role || exp.designation || '',
+              company: exp.company || exp.employer || '',
+              employmentType: exp.employmentType || 'Full Time',
+              startDate: exp.startDate || exp.periodFrom || '',
+              endDate: exp.endDate || exp.periodTo || '',
+              bullets: Array.isArray(exp.bullets) && exp.bullets.length > 0 ? exp.bullets : ['']
+            }));
+            setExperiences(safeExperiences);
+          }
+          if (data.resumeUrl) setResumeUrl(data.resumeUrl);
+        } catch (err) {
+          console.error(err);
+          toast.error('Failed to load candidate details');
         }
-        if (data.resumeUrl) setResumeUrl(data.resumeUrl);
-      } catch (err) {
-        console.error(err);
-        toast.error('Failed to load candidate details');
-      }
-    };
-    fetchCandidate();
-  }
-}, [candidateId]);
+      };
+      fetchCandidate();
+    }
+  }, [candidateId]);
 
   const handleSubmitApplication = async () => {
     try {
@@ -153,7 +164,7 @@ export default function ReviewPage() {
         const match = candidates.find((c: any) => `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') === candidateId);
         if (match) cId = match._id;
       }
-      
+
       await api.put(`/hiring/candidates/${cId}`, {
         manpowerRequestId: candidate.manpowerRequestId,
         firstName: candidate.fullName.split(' ')[0] || '',
@@ -429,9 +440,9 @@ export default function ReviewPage() {
                         </div>
                         <div
                           className="font-bold text-[9px] truncate"
-                          title={candidate.department}
+                          title={candidate.departmentName || candidate.department}
                         >
-                          {candidate.department}
+                          {candidate.departmentName || candidate.department}
                         </div>
                       </div>
                       <div className="">
@@ -447,7 +458,7 @@ export default function ReviewPage() {
                           Notice Period
                         </div>
                         <div className="font-bold text-[9px]">
-                          {candidate.noticePeriod}
+                          {candidate.noticePeriod || '0 Days'}
                         </div>
                       </div>
                     </div>

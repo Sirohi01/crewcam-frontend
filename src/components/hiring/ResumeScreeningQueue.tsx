@@ -61,7 +61,7 @@ export default function ResumeScreeningQueue() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [screeningStatus, setScreeningStatus] = useState<'' | 'pending' | 'screened'>('');
-  const [applicationStatus, setApplicationStatus] = useState('Applied');
+  const [applicationStatus, setApplicationStatus] = useState('');
   const [experienceMatch, setExperienceMatch] = useState<'' | 'under' | 'match' | 'over'>('');
   const [minStars, setMinStars] = useState('');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -94,8 +94,8 @@ export default function ResumeScreeningQueue() {
     setOpenMenuId(id);
   };
 
-  const hasActiveFilters = Boolean(search || screeningStatus || applicationStatus !== 'Applied' || experienceMatch || minStars);
-  const clearFilters = () => { setSearch(''); setScreeningStatus(''); setApplicationStatus('Applied'); setExperienceMatch(''); setMinStars(''); setPage(1); };
+  const hasActiveFilters = Boolean(search || screeningStatus || applicationStatus !== '' || experienceMatch || minStars);
+  const clearFilters = () => { setSearch(''); setScreeningStatus(''); setApplicationStatus(''); setExperienceMatch(''); setMinStars(''); setPage(1); };
 
   const { data, isLoading, error } = useQuery<{ data: any[]; meta: { page: number; limit: number; total: number; totalPages: number } }>({
     queryKey: ['resume-screening-queue', page, limit, debouncedSearch, screeningStatus, applicationStatus, experienceMatch, minStars],

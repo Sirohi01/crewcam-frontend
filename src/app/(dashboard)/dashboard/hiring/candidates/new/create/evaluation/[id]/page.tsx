@@ -3,11 +3,13 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ThumbsUp, ThumbsDown, MinusSquare, X, Plus, Star, CheckCircle2, Sparkles } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, MinusSquare, X, Plus, Star, CheckCircle2, Sparkles, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCandidate } from './layout';
 import { CircularProgress } from './CircularProgress';
+import api from '@/lib/axios';
+import { toast } from 'react-hot-toast';
 
 export default function HODReviewTab() {
   const { candidate } = useCandidate();
@@ -45,6 +47,38 @@ export default function HODReviewTab() {
 
   const removeStrength = (s: string) => setStrengths(strengths.filter(item => item !== s));
   const removeConcern = (c: string) => setConcerns(concerns.filter(item => item !== c));
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmitEvaluation = async () => {
+    try {
+      setIsSubmitting(true);
+      
+      let newStatus = 'Interviewing';
+      if (recommendation === 'Hold / Consider') newStatus = 'Hold';
+      if (recommendation === 'Not Recommended') newStatus = 'Rejected';
+
+      await api.put(`/hiring/candidates/${candidateId}/status`, { 
+        status: newStatus,
+        rating: rating,
+        comments: `Strengths: ${strengths.join(', ')}\nConcerns: ${concerns.join(', ')}` 
+      });
+
+      toast.success(`Candidate marked as ${newStatus}`);
+
+      // Routing
+      if (newStatus === 'Interviewing') {
+        router.push(`/dashboard/hiring/candidates/new/create/interview-process/${candidateId}`);
+      } else {
+        router.push(`/dashboard/all-candidates?status=${newStatus}`);
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.response?.data?.message || 'Failed to submit evaluation');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (!candidate) return null;
 
@@ -181,14 +215,11 @@ export default function HODReviewTab() {
 
             {/* Action Buttons */}
             <div className="flex flex-wrap items-center gap-2 lg:gap-4 pt-5 mt-auto border-t border-zinc-100">
-              <Button onClick={() => window.open(`/dashboard/hiring/candidates/new/create/interview-process/${candidateId}`, '_blank')} className="h-7 lg:h-8 px-2 lg:px-4 text-[10px] lg:text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-md shadow-sm whitespace-nowrap">
-                Approve & Move to Interview
+              <Button onClick={handleSubmitEvaluation} disabled={isSubmitting} className="h-7 lg:h-8 px-2 lg:px-4 text-[10px] lg:text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-md shadow-sm whitespace-nowrap">
+                {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null} Submit Evaluation & Proceed
               </Button>
               <Button variant="outline" onClick={() => router.push(`/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}`)} className="h-7 lg:h-8 px-2 lg:px-4 text-[10px] lg:text-[11px] font-semibold text-indigo-700 border-indigo-200 hover:bg-indigo-50 rounded-md shadow-sm whitespace-nowrap">
-                Send Back for Re-evaluation
-              </Button>
-              <Button variant="outline" className="h-7 lg:h-8 px-2 lg:px-4 text-[10px] lg:text-[11px] font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 rounded-md shadow-sm whitespace-nowrap">
-                Reject Application
+                Send Back to AI Screening
               </Button>
             </div>
 

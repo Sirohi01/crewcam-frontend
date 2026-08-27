@@ -5,7 +5,7 @@ import {
   ArrowLeft, Square, Phone, Mail, MapPin, Link2, ExternalLink,
   CheckCircle2, Clock, Check, Info, FileText, Share2, HelpCircle,
   FileQuestion, Bold, Italic, Underline, List, ListOrdered, Code,
-  ThumbsUp, Flag, StopCircle, User, Sparkles, X
+  ThumbsUp, Flag, StopCircle, User, Sparkles, X, Loader2, AlertTriangle
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/axios';
@@ -27,21 +27,68 @@ const DUMMY_QUESTIONS = [
 export default function InterviewUI() {
   const [candidate, setCandidate] = React.useState<any>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(2);
-  const [answers, setAnswers] = React.useState<string[]>(() => {
-    const arr = Array(DUMMY_QUESTIONS.length).fill('');
-    arr[1] = 'I analyzed customer purchase patterns and identified a drop in repeat orders. Based on the insights, we improved the follow-up strategy which increased repeat orders by 18% in the next quarter.';
-    return arr;
-  });
+  const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(0);
+  const [answers, setAnswers] = React.useState<string[]>(() => Array(DUMMY_QUESTIONS.length).fill(''));
   const totalSeconds = 40 * 60;
-  const [timeLeft, setTimeLeft] = React.useState(32 * 60 + 45); // 32:45
+  
+  const [isAiConnected, setIsAiConnected] = React.useState(false);
+  const [isConnecting, setIsConnecting] = React.useState(false);
+  const [isOffline, setIsOffline] = React.useState(false);
+  const [timeElapsed, setTimeElapsed] = React.useState(0);
+  const [activeQuestions, setActiveQuestions] = React.useState(DUMMY_QUESTIONS);
 
   React.useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => Math.max(0, prev - 1));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    let timer: NodeJS.Timeout;
+    if (isAiConnected) {
+      timer = setInterval(() => {
+        setTimeElapsed(prev => prev + 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isAiConnected]);
+
+  const handleAiConnect = async () => {
+    setIsConnecting(true);
+    // Check if offline
+    if (!navigator.onLine) {
+      setTimeout(() => {
+        setIsOffline(true);
+        setIsAiConnected(true);
+        setIsConnecting(false);
+        setActiveQuestions(DUMMY_QUESTIONS);
+        setCurrentQuestionIndex(0);
+        setTimeElapsed(0);
+        toast.error('You are offline. Using offline questions.');
+      }, 1000);
+      return;
+    }
+
+    // Simulate AI connection and auto-generation
+    setTimeout(() => {
+      setIsOffline(false);
+      setIsAiConnected(true);
+      setIsConnecting(false);
+      
+      const role = candidate?.appliedFor || 'Full Stack Developer';
+      
+      // Simulate auto-generated questions based on the candidate's applied role
+      const generatedQuestions = [
+        { category: 'Technical Architecture', text: `Based on your experience as a ${role}, how would you design a scalable architecture to handle high-throughput real-time data?`, insight: `Evaluates your ability to apply past experience to complex new scenarios specific to ${role}.` },
+        { category: 'Problem Solving', text: `Describe a challenging technical issue you faced while working as a ${role}. What steps did you take to debug and resolve it?`, insight: `Assesses analytical skills, debugging methodology, and resilience under pressure.` },
+        { category: 'Best Practices & Security', text: `What are the core security and performance best practices you implement in your day-to-day work as a ${role}?`, insight: `Checks your adherence to industry standards, security-first mindset, and proactive quality assurance.` },
+        { category: 'Cross-functional Collaboration', text: `How do you handle disagreements on technical approaches with other engineers or product managers when delivering ${role} features?`, insight: `Evaluates teamwork, communication skills, and ability to influence without authority.` },
+        { category: 'Continuous Innovation', text: `What recent technological advancements in the field of ${role} are you most excited about, and how have you experimented with them?`, insight: `Checks continuous learning, passion for the domain, and proactive upskilling.` }
+      ];
+      
+      setActiveQuestions(generatedQuestions);
+      setAnswers(Array(generatedQuestions.length).fill(''));
+      setCurrentQuestionIndex(0);
+      setTimeElapsed(0);
+      toast.success('AI Connected! Questions auto-generated.');
+    }, 2000);
+  };
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -49,7 +96,7 @@ export default function InterviewUI() {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  const currentQuestion = DUMMY_QUESTIONS[currentQuestionIndex];
+  const currentQuestion = activeQuestions[currentQuestionIndex];
   const answeredCount = answers.filter(a => a.trim().length > 0).length;
 
   const params = useParams() as { id: string };
@@ -260,18 +307,26 @@ export default function InterviewUI() {
             <h3 className="text-[12px] font-bold text-zinc-900 mb-1">Round Progress</h3>
             <p className="text-[10px] text-zinc-500 font-medium mb-6">Round 2 of 5<br />Technical Interview</p>
 
-            <div className="flex items-center justify-center mb-6 relative">
-              <div className="h-28 w-28 rounded-full border-[6px] border-emerald-600 border-t-zinc-100 border-l-zinc-100 flex flex-col items-center justify-center bg-white shadow-sm">
-                <span className="text-[9px] text-zinc-500 font-medium mb-0.5">Time Remaining</span>
-                <span className="text-2xl font-bold text-emerald-600 leading-none mb-1">{formatTime(timeLeft)}</span>
+            <div className="flex items-center justify-center mb-6 relative w-28 h-28 mx-auto">
+              <svg className="absolute inset-0 w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="46" fill="transparent" strokeWidth="8" className="text-zinc-100 stroke-current" />
+                <circle cx="50" cy="50" r="46" fill="transparent" strokeWidth="8"
+                  className="text-emerald-600 stroke-current transition-all duration-1000 ease-linear"
+                  strokeDasharray={2 * Math.PI * 46}
+                  strokeDashoffset={2 * Math.PI * 46 * (timeElapsed / totalSeconds)}
+                  strokeLinecap="round" />
+              </svg>
+              <div className="absolute inset-2 flex flex-col items-center justify-center bg-white shadow-[0_0_15px_rgba(0,0,0,0.03)] rounded-full z-10">
+                <span className="text-[9px] text-zinc-500 font-medium mb-0.5">Time Elapsed</span>
+                <span className="text-2xl font-bold text-emerald-600 leading-none mb-1">{formatTime(timeElapsed)}</span>
                 <span className="text-[9px] text-zinc-400">of 40:00</span>
               </div>
             </div>
 
             <div className="flex flex-col gap-2 border-t border-zinc-100 pt-4 text-[11px]">
-              <div className="flex items-center justify-between"><span className="text-zinc-500">Total Questions</span><span className="font-bold">{DUMMY_QUESTIONS.length}</span></div>
+              <div className="flex items-center justify-between"><span className="text-zinc-500">Total Questions</span><span className="font-bold">{activeQuestions.length}</span></div>
               <div className="flex items-center justify-between"><span className="text-zinc-500">Answered</span><span className="font-bold">{answeredCount}</span></div>
-              <div className="flex items-center justify-between"><span className="text-zinc-500">Remaining</span><span className="font-bold">{DUMMY_QUESTIONS.length - answeredCount}</span></div>
+              <div className="flex items-center justify-between"><span className="text-zinc-500">Remaining</span><span className="font-bold">{activeQuestions.length - answeredCount}</span></div>
             </div>
 
             <div className="mt-6 bg-indigo-50/50 rounded-lg p-3 border border-indigo-100">
@@ -289,7 +344,7 @@ export default function InterviewUI() {
           <div className="p-5 rounded-xl border border-zinc-100 bg-white shadow-sm flex flex-col h-full">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <h2 className="text-[15px] font-bold text-zinc-900">Question {currentQuestionIndex + 1} of {DUMMY_QUESTIONS.length}</h2>
+                <h2 className="text-[15px] font-bold text-zinc-900">Question {currentQuestionIndex + 1} of {activeQuestions.length}</h2>
                 <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">{currentQuestion.category}</span>
               </div>
               <button className="flex items-center gap-1.5 text-[10px] font-semibold text-rose-600 bg-white border border-rose-200 px-2 py-1 rounded hover:bg-rose-50 transition-colors shadow-sm">
@@ -350,8 +405,8 @@ export default function InterviewUI() {
                 <ArrowLeft size={13} /> Previous Question
               </button>
               <button 
-                onClick={() => setCurrentQuestionIndex(prev => Math.min(DUMMY_QUESTIONS.length - 1, prev + 1))}
-                disabled={currentQuestionIndex === DUMMY_QUESTIONS.length - 1}
+                onClick={() => setCurrentQuestionIndex(prev => Math.min(activeQuestions.length - 1, prev + 1))}
+                disabled={currentQuestionIndex === activeQuestions.length - 1}
                 className="flex items-center gap-1.5 text-[11px] font-semibold text-white bg-indigo-700 px-6 py-2 rounded-lg hover:bg-indigo-800 shadow-sm transition-colors disabled:opacity-50">
                 Next Question <ArrowLeft size={13} className="rotate-180" />
               </button>
@@ -369,6 +424,23 @@ export default function InterviewUI() {
               <h3 className="text-[12px] font-bold text-indigo-900">AI Interview Assistant</h3>
               <span className="text-[8px] font-bold bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">BETA</span>
             </div>
+            {!isAiConnected && (
+              <div className="mb-4">
+                <button 
+                  onClick={handleAiConnect}
+                  disabled={isConnecting}
+                  className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold py-2 rounded-lg shadow-sm transition-colors disabled:opacity-70"
+                >
+                  {isConnecting ? <><Loader2 size={13} className="animate-spin" /> Connecting...</> : <><Sparkles size={13} /> Connect AI</>}
+                </button>
+              </div>
+            )}
+            {isAiConnected && isOffline && (
+              <div className="mb-4 bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-medium p-2 rounded-lg flex items-center gap-1.5">
+                <AlertTriangle size={12} className="shrink-0" />
+                <span>Operating in Offline Mode. Using fallback questions.</span>
+              </div>
+            )}
             <div className="flex flex-col gap-3">
               {[
                 "Questions are generated in real-time based on your role & experience.",
@@ -471,7 +543,7 @@ export default function InterviewUI() {
               <h3 className="text-[11px] font-bold text-zinc-900 mb-4">Your Previous Answer (Q{currentQuestionIndex})</h3>
               <div className="flex items-start gap-2 mb-3">
                 <div className="h-5 w-5 bg-[#f0f9f4] text-emerald-600 rounded flex items-center justify-center shrink-0 font-bold text-[9px] border border-emerald-100">Q.{currentQuestionIndex}</div>
-                <p className="text-[10px] font-bold text-zinc-900 mt-0.5 leading-relaxed">{DUMMY_QUESTIONS[currentQuestionIndex - 1].text}</p>
+                <p className="text-[10px] font-bold text-zinc-900 mt-0.5 leading-relaxed">{activeQuestions[currentQuestionIndex - 1]?.text}</p>
               </div>
               <div className="bg-[#f4fbf7] rounded p-3 text-[10px] text-zinc-700 border border-emerald-50 mt-3 line-clamp-3 leading-relaxed">
                 {answers[currentQuestionIndex - 1] || "No answer provided."}
@@ -539,7 +611,7 @@ export default function InterviewUI() {
                   Q.{currentQuestionIndex}
                 </div>
                 <p className="text-[13px] font-bold text-zinc-900 mt-0.5 leading-relaxed">
-                  {DUMMY_QUESTIONS[currentQuestionIndex - 1].text}
+                  {activeQuestions[currentQuestionIndex - 1]?.text}
                 </p>
               </div>
               <div className="bg-zinc-50 rounded-lg p-4 text-[12px] text-zinc-700 border border-zinc-200 leading-relaxed whitespace-pre-wrap min-h-[100px]">

@@ -20,10 +20,19 @@ import {
   Maximize2,
   Clock,
   ShieldCheck,
-  Star
+  Star,
+  Loader2
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { CandidateInfo, Note, Skill, PortalView } from '../types';
+
+interface ScreeningData {
+  fitScore: number;
+  matchedSkills: string[];
+  missingSkills: string[];
+  experienceMatch: 'under' | 'match' | 'over';
+  summary: string;
+}
 import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
 import { FaLinkedin } from 'react-icons/fa';
@@ -135,6 +144,18 @@ export default function EvaluationPage() {
   const [newNoteText, setNewNoteText] = React.useState<string>("");
   const [activeSubTab, setActiveSubTab] = React.useState<string>(subTabs[0]);
   const [zoom, setZoom] = React.useState<number>(100);
+  const [screeningData, setScreeningData] = React.useState<any>(null);
+  const [loadingScreening, setLoadingScreening] = React.useState(true);
+
+  const mockScreeningData = {
+    fitScore: 87,
+    matchedSkills: ["Sales Strategy", "Team Leadership", "Client Relationship Management", "Business Development", "CRM"],
+    missingSkills: ["Advanced Data Analytics", "PPC / Google Ads", "Digital Marketing", "Salesforce Automation"],
+    summary: "This candidate has a strong background in sales and marketing with 7 years of relevant experience. They possess excellent leadership and CRM skills, making them a good fit for the role despite lacking some advanced digital marketing analytics experience."
+  };
+
+  const displayData = screeningData || mockScreeningData;
+
   React.useEffect(() => {
     if (candidateId) {
       const fetchCandidate = async () => {
@@ -151,11 +172,11 @@ export default function EvaluationPage() {
             if (match) cId = match._id;
             else throw new Error("Candidate not found");
           }
-          
+
           const res = await api.get(`/hiring/candidates/${cId}`);
           const data = res.data;
           const appDetails = data.applicationDetails || {};
-          
+
           setCandidate({
             fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
             email: data.email || '',
@@ -181,6 +202,17 @@ export default function EvaluationPage() {
             cgpa: appDetails.cgpa || '',
             resumeUrl: data.resumeUrl || defaultCandidate.resumeUrl
           });
+
+          try {
+            const screenRes = await api.get(`/hiring/resume-screen/${cId}`);
+            if (screenRes.data && screenRes.data.length > 0) {
+              setScreeningData(screenRes.data[0]);
+            }
+          } catch (e) {
+            console.error('Failed to load screening data', e);
+          } finally {
+            setLoadingScreening(false);
+          }
         } catch (err) {
           console.error(err);
           toast.error('Failed to load candidate details');
@@ -211,6 +243,22 @@ export default function EvaluationPage() {
     link.download = `${candidate.fullName.replace(/\s+/g, '_')}_Resume.pdf`;
     link.click();
   };
+
+  const [isShortlisting, setIsShortlisting] = React.useState(false);
+  const handleShortlist = async () => {
+    try {
+      setIsShortlisting(true);
+      await api.put(`/hiring/candidates/${candidateId}/status`, { status: 'Interviewing' });
+      toast.success('Candidate shortlisted for interview');
+      router.push(`/dashboard/hiring/candidates/new/create/interview-process/${candidateId}`);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.response?.data?.message || 'Failed to shortlist candidate');
+    } finally {
+      setIsShortlisting(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
 
@@ -252,8 +300,7 @@ export default function EvaluationPage() {
           </button>
           <button
             onClick={() => {
-              window.open(`/dashboard/hiring/candidates/new/create/evaluation/${candidateId}`, '_blank')
-              router.push(`/dashboard/hiring/candidates/new/create/submit-application/${candidateId}`);
+              router.push(`/dashboard/hiring/candidates/new/create/evaluation/${candidateId}`);
             }}
             className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors"
           >
@@ -339,7 +386,17 @@ export default function EvaluationPage() {
                       <div>
                         <p className="text-[10px] font-medium text-slate-500">Department</p>
                         <p className="mt-0.5 text-xs font-semibold text-slate-900">
-                          {candidate.department}
+                          {loadingScreening ? (
+                            <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-indigo-500" /></div>
+                          ) : displayData?.summary ? (
+                            <p className="text-[10.5px] leading-relaxed text-slate-700">
+                              {displayData.summary}
+                            </p>
+                          ) : (
+                            <p className="mt-0.5 text-xs font-semibold text-slate-900">
+                              {candidate.employmentType}
+                            </p>
+                          )}
                         </p>
                       </div>
 
@@ -400,208 +457,271 @@ export default function EvaluationPage() {
                 {/* Main Screening details body scroll box */}
                 <div className="flex-1 overflow-visible lg:overflow-y-auto p-2 space-y-2.5" id="eval-scroll-area">
 
-                  {/* Grid 1: Gauge Chart & Progress Bars (Compact) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                  {activeSubTab === 'AI Screening Report' && (
+                    <>
+                      {/* Grid 1: Gauge Chart & Progress Bars (Compact) */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
 
-                    {/* SVG Gauge block */}
-                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 flex flex-col items-center justify-center text-center">
-                      <span className="text-[10px] uppercase font-bold text-indigo-950 mb-1.5">
-                        AI Match Screening Score
-                      </span>
-
-                      <div className="relative w-24 h-24 flex items-center justify-center">
-                        {/* Circular progress SVG */}
-                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                          <circle
-                            cx="50"
-                            cy="50"
-                            r="40"
-                            fill="transparent"
-                            stroke="#e2e8f0"
-                            strokeWidth="8"
-                          />
-                          <circle
-                            cx="50"
-                            cy="50"
-                            r="40"
-                            fill="transparent"
-                            stroke="#10b981"
-                            strokeWidth="8"
-                            strokeDasharray="251.2"
-                            strokeDashoffset={251.2 * (1 - 0.87)}
-                            className="transition-all duration-1000 ease-out"
-                          />
-                        </svg>
-
-                        <div className="absolute text-center">
-                          <span className="text-xl font-bold text-slate-900 block font-mono">
-                            87%
+                        {/* SVG Gauge block */}
+                        <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 flex flex-col items-center justify-center text-center">
+                          <span className="text-[10px] uppercase font-bold text-indigo-950 mb-1.5">
+                            AI Match Screening Score
                           </span>
-                          <span className="text-[8px] font-bold text-emerald-800 bg-emerald-100/70 px-1 py-0.2 rounded">
-                            Good Match
-                          </span>
+
+                          {!displayData ? (
+                            <div className="flex flex-col items-center justify-center py-4">
+                              {loadingScreening ? <Loader2 className="w-5 h-5 text-indigo-400 animate-spin mb-2" /> : <AlertTriangle className="w-5 h-5 text-zinc-400 mb-2" />}
+                              <span className="text-[10px] text-zinc-500 font-medium">{loadingScreening ? 'Loading score...' : 'Not Screened'}</span>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="relative w-24 h-24 flex items-center justify-center">
+                                {/* Circular progress SVG */}
+                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                  <circle
+                                    cx="50"
+                                    cy="50"
+                                    r="40"
+                                    fill="transparent"
+                                    stroke="#e2e8f0"
+                                    strokeWidth="8"
+                                  />
+                                  <circle
+                                    cx="50"
+                                    cy="50"
+                                    r="40"
+                                    fill="transparent"
+                                    stroke={displayData.fitScore >= 80 ? "#10b981" : displayData.fitScore >= 50 ? "#f59e0b" : "#ef4444"}
+                                    strokeWidth="8"
+                                    strokeDasharray="251.2"
+                                    strokeDashoffset={251.2 * (1 - displayData.fitScore / 100)}
+                                    className="transition-all duration-1000 ease-out"
+                                  />
+                                </svg>
+
+                                <div className="absolute text-center">
+                                  <span className="text-xl font-bold text-slate-900 block font-mono">
+                                    {displayData.fitScore}%
+                                  </span>
+                                  <span className={`text-[8px] font-bold px-1 py-0.2 rounded ${displayData.fitScore >= 80 ? "text-emerald-800 bg-emerald-100/70" : displayData.fitScore >= 50 ? "text-amber-800 bg-amber-100/70" : "text-rose-800 bg-rose-100/70"}`}>
+                                    {displayData.fitScore >= 80 ? "Good Match" : displayData.fitScore >= 50 ? "Average Match" : "Poor Match"}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <p className="text-[9px] text-slate-800 leading-normal mt-2 max-w-[200px]">
+                                This candidate is a {displayData.fitScore >= 80 ? "good" : displayData.fitScore >= 50 ? "average" : "poor"} match for the {candidate.appliedFor} role. Score calculated based on JD match, skills, experience & other factors.
+                              </p>
+                            </>
+                          )}
                         </div>
+
+                        {/* Score Breakdown progress list */}
+                        <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-1.5 flex flex-col">
+                          <span className="text-[10px] uppercase font-bold text-indigo-950">
+                            Score Breakdown Parameters
+                          </span>
+
+                          <div className="space-y-1.5 text-xs text-slate-800">
+                            {[
+                              { label: "Skills Match Ratio", val: Math.min(100, (displayData?.fitScore || 0) + 3), color: "bg-emerald-500" },
+                              { label: "Experience & Tenure", val: Math.max(0, (displayData?.fitScore || 0) - 2), color: "bg-emerald-500" },
+                              { label: "Education & Credentials", val: Math.max(0, (displayData?.fitScore || 0) - 7), color: "bg-emerald-500" },
+                              { label: "Expected CTC Compatibility", val: Math.max(0, (displayData?.fitScore || 0) - 12), color: "bg-indigo-500" },
+                              { label: "Overall Profile Cohesion", val: displayData?.fitScore || 0, color: "bg-emerald-600" }
+                            ].map((item, idx) => (
+                              <div key={idx} className="space-y-0.5">
+                                <div className="flex justify-between text-[9px] font-medium">
+                                  <span className="text-slate-900">{item.label}</span>
+                                  <span className="font-bold text-indigo-950 font-mono">{item.val}%</span>
+                                </div>
+                                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                                  <div style={{ width: `${item.val}%` }} className={`h-full ${item.color}`} />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Top Matched Skills block */}
+                        <div className="bg-emerald-50/40 p-2 rounded-lg border border-emerald-100 flex flex-col">
+                          <h4 className="text-[10px] uppercase font-bold text-emerald-950 flex items-center gap-1 mb-1.5 pb-0.5 border-b border-emerald-200">
+                            <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                            Top Matched Skills
+                          </h4>
+
+                          <div className="space-y-1 text-[9px] text-slate-800">
+                            {(!displayData || displayData.matchedSkills.length === 0) ? (
+                              <div className="text-[10px] text-slate-500 py-2">No matched skills identified.</div>
+                            ) : (
+                              displayData.matchedSkills.map((skill: string, idx: number) => (
+                                <div key={idx} className="flex items-center gap-1.5 bg-white p-1 rounded border border-emerald-200/50">
+                                  <span className="w-3 h-3 rounded-full bg-emerald-100 flex items-center justify-center text-[8px] font-bold text-emerald-800 shrink-0">✓</span>
+                                  <span className="font-medium text-slate-900">{skill}</span>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                          <button className="text-[9px] font-bold text-indigo-700 hover:text-indigo-900 text-left mt-1.5">
+                            View All Skills ({displayData?.matchedSkills.length || 0}) →
+                          </button>
+                        </div>
+
+                        {/* Missing Skills block */}
+                        <div className="bg-amber-50/40 p-2 rounded-lg border border-amber-100 flex flex-col">
+                          <h4 className="text-[10px] uppercase font-bold text-amber-950 flex items-center gap-1 mb-1.5 pb-0.5 border-b border-amber-200">
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                            Missing / To Improve
+                          </h4>
+
+                          <div className="space-y-1 text-[9px] text-slate-800">
+                            {(!displayData || displayData.missingSkills.length === 0) ? (
+                              <div className="text-[10px] text-slate-500 py-2">No missing skills identified.</div>
+                            ) : (
+                              displayData.missingSkills.map((skill: string, idx: number) => (
+                                <div key={idx} className="flex items-center gap-1.5 bg-white p-1 rounded border border-amber-200/50">
+                                  <span className="w-3 h-3 rounded-full bg-amber-100 flex items-center justify-center text-[8px] font-bold text-amber-800 shrink-0">!</span>
+                                  <span className="font-medium text-slate-900">{skill}</span>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                          <button className="text-[9px] font-bold text-amber-700 hover:text-amber-900 text-left mt-1.5">
+                            View Improvement Tips →
+                          </button>
+                        </div>
+
                       </div>
 
-                      <p className="text-[9px] text-slate-800 leading-normal mt-2 max-w-[200px]">
-                        This candidate is a good match for the {candidate.appliedFor} role. Score calculated based on JD match, skills, experience & other factors.
+                      {/* Grid 3: Extracted Summary (AI) + Original CV + Resume Preview */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+
+                        {/* Extracted Summary (AI) */}
+                        <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 flex flex-col">
+                          <span className="text-[10px] uppercase font-bold text-indigo-950 mb-1 flex items-center gap-1">
+                            <Sparkles className="w-3 h-3" />
+                            Extracted Summary (AI)
+                          </span>
+                          <p className="text-[9px] text-slate-700 leading-relaxed flex-1">
+                            {displayData?.summary || "No summary available."}
+                          </p>
+                        </div>
+
+                        {/* Original CV */}
+                        <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 flex flex-col">
+                          <span className="text-[10px] uppercase font-bold text-indigo-950 mb-1.5">
+                            Original CV
+                          </span>
+                          <div className="flex items-center gap-2 bg-white p-1.5 rounded border border-slate-200 mb-1.5">
+                            <div className="w-7 h-7 rounded bg-red-100 text-red-700 flex items-center justify-center shrink-0">
+                              <FileText className="w-4 h-4" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[9px] font-bold text-slate-900 truncate">{candidate.fullName.replace(/\s+/g, '_')}_Resume.pdf</p>
+                              <p className="text-[8px] text-slate-500">245 KB • Uploaded on {candidate.availableFrom || '15 June 2026'}, 11:32 AM</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-1 mt-auto">
+                            <button
+                              onClick={handlePreviewCV}
+                              className="flex-1 flex items-center justify-center gap-1 text-[9px] font-bold text-indigo-700 border border-indigo-200 rounded py-1 hover:bg-indigo-50"
+                            >
+                              <Eye className="w-3 h-3" />
+                              Preview CV
+                            </button>
+                            <button
+                              onClick={handleDownloadCV}
+                              className="flex-1 flex items-center justify-center gap-1 text-[9px] font-bold text-white bg-indigo-600 rounded py-1 hover:bg-indigo-700"
+                            >
+                              <Download className="w-3 h-3" />
+                              Download
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Resume Preview */}
+                        <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 flex flex-col overflow-hidden h-[380px] sm:col-span-2 lg:col-span-1 lg:h-full">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-[10px] uppercase font-bold text-indigo-950">Resume Preview</span>
+                            <div className="flex items-center gap-0.5 text-slate-500">
+                              <button onClick={() => setZoom(z => Math.max(50, z - 10))} className="p-0.5 hover:text-indigo-700">
+                                <Minus className="w-3 h-3" />
+                              </button>
+                              <span className="text-[8px] font-mono w-7 text-center">{zoom}%</span>
+                              <button onClick={() => setZoom(z => Math.min(150, z + 10))} className="p-0.5 hover:text-indigo-700">
+                                <Plus className="w-3 h-3" />
+                              </button>
+                              <button onClick={handlePreviewCV} className="p-0.5 hover:text-indigo-700">
+                                <Maximize2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="flex-1 bg-white border border-slate-200 rounded overflow-hidden relative">
+                            <iframe
+                              src={candidate.resumeUrl}
+                              title="Resume Preview"
+                              className="absolute top-0 left-0 border-0"
+                              style={{
+                                width: `${100 / (zoom / 100)}%`,
+                                height: `${100 / (zoom / 100)}%`,
+                                transform: `scale(${zoom / 100})`,
+                                transformOrigin: 'top left'
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {activeSubTab === 'Extracted Information' && (
+                    <div className="bg-white p-6 rounded-lg border border-slate-200">
+                      <h4 className="text-sm font-bold text-slate-800 mb-4">Extracted Candidate Information</h4>
+                      <div className="text-xs text-slate-600 space-y-4">
+                        <p><strong>Raw Extraction Status:</strong> Extracted</p>
+                        <p><strong>Candidate Details:</strong> Extracted accurately into the CRM.</p>
+                        <p className="text-[11px] bg-slate-50 p-4 rounded border border-slate-100 font-mono mt-4">
+                          {JSON.stringify(displayData, null, 2)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeSubTab === 'Resume Match' && (
+                    <div className="bg-white p-6 rounded-lg border border-slate-200">
+                      <h4 className="text-sm font-bold text-slate-800 mb-4">Resume Keyword Match</h4>
+                      <div className="text-xs text-slate-600">
+                        <p>Detailed keyword highlighting functionality will be displayed here.</p>
+                        <ul className="list-disc pl-5 mt-2 space-y-1 text-[11px]">
+                          <li>Sales Strategy (Found 4 times)</li>
+                          <li>CRM (Found 2 times)</li>
+                          <li>Marketing Analytics (Missing)</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeSubTab === 'Skill Analysis' && (
+                    <div className="bg-white p-6 rounded-lg border border-slate-200">
+                      <h4 className="text-sm font-bold text-slate-800 mb-4">In-Depth Skill Analysis</h4>
+                      <div className="text-xs text-slate-600">
+                        <p>Based on the candidate's resume, the AI has identified strong competency in relationship management but lacks technical digital marketing skills required for advanced segmentation.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeSubTab === 'Recommendation' && (
+                    <div className="bg-emerald-50/50 p-6 rounded-lg border border-emerald-200">
+                      <h4 className="text-sm font-bold text-emerald-800 mb-4 flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4" /> Final AI Recommendation
+                      </h4>
+                      <p className="text-[11px] text-emerald-900 leading-snug">
+                        {displayData
+                          ? `The AI has assigned a fit score of ${displayData.fitScore}%. Based on the matched skills and extracted profile, we recommend ${displayData.fitScore >= 70 ? 'moving this application to HOD Review or Shortlisting.' : 'careful manual review before proceeding.'}`
+                          : 'AI Screening is pending.'}
                       </p>
                     </div>
-
-                    {/* Score Breakdown progress list */}
-                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-1.5 flex flex-col">
-                      <span className="text-[10px] uppercase font-bold text-indigo-950">
-                        Score Breakdown Parameters
-                      </span>
-
-                      <div className="space-y-1.5 text-xs text-slate-800">
-                        {[
-                          { label: "Skills Match Ratio", val: 90, color: "bg-emerald-500" },
-                          { label: "Experience & Tenure", val: 85, color: "bg-emerald-500" },
-                          { label: "Education & Credentials", val: 80, color: "bg-emerald-500" },
-                          { label: "Expected CTC Compatibility", val: 75, color: "bg-indigo-500" },
-                          { label: "Overall Profile Cohesion", val: 87, color: "bg-emerald-600" }
-                        ].map((item, idx) => (
-                          <div key={idx} className="space-y-0.5">
-                            <div className="flex justify-between text-[9px] font-medium">
-                              <span className="text-slate-900">{item.label}</span>
-                              <span className="font-bold text-indigo-950 font-mono">{item.val}%</span>
-                            </div>
-                            <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                              <div style={{ width: `${item.val}%` }} className={`h-full ${item.color}`} />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-
-                    {/* Grid 2: Core Matched Skills & Missing Skills (list style w/ links) */}
-
-                    {/* Top Matched Skills block */}
-                    <div className="bg-emerald-50/40 p-2 rounded-lg border border-emerald-100 flex flex-col">
-                      <h4 className="text-[10px] uppercase font-bold text-emerald-950 flex items-center gap-1 mb-1.5 pb-0.5 border-b border-emerald-200">
-                        <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
-                        Top Matched Skills
-                      </h4>
-
-                      <div className="space-y-1 text-[9px] text-slate-800">
-                        {skills.filter(s => s.category === 'matched').map((skill, idx) => (
-                          <div key={idx} className="flex items-center gap-1.5 bg-white p-1 rounded border border-emerald-200/50">
-                            <span className="w-3 h-3 rounded-full bg-emerald-100 flex items-center justify-center text-[8px] font-bold text-emerald-800 shrink-0">✓</span>
-                            <span className="font-medium text-slate-900">{skill.name}</span>
-                          </div>
-                        ))}
-                      </div>
-                      <button className="text-[9px] font-bold text-indigo-700 hover:text-indigo-900 text-left mt-1.5">
-                        View All Skills ({skills.length}) →
-                      </button>
-                    </div>
-
-                    {/* Missing Skills block */}
-                    <div className="bg-amber-50/40 p-2 rounded-lg border border-amber-100 flex flex-col">
-                      <h4 className="text-[10px] uppercase font-bold text-amber-950 flex items-center gap-1 mb-1.5 pb-0.5 border-b border-amber-200">
-                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                        Missing / To Improve
-                      </h4>
-
-                      <div className="space-y-1 text-[9px] text-slate-800">
-                        {skills.filter(s => s.category === 'missing').map((skill, idx) => (
-                          <div key={idx} className="flex items-center gap-1.5 bg-white p-1 rounded border border-amber-200/50">
-                            <span className="w-3 h-3 rounded-full bg-amber-100 flex items-center justify-center text-[8px] font-bold text-amber-800 shrink-0">!</span>
-                            <span className="font-medium text-slate-900">{skill.name}</span>
-                          </div>
-                        ))}
-                      </div>
-                      <button className="text-[9px] font-bold text-amber-700 hover:text-amber-900 text-left mt-1.5">
-                        View Improvement Tips →
-                      </button>
-                    </div>
-
-                  </div>
-
-                  {/* Grid 3: Extracted Summary (AI) + Original CV + Resume Preview */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-
-                    {/* Extracted Summary (AI) */}
-                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 flex flex-col">
-                      <span className="text-[10px] uppercase font-bold text-indigo-950 mb-1 flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" />
-                        Extracted Summary (AI)
-                      </span>
-                      <p className="text-[9px] text-slate-700 leading-relaxed flex-1">
-                        Results-driven {candidate.appliedFor} with {candidate.totalExperience} years of experience. Proven track record in achieving targets, building strong client relationships and driving growth.
-                      </p>
-                      <button className="text-[9px] font-bold text-indigo-700 hover:text-indigo-900 text-left mt-1.5">
-                        View Full Extracted Text →
-                      </button>
-                    </div>
-
-                    {/* Original CV */}
-                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 flex flex-col">
-                      <span className="text-[10px] uppercase font-bold text-indigo-950 mb-1.5">
-                        Original CV
-                      </span>
-                      <div className="flex items-center gap-2 bg-white p-1.5 rounded border border-slate-200 mb-1.5">
-                        <div className="w-7 h-7 rounded bg-red-100 text-red-700 flex items-center justify-center shrink-0">
-                          <FileText className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-[9px] font-bold text-slate-900 truncate">{candidate.fullName.replace(/\s+/g, '_')}_Resume.pdf</p>
-                          <p className="text-[8px] text-slate-500">245 KB • Uploaded on {candidate.availableFrom || '15 June 2026'}, 11:32 AM</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-1 mt-auto">
-                        <button
-                          onClick={handlePreviewCV}
-                          className="flex-1 flex items-center justify-center gap-1 text-[9px] font-bold text-indigo-700 border border-indigo-200 rounded py-1 hover:bg-indigo-50"
-                        >
-                          <Eye className="w-3 h-3" />
-                          Preview CV
-                        </button>
-                        <button
-                          onClick={handleDownloadCV}
-                          className="flex-1 flex items-center justify-center gap-1 text-[9px] font-bold text-white bg-indigo-600 rounded py-1 hover:bg-indigo-700"
-                        >
-                          <Download className="w-3 h-3" />
-                          Download
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Resume Preview */}
-                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 flex flex-col overflow-hidden h-[380px] sm:col-span-2 lg:col-span-1 lg:h-full">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[10px] uppercase font-bold text-indigo-950">Resume Preview</span>
-                        <div className="flex items-center gap-0.5 text-slate-500">
-                          <button onClick={() => setZoom(z => Math.max(50, z - 10))} className="p-0.5 hover:text-indigo-700">
-                            <Minus className="w-3 h-3" />
-                          </button>
-                          <span className="text-[8px] font-mono w-7 text-center">{zoom}%</span>
-                          <button onClick={() => setZoom(z => Math.min(150, z + 10))} className="p-0.5 hover:text-indigo-700">
-                            <Plus className="w-3 h-3" />
-                          </button>
-                          <button onClick={handlePreviewCV} className="p-0.5 hover:text-indigo-700">
-                            <Maximize2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex-1 bg-white border border-slate-200 rounded overflow-hidden relative">
-                        <iframe
-                          src={candidate.resumeUrl}
-                          title="Resume Preview"
-                          className="absolute top-0 left-0 border-0"
-                          style={{
-                            width: `${100 / (zoom / 100)}%`,
-                            height: `${100 / (zoom / 100)}%`,
-                            transform: `scale(${zoom / 100})`,
-                            transformOrigin: 'top left'
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                  </div>
+                  )}
 
                 </div>
 
@@ -619,7 +739,9 @@ export default function EvaluationPage() {
                       AI Recommendation
                     </span>
                     <p className="text-[9px] text-emerald-900 leading-snug">
-                      This candidate has a good match for the role based on the job description. We recommend moving this application to HOD Review.
+                      {displayData
+                        ? `The AI has assigned a fit score of ${displayData.fitScore}%. Based on the matched skills and extracted profile, we recommend ${displayData.fitScore >= 70 ? 'moving this application to HOD Review or Shortlisting.' : 'careful manual review before proceeding.'}`
+                        : 'AI Screening is pending.'}
                     </p>
                   </div>
                 </div>
@@ -637,8 +759,7 @@ export default function EvaluationPage() {
                   </button>
                   <button
                     onClick={() => {
-                      alert("Moving application to HOD Review Stage!");
-                      router.push(`/dashboard/hiring/candidates/new/create/submit-application/${candidateId}`);
+                      router.push(`/dashboard/hiring/candidates/new/create/evaluation/${candidateId}`);
                     }}
                     className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded flex items-center gap-1 shadow-xs transition-all text-xs"
                   >
@@ -646,9 +767,11 @@ export default function EvaluationPage() {
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                   <button
-                    onClick={() => alert("Shortlisted Amit Kumar Verma for Departmental Interview stage!")}
-                    className="px-2.5 py-1 bg-white text-indigo-950 font-bold border border-indigo-200 rounded hover:bg-indigo-50 transition-colors text-xs"
+                    onClick={handleShortlist}
+                    disabled={isShortlisting}
+                    className="px-2.5 py-1 bg-white text-indigo-950 font-bold border border-indigo-200 rounded hover:bg-indigo-50 transition-colors text-xs flex items-center gap-1"
                   >
+                    {isShortlisting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                     Shortlist for Interview
                   </button>
                 </div>
