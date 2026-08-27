@@ -15,13 +15,13 @@ const prettyKey = (key: string) => key.replace(/([A-Z])/g, ' $1').replace(/[._]/
 const displayValue = (value: any): string => {
   if (value === undefined || value === null || value === '') return '—';
   if (typeof value === 'boolean') return value ? 'Yes' : 'No';
-  if (value instanceof Date) return value.toLocaleDateString();
-  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) return new Date(value).toLocaleDateString();
+  if (value instanceof Date) return value.toLocaleDateString('en-GB');
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}(T|$)/.test(value)) return new Date(value).toLocaleDateString('en-GB');
   if (Array.isArray(value)) return value.map(displayValue).join(', ');
   if (typeof value === 'object') return nameOf(value) || value.name || value.title || 'Saved details';
   return String(value);
 };
-const nestedValue = (row: Record<string, any>, path: string) => path.split('.').reduce((value, key) => value?.[key], row);
+const nestedValue = (row: Record<string, any>, path: string): any => path.split('.').reduce((value, key) => value?.[key], row);
 const detailRows = (value: any, prefix = ''): { label: string; value: string }[] => {
   if (value === undefined || value === null || value === '') return [];
   if (Array.isArray(value)) return value.flatMap((item, index) => detailRows(item, `${prefix || 'Item'} ${index + 1}`));
@@ -114,6 +114,9 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hiring-register', step?.apiPath] });
     },
+    onError: (error: any) => {
+      window.alert(error?.response?.data?.message || 'Unable to perform action');
+    }
   });
   const loiStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => (await api.put(`/hiring/loi/${id}/status`, { status })).data,
@@ -287,11 +290,57 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                     <td className="px-3 py-2 border-r border-slate-100 text-center font-medium text-slate-500">
                       {(page - 1) * pageSize + index + 1}
                     </td>
-                    {dynamicColumns.map((col) => (
-                      <td key={col.key} className="px-3 py-2 border-r border-slate-100 text-slate-700">
-                        {displayValue(nestedValue(row, col.key))}
-                      </td>
-                    ))}
+                    {dynamicColumns.map((col) => {
+                      let val: any = nestedValue(row, col.key);
+                      // Fallback to linked candidate or employee directory data if field is missing on the row
+                      if (!val || val === '—') {
+                        if (row.employeeId) {
+                          const emp = employeeDirectory.find((e: any) => String(e._id) === idOf(row.employeeId));
+                          if (emp) {
+                            if (col.key === 'employeeName' || col.key === 'candidateName' || col.key === 'employeename') {
+                              val = `${emp.firstName} ${emp.lastName || ''}`.trim();
+                            } else if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId') {
+                              val = emp.employeeCode || val;
+                            } else if (col.key === 'designation' || col.key === 'position') {
+                              val = emp.designation || emp.jobRole || val;
+                            } else if (col.key === 'department') {
+                              val = emp.department || val;
+                            } else if (col.key === 'joiningDate') {
+                              val = emp.dateOfJoining || emp.expectedJoiningDate || val;
+                            }
+                          }
+                        } else if (row.candidateId) {
+                          const cand = candidateDirectory.find((c: any) => String(c._id) === idOf(row.candidateId));
+                          if (cand) {
+                            if (col.key === 'employeeName' || col.key === 'candidateName' || col.key === 'employeename') {
+                              val = `${cand.firstName} ${cand.lastName || ''}`.trim();
+                            } else if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId') {
+                              val = cand.employeeCode || val;
+                            } else if (col.key === 'designation' || col.key === 'position') {
+                              val = cand.jobRole || val;
+                            } else if (col.key === 'department') {
+                              val = cand.department || val;
+                            } else if (col.key === 'joiningDate') {
+                              val = cand.expectedJoiningDate || cand.dateOfJoining || val;
+                            }
+                          }
+                        }
+                      }
+                      
+                      if ((!val || val === '—') && col.key === 'lastUpdate') {
+                        val = row.updatedAt || row.createdAt || val;
+                      }
+
+                      if ((!val || val === '—') && col.key === 'status') {
+                        val = row.status || row.finalStatus || row.overallStatus || row.signedStatus || 'Saved';
+                      }
+                      
+                      return (
+                        <td key={col.key} className="px-3 py-2 border-r border-slate-100 text-slate-700">
+                          {displayValue(val)}
+                        </td>
+                      );
+                    })}
                     <td className="px-3 py-2 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <button onClick={() => setSelectedRecord(row)} className="p-1.5 text-slate-700 hover:bg-slate-100 rounded transition-colors" title="View complete details">
@@ -308,7 +357,15 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                             <FileText size={13} />
                           </button>
                         )}
-                        {(step.postCreateActions || []).map((action) => {
+                        {(step.postCreateActions || [])
+                          .filter((action) => {
+                            if (step.id === 'selection-approval' && row.finalStatus && row.finalStatus !== 'Pending') return false;
+                            if (step.id === 'induction' && action.label === 'Complete First Module') {
+                              if (!row.modules || row.modules.length === 0 || row.modules[0].completed) return false;
+                            }
+                            return true;
+                          })
+                          .map((action) => {
                           const lower = action.label.toLowerCase();
                           const isApprove = lower.includes('approve') || lower.includes('accept') || lower.includes('confirm') || lower.includes('verify') || lower.includes('issue');
                           const isReject = lower.includes('reject') || lower.includes('decline') || lower.includes('terminate');

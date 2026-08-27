@@ -1,182 +1,376 @@
 'use client';
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm, useFieldArray } from 'react-hook-form';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Plus, Save, Trash2, FileText, CheckCircle2, Users, AlertCircle } from 'lucide-react';
-import api from '@/lib/axios';
-import { Button } from '@/components/ui/button';
+import { FileCheck, Save } from 'lucide-react';
+import { FormField, FormInput, FormSelect, FormCheckbox } from '@/components/common/FormComponents';
+import { HiringStepLayout } from './HiringStepLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import StepGate from './StepGate';
-import { DataTable } from '@/components/shared/DataTable';
-
-const inp = 'w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-50 dark:border-zinc-700 dark:bg-zinc-950';
-const lbl = 'block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1';
+import api from '@/lib/axios';
+import toast from 'react-hot-toast';
+import { useMasterDataStore } from '@/store/masterDataStore';
+import { useAuthStore } from '@/store/authStore';
 
 export default function NominationFormPage({ candidateId }: { candidateId: string }) {
-  const router = useRouter();
-  const queryClient = useQueryClient();
+    const router = useRouter();
 
-  const { data: candidate } = useQuery<any>({ queryKey: ['candidate', candidateId], queryFn: async () => (await api.get(`/hiring/candidates/${candidateId}`)).data });
-  const { data: pipeline } = useQuery<any>({ queryKey: ['candidate-pipeline', candidateId], queryFn: async () => (await api.get(`/hiring/candidates/${candidateId}/pipeline`)).data });
-  const { data: records = [] } = useQuery<any[]>({ queryKey: ['hiring-step-records', 'nomination', candidateId], queryFn: async () => (await api.get(`/hiring/nomination?candidateId=${candidateId}`)).data });
+    const { departments, designations, fetchMasterData } = useMasterDataStore();
+    const departmentOptions = departments.map(d => ({ value: d.name || '', label: d.name || '' }));
+    const designationOptions = designations.map(d => ({ value: d.title || d.name || '', label: d.title || d.name || '' }));
+    const { user } = useAuthStore();
+    const currentUsername = `${(user as any)?.firstName || ''} ${(user as any)?.lastName || ''}`.trim() || 'Admin';
 
-  const stepState = pipeline?.steps?.find((s: any) => s.key === 'nomination');
-  const locked = stepState?.gate?.unlocked === false;
+    const [loading, setLoading] = React.useState(true);
+    const [isPreFilled, setIsPreFilled] = React.useState(false);
+    const [formData, setFormData] = useState({
+        _id: '',
+        employeeName: '',
+        empCode: '',
+        designation: '',
+        department: '',
+        fatherHusbandSpouse: '',
+        dob: '',
+        gender: '',
+        mobileNumber: '',
+        emailId: '',
+        dateOfJoining: '',
+        workLocation: '',
+        reportingTo: '',
+        currentAddress: '',
+        aadhaarNumber: '',
+        panNumber: '',
+        drivingLicense: '',
+        passportNumber: '',
+        accountHolderName: '',
+        bankName: '',
+        branchName: '',
+        accountNumber: '',
+        ifscCode: '',
+        nominee1FullName: '',
+        nominee1Relationship: '',
+        nominee1Dob: '',
+        nominee1Mobile: '',
+        nominee1Address: '',
+        nominee1Percentage: '100',
+        nominee2FullName: '',
+        nominee2Relationship: '',
+        nominee2Dob: '',
+        nominee2Mobile: '',
+        nominee2Address: '',
+        nominee2Percentage: '',
+        guardianName: '',
+        guardianMobile: '',
+        guardianRelationship: '',
+        guardianAddress: '',
+        docs: {
+            aadhaarNominee: false,
+            aadhaarGuardian: false,
+            aadhaarEmployee: false,
+            other: false
+        },
+        otherDocText: '',
+        verifiedBy: currentUsername,
+        verifierRemarks: '',
+        hrRemarks: '',
+        employeeSignatureDate: '',
+        verifierDate: '',
+        hrDate: '',
+        status: 'active'
+    });
 
-  const { register, control, handleSubmit, watch } = useForm({
-    defaultValues: { nominationType: '', nominees: [{ name: '', relationship: '', dob: '', sharePercentage: '', isMinor: 'false', guardianName: '', guardianRelationship: '' }] }
-  });
-  const { fields, append, remove } = useFieldArray({ control, name: 'nominees' });
-  const nominees = watch('nominees');
-  const totalShare = nominees.reduce((s: number, n: any) => s + (Number(n.sharePercentage) || 0), 0);
+    const setField = (field: string, value: any) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
 
-  const [saveError, setSaveError] = useState<string | null>(null);
+    useEffect(() => {
+        fetchMasterData();
+        fetchNominationData();
+    }, [candidateId]);
 
-  const saveMutation = useMutation({
-    mutationFn: async (values: any) => (await api.post('/hiring/nomination', { ...values, candidateId })).data,
-    onSuccess: () => { setSaveError(null); queryClient.invalidateQueries({ queryKey: ['hiring-step-records', 'nomination', candidateId] }); queryClient.invalidateQueries({ queryKey: ['candidate-pipeline', candidateId] }); },
-    onError: (err: any) => { setSaveError(err?.response?.data?.message || 'Failed to save nomination. Please try again.'); },
-  });
-  const pdfMutation = useMutation({
-    mutationFn: async (id: string) => (await api.post(`/hiring/nomination/${id}/generate-pdf`)).data,
-    onSuccess: (data) => { const url = data.pdfUrl; if (url) window.open(`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1').replace('/api/v1', '')}${url}`, '_blank'); queryClient.invalidateQueries({ queryKey: ['hiring-step-records', 'nomination', candidateId] }); },
-  });
-  const verifyMutation = useMutation({
-    mutationFn: async (id: string) => (await api.put(`/hiring/nomination/${id}/verify`, {})).data,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hiring-step-records', 'nomination', candidateId] }),
-  });
+    const fetchNominationData = async () => {
+        try {
+            setLoading(true);
+            const candidateRes = await api.get(`/hiring/candidates/${candidateId}`);
+            const cand = candidateRes.data;
 
-  return (
-    <div className="page-container bg-slate-50/50 min-h-screen pb-10">
-      {/* Page Header - hr-crm-final style */}
-      <div className="bg-white border-b border-slate-200 px-6 py-4 mb-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold text-[#0d3c68] uppercase tracking-[0.18em] mb-1">HIRING · STEP 10 · ONBOARDING</p>
-            <h1 className="text-[22px] font-extrabold text-[#0d3c68] uppercase tracking-tight leading-none">NOMINATION FORM</h1>
-            {candidate && <p className="mt-1 text-[12px] text-slate-500">{candidate.firstName} {candidate.lastName} · {candidate.jobRole}</p>}
-          </div>
-          <div className="flex gap-2 items-center">
-            <StepGate unlocked={!locked} blockedBy={stepState?.gate?.blockedBy || []} compact />
-            <Button variant="ghost" className="h-8 gap-2 px-3 text-xs border border-slate-200" onClick={() => router.push(`/dashboard/hiring/${candidateId}`)}>
-              <ArrowLeft size={14} /> Back
-            </Button>
-          </div>
+            const nomRes = await api.get('/hiring/nomination', { params: { candidateId } });
+            const list = Array.isArray(nomRes.data) ? nomRes.data : (nomRes.data?.data || []);
+
+            if (list.length > 0) {
+                const row = list[0];
+                setFormData({
+                    ...row,
+                    docs: row.docs || formData.docs,
+                    dob: row.dob ? new Date(row.dob).toISOString().split('T')[0] : '',
+                    dateOfJoining: row.dateOfJoining ? new Date(row.dateOfJoining).toISOString().split('T')[0] : '',
+                    nominee1Dob: row.nominee1Dob ? new Date(row.nominee1Dob).toISOString().split('T')[0] : '',
+                    nominee2Dob: row.nominee2Dob ? new Date(row.nominee2Dob).toISOString().split('T')[0] : '',
+                    employeeSignatureDate: row.employeeSignatureDate ? new Date(row.employeeSignatureDate).toISOString().split('T')[0] : '',
+                    verifierDate: row.verifierDate ? new Date(row.verifierDate).toISOString().split('T')[0] : '',
+                    hrDate: row.hrDate ? new Date(row.hrDate).toISOString().split('T')[0] : '',
+                });
+                setIsPreFilled(true);
+            } else {
+                setFormData(prev => ({
+                    ...prev,
+                    employeeName: cand.firstName + ' ' + (cand.lastName || ''),
+                    designation: cand.jobRole || '',
+                    department: cand.department || '',
+                    emailId: cand.email || '',
+                    mobileNumber: cand.phone || '',
+                }));
+            }
+        } catch (error: any) {
+            console.error('Failed to load nomination data', error);
+            toast.error('Failed to load nomination data');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleChange = (field: string, value: any) => setField(field, value);
+    const handleDocChange = (field: string, value: boolean) => setField('docs', { ...formData.docs, [field]: value });
+
+    const handleSave = async () => {
+        try {
+            const { _id, ...submitData } = formData as any;
+            let nominees = [];
+            if (submitData.nominee1FullName) {
+                nominees.push({
+                    name: submitData.nominee1FullName,
+                    relationship: submitData.nominee1Relationship,
+                    dob: submitData.nominee1Dob || undefined,
+                    sharePercentage: Number(submitData.nominee1Percentage) || 0,
+                    address: submitData.nominee1Address,
+                    isMinor: !!submitData.guardianName,
+                    guardianName: submitData.guardianName,
+                    guardianRelationship: submitData.guardianRelationship,
+                    guardianAddress: submitData.guardianAddress
+                });
+            }
+            if (submitData.nominee2FullName) {
+                nominees.push({
+                    name: submitData.nominee2FullName,
+                    relationship: submitData.nominee2Relationship,
+                    dob: submitData.nominee2Dob || undefined,
+                    sharePercentage: Number(submitData.nominee2Percentage) || 0,
+                    address: submitData.nominee2Address,
+                    isMinor: false
+                });
+            }
+
+            const payload = {
+                ...submitData,
+                candidateId,
+                nominationType: 'PF',
+                nominees
+            };
+
+            if (_id) {
+                await api.put(`/hiring/nomination/${_id}`, payload);
+                toast.success('Nomination details updated successfully.');
+            } else {
+                await api.post('/hiring/nomination', payload);
+                toast.success('Nomination details saved successfully.');
+            }
+            fetchNominationData();
+            setTimeout(() => {
+                router.push('/dashboard/hiring/steps/nomination');
+            }, 1000);
+        } catch (error: any) {
+            toast.error(error?.response?.data?.message || 'Failed to save nomination');
+        }
+    };
+
+    const SectionHeader = ({ id, title, subText }: { id: number, title: string, subText?: string }) => (
+        <div className="flex items-center justify-between border-b border-slate-100 pb-1 mb-4">
+            <h3 className="text-xs font-bold text-slate-900 flex items-center gap-2 uppercase tracking-wide">
+                <span className="bg-[#0d3c68] text-white w-4 h-4 flex items-center justify-center text-[10px] rounded-full">{id}</span>
+                {title}
+            </h3>
+            {subText && <span className="text-[10px] text-slate-500 font-medium italic">{subText}</span>}
         </div>
-        <div className="mt-3 h-[3px] w-full bg-[#0d3c68] rounded-full" />
-      </div>
+    );
 
-      <div className="px-4 space-y-4">
+    if (loading) {
+        return <div className="p-10 text-center text-sm text-slate-500">Loading form data...</div>;
+    }
 
-      {/* Saved Records Table */}
-      {records.length > 0 && (
-        <div>
-            <DataTable
-              columns={[
-                { key: 'index', label: 'S.NO', render: (_: any, __: any, index: number) => index + 1, width: '60px', align: 'center' as const },
-                { key: 'employeeName', label: 'EMPLOYEE NAME', width: '200px', render: () => `${candidate?.firstName || ''} ${candidate?.lastName || ''}` },
-                { key: 'designation', label: 'POSITION', width: '150px', render: () => candidate?.jobRole || 'N/A' },
-                { key: 'department', label: 'DEPARTMENT', width: '150px', render: () => candidate?.department || 'N/A' },
-                { key: 'mobileNumber', label: 'PHONE NUMBER', width: '120px', render: () => candidate?.phone || 'N/A' },
-                { key: 'emailId', label: 'EMAIL', width: '200px', render: () => candidate?.email || 'N/A' },
-                { key: 'empCode', label: 'EMP CODE', width: '100px', render: () => candidate?.employeeCode || 'N/A' },
-                { key: 'nominee1', label: 'NOMINEE 1', width: '150px', render: (_: any, r: any) => r.nominees?.[0]?.name || '-' },
-                { key: 'nominee2', label: 'NOMINEE 2', width: '150px', render: (_: any, r: any) => r.nominees?.[1]?.name || '-' },
-                { key: 'approvalStatus', label: 'VERIFICATION', width: '130px', align: 'center' as const, render: (_: any, r: any) => <span className={`rounded px-2 py-1 text-[10px] font-bold uppercase ${r.status === 'Verified' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'}`}>{r.status}</span> },
-                { key: 'status', label: 'STATUS', width: '100px', align: 'center' as const, render: () => <span className="rounded px-2 py-1 text-[10px] font-bold uppercase bg-green-50 text-green-700 border border-green-200">ACTIVE</span> },
-                { key: 'updatedAt', label: 'LAST UPDATE', width: '150px', render: (_: any, r: any) => r.updatedAt ? new Date(r.updatedAt).toLocaleDateString() : 'N/A' },
-                { key: 'actions', label: 'ACTION', align: 'center' as const, render: (_: any, r: any) => (
-                  <div className="flex gap-2 justify-center">
-                    <Button size="sm" variant="outline" className="h-6 gap-1 px-2 text-[10px]" onClick={(e) => { e.stopPropagation(); pdfMutation.mutate(r._id); }}><FileText size={10} /> PDF</Button>
-                    {r.status !== 'Verified' && <Button size="sm" variant="outline" className="h-6 gap-1 px-2 text-[10px] text-emerald-600 border-emerald-200" onClick={(e) => { e.stopPropagation(); verifyMutation.mutate(r._id); }}><CheckCircle2 size={10} /> Verify</Button>}
-                  </div>
-                )}
-              ]}
-              data={records}
-              showActions={false}
-              showPrint={false}
-              pageSize={5}
-            />
-        </div>
-      )}
+    return (
+        <HiringStepLayout candidateId={candidateId} stepId="nomination">
+            <Card className="rounded-md border-zinc-200/80 shadow-sm dark:border-zinc-800 w-full overflow-hidden">
+                <CardHeader className="pb-0 flex flex-row items-center justify-between">
+                    <CardTitle className="text-base uppercase">NOMINATION FORM</CardTitle>
+                </CardHeader>
+                <CardContent className="w-full overflow-hidden">
 
-      {!locked && (
-        <form onSubmit={handleSubmit((v) => saveMutation.mutate(v))} className="space-y-4">
-          <Card>
-            <CardContent className="pt-5 space-y-4">
-              <div className="flex items-center gap-2 border-b border-zinc-100 pb-2 dark:border-zinc-800">
-                <Users size={16} className="text-violet-600" /><h3 className="text-sm font-semibold">Nomination Details</h3>
-              </div>
-              <div className="grid gap-3 md:grid-cols-3">
-                <label><span className={lbl}>Nomination Type<span className="text-rose-500 ml-0.5">*</span></span>
-                  <select {...register('nominationType', { required: true })} className={inp}>
-                    <option value="">Select...</option>
-                    {['PF', 'Gratuity', 'Insurance'].map(o => <option key={o}>{o}</option>)}
-                  </select>
-                </label>
-                <label><span className={lbl}>Declaration Date</span><input {...register('declarationDate' as any)} type="date" className={inp} /></label>
-                <label><span className={lbl}>Declaration Place</span><input {...register('declarationPlace' as any)} className={inp} /></label>
-                <label><span className={lbl}>Witness Name</span><input {...register('witnessName' as any)} className={inp} /></label>
-                <label><span className={lbl}>Witness Designation</span><input {...register('witnessDesignation' as any)} className={inp} /></label>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Share Validation Banner */}
-          <div className={`rounded-lg p-3 text-sm flex items-center gap-2 ${totalShare === 100 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : totalShare > 100 ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
-            {totalShare === 100 ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
-            Total share allocated: <strong>{totalShare}%</strong> {totalShare !== 100 && `— must equal 100%`}
-          </div>
 
-          {/* Nominees */}
-          <Card>
-            <CardHeader className="pb-2 flex-row items-center justify-between">
-              <CardTitle className="text-sm">Nominees</CardTitle>
-              <Button type="button" variant="outline" size="sm" className="gap-1 h-7" onClick={() => append({ name: '', relationship: '', dob: '', sharePercentage: '', isMinor: 'false', guardianName: '', guardianRelationship: '' } as any)}>
-                <Plus size={13} /> Add Nominee
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {fields.map((f, i) => {
-                const isMinor = nominees[i]?.isMinor === 'true';
-                return (
-                  <div key={f.id} className="rounded-lg border border-zinc-200 p-3 dark:border-zinc-800 relative">
-                    <div className="text-xs font-semibold text-zinc-500 mb-2">Nominee {i + 1}</div>
-                    <div className="grid gap-2 md:grid-cols-3">
-                      <label><span className={lbl}>Name*</span><input {...register(`nominees.${i}.name` as any, { required: true })} className={inp} /></label>
-                      <label><span className={lbl}>Relationship*</span><input {...register(`nominees.${i}.relationship` as any, { required: true })} className={inp} /></label>
-                      <label><span className={lbl}>Date of Birth</span><input {...register(`nominees.${i}.dob` as any)} type="date" className={inp} /></label>
-                      <label><span className={lbl}>Share %*</span><input {...register(`nominees.${i}.sharePercentage` as any, { required: true })} type="number" min={0} max={100} className={inp} /></label>
-                      <label><span className={lbl}>Is Minor?</span>
-                        <select {...register(`nominees.${i}.isMinor` as any)} className={inp}>
-                          <option value="false">No</option><option value="true">Yes</option>
-                        </select>
-                      </label>
-                      <label><span className={lbl}>Address</span><input {...register(`nominees.${i}.address` as any)} className={inp} /></label>
-                      {isMinor && (<>
-                        <label><span className={lbl}>Guardian Name</span><input {...register(`nominees.${i}.guardianName` as any)} className={inp} /></label>
-                        <label><span className={lbl}>Guardian Relationship</span><input {...register(`nominees.${i}.guardianRelationship` as any)} className={inp} /></label>
-                        <label><span className={lbl}>Guardian Address</span><input {...register(`nominees.${i}.guardianAddress` as any)} className={inp} /></label>
-                      </>)}
+                    <div className="section-card shadow-sm border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300 no-print mt-4">
+                        <div className="bg-white  pb-3 border-b border-slate-100 flex items-center justify-between">
+                            <h2 className="text-[13px] font-bold text-[#0d3c68] flex items-center gap-2 uppercase tracking-tight">
+                                <FileCheck className="h-4 w-4 text-[#0d3c68]" />
+                                Employee Nomination Details
+                            </h2>
+                        </div>
+
+                        <div className="p-3 space-y-4">
+                            {/* 1. EMPLOYEE DETAILS */}
+                            <SectionHeader id={1} title="Employee Details" />
+                            <div className="grid grid-cols-1 md:grid-cols-5 print:grid-cols-2 gap-4">
+                                <FormField label="1. Employee Name:" required>
+                                    <FormInput placeholder="Enter Employee Name" value={formData.employeeName} onChange={(e) => handleChange("employeeName", e.target.value)} required readOnly={isPreFilled} />
+                                </FormField>
+                                <FormField label="EMP Code (HR):">
+                                    <FormInput placeholder="Enter EMP Code" value={formData.empCode} onChange={(e) => handleChange("empCode", e.target.value)} />
+                                </FormField>
+                                <FormField label="2. Designation:" required>
+                                    <FormSelect options={designationOptions} value={formData.designation} onChange={(e) => handleChange("designation", e.target.value)} required placeholder="Select Designation" />
+                                </FormField>
+                                <FormField label="Department:" required>
+                                    <FormSelect options={departmentOptions} value={formData.department} onChange={(e) => handleChange("department", e.target.value)} required placeholder="Select Department" />
+                                </FormField>
+                                <FormField label="3. Father's / Spouse Name:">
+                                    <FormInput placeholder="Enter Father's / Spouse Name" value={formData.fatherHusbandSpouse} onChange={(e) => handleChange("fatherHusbandSpouse", e.target.value)} />
+                                </FormField>
+                                <FormField label="4. Date of Birth:" required>
+                                    <FormInput type="date" value={formData.dob} onChange={(e) => handleChange("dob", e.target.value)} required />
+                                </FormField>
+                                <FormField label="Gender:" required>
+                                    <FormSelect options={[{ value: 'Male', label: 'Male' }, { value: 'Female', label: 'Female' }, { value: 'Other', label: 'Other' }]} value={formData.gender} onChange={(e) => handleChange("gender", e.target.value)} required />
+                                </FormField>
+                                <FormField label="Date of Joining:" required>
+                                    <FormInput type="date" value={formData.dateOfJoining} onChange={(e) => handleChange("dateOfJoining", e.target.value)} required />
+                                </FormField>
+                                <FormField label="Mobile Number:" required>
+                                    <FormInput placeholder="Enter Mobile Number" type="tel" value={formData.mobileNumber} onChange={(e) => handleChange("mobileNumber", e.target.value)} required />
+                                </FormField>
+                                <FormField label="Email ID:" required>
+                                    <FormInput placeholder="Enter Email ID" type="email" value={formData.emailId} onChange={(e) => handleChange("emailId", e.target.value)} required />
+                                </FormField>
+                            </div>
+
+                            {/* 2. NOMINATION DETAILS */}
+                            <div className="space-y-4 pt-4">
+                                <SectionHeader id={2} title="Nomination Details (PF, Gratuity, ESIC)" />
+                                {/* Nominee 1 */}
+                                <div className="bg-slate-50/50 p-3 rounded border border-slate-100">
+                                    <h4 className="text-xs font-bold text-slate-700 mb-3 border-b border-slate-200 pb-1">Nominee 1</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                                        <FormField label="Full Name:" className="md:col-span-2">
+                                            <FormInput placeholder="Enter Full Name" value={formData.nominee1FullName} onChange={(e) => handleChange('nominee1FullName', e.target.value)} />
+                                        </FormField>
+                                        <FormField label="Relationship:">
+                                            <FormSelect options={[{ value: '', label: 'Select' }, { value: 'Spouse', label: 'Spouse' }, { value: 'Father', label: 'Father' }, { value: 'Mother', label: 'Mother' }, { value: 'Son', label: 'Son' }, { value: 'Daughter', label: 'Daughter' }, { value: 'Other', label: 'Other' }]} value={formData.nominee1Relationship} onChange={(e) => handleChange('nominee1Relationship', e.target.value)} />
+                                        </FormField>
+                                        <FormField label="DOB:">
+                                            <FormInput type="date" value={formData.nominee1Dob} onChange={(e) => handleChange('nominee1Dob', e.target.value)} />
+                                        </FormField>
+                                        <FormField label="Share (%):">
+                                            <FormInput placeholder="e.g. 100" type="number" min="1" max="100" value={formData.nominee1Percentage} onChange={(e) => handleChange('nominee1Percentage', e.target.value)} />
+                                        </FormField>
+                                        <FormField label="Address:">
+                                            <FormInput placeholder="Enter Address" value={formData.nominee1Address} onChange={(e) => handleChange('nominee1Address', e.target.value)} />
+                                        </FormField>
+                                    </div>
+                                </div>
+                                {/* Nominee 2 */}
+                                <div className="bg-slate-50/50 p-3 rounded border border-slate-100 mt-2">
+                                    <h4 className="text-xs font-bold text-slate-700 mb-3 border-b border-slate-200 pb-1">Nominee 2 (Optional)</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                                        <FormField label="Full Name:" className="md:col-span-2">
+                                            <FormInput placeholder="Enter Full Name" value={formData.nominee2FullName} onChange={(e) => handleChange('nominee2FullName', e.target.value)} />
+                                        </FormField>
+                                        <FormField label="Relationship:">
+                                            <FormSelect options={[{ value: '', label: 'Select' }, { value: 'Spouse', label: 'Spouse' }, { value: 'Father', label: 'Father' }, { value: 'Mother', label: 'Mother' }, { value: 'Son', label: 'Son' }, { value: 'Daughter', label: 'Daughter' }, { value: 'Other', label: 'Other' }]} value={formData.nominee2Relationship} onChange={(e) => handleChange('nominee2Relationship', e.target.value)} />
+                                        </FormField>
+                                        <FormField label="DOB:">
+                                            <FormInput type="date" value={formData.nominee2Dob} onChange={(e) => handleChange('nominee2Dob', e.target.value)} />
+                                        </FormField>
+                                        <FormField label="Share (%):">
+                                            <FormInput placeholder="e.g. 50" type="number" min="1" max="100" value={formData.nominee2Percentage} onChange={(e) => handleChange('nominee2Percentage', e.target.value)} />
+                                        </FormField>
+                                        <FormField label="Address:">
+                                            <FormInput placeholder="Enter Address" value={formData.nominee2Address} onChange={(e) => handleChange('nominee2Address', e.target.value)} />
+                                        </FormField>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 3. GUARDIAN DETAILS */}
+                            <div className="space-y-4 pt-4 border-t border-slate-100">
+                                <SectionHeader id={3} title="Guardian Details (If Nominee is a Minor)" subText="Fill only if any nominee is below 18 years" />
+                                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                    <FormField label="1. Guardian Name:">
+                                        <FormInput placeholder="Enter Guardian Name" value={formData.guardianName} onChange={(e) => handleChange('guardianName', e.target.value)} />
+                                    </FormField>
+                                    <FormField label="Mobile Number:">
+                                        <FormInput placeholder="Enter Mobile Number" type="tel" value={formData.guardianMobile} onChange={(e) => handleChange('guardianMobile', e.target.value)} />
+                                    </FormField>
+                                    <FormField label="3. Address:" className="md:col-span-1">
+                                        <FormInput placeholder="Enter Address" value={formData.guardianAddress} onChange={(e) => handleChange('guardianAddress', e.target.value)} />
+                                    </FormField>
+                                    <FormField label="2. Relationship with Minor:" className="md:col-span-2">
+                                        <FormInput placeholder="Enter Relationship" value={formData.guardianRelationship} onChange={(e) => handleChange('guardianRelationship', e.target.value)} />
+                                    </FormField>
+                                </div>
+                            </div>
+
+                            {/* 4. DOCUMENTS SUBMITTED */}
+                            <div className="space-y-4">
+                                <SectionHeader id={4} title="Documents Submitted" />
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-0">
+                                    <FormCheckbox label="Aadhaar of Nominee(s)" checked={formData.docs.aadhaarNominee} onChange={(e) => handleDocChange('aadhaarNominee', e.target.checked)} />
+                                    <FormCheckbox className='col-span-1' label="Aadhaar of Guardian" checked={formData.docs.aadhaarGuardian} onChange={(e) => handleDocChange('aadhaarGuardian', e.target.checked)} />
+                                    <FormCheckbox label="Employee's Aadhaar" checked={formData.docs.aadhaarEmployee} onChange={(e) => handleDocChange('aadhaarEmployee', e.target.checked)} />
+                                    <div className="flex items-center gap-0">
+                                        <FormCheckbox label="Any Other:" checked={formData.docs.other} onChange={(e) => handleDocChange('other', e.target.checked)} className="min-w-fit" />
+                                        {formData.docs.other && (
+                                            <FormInput placeholder="Specify Document" value={formData.otherDocText} onChange={(e) => handleChange('otherDocText', e.target.value)} className="h-7" />
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 5. HR SECTION */}
+                            <div className="space-y-4 pt-4 border-t border-slate-100">
+                                <SectionHeader id={5} title="HR Section (Verifier review)" />
+                                <div className="grid grid-cols-4 gap-4">
+                                    <FormField label="• HR Verified By:">
+                                        <FormInput value={formData.verifiedBy} readOnly className="bg-slate-50 cursor-default" />
+                                    </FormField>
+                                    <FormField label="• Verifier Remarks:">
+                                        <FormInput placeholder="Enter Remarks" value={formData.verifierRemarks} onChange={(e) => handleChange('verifierRemarks', e.target.value)} />
+                                    </FormField>
+                                    <FormField label="• HR Remarks Date:" className="md:col-span-1">
+                                        <FormInput type="date" value={formData.hrRemarks} onChange={(e) => handleChange('hrRemarks', e.target.value)} />
+                                    </FormField>
+                                </div>
+                            </div>
+
+                            {/* 6. FORM FOOTER */}
+                            <div className="space-y-4 pt-4 border-t border-slate-100">
+                                <div className="flex flex-col sm:flex-row justify-end items-center gap-2 pt-4">
+                                    <button onClick={handleSave} className="flex items-center gap-2 px-8 py-2 text-xs font-bold bg-[#0d3c68] text-white hover:bg-[#0a2e50] shadow-md hover:shadow-lg transition-all rounded-[2px] tracking-wide">
+                                        <Save className="h-4 w-4" />
+                                        SAVE NOMINATION
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    {fields.length > 1 && <Button type="button" variant="ghost" size="sm" className="absolute top-2 right-2 h-7 w-7 p-0 text-rose-500" onClick={() => remove(i)}><Trash2 size={13} /></Button>}
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
 
-          <Button type="submit" disabled={saveMutation.isPending || totalShare !== 100} className="gap-2 bg-violet-600 hover:bg-violet-700 text-white w-full">
-            <Save size={16} /> {saveMutation.isPending ? 'Saving...' : 'Save Nomination Form'}
-          </Button>
-          {totalShare !== 100 && <p className="text-xs text-center text-rose-600">Share percentages must total 100% before saving.</p>}
-          {saveError && <p className="text-xs text-center text-rose-600 mt-1">{saveError}</p>}
-        </form>
-      )}
-      {locked && <StepGate unlocked={false} blockedBy={stepState?.gate?.blockedBy || []} />}
-      </div>
-    </div>
-  );
+                    <style>{`
+                        @media print {
+                            .section-card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+                            .bg-[#0d3c68] { background-color: #0d3c68 !important; -webkit-print-color-adjust: exact; }
+                            .text-white { color: white !important; }
+                            .border-slate-200 { border-color: #e2e8f0 !important; }
+                            .bg-slate-50 { background-color: #f8fafc !important; }
+                            .btn, .no-print { display: none !important; }
+                        }
+                    `}</style>
+                </CardContent>
+            </Card>
+        </HiringStepLayout>
+    );
 }

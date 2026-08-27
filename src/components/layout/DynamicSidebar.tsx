@@ -453,15 +453,15 @@ function NavGroup({ label, items, pathname, level = 0 }: { label: string; items:
           className="pl-2 space-y-0.5 ml-3 py-1"
           style={{ borderLeft: '1px solid rgba(99,102,241,0.35)' }}
         >
-          {items.map((item) => {
+          {items.map((item, idx) => {
             if ('isGroup' in item) {
-              return <NavGroup key={item.label} label={item.label} items={item.children} pathname={pathname} level={level + 1} />;
+              return <NavGroup key={item.label || idx} label={item.label} items={item.children} pathname={pathname} level={level + 1} />;
             }
 
             const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'));
             return (
               <Link
-                key={item._id}
+                key={item._id ? `${item._id}-${idx}` : item.href}
                 href={item.href}
                 className="block px-3 py-1.5 text-xs font-medium transition-all"
                 style={
