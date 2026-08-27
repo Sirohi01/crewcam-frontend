@@ -341,8 +341,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
             <select
               value={pageSize}
               onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
-              className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-6 py-1 text-[12px] font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer"
-            >
+              className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-6 py-1 text-[12px] font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer">
               {[10, 25, 50].map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
             <ChevronDown size={12} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400" />
@@ -354,16 +353,14 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
           <button
             onClick={() => setPage(Math.max(1, page - 1))}
             disabled={page === 1}
-            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors"
-          >
+            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors">
             <ChevronLeft size={13} />
           </button>
           {pages.map((p) => (
             <button
               key={p}
               onClick={() => setPage(p)}
-              className={`h-7 w-7 rounded-md text-[12px] font-semibold transition-colors ${p === page ? 'bg-violet-600 text-white' : 'border border-zinc-200 text-zinc-600 hover:border-violet-300 hover:text-violet-600'}`}
-            >
+              className={`h-7 w-7 rounded-md text-[12px] font-semibold transition-colors ${p === page ? 'bg-violet-600 text-white' : 'border border-zinc-200 text-zinc-600 hover:border-violet-300 hover:text-violet-600'}`}>
               {p}
             </button>
           ))}
@@ -371,8 +368,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
           <button
             onClick={() => setPage(Math.min(totalPages, page + 1))}
             disabled={page === totalPages}
-            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors"
-          >
+            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors">
             <ChevronRight size={13} />
           </button>
         </div>
@@ -571,8 +567,7 @@ export default function HoldCandidatesPage() {
         noticePeriod={noticePeriod} setNoticePeriod={setNoticePeriod}
         reason={reason} setReason={setReason}
         sortBy={sortBy} setSortBy={setSortBy}
-        activeCount={activeCount} onClear={handleClear}
-      />
+        activeCount={activeCount} onClear={handleClear} />
 
       <Card className="border-zinc-200/80 shadow-sm">
         <CardContent className="p-0">
@@ -602,8 +597,7 @@ export default function HoldCandidatesPage() {
                             type="checkbox"
                             checked={isVisible as boolean}
                             onChange={() => setVisibleColumns(prev => ({ ...prev, [key]: !prev[key as keyof typeof visibleColumns] }))}
-                            className="rounded border-zinc-300 text-violet-600 focus:ring-violet-600"
-                          />
+                            className="rounded border-zinc-300 text-violet-600 focus:ring-violet-600" />
                           <span className="text-[11px] text-zinc-700 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
                         </label>
                       ))}
@@ -627,15 +621,13 @@ export default function HoldCandidatesPage() {
                 checkedIds={checkedIds}
                 onToggleCheck={toggleCheck}
                 onToggleAll={toggleAll}
-                visibleColumns={visibleColumns}
-              />
+                visibleColumns={visibleColumns} />
             )}
 
             <TableFooter
               pageSize={pageSize} setPageSize={setPageSize}
               page={page} setPage={setPage}
-              totalEntries={filtered.length}
-            />
+              totalEntries={filtered.length} />
           </div>
         </CardContent>
       </Card>
