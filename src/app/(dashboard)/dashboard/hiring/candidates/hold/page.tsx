@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useMemo, useState } from 'react';
 import { FolderClock, Briefcase, Clock, Tag, RefreshCw, Search, SlidersHorizontal, RotateCcw, Bookmark, Columns3, Download, ChevronDown, Eye, MessageSquare, MoreHorizontal, Mail, Plus, ChevronLeft, ChevronRight, } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -170,9 +169,8 @@ function TabsBar({ active, onChange, counts }: {
         <button
           key={tab.key}
           onClick={() => onChange(tab.key)}
-          className={`relative px-3 py-2.5 text-[12.5px] font-semibold whitespace-nowrap transition-colors ${
-            active === tab.key ? 'text-violet-700' : 'text-zinc-500 hover:text-zinc-700'
-          }`}>
+          className={`relative px-3 py-2.5 text-[12.5px] font-semibold whitespace-nowrap transition-colors ${active === tab.key ? 'text-violet-700' : 'text-zinc-500 hover:text-zinc-700'
+            }`}>
           {tab.label}{' '}
           <span className={active === tab.key ? 'text-violet-400' : 'text-zinc-400'}>({counts[tab.key]})</span>
           {active === tab.key && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-violet-600 rounded-full" />}
@@ -186,15 +184,16 @@ function TabsBar({ active, onChange, counts }: {
 function HoldCandidatesTable({
   rows, checkedIds, onToggleCheck, onToggleAll, visibleColumns,
 }: {
-  rows: HoldCandidate[]; checkedIds: Set<string>; onToggleCheck: (id: string) => void; onToggleAll: (checked: boolean) => void; visibleColumns: Record<string, boolean>;
+  rows: HoldCandidate[]; checkedIds: string[]; onToggleCheck: (id: string) => void; onToggleAll: (checked: boolean) => void; visibleColumns: Record<string, boolean>;
 }) {
-  const allChecked = rows.length > 0 && rows.every((r) => checkedIds.has(r.id));
+  const allChecked = rows.length > 0 && rows.every((r) => checkedIds.includes(r.id));
+  const someChecked = rows.some((r) => checkedIds.includes(r.id));
 
   return (
     <div className="w-full overflow-hidden">
-      <table className="w-full table-fixed border-collapse">
+      <table className="w-full text-left text-[10px] whitespace-nowrap border-collapse">
         <colgroup>
-          <col className="w-[28px]" />
+          <col className="w-10" />
           {visibleColumns.candidate && <col className="w-[17%]" />}
           {visibleColumns.currentRole && <col className="hidden md:table-column md:w-[13%]" />}
           {visibleColumns.experience && <col className="hidden sm:table-column sm:w-[8%]" />}
@@ -207,38 +206,39 @@ function HoldCandidatesTable({
           {visibleColumns.actions && <col className="w-[84px]" />}
         </colgroup>
         <thead>
-          <tr className="border-b border-zinc-100 text-left text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
-            <th className="py-2.5 pl-1">
+          <tr className="bg-zinc-50/50 text-zinc-600 border-b border-zinc-100 text-left text-[10px]">
+            <th className="px-3 py-2 font-bold w-10 text-center">
               <input
                 type="checkbox"
                 checked={allChecked}
+                ref={(el) => { if (el) el.indeterminate = !allChecked && someChecked; }}
                 onChange={(e) => onToggleAll(e.target.checked)}
-                className="h-3.5 w-3.5 rounded border-zinc-300 text-violet-600 focus:ring-violet-500 cursor-pointer" />
+                className="rounded border-zinc-300 text-violet-600 focus:ring-violet-500 cursor-pointer" />
             </th>
-            {visibleColumns.candidate && <th className="py-2.5 pr-3">Candidate</th>}
-            {visibleColumns.currentRole && <th className="hidden md:table-cell py-2.5 pr-3">Current Role</th>}
-            {visibleColumns.experience && <th className="hidden sm:table-cell py-2.5 pr-3">Experience</th>}
-            {visibleColumns.keySkills && <th className="hidden lg:table-cell py-2.5 pr-3">Key Skills</th>}
-            {visibleColumns.noticePeriod && <th className="py-2.5 pr-3">Notice Period</th>}
-            {visibleColumns.reasonForHold && <th className="hidden md:table-cell py-2.5 pr-3">Reason for Hold</th>}
-            {visibleColumns.addedOn && <th className="hidden sm:table-cell py-2.5 pr-3">Added On</th>}
-            {visibleColumns.lastContact && <th className="hidden lg:table-cell py-2.5 pr-3">Last Contact</th>}
-            {visibleColumns.nextFollowUp && <th className="py-2.5 pr-3">Next Follow Up</th>}
-            {visibleColumns.actions && <th className="py-2.5 pr-1 text-right">Actions</th>}
+            {visibleColumns.candidate && <th className="px-3 py-2 font-bold">Candidate</th>}
+            {visibleColumns.currentRole && <th className="hidden md:table-cell px-3 py-2 font-bold">Current Role</th>}
+            {visibleColumns.experience && <th className="hidden sm:table-cell px-3 py-2 font-bold">Experience</th>}
+            {visibleColumns.keySkills && <th className="hidden lg:table-cell px-3 py-2 font-bold">Key Skills</th>}
+            {visibleColumns.noticePeriod && <th className="px-3 py-2 font-bold">Notice Period</th>}
+            {visibleColumns.reasonForHold && <th className="hidden md:table-cell px-3 py-2 font-bold">Reason for Hold</th>}
+            {visibleColumns.addedOn && <th className="hidden sm:table-cell px-3 py-2 font-bold">Added On</th>}
+            {visibleColumns.lastContact && <th className="hidden lg:table-cell px-3 py-2 font-bold">Last Contact</th>}
+            {visibleColumns.nextFollowUp && <th className="px-3 py-2 font-bold">Next Follow Up</th>}
+            {visibleColumns.actions && <th className="px-3 py-2 font-bold text-center">Actions</th>}
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-zinc-50">
           {rows.map((c) => (
-            <tr key={c.id} className="border-b border-zinc-50 hover:bg-zinc-50/70 transition-colors">
-              <td className="py-2.5 pl-1">
+            <tr key={c.id} className="border-b border-zinc-50 hover:bg-zinc-50/50 transition-colors">
+              <td className="px-3 py-2 text-center">
                 <input
                   type="checkbox"
-                  checked={checkedIds.has(c.id)}
+                  checked={checkedIds.includes(c.id)}
                   onChange={() => onToggleCheck(c.id)}
-                  className="h-3.5 w-3.5 rounded border-zinc-300 text-violet-600 focus:ring-violet-500 cursor-pointer" />
+                  className="rounded border-zinc-300 text-violet-600 focus:ring-violet-500 cursor-pointer" />
               </td>
               {visibleColumns.candidate && (
-                <td className="py-2.5 pr-3">
+                <td className="px-3 py-2">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <img
                       src={`https://i.pravatar.cc/150?u=${c.avatar}`}
@@ -254,16 +254,16 @@ function HoldCandidatesTable({
                 </td>
               )}
               {visibleColumns.currentRole && (
-                <td className="hidden md:table-cell py-2.5 pr-3">
+                <td className="hidden md:table-cell px-3 py-2">
                   <p className="text-[12px] font-medium text-zinc-700 leading-tight truncate">{c.currentRole}</p>
                   <p className="text-[10px] text-zinc-400 leading-tight truncate">{c.company}</p>
                 </td>
               )}
               {visibleColumns.experience && (
-                <td className="hidden sm:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 whitespace-nowrap">{c.experience}</td>
+                <td className="hidden sm:table-cell px-3 py-2 text-[12px] text-zinc-600 whitespace-nowrap">{c.experience}</td>
               )}
               {visibleColumns.keySkills && (
-                <td className="hidden lg:table-cell py-2.5 pr-3">
+                <td className="hidden lg:table-cell px-3 py-2">
                   <div className="flex flex-wrap gap-1">
                     {c.skills.map((s) => (
                       <span key={s} className="inline-flex items-center rounded-full bg-zinc-100 text-zinc-600 px-1.5 py-0.5 text-[9.5px] font-medium whitespace-nowrap">
@@ -279,26 +279,26 @@ function HoldCandidatesTable({
                 </td>
               )}
               {visibleColumns.noticePeriod && (
-                <td className="py-2.5 pr-3"><NoticeBadge noticePeriod={c.noticePeriod} /></td>
+                <td className="px-3 py-2"><NoticeBadge noticePeriod={c.noticePeriod} /></td>
               )}
               {visibleColumns.reasonForHold && (
-                <td className="hidden md:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 truncate">{c.reasonForHold}</td>
+                <td className="hidden md:table-cell px-3 py-2 text-[12px] text-zinc-600 truncate">{c.reasonForHold}</td>
               )}
               {visibleColumns.addedOn && (
-                <td className="hidden sm:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 whitespace-nowrap">{c.addedOn}</td>
+                <td className="hidden sm:table-cell px-3 py-2 text-[12px] text-zinc-600 whitespace-nowrap">{c.addedOn}</td>
               )}
               {visibleColumns.lastContact && (
-                <td className="hidden lg:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 whitespace-nowrap">{c.lastContact}</td>
+                <td className="hidden lg:table-cell px-3 py-2 text-[12px] text-zinc-600 whitespace-nowrap">{c.lastContact}</td>
               )}
               {visibleColumns.nextFollowUp && (
-                <td className="py-2.5 pr-3">
+                <td className="px-3 py-2">
                   <p className="text-[12px] text-zinc-700 leading-tight whitespace-nowrap">{c.nextFollowUp}</p>
                   <p className="text-[10px] text-zinc-400 leading-tight">({c.daysLeft} days left)</p>
                 </td>
               )}
               {visibleColumns.actions && (
-                <td className="py-2.5 pr-1">
-                  <div className="flex items-center justify-end gap-1">
+                <td className="px-3 py-2">
+                  <div className="flex items-center justify-center gap-1">
                     <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 transition-colors">
                       <Eye size={13} />
                     </button>
@@ -341,8 +341,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
             <select
               value={pageSize}
               onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
-              className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-6 py-1 text-[12px] font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer"
-            >
+              className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-6 py-1 text-[12px] font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer">
               {[10, 25, 50].map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
             <ChevronDown size={12} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400" />
@@ -354,16 +353,14 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
           <button
             onClick={() => setPage(Math.max(1, page - 1))}
             disabled={page === 1}
-            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors"
-          >
+            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors">
             <ChevronLeft size={13} />
           </button>
           {pages.map((p) => (
             <button
               key={p}
               onClick={() => setPage(p)}
-              className={`h-7 w-7 rounded-md text-[12px] font-semibold transition-colors ${p === page ? 'bg-violet-600 text-white' : 'border border-zinc-200 text-zinc-600 hover:border-violet-300 hover:text-violet-600'}`}
-            >
+              className={`h-7 w-7 rounded-md text-[12px] font-semibold transition-colors ${p === page ? 'bg-violet-600 text-white' : 'border border-zinc-200 text-zinc-600 hover:border-violet-300 hover:text-violet-600'}`}>
               {p}
             </button>
           ))}
@@ -371,8 +368,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
           <button
             onClick={() => setPage(Math.min(totalPages, page + 1))}
             disabled={page === totalPages}
-            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors"
-          >
+            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-violet-300 hover:text-violet-600 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors">
             <ChevronRight size={13} />
           </button>
         </div>
@@ -422,7 +418,7 @@ export default function HoldCandidatesPage() {
   const [activeTab, setActiveTab] = useState<TabKey>('all');
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
-  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+  const [checkedIds, setCheckedIds] = useState<string[]>([]);
 
   const [showColumnsMenu, setShowColumnsMenu] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState({
@@ -510,15 +506,14 @@ export default function HoldCandidatesPage() {
   }, [liveCandidates, activeTab, search, skill, noticePeriod, reason]);
 
   const toggleCheck = (id: string) => {
-    setCheckedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
+    setCheckedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
   };
 
   const toggleAll = (checked: boolean) => {
-    setCheckedIds(checked ? new Set(filtered.slice((page - 1) * pageSize, page * pageSize).map((c) => c.id)) : new Set());
+    const pageIds = filtered.slice((page - 1) * pageSize, page * pageSize).map((c) => c.id);
+    setCheckedIds(checked ? pageIds : []);
   };
 
   const handleDownloadCSV = () => {
@@ -572,8 +567,7 @@ export default function HoldCandidatesPage() {
         noticePeriod={noticePeriod} setNoticePeriod={setNoticePeriod}
         reason={reason} setReason={setReason}
         sortBy={sortBy} setSortBy={setSortBy}
-        activeCount={activeCount} onClear={handleClear}
-      />
+        activeCount={activeCount} onClear={handleClear} />
 
       <Card className="border-zinc-200/80 shadow-sm">
         <CardContent className="p-0">
@@ -603,8 +597,7 @@ export default function HoldCandidatesPage() {
                             type="checkbox"
                             checked={isVisible as boolean}
                             onChange={() => setVisibleColumns(prev => ({ ...prev, [key]: !prev[key as keyof typeof visibleColumns] }))}
-                            className="rounded border-zinc-300 text-violet-600 focus:ring-violet-600"
-                          />
+                            className="rounded border-zinc-300 text-violet-600 focus:ring-violet-600" />
                           <span className="text-[11px] text-zinc-700 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
                         </label>
                       ))}
@@ -628,15 +621,13 @@ export default function HoldCandidatesPage() {
                 checkedIds={checkedIds}
                 onToggleCheck={toggleCheck}
                 onToggleAll={toggleAll}
-                visibleColumns={visibleColumns}
-              />
+                visibleColumns={visibleColumns} />
             )}
 
             <TableFooter
               pageSize={pageSize} setPageSize={setPageSize}
               page={page} setPage={setPage}
-              totalEntries={filtered.length}
-            />
+              totalEntries={filtered.length} />
           </div>
         </CardContent>
       </Card>
