@@ -442,7 +442,6 @@ export default function HoldCandidatesPage() {
     reason !== 'All Reasons',
   ].filter(Boolean).length;
 
-
   const handleClear = () => {
     setSearch('');
     setDepartment('All Departments');

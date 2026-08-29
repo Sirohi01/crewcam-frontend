@@ -1,33 +1,5 @@
 import React from 'react';
-import {
-  Eye,
-  Edit3,
-  User,
-  Users,
-  Landmark,
-  GraduationCap,
-  Briefcase,
-  FileText,
-  Activity,
-  Box,
-  ShieldAlert,
-  PlusCircle,
-  Mail,
-  Phone,
-  Calendar,
-  MapPin,
-  CheckCircle2,
-  Copy,
-  Info,
-  Plus,
-  Pencil,
-  Trash2,
-  Download,
-  ShieldCheck,
-  Clock,
-  UploadCloud,
-  FileDigit
-} from 'lucide-react';
+import { Eye, Edit3, User, Users, Landmark, GraduationCap, Briefcase, FileText, Activity, Box, ShieldAlert, PlusCircle, Mail, Phone, Calendar, MapPin, CheckCircle2, Copy, Info, Plus, Pencil, Trash2, Download, ShieldCheck, Clock, UploadCloud, FileDigit } from 'lucide-react';
 import Link from 'next/link';
 
 const employee = {
@@ -123,9 +95,8 @@ export default function BankDetailsPage() {
             <Link key={tab.name} href={tab.href}>
               <div className="relative flex flex-col items-center cursor-pointer">
                 <button
-                  className={`flex items-center gap-2 px-2 pb-3 text-[10px] font-medium whitespace-nowrap transition-colors ${
-                    tab.active ? 'text-[#1d4ed8]' : 'text-zinc-500 hover:text-zinc-800'
-                  }`}
+                  className={`flex items-center gap-2 px-2 pb-3 text-[10px] font-medium whitespace-nowrap transition-colors ${tab.active ? 'text-[#1d4ed8]' : 'text-zinc-500 hover:text-zinc-800'
+                    }`}
                 >
                   <tab.icon size={12} />
                   {tab.name}
@@ -338,11 +309,10 @@ export default function BankDetailsPage() {
                           <td className="py-1.5 text-zinc-600">{acc.ifsc}</td>
                           <td className="py-1.5 text-zinc-600">{acc.holder}</td>
                           <td className="py-1.5 text-center">
-                            <span className={`inline-flex rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold border ${
-                              acc.status === 'Active'
+                            <span className={`inline-flex rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold border ${acc.status === 'Active'
                                 ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
                                 : 'bg-zinc-100 text-zinc-500 border-zinc-200'
-                            }`}>
+                              }`}>
                               {acc.status}
                             </span>
                           </td>

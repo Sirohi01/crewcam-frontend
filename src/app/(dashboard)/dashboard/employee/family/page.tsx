@@ -1,37 +1,5 @@
 import React from 'react';
-import {
-  Eye,
-  Edit3,
-  User,
-  Users,
-  Landmark,
-  GraduationCap,
-  Briefcase,
-  FileText,
-  Activity,
-  Box,
-  HeartPulse,
-  PlusCircle,
-  Mail,
-  Phone,
-  Calendar,
-  MapPin,
-  CheckCircle2,
-  Plus,
-  Pencil,
-  Trash2,
-  Shield,
-  Image as ImageIcon,
-  FileBadge2,
-  CreditCard,
-  FileSymlink,
-  UploadCloud,
-  MoreVertical,
-  ShieldAlert,
-  Contact,
-  FileCheck2,
-  Info
-} from 'lucide-react';
+import { Eye, Edit3, User, Users, Landmark, GraduationCap, Briefcase, FileText, Activity, Box, PlusCircle, Mail, Phone, Calendar, MapPin, CheckCircle2, Plus, Pencil, Trash2, Image as ImageIcon, FileBadge2, CreditCard, UploadCloud, MoreVertical, ShieldAlert, Contact, FileCheck2, } from 'lucide-react';
 import Link from 'next/link';
 
 // Dummy Data matching the screenshot

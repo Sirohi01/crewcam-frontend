@@ -9,6 +9,8 @@ import {
   ChevronLeft, ChevronRight, Calendar,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/axios';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 type ApplicationStatus = 'New' | 'Under Review' | 'Shortlisted' | 'Rejected' | 'Hired';
@@ -35,37 +37,78 @@ interface Application {
   tab: TabKey;
 }
 
-// ─── Mock data ──────────────────────────
-const APPLICATIONS: Application[] = [
-  { id: 'APP-1051', candidateName: 'Rahul Sharma', initials: 'RS', avatarBg: 'bg-blue-100', avatarColor: 'text-blue-600', email: 'rahul.sharma@email.com', phone: '+91 98765 43210', jobTitle: 'Sales Manager', jobId: 'JOB-2026-051', department: 'Sales & Marketing', experience: '7 Years', source: 'Naukri.com', appliedOn: '15 Jun 2026', appliedAgo: '2 days ago', status: 'Under Review', currentStage: 'Resume Screening', currentStageBy: 'Amit Verma', tab: 'underreview' },
-  { id: 'APP-1050', candidateName: 'Priya Singh', initials: 'PS', avatarBg: 'bg-rose-100', avatarColor: 'text-rose-600', email: 'priya.singh@email.com', phone: '+91 91234 56789', jobTitle: 'HR Executive', jobId: 'JOB-2026-050', department: 'Human Resources', experience: '6 Years', source: 'LinkedIn', appliedOn: '14 Jun 2026', appliedAgo: '3 days ago', status: 'Shortlisted', currentStage: 'HR Interview', currentStageBy: 'Pooja Sharma', tab: 'shortlisted' },
-  { id: 'APP-1049', candidateName: 'Amit Patel', initials: 'AP', avatarBg: 'bg-violet-100', avatarColor: 'text-indigo-700', email: 'amit.patel@email.com', phone: '+91 99887 66554', jobTitle: 'Software Developer', jobId: 'JOB-2026-049', department: 'IT Department', experience: '5 Years', source: 'Company Website', appliedOn: '13 Jun 2026', appliedAgo: '4 days ago', status: 'Under Review', currentStage: 'Technical Assessment', currentStageBy: 'Rishav Singh', tab: 'underreview' },
-  { id: 'APP-1048', candidateName: 'Neha Gupta', initials: 'NG', avatarBg: 'bg-amber-100', avatarColor: 'text-amber-600', email: 'neha.gupta@email.com', phone: '+91 90123 45678', jobTitle: 'Digital Marketing Executive', jobId: 'JOB-2026-048', department: 'Marketing', experience: '4 Years', source: 'Indeed', appliedOn: '12 Jun 2026', appliedAgo: '5 days ago', status: 'Shortlisted', currentStage: 'Managerial Interview', currentStageBy: 'Nistha Arora', tab: 'shortlisted' },
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+const AVATAR_PALETTE = [
+  { bg: 'bg-blue-100', color: 'text-blue-600' },
+  { bg: 'bg-rose-100', color: 'text-rose-600' },
+  { bg: 'bg-violet-100', color: 'text-indigo-700' },
+  { bg: 'bg-amber-100', color: 'text-amber-600' },
+  { bg: 'bg-emerald-100', color: 'text-emerald-700' },
+  { bg: 'bg-teal-100', color: 'text-teal-700' },
 ];
 
-const TABS: { key: TabKey; label: string; count: number }[] = [
-  { key: 'all', label: 'All Applications', count: 156 },
-  { key: 'new', label: 'New', count: 24 },
-  { key: 'underreview', label: 'Under Review', count: 48 },
-  { key: 'shortlisted', label: 'Shortlisted', count: 32 },
-  { key: 'rejected', label: 'Rejected', count: 38 },
-  { key: 'hired', label: 'Hired', count: 14 },
-];
+function initials(name: string) {
+  return name.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('');
+}
 
-const SUMMARY = [
-  { key: 'total', label: 'Total Applications', value: 156, sub: 'All time', icon: <Briefcase size={20} />, color: 'text-indigo-700', bg: 'bg-indigo-50' },
-  { key: 'new', label: 'New Applications', value: 24, sub: 'This Week', icon: <FileText size={20} />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  { key: 'underReview', label: 'Under Review', value: 48, sub: '30.77% of total', icon: <Loader2 size={20} />, color: 'text-amber-600', bg: 'bg-amber-50' },
-  { key: 'shortlisted', label: 'Shortlisted', value: 32, sub: '20.51% of total', icon: <CalendarCheck size={20} />, color: 'text-blue-600', bg: 'bg-blue-50' },
-  { key: 'rejected', label: 'Rejected', value: 38, sub: '24.36% of total', icon: <XCircle size={20} />, color: 'text-rose-600', bg: 'bg-rose-50' },
-  { key: 'hired', label: 'Hired', value: 14, sub: '8.97% of total', icon: <Rocket size={20} />, color: 'text-teal-600', bg: 'bg-teal-50' },
-];
+function timeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return 'Today';
+  if (days === 1) return '1 day ago';
+  return `${days} days ago`;
+}
 
-const JOB_OPENINGS = ['All Openings', 'Sales Manager', 'HR Executive', 'Software Developer', 'Digital Marketing Executive', 'UI/UX Designer', 'Business Analyst', 'Customer Support Executive'];
-const DEPARTMENTS = ['All Departments', 'Sales & Marketing', 'Human Resources', 'IT Department', 'Marketing', 'Customer Support'];
-const SOURCES = ['All Sources', 'Naukri.com', 'LinkedIn', 'Indeed', 'Company Website', 'Referral'];
-const EXPERIENCE_LEVELS = ['All Experience', '0 - 2 Years', '2 - 5 Years', '5 - 8 Years'];
+function mapStatus(raw: string): ApplicationStatus {
+  const s = (raw || '').toLowerCase();
+  if (s === 'new' || s === 'applied') return 'New';
+  if (s === 'screening' || s === 'under review' || s === 'underreview') return 'Under Review';
+  if (s === 'shortlisted' || s === 'interviewing') return 'Shortlisted';
+  if (s === 'rejected') return 'Rejected';
+  if (s === 'hired' || s === 'selected' || s === 'offer') return 'Hired';
+  return 'New';
+}
+
+function mapTab(status: ApplicationStatus): TabKey {
+  switch (status) {
+    case 'New': return 'new';
+    case 'Under Review': return 'underreview';
+    case 'Shortlisted': return 'shortlisted';
+    case 'Rejected': return 'rejected';
+    case 'Hired': return 'hired';
+  }
+}
+
+function mapCandidate(c: any, idx: number): Application {
+  const palette = AVATAR_PALETTE[idx % AVATAR_PALETTE.length];
+  const name = `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown';
+  const status = mapStatus(c.status);
+  const appliedDate = c.createdAt || c.appliedAt || Date.now();
+  return {
+    id: c._id || c.id || String(idx),
+    candidateName: name,
+    initials: initials(name),
+    avatarBg: palette.bg,
+    avatarColor: palette.color,
+    email: c.email || 'N/A',
+    phone: c.phone || 'N/A',
+    jobTitle: c.jobRole || c.jobTitle || 'N/A',
+    jobId: c.jobId || c.jobRequisitionId || 'N/A',
+    department: c.department?.name || c.department || 'N/A',
+    experience: c.applicationDetails?.totalExperience ? `${c.applicationDetails.totalExperience} Years` : (c.experience || 'N/A'),
+    source: c.source || 'N/A',
+    appliedOn: new Date(appliedDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+    appliedAgo: timeAgo(appliedDate),
+    status,
+    currentStage: c.currentStage || c.stage || status,
+    currentStageBy: c.currentStageBy || c.assignedTo?.firstName || 'N/A',
+    tab: mapTab(status),
+  };
+}
+
+// ─── Static options ───────────────────────────────────────────────────────────
 const STATUSES = ['All Status', 'New', 'Under Review', 'Shortlisted', 'Rejected', 'Hired'];
+const EXPERIENCE_LEVELS = ['All Experience', '0 - 2 Years', '2 - 5 Years', '5 - 8 Years', '8+ Years'];
 
 const STATUS_STYLES: Record<ApplicationStatus, string> = {
   New: 'bg-blue-50 text-blue-600 border-blue-100',
@@ -103,10 +146,19 @@ function StatusBadge({ status }: { status: ApplicationStatus }) {
 }
 
 // ─── Summary cards ──────────────────────────────────────────────────────────
-function SummaryCards() {
+function SummaryCards({ counts, total }: { counts: Record<string, number>; total: number }) {
+  const summary = [
+    { key: 'total', label: 'Total Applications', value: total, sub: 'All time', icon: <Briefcase size={20} />, color: 'text-indigo-700', bg: 'bg-indigo-50' },
+    { key: 'new', label: 'New Applications', value: counts.new, sub: 'This Week', icon: <FileText size={20} />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { key: 'underreview', label: 'Under Review', value: counts.underreview, sub: total ? `${((counts.underreview / total) * 100).toFixed(2)}% of total` : '0%', icon: <Loader2 size={20} />, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { key: 'shortlisted', label: 'Shortlisted', value: counts.shortlisted, sub: total ? `${((counts.shortlisted / total) * 100).toFixed(2)}% of total` : '0%', icon: <CalendarCheck size={20} />, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { key: 'rejected', label: 'Rejected', value: counts.rejected, sub: total ? `${((counts.rejected / total) * 100).toFixed(2)}% of total` : '0%', icon: <XCircle size={20} />, color: 'text-rose-600', bg: 'bg-rose-50' },
+    { key: 'hired', label: 'Hired', value: counts.hired, sub: total ? `${((counts.hired / total) * 100).toFixed(2)}% of total` : '0%', icon: <Rocket size={20} />, color: 'text-teal-600', bg: 'bg-teal-50' },
+  ];
+
   return (
     <section className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-      {SUMMARY.map((item) => (
+      {summary.map((item) => (
         <Card key={item.key} className="border-zinc-200/80 shadow-sm">
           <CardContent className="flex items-center gap-3 p-3.5">
             <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${item.bg} ${item.color}`}>
@@ -128,7 +180,7 @@ function SummaryCards() {
 function FiltersBar({
   search, onSearch, jobOpening, setJobOpening, department, setDepartment,
   source, setSource, experience, setExperience, status, setStatus,
-  dateRange, onClear,
+  dateRange, onClear, jobOpeningsList, departmentsList, sourcesList,
 }: {
   search: string; onSearch: (v: string) => void;
   jobOpening: string; setJobOpening: (v: string) => void;
@@ -137,6 +189,7 @@ function FiltersBar({
   experience: string; setExperience: (v: string) => void;
   status: string; setStatus: (v: string) => void;
   dateRange: string; onClear: () => void;
+  jobOpeningsList: string[]; departmentsList: string[]; sourcesList: string[];
 }) {
   return (
     <Card className="border-zinc-200/80 shadow-sm">
@@ -147,11 +200,11 @@ function FiltersBar({
               value={search}
               onChange={(e) => onSearch(e.target.value)}
               placeholder="Search by candidate name, email, phone or job title..."
-              className="w-full rounded-lg border border-zinc-200 bg-white pl-3.5 pr-9 py-2 text-[12px] text-zinc-700 placeholder:text-zinc-400 shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"/>
+              className="w-full rounded-lg border border-zinc-200 bg-white pl-3.5 pr-9 py-2 text-[12px] text-zinc-700 placeholder:text-zinc-400 shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors" />
             <Search size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
           </div>
           <button className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors">
-            <SlidersHorizontal size={13} className="text-indigo-700" />
+            <SlidersHorizontal size={13} />
             Filters
           </button>
           <button
@@ -163,9 +216,9 @@ function FiltersBar({
         </div>
 
         <div className="flex flex-wrap gap-2.5">
-          <FilterSelect label="Job Opening" value={jobOpening} options={JOB_OPENINGS} onChange={setJobOpening} />
-          <FilterSelect label="Department" value={department} options={DEPARTMENTS} onChange={setDepartment} />
-          <FilterSelect label="Application Source" value={source} options={SOURCES} onChange={setSource} />
+          <FilterSelect label="Job Opening" value={jobOpening} options={['All Openings', ...jobOpeningsList]} onChange={setJobOpening} />
+          <FilterSelect label="Department" value={department} options={['All Departments', ...departmentsList]} onChange={setDepartment} />
+          <FilterSelect label="Application Source" value={source} options={['All Sources', ...sourcesList]} onChange={setSource} />
           <FilterSelect label="Experience" value={experience} options={EXPERIENCE_LEVELS} onChange={setExperience} />
           <FilterSelect label="Application Status" value={status} options={STATUSES} onChange={setStatus} />
           <div className="flex flex-col gap-1 min-w-[180px] flex-1 basis-[180px]">
@@ -185,15 +238,28 @@ function FiltersBar({
 }
 
 // ─── Tabs ───────────────────────────────────────────────────────────────────
-function TabsBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) => void; }) {
+function TabsBar({ active, onChange, counts, total }: {
+  active: TabKey;
+  onChange: (t: TabKey) => void;
+  counts: Record<string, number>;
+  total: number;
+}) {
+  const tabs = [
+    { key: 'all' as TabKey, label: 'All Applications', count: total },
+    { key: 'new' as TabKey, label: 'New', count: counts.new },
+    { key: 'underreview' as TabKey, label: 'Under Review', count: counts.underreview },
+    { key: 'shortlisted' as TabKey, label: 'Shortlisted', count: counts.shortlisted },
+    { key: 'rejected' as TabKey, label: 'Rejected', count: counts.rejected },
+    { key: 'hired' as TabKey, label: 'Hired', count: counts.hired },
+  ];
+
   return (
     <div className="flex flex-wrap items-center gap-1 border-b border-zinc-100 px-1">
-      {TABS.map((tab) => (
+      {tabs.map((tab) => (
         <button
           key={tab.key}
           onClick={() => onChange(tab.key)}
-          className={`relative px-3 py-2.5 text-[12.5px] font-semibold whitespace-nowrap transition-colors ${active === tab.key ? 'text-violet-700' : 'text-zinc-500 hover:text-zinc-700'
-            }`}>
+          className={`relative px-3 py-2.5 text-[12.5px] font-semibold whitespace-nowrap transition-colors ${active === tab.key ? 'text-violet-700' : 'text-zinc-500 hover:text-zinc-700'}`}>
           {tab.label} <span className={active === tab.key ? 'text-violet-400' : 'text-zinc-400'}>({tab.count})</span>
           {active === tab.key && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-indigo-700 rounded-full" />}
         </button>
@@ -203,35 +269,40 @@ function TabsBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) =
 }
 
 // ─── Table ──────────────────────────────────────────────────────────────────
-function ApplicationsTable({ rows }: { rows: Application[] }) {
+function ApplicationsTable({ rows, visibleCols }: { rows: Application[], visibleCols: Record<string, boolean> }) {
   return (
     <div className="w-full overflow-hidden">
       <table className="w-full table-fixed border-collapse">
         <colgroup>
           <col className="w-[19%]" />
-          <col className="hidden md:table-column md:w-[15%]" />
-          <col className="hidden lg:table-column lg:w-[11%]" />
-          <col className="hidden sm:table-column sm:w-[8%]" />
-          <col className="hidden md:table-column md:w-[10%]" />
-          <col className="hidden sm:table-column sm:w-[10%]" />
-          <col className="w-[10%]" />
-          <col className="w-[13%]" />
+          {visibleCols.jobTitle && <col className="hidden md:table-column md:w-[15%]" />}
+          {visibleCols.department && <col className="hidden lg:table-column lg:w-[11%]" />}
+          {visibleCols.experience && <col className="hidden sm:table-column sm:w-[8%]" />}
+          {visibleCols.source && <col className="hidden md:table-column md:w-[10%]" />}
+          {visibleCols.appliedOn && <col className="hidden sm:table-column sm:w-[10%]" />}
+          {visibleCols.status && <col className="w-[10%]" />}
+          {visibleCols.currentStage && <col className="w-[13%]" />}
           <col className="w-[84px]" />
         </colgroup>
         <thead>
           <tr className="border-b border-zinc-100 text-left text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
             <th className="py-2.5 pr-3">Candidate</th>
-            <th className="hidden md:table-cell py-2.5 pr-3">Job Opening</th>
-            <th className="hidden lg:table-cell py-2.5 pr-3">Department</th>
-            <th className="hidden sm:table-cell py-2.5 pr-3">Experience</th>
-            <th className="hidden md:table-cell py-2.5 pr-3">Source</th>
-            <th className="hidden sm:table-cell py-2.5 pr-3">Applied On</th>
-            <th className="py-2.5 pr-3">Status</th>
-            <th className="py-2.5 pr-3">Current Stage</th>
+            {visibleCols.jobTitle && <th className="hidden md:table-cell py-2.5 pr-3">Job Opening</th>}
+            {visibleCols.department && <th className="hidden lg:table-cell py-2.5 pr-3">Department</th>}
+            {visibleCols.experience && <th className="hidden sm:table-cell py-2.5 pr-3">Experience</th>}
+            {visibleCols.source && <th className="hidden md:table-cell py-2.5 pr-3">Source</th>}
+            {visibleCols.appliedOn && <th className="hidden sm:table-cell py-2.5 pr-3">Applied On</th>}
+            {visibleCols.status && <th className="py-2.5 pr-3">Status</th>}
+            {visibleCols.currentStage && <th className="py-2.5 pr-3">Current Stage</th>}
             <th className="py-2.5 pr-1 text-right">Actions</th>
           </tr>
         </thead>
         <tbody>
+          {rows.length === 0 && (
+            <tr>
+              <td colSpan={9} className="py-10 text-center text-[12px] text-zinc-400">No applications found.</td>
+            </tr>
+          )}
           {rows.map((a) => (
             <tr key={a.id} className="border-b border-zinc-50 hover:bg-zinc-50/70 transition-colors">
               <td className="py-2.5 pr-3">
@@ -246,22 +317,28 @@ function ApplicationsTable({ rows }: { rows: Application[] }) {
                   </div>
                 </div>
               </td>
-              <td className="hidden md:table-cell py-2.5 pr-3">
-                <p className="text-[12px] font-medium text-zinc-700 leading-tight truncate">{a.jobTitle}</p>
-                <p className="text-[10px] text-zinc-400 leading-tight truncate">{a.jobId}</p>
-              </td>
-              <td className="hidden lg:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 truncate">{a.department}</td>
-              <td className="hidden sm:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 whitespace-nowrap">{a.experience}</td>
-              <td className="hidden md:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 truncate">{a.source}</td>
-              <td className="hidden sm:table-cell py-2.5 pr-3">
-                <p className="text-[12px] text-zinc-700 leading-tight whitespace-nowrap">{a.appliedOn}</p>
-                <p className="text-[10px] text-zinc-400 leading-tight">{a.appliedAgo}</p>
-              </td>
-              <td className="py-2.5 pr-3"><StatusBadge status={a.status} /></td>
-              <td className="py-2.5 pr-3">
-                <p className="text-[12px] font-medium text-zinc-700 leading-tight truncate">{a.currentStage}</p>
-                <p className="text-[10px] text-zinc-400 leading-tight truncate">by {a.currentStageBy}</p>
-              </td>
+              {visibleCols.jobTitle && (
+                <td className="hidden md:table-cell py-2.5 pr-3">
+                  <p className="text-[12px] font-medium text-zinc-700 leading-tight truncate">{a.jobTitle}</p>
+                  <p className="text-[10px] text-zinc-400 leading-tight truncate">{a.jobId}</p>
+                </td>
+              )}
+              {visibleCols.department && <td className="hidden lg:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 truncate">{a.department}</td>}
+              {visibleCols.experience && <td className="hidden sm:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 whitespace-nowrap">{a.experience}</td>}
+              {visibleCols.source && <td className="hidden md:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 truncate">{a.source}</td>}
+              {visibleCols.appliedOn && (
+                <td className="hidden sm:table-cell py-2.5 pr-3">
+                  <p className="text-[12px] text-zinc-700 leading-tight whitespace-nowrap">{a.appliedOn}</p>
+                  <p className="text-[10px] text-zinc-400 leading-tight">{a.appliedAgo}</p>
+                </td>
+              )}
+              {visibleCols.status && <td className="py-2.5 pr-3"><StatusBadge status={a.status} /></td>}
+              {visibleCols.currentStage && (
+                <td className="py-2.5 pr-3">
+                  <p className="text-[12px] font-medium text-zinc-700 leading-tight truncate">{a.currentStage}</p>
+                  <p className="text-[10px] text-zinc-400 leading-tight truncate">by {a.currentStageBy}</p>
+                </td>
+              )}
               <td className="py-2.5 pr-1">
                 <div className="flex items-center justify-end gap-1">
                   <Link href={`/dashboard/hiring/candidates/${a.id}`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
@@ -294,10 +371,7 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-100 px-1 pt-3">
-      <div className="flex items-center gap-2 text-[12px] text-zinc-500">
-        <span>Showing {start} to {end} of {totalEntries} entries</span>
-      </div>
-
+      <span className="text-[12px] text-zinc-500">Showing {start} to {end} of {totalEntries} entries</span>
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 text-[12px] text-zinc-500">
           <span>Show</span>
@@ -311,27 +385,20 @@ function TableFooter({ pageSize, setPageSize, page, setPage, totalEntries }: {
             <ChevronDown size={12} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400" />
           </div>
         </div>
-
         <div className="flex items-center gap-1">
-          <button
-            onClick={() => setPage(Math.max(1, page - 1))}
-            disabled={page === 1}
-            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors">
+          <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1}
+            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 disabled:opacity-40 transition-colors">
             <ChevronLeft size={13} />
           </button>
           {pages.map((p) => (
-            <button
-              key={p}
-              onClick={() => setPage(p)}
+            <button key={p} onClick={() => setPage(p)}
               className={`h-7 w-7 rounded-md text-[12px] font-semibold transition-colors ${p === page ? 'bg-indigo-700 text-white' : 'border border-zinc-200 text-zinc-600 hover:border-indigo-200 hover:text-indigo-700'}`}>
               {p}
             </button>
           ))}
           {totalPages > 6 && <span className="px-1 text-zinc-400 text-[12px]">…</span>}
-          <button
-            onClick={() => setPage(Math.min(totalPages, page + 1))}
-            disabled={page === totalPages}
-            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-colors">
+          <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages}
+            className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 disabled:opacity-40 transition-colors">
             <ChevronRight size={13} />
           </button>
         </div>
@@ -350,16 +417,13 @@ function PageHeader() {
       </div>
       <div className="flex items-center gap-2">
         <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
-          <Download size={14} />
-          Export
+          <Download size={14} /> Export
         </button>
         <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:border-indigo-200 transition-colors">
-          <BarChart3 size={14} />
-          Analytics
+          <BarChart3 size={14} /> Analytics
         </button>
         <button className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-700 px-4 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-800 transition-colors">
-          <Plus size={14} />
-          Add Application
+          <Plus size={14} /> Add Application
         </button>
       </div>
     </section>
@@ -377,9 +441,57 @@ export default function JobApplicationsPage() {
   const [activeTab, setActiveTab] = useState<TabKey>('all');
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
+  const [showColumnsMenu, setShowColumnsMenu] = useState(false);
+  const [visibleColumns, setVisibleColumns] = useState({
+    jobTitle: true,
+    department: true,
+    experience: true,
+    source: true,
+    appliedOn: true,
+    status: true,
+    currentStage: true,
+  });
 
   const dateRange = '01 May 2026 - 15 Jun 2026';
-  const tabCount = TABS.find((t) => t.key === activeTab)?.count ?? 0;
+
+  // ── Fetch all candidates from API ──
+  const { data: candidatesResponse, isLoading } = useQuery({
+    queryKey: ['job-applications'],
+    queryFn: async () => {
+      const res = await api.get('/hiring/candidates');
+      return res.data;
+    },
+  });
+
+  // ── Map raw API data to Application objects ──
+  const allApplications: Application[] = useMemo(() => {
+    const raw = Array.isArray(candidatesResponse)
+      ? candidatesResponse
+      : (candidatesResponse?.data || []);
+    return raw.map((c: any, idx: number) => mapCandidate(c, idx));
+  }, [candidatesResponse]);
+
+  // ── Dynamic filter option lists from real data ──
+  const jobOpeningsList = useMemo(() =>
+    [...new Set(allApplications.map((a) => a.jobTitle).filter((v) => v && v !== 'N/A'))],
+    [allApplications]);
+
+  const departmentsList = useMemo(() =>
+    [...new Set(allApplications.map((a) => a.department).filter((v) => v && v !== 'N/A'))],
+    [allApplications]);
+
+  const sourcesList = useMemo(() =>
+    [...new Set(allApplications.map((a) => a.source).filter((v) => v && v !== 'N/A'))],
+    [allApplications]);
+
+  // ── Per-tab counts from full dataset (not filtered) ──
+  const counts = useMemo(() => ({
+    new: allApplications.filter((a) => a.tab === 'new').length,
+    underreview: allApplications.filter((a) => a.tab === 'underreview').length,
+    shortlisted: allApplications.filter((a) => a.tab === 'shortlisted').length,
+    rejected: allApplications.filter((a) => a.tab === 'rejected').length,
+    hired: allApplications.filter((a) => a.tab === 'hired').length,
+  }), [allApplications]);
 
   const handleClear = () => {
     setSearch('');
@@ -390,70 +502,123 @@ export default function JobApplicationsPage() {
     setStatus('All Status');
   };
 
+  // ── Apply tab + search + filter on top of real data ──
   const filtered = useMemo(() => {
-    return APPLICATIONS.filter((a) => {
+    return allApplications.filter((a) => {
       if (activeTab !== 'all' && a.tab !== activeTab) return false;
       const matchesSearch = search.trim() === '' ||
-        [a.candidateName, a.email, a.phone, a.jobTitle].some((f) => f.toLowerCase().includes(search.toLowerCase()));
+        [a.candidateName, a.email, a.phone, a.jobTitle].some((f) =>
+          f.toLowerCase().includes(search.toLowerCase())
+        );
       const matchesJobOpening = jobOpening === 'All Openings' || a.jobTitle === jobOpening;
       const matchesDept = department === 'All Departments' || a.department === department;
       const matchesSource = source === 'All Sources' || a.source === source;
-      const matchesExperience = experience === 'All Experience' || a.experience === experience;
       const matchesStatus = status === 'All Status' || a.status === status;
-      return matchesSearch && matchesJobOpening && matchesDept && matchesSource && matchesExperience && matchesStatus;
+      return matchesSearch && matchesJobOpening && matchesDept && matchesSource && matchesStatus;
     });
-  }, [activeTab, search, jobOpening, department, source, experience, status]);
+  }, [allApplications, activeTab, search, jobOpening, department, source, status]);
+
+  // ── Active tab label for section heading ──
+  const activeTabLabel = useMemo(() => {
+    const labels: Record<TabKey, string> = {
+      all: 'All Applications',
+      new: 'New',
+      underreview: 'Under Review',
+      shortlisted: 'Shortlisted',
+      rejected: 'Rejected',
+      hired: 'Hired',
+    };
+    return labels[activeTab];
+  }, [activeTab]);
 
   return (
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       <PageHeader />
-      <SummaryCards />
-      <FiltersBar
-        search={search} onSearch={setSearch}
-        jobOpening={jobOpening} setJobOpening={setJobOpening}
-        department={department} setDepartment={setDepartment}
-        source={source} setSource={setSource}
-        experience={experience} setExperience={setExperience}
-        status={status} setStatus={setStatus}
-        dateRange={dateRange}
-        onClear={handleClear}/>
 
-      <Card className="border-zinc-200/80 shadow-sm">
-        <CardContent className="p-0">
-          <TabsBar active={activeTab} onChange={(t) => { setActiveTab(t); setPage(1); }} />
-          <div className="p-3.5">
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-              <h3 className="text-[13px] font-semibold text-zinc-900">
-                {TABS.find((t) => t.key === activeTab)?.label} ({tabCount})
-              </h3>
-              <div className="flex items-center gap-2">
-                <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-indigo-200 transition-colors">
-                  <Columns3 size={13} />
-                  Columns
-                </button>
-                <div className="relative">
-                  <select
-                    defaultValue="Applied Date (Newest)"
-                    className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-7 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-indigo-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors cursor-pointer">
-                    <option>Applied Date (Newest)</option>
-                    <option>Applied Date (Oldest)</option>
-                    <option>Experience (High to Low)</option>
-                    <option>Candidate Name (A-Z)</option>
-                  </select>
-                  <ChevronDown size={12} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400" />
+      {isLoading ? (
+        <div className="flex justify-center py-10">
+          <Loader2 className="animate-spin text-indigo-600" size={24} />
+        </div>
+      ) : (
+        <>
+          <SummaryCards counts={counts} total={allApplications.length} />
+
+          <FiltersBar
+            search={search} onSearch={setSearch}
+            jobOpening={jobOpening} setJobOpening={setJobOpening}
+            department={department} setDepartment={setDepartment}
+            source={source} setSource={setSource}
+            experience={experience} setExperience={setExperience}
+            status={status} setStatus={setStatus}
+            dateRange={dateRange}
+            onClear={handleClear}
+            jobOpeningsList={jobOpeningsList}
+            departmentsList={departmentsList}
+            sourcesList={sourcesList}
+          />
+
+          <Card className="border-zinc-200/80 shadow-sm">
+            <CardContent className="p-0">
+              <TabsBar
+                active={activeTab}
+                onChange={(t) => { setActiveTab(t); setPage(1); }}
+                counts={counts}
+                total={allApplications.length}
+              />
+              <div className="p-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <h3 className="text-[13px] font-semibold text-zinc-900">
+                    {activeTabLabel} ({filtered.length})
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <button 
+                        onClick={() => setShowColumnsMenu(!showColumnsMenu)}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-indigo-200 transition-colors">
+                        <Columns3 size={13} /> Columns
+                      </button>
+                      {showColumnsMenu && (
+                        <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-zinc-200 rounded-lg shadow-lg z-50 p-2">
+                          <div className="text-[10px] font-bold text-zinc-500 mb-2 px-1">Toggle Columns</div>
+                          {Object.entries(visibleColumns).map(([key, isVisible]) => (
+                            <label key={key} className="flex items-center gap-2 px-2 py-1.5 hover:bg-zinc-50 rounded cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={isVisible as boolean}
+                                onChange={() => setVisibleColumns(prev => ({ ...prev, [key]: !prev[key as keyof typeof visibleColumns] }))}
+                                className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" />
+                              <span className="text-[11px] text-zinc-700 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <select
+                        defaultValue="Applied Date (Newest)"
+                        className="appearance-none rounded-lg border border-zinc-200 bg-white pl-2.5 pr-7 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-indigo-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors cursor-pointer">
+                        <option>Applied Date (Newest)</option>
+                        <option>Applied Date (Oldest)</option>
+                        <option>Experience (High to Low)</option>
+                        <option>Candidate Name (A-Z)</option>
+                      </select>
+                      <ChevronDown size={12} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400" />
+                    </div>
+                  </div>
                 </div>
+
+                <ApplicationsTable rows={filtered.slice((page - 1) * pageSize, page * pageSize)} visibleCols={visibleColumns} />
+
+                <TableFooter
+                  pageSize={pageSize} setPageSize={setPageSize}
+                  page={page} setPage={setPage}
+                  totalEntries={filtered.length}
+                />
               </div>
-            </div>
-
-            <ApplicationsTable rows={filtered.slice((page - 1) * pageSize, page * pageSize)} />
-
-            <TableFooter
-              pageSize={pageSize} setPageSize={setPageSize}
-              page={page} setPage={setPage}
-              totalEntries={filtered.length}/>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }
