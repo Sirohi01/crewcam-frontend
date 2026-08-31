@@ -572,7 +572,7 @@ export default function JobApplicationsPage() {
                   </h3>
                   <div className="flex items-center gap-2">
                     <div className="relative">
-                      <button 
+                      <button
                         onClick={() => setShowColumnsMenu(!showColumnsMenu)}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-indigo-200 transition-colors">
                         <Columns3 size={13} /> Columns
