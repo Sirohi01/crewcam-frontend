@@ -146,6 +146,11 @@ export default function InterviewUI() {
       setActiveTab('AI Questions');
       setIsAiConnected(false);
       setHasStarted(false);
+      
+      let completedRounds = JSON.parse(localStorage.getItem('ai_completed_rounds') || '[]');
+      if (!completedRounds.includes(2)) completedRounds.push(2);
+      localStorage.setItem('ai_completed_rounds', JSON.stringify(completedRounds));
+
       toast.success('Interview Completed!');
       window.open(`/dashboard/hiring/candidates/new/create/round-3/${candidateId}`, '_blank');
     } catch (e) {

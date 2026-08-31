@@ -176,9 +176,17 @@ function PageHeader({ candidateId }: { candidateId: string }) {
           <button onClick={() => router.push(`/dashboard/hiring/candidates/new/create/round-4/${candidateId}`)} className="flex items-center justify-center h-8 px-3 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
             <ArrowLeft className="w-3 h-3 mr-1" /> Back to Round 4
           </button>
-          <button onClick={() => {
-            router.push('/dashboard/hiring/steps/ctc-breakup');
-            toast.success("Proceeding to CTC Breakup stage");
+          <button onClick={async () => {
+            try {
+              let completedRounds = JSON.parse(localStorage.getItem('ai_completed_rounds') || '[]');
+              if (!completedRounds.includes(5)) completedRounds.push(5);
+              localStorage.setItem('ai_completed_rounds', JSON.stringify(completedRounds));
+              await api.post(`/hiring/candidates/${candidateId}/bypass-interviews`);
+              toast.success("Interview completed! Proceeding to CTC Breakup stage");
+              router.push(`/dashboard/hiring/${candidateId}/steps/ctc-breakup`);
+            } catch (err) {
+              toast.error("Failed to process interview completion.");
+            }
           }} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
             End Exam & Next Step <LogOut className="w-3 h-3 ml-1" />
           </button>
@@ -632,6 +640,41 @@ function BottomActionBar() {
 export default function InterviewRoundPage() {
   const params = useParams();
   const candidateId = params.id as string;
+  const [questions, setQuestions] = useState<Question[]>(QUESTIONS);
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+
+  useEffect(() => {
+    // Simulate AI generation based on available AI credits
+    // In a real scenario, this would call an API checking the tenant's AI credits
+    const fetchAiQuestions = async () => {
+      setIsGeneratingAi(true);
+      try {
+        // Mocking an API call
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Mock logic: randomly decide if credits are available for demo purposes
+        // Or you can fetch it if there is a real endpoint
+        const aiCreditsAvailable = true; // Assume true for demo
+        
+        if (aiCreditsAvailable) {
+          setQuestions([
+            { tag: 'AI Generated - Culture Fit', text: 'Based on your experience, how do you handle remote collaboration?', aiInsight: 'Evaluates adaptability and communication in a distributed team environment.' },
+            { tag: 'AI Generated - HR', text: 'Describe a time when you had to align a difficult stakeholder with your project goals.', aiInsight: 'Assesses negotiation and stakeholder management skills.' },
+            { tag: 'AI Generated - Role Specific', text: 'What are the core metrics you track to ensure team success?', aiInsight: 'Checks for data-driven decision making.' }
+          ]);
+        } else {
+          setQuestions(QUESTIONS); // Fallback to static
+        }
+      } catch (e) {
+        setQuestions(QUESTIONS);
+      } finally {
+        setIsGeneratingAi(false);
+      }
+    };
+    
+    fetchAiQuestions();
+  }, []);
+
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabKey>('Interview');
   const [questionIndex, setQuestionIndex] = useState(1);
@@ -731,18 +774,18 @@ export default function InterviewRoundPage() {
                       remainingSeconds={remainingSeconds}
                       totalSeconds={totalSeconds}
                       answered={answeredCount}
-                      total={QUESTIONS.length + 4}
+                      total={questions.length + 4}
                     />
                   </div>
                   <div className="lg:col-span-6 min-w-0 overflow-hidden">
                     <QuestionPanel
                       index={questionIndex}
-                      total={QUESTIONS.length + 4}
-                      question={QUESTIONS[questionIndex] ?? QUESTIONS[QUESTIONS.length - 1]}
+                      total={questions.length + 4}
+                      question={questions[questionIndex] ?? questions[questions.length - 1]}
                       answer={answers[questionIndex] ?? ''}
                       onAnswerChange={handleAnswerChange}
                       onPrev={() => setQuestionIndex((i) => Math.max(0, i - 1))}
-                      onNext={() => setQuestionIndex((i) => Math.min(QUESTIONS.length - 1, i + 1))}
+                      onNext={() => setQuestionIndex((i) => Math.min(questions.length - 1, i + 1))}
                     />
                   </div>
                   <div className="lg:col-span-3 min-w-0 overflow-hidden">

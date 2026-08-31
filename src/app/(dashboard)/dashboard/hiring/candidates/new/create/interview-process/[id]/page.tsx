@@ -98,16 +98,49 @@ function Card({
 }
 
 export default function InterviewProcessPage() {
+  const router = useRouter();
+  const params = useParams();
+  const candidateId = params.id as string;
+  const [activeTab, setActiveTab] = useState('Interview Rounds');
   const [roundTab, setRoundTab] = useState<'questions' | 'transcript'>('questions');
   const [openQ, setOpenQ] = useState<number>(1);
   const [candidate, setCandidate] = useState<any>(null);
+  const [completedRounds, setCompletedRounds] = useState<number[]>([]);
+
+  React.useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('ai_completed_rounds') || '[]');
+      setCompletedRounds(stored);
+    } catch (e) { }
+  }, []);
+
+  const dynamicRounds = rounds(candidateId).map((r, idx) => {
+    const isCompleted = completedRounds.includes(idx + 1);
+    const isCurrent = !isCompleted && (idx === 0 || completedRounds.includes(idx));
+    return {
+      ...r,
+      status: isCompleted ? 'Completed' : isCurrent ? 'In Progress' : 'Pending',
+      badge: isCompleted ? 'COMPLETED' : isCurrent ? 'Current Round' : 'UPCOMING'
+    };
+  });
+
+  const dynamicTimeline = timeline.map((item, idx) => {
+    if (idx >= 3 && idx <= 7) {
+      const roundNum = idx - 2;
+      const isCompleted = completedRounds.includes(roundNum);
+      const isCurrent = !isCompleted && (roundNum === 1 || completedRounds.includes(roundNum - 1));
+      return {
+        ...item,
+        state: isCompleted ? 'done' : isCurrent ? 'current' : 'pending',
+        detail: isCompleted ? 'Completed' : isCurrent ? 'In Progress' : 'Pending'
+      };
+    }
+    return item;
+  });
 
   const [timeLeft, setTimeLeft] = useState(30 * 60);
   const [isInterviewEnded, setIsInterviewEnded] = useState(false);
 
-  const params = useParams() as { id: string };
-  const candidateId = params?.id;
-  const router = useRouter();
 
   React.useEffect(() => {
     if (timeLeft > 0 && !isInterviewEnded) {
@@ -148,11 +181,11 @@ export default function InterviewProcessPage() {
             if (match) cId = match._id;
             else throw new Error("Candidate not found");
           }
-          
+
           const res = await api.get(`/hiring/candidates/${cId}`);
           const data = res.data;
           const appDetails = data.applicationDetails || {};
-          
+
           setCandidate({
             fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
             email: data.email || '',
@@ -401,20 +434,18 @@ export default function InterviewProcessPage() {
 
             <Card title="Interview Timeline">
               <div className="space-y-0">
-                {timeline.map((t, i) => (
+                {dynamicTimeline.map((t, i) => (
                   <div key={t.title} className="relative flex gap-2 pb-2 last:pb-0">
-                    {i < timeline.length - 1 && <span className="absolute left-[7px] top-4 h-full w-px bg-zinc-200" />}
+                    {i < dynamicTimeline.length - 1 && <span className="absolute left-[7px] top-4 h-full w-px bg-zinc-200" />}
                     <span className={`relative z-10 mt-0.5 grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full ${t.state === 'done' ? 'bg-emerald-500 text-white'
                       : t.state === 'current' ? 'border-2 border-indigo-600 bg-white'
                         : 'border border-zinc-200 bg-white'
-                      }`}
-                    >
-                      {t.state === 'done' && <CheckCircle2 size={11} />}
-                      {t.state === 'current' && <Circle size={7} className="fill-indigo-600 text-indigo-600" />}
+                      }`}>
+                      {t.state === 'done' && <Check size={8} strokeWidth={4} />}
                     </span>
-                    <div className="min-w-0 flex-1">
-                      <p className={`text-[10.5px] font-semibold ${t.state === 'pending' ? 'text-zinc-400' : 'text-zinc-800'}`}>{t.title}</p>
-                      <p className="truncate text-[9.5px] text-zinc-400">{t.detail}</p>
+                    <div className="flex-1">
+                      <p className={`text-[11px] font-bold ${t.state === 'done' || t.state === 'current' ? 'text-zinc-800' : 'text-zinc-400'}`}>{t.title}</p>
+                      <p className="text-[9.5px] text-zinc-500">{t.detail}</p>
                     </div>
                   </div>
                 ))}

@@ -278,13 +278,13 @@ export default function InterviewWorkspace({ view }: { view: View }) {
                   return (
                     <tr key={item._id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-4 py-2 border-r border-slate-100">
-                        <div className="flex items-center gap-2.5">
+                        <Link href={`/dashboard/hiring/candidates/${candidate._id}`} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
                           <Avatar name={candidateName(candidate)} src={candidate.profileImageUrl} />
                           <div>
-                            <p className="font-semibold text-slate-800 leading-tight">{candidateName(candidate)}</p>
+                            <p className="font-semibold text-[#0d3c68] hover:underline leading-tight">{candidateName(candidate)}</p>
                             <p className="text-[11px] text-slate-500 leading-tight">{candidate.email}</p>
                           </div>
-                        </div>
+                        </Link>
                       </td>
                       <td className="px-4 py-2 border-r border-slate-100 text-slate-600">
                         <span className="inline-flex items-center gap-1.5"><Briefcase size={12} className="text-slate-400" /> {candidate.jobRole || '-'}</span>

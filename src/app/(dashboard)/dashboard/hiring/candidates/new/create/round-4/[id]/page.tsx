@@ -258,7 +258,13 @@ export default function AssessmentRoundPage() {
           <Link href="/dashboard/hiring/candidates" className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
             <ArrowLeft size={13} /> Back to Applications
           </Link>
-          <button type="button" onClick={() => router.push(`/dashboard/hiring/candidates/new/create/round-5/${candidateId}`)} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700">
+          <button type="button" onClick={() => {
+            let completedRounds = JSON.parse(localStorage.getItem('ai_completed_rounds') || '[]');
+            if (!completedRounds.includes(4)) completedRounds.push(4);
+            localStorage.setItem('ai_completed_rounds', JSON.stringify(completedRounds));
+            toast.success('Interview Completed!');
+            router.push(`/dashboard/hiring/candidates/new/create/round-5/${candidateId}`);
+          }} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700">
             End & Next Round
           </button>
         </div>

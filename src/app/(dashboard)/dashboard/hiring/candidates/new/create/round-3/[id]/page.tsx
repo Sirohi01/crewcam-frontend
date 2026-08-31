@@ -152,7 +152,13 @@ export default function InterviewUI() {
           <button onClick={() => router.push(`/dashboard/hiring/candidates/new/create/round-2/${candidateId}`)} className="flex items-center justify-center h-8 px-3 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
             <ArrowLeft className="w-3 h-3 mr-1" /> Back to Round 2
           </button>
-          <button onClick={() => window.open(`/dashboard/hiring/candidates/new/create/round-4/${candidateId}`, '_blank')} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
+          <button onClick={() => {
+            let completedRounds = JSON.parse(localStorage.getItem('ai_completed_rounds') || '[]');
+            if (!completedRounds.includes(3)) completedRounds.push(3);
+            localStorage.setItem('ai_completed_rounds', JSON.stringify(completedRounds));
+            toast.success('Interview Completed!');
+            window.open(`/dashboard/hiring/candidates/new/create/round-4/${candidateId}`, '_blank');
+          }} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
             End & Next Round <StopCircle className="w-3 h-3 ml-1" />
           </button>
         </div>
