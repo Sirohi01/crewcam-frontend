@@ -272,6 +272,12 @@ export default function OfferLetterPage({ candidateId }: { candidateId: string }
                                     <Save className="h-4 w-4" />
                                     Save Step Record
                                 </button>
+                                <button
+                                    onClick={() => window.open(`/dashboard/hiring/${candidateId}/print/offerLetter`, '_blank')}
+                                    className="flex items-center gap-2 px-8 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-all rounded-[4px] tracking-wide"
+                                >
+                                    PRINT
+                                </button>
                             </div>
 
                         </div>

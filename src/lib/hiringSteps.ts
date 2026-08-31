@@ -187,6 +187,11 @@ export const HIRING_STEPS: HiringStepConfig[] = [
       { name: 'joiningDate', label: 'Joining Date', type: 'date' },
       { name: 'validUntil', label: 'Valid Until', type: 'date' },
       { name: 'letterContent', label: 'Letter Content', type: 'textarea', placeholder: 'Dear Candidate, we are pleased to offer you...' },
+    ],
+    postCreateActions: [
+      { label: 'Mark as Sent', method: 'PUT', pathSuffix: '/status', payload: { status: 'Sent' } },
+      { label: 'Mark as Accepted', method: 'PUT', pathSuffix: '/status', payload: { status: 'Accepted' } },
+      { label: 'Mark as Declined', method: 'PUT', pathSuffix: '/status', payload: { status: 'Declined' } }
     ]
   },
   {

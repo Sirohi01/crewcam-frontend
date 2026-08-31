@@ -5,10 +5,9 @@ import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { FileText, Save, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import StepGate from './StepGate';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const empty = () => ({
   department: '',
@@ -35,40 +34,41 @@ const inputClass = "w-full h-7 px-2 bg-white border border-[#cbd5e1] hover:borde
 
 export default function LetterOfIntentForm({ candidateId }: { candidateId: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
   const qc = useQueryClient();
   const [form, setForm] = useState(empty);
   const set = (patch: Partial<ReturnType<typeof empty>>) => setForm(old => ({ ...old, ...patch }));
 
   const { data: candidate } = useQuery<any>({ queryKey: ['candidate', candidateId], queryFn: async () => (await api.get(`/hiring/candidates/${candidateId}`)).data });
-  const { data: pipeline } = useQuery<any>({ queryKey: ['candidate-pipeline', candidateId], queryFn: async () => (await api.get(`/hiring/candidates/${candidateId}/pipeline`)).data });
-  
-  const { data: savedLOIs } = useQuery<any[]>({ 
-    queryKey: ['loi', candidateId], 
-    queryFn: async () => { 
-      const response = await api.get('/hiring/loi', { params: { candidateId } }); 
-      return Array.isArray(response.data) ? response.data : (response.data.data || []); 
-    } 
+
+  const { data: savedLOIs } = useQuery<any[]>({
+    queryKey: ['loi', candidateId],
+    queryFn: async () => {
+      const response = await api.get('/hiring/loi', { params: { candidateId } });
+      return Array.isArray(response.data) ? response.data : (response.data.data || []);
+    }
   });
 
-  const { data: ctcBreakups } = useQuery<any[]>({ 
-    queryKey: ['ctc-breakup', candidateId], 
-    queryFn: async () => { 
-      const response = await api.get('/hiring/ctc-breakup', { params: { candidateId } }); 
-      return Array.isArray(response.data) ? response.data : (response.data.data || []); 
-    } 
+  const { data: ctcBreakups } = useQuery<any[]>({
+    queryKey: ['ctc-breakup', candidateId],
+    queryFn: async () => {
+      const response = await api.get('/hiring/ctc-breakup', { params: { candidateId } });
+      return Array.isArray(response.data) ? response.data : (response.data.data || []);
+    }
   });
 
   const isInitialized = React.useRef(false);
 
   useEffect(() => {
     if (isInitialized.current) return;
-    
-    const saved = savedLOIs?.[0];
+
+    const saved = editId ? savedLOIs?.find(r => r._id === editId) : savedLOIs?.[0];
     const ctc = ctcBreakups?.[0];
-    
-    if (savedLOIs !== undefined || ctcBreakups !== undefined || candidate !== undefined) {
-      if (saved) {
-        // Convert 12-hour AM/PM to 24-hour time input format
+
+    if (savedLOIs === undefined || ctcBreakups === undefined || candidate === undefined) return;
+    if (saved) {
+      // Convert 12-hour AM/PM to 24-hour time input format
       const convertTo24Hour = (time12: string) => {
         if (!time12) return '09:30';
         if (!time12.includes(' ')) return time12; // Already 24h probably
@@ -112,10 +112,7 @@ export default function LetterOfIntentForm({ candidateId }: { candidateId: strin
       }));
     }
     isInitialized.current = true;
-  }
   }, [savedLOIs, ctcBreakups, candidate]);
-
-  const gate = pipeline?.steps?.find((step: any) => step.key === 'loi')?.gate || { unlocked: false, blockedBy: ['ctcBreakup'] };
 
   const save = useMutation({
     mutationFn: async () => {
@@ -128,19 +125,18 @@ export default function LetterOfIntentForm({ candidateId }: { candidateId: strin
         return `${hour12}:${minutes} ${ampm}`;
       };
 
+      const existing = editId ? savedLOIs?.find(r => r._id === editId) : savedLOIs?.[0];
       const payload = {
         candidateId,
-        candidateName: `${candidate?.firstName || ''} ${candidate?.lastName || ''}`.trim(),
         department: form.department,
         position: form.position,
-        joiningDate: form.joiningDate || undefined,
+        joiningDate: form.joiningDate,
         reportingTime: formatTime(form.reportingTime),
         reportingLocation: form.reportingLocation,
         reportingTo: form.reportingTo,
-        status: 'Draft' // Default status for LOI
+        status: existing?.status || 'Draft'
       };
-      
-      const existing = savedLOIs?.[0];
+
       if (existing?._id) {
         return (await api.put(`/hiring/loi/${existing._id}`, payload)).data;
       }
@@ -170,16 +166,10 @@ export default function LetterOfIntentForm({ candidateId }: { candidateId: strin
             <FileText className="h-4 w-4 text-[#0d3c68]" />
             {savedLOIs?.[0] ? 'EDIT LETTER OF INTENT' : 'NEW LETTER OF INTENT'}
           </h2>
-          <StepGate unlocked={gate.unlocked} blockedBy={gate.blockedBy || []} />
         </div>
 
-        {!gate.unlocked ? (
-          <div className="p-6">
-            <StepGate unlocked={false} blockedBy={gate.blockedBy || []} />
-          </div>
-        ) : (
-          <div className="p-2">
-            <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-2">
+        <div className="p-2">
+          <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-2">
               <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
                 <Field title="Candidate Name" required>
                   <input readOnly className={inputClass} value={`${candidate?.firstName || ''} ${candidate?.lastName || ''}`} />
@@ -207,6 +197,13 @@ export default function LetterOfIntentForm({ candidateId }: { candidateId: strin
               <div className="flex justify-end items-center gap-3 pt-2 border-t border-slate-100">
                 <button
                   type="button"
+                  onClick={() => window.open(`/dashboard/hiring/${candidateId}/print/loi`, '_blank')}
+                  className="group flex items-center gap-2 px-6 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-all rounded-[2px]"
+                >
+                  PRINT
+                </button>
+                <button
+                  type="button"
                   onClick={() => setForm(empty())}
                   className="group flex items-center gap-2 px-5 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 transition-all rounded-[2px]"
                 >
@@ -224,7 +221,6 @@ export default function LetterOfIntentForm({ candidateId }: { candidateId: strin
               </div>
             </form>
           </div>
-        )}
       </div>
     </div>
   );

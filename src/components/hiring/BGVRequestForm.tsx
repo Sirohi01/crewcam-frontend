@@ -10,6 +10,7 @@ import { PrintHeader } from '@/components/common/PrintHeader';
 import { DataTable } from '@/components/common/DataTable';
 import { cn } from '@/lib/utils';
 import api from '@/lib/axios';
+import { useSearchParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useMasterDataStore } from '@/store/masterDataStore';
@@ -109,9 +110,11 @@ const INITIAL_FORM_DATA = {
 
 export default function BGVRequestForm({ candidateId }: { candidateId: string }) {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const editIdParam = searchParams.get('edit');
     const location = { state: null as any };
     const queryClient = useQueryClient();
-    
+
     const { departments, designations, employees, isLoading: masterDataLoading, fetchMasterData } = useMasterDataStore();
     const departmentOptions = departments.map(d => ({ value: d.name || '', label: d.name || '' }));
     const designationOptions = designations.map(d => ({ value: d.title || d.name || '', label: d.title || d.name || '' }));
@@ -126,8 +129,11 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
         }
     };
     const currentUsername = getCurrentUsername();
-    const [showForm, setShowForm] = useState(false);
+
     const [activeTab, setActiveTab] = useState<'request' | 'report'>('request');
+    const [showForm, setShowForm] = useState(false);
+    const [editId, setEditId] = useState<string | null>(null);
+    const [hasInitialLoaded, setHasInitialLoaded] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [currentId, setCurrentId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -144,7 +150,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
     const documentChecklistApi = {
         getAll: () => api.get('/hiring/document-checklists').then(res => res.data),
     };
-    
+
     const bgvApi = {
         delete: (id: string) => api.delete(`/hiring/bgv/${id}`).then(res => res.data),
         update: (id: string, data: any) => api.patch(`/hiring/bgv/${id}`, data).then(res => res.data),
@@ -255,7 +261,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                 if (!formData.empCode) {
                     const checklistData = await documentChecklistApi.getAll();
                     const checklistList = Array.isArray(checklistData) ? checklistData : (checklistData?.data || []);
-                    const match = checklistList.find((r: any) => 
+                    const match = checklistList.find((r: any) =>
                         (identifierCode && r.empCode === identifierCode) ||
                         (identifierName && r.candidateName?.toLowerCase() === identifierName)
                     );
@@ -288,9 +294,9 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
 
     const getDesignationsByDepartment = (deptName: string) => {
         if (!deptName) return designations;
-        return designations.filter((d: any) => 
-            d.department === deptName || 
-            d.departmentName === deptName || 
+        return designations.filter((d: any) =>
+            d.department === deptName ||
+            d.departmentName === deptName ||
             d.department?.name === deptName
         );
     };
@@ -405,7 +411,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
             setShowForm(false);
             handleReset();
             fetchRecords();
-        fetchMasterData();
+            fetchMasterData();
         } catch (error: any) {
             toast.error('Error - ' + error.message || 'Failed to save BGV record');
         }
@@ -479,7 +485,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
         try {
             await api.delete(`/hiring/bgv/${id}`);
             fetchRecords();
-        fetchMasterData();
+            fetchMasterData();
         } catch (error: any) {
             toast.error('Error - ' + error.message || 'Failed to delete record');
         }
@@ -490,7 +496,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
             await Promise.all(rows.map(r => bgvApi.delete(r._id)));
             toast.success('Deleted - ' + `${rows.length} record${rows.length > 1 ? 's' : ''} deleted successfully`);
             fetchRecords();
-        fetchMasterData();
+            fetchMasterData();
         } catch (error: any) {
             toast.error('Error - ' + error.message || 'Failed to delete selected records');
         }
@@ -500,7 +506,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
         try {
             await bgvApi.update(id, { status: newStatus });
             fetchRecords();
-        fetchMasterData();
+            fetchMasterData();
         } catch (error: any) {
             toast.error('Error - ' + 'Failed to update status');
         }
@@ -548,17 +554,28 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
         });
     };
 
-    // Calculate paginated data
-            
-    return (
-        <HiringStepLayout candidateId={candidateId} stepId="bgv">
-            <Card className="rounded-md border-zinc-200/80 shadow-sm dark:border-zinc-800 w-full overflow-hidden">
-                <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                    <CardTitle className="text-base uppercase">STEP 8 - BGV REQUEST & REPORT</CardTitle>
-                </CardHeader>
-                <CardContent className="w-full overflow-hidden">
+    useEffect(() => {
+        if (editIdParam && records.length > 0 && !hasInitialLoaded) {
+            const recordToEdit = records.find((r: any) => r._id === editIdParam);
+            if (recordToEdit) {
+                handleEdit(recordToEdit);
+                setEditId(editIdParam);
+                setHasInitialLoaded(true);
+            }
+        }
+    }, [editIdParam, records, hasInitialLoaded]);
 
-            <PrintHeader title="Step 8 - BGV Request Form & Report" subtitle="Background Verification Control" />
+    return (
+        <div className="mx-auto max-w-[1500px] pb-10">
+            <div className="border-b-2 border-[#0d3c68] px-1 pb-2 flex items-center justify-between no-print mb-4">
+                <h1 className="text-xl font-bold text-[#0d3c68] uppercase tracking-tight font-poppins px-1">STEP 8 - BGV REQUEST & REPORT</h1>
+                <div className="flex gap-2">
+                    <button onClick={() => window.open(`/dashboard/hiring/${candidateId}/print/bgv`, '_blank')} className="px-4 py-2 border rounded text-sm hover:bg-slate-50 transition-colors">Print Form</button>
+                    <button onClick={() => router.push(`/dashboard/hiring/${candidateId}`)} className="px-4 py-2 border rounded text-sm hover:bg-slate-50 transition-colors">Back to Pipeline</button>
+                </div>
+            </div>
+
+            {/* <PrintHeader title="Step 8 - BGV Request Form & Report" subtitle="Background Verification Control" /> */}
 
             <div className="section-card shadow-sm border-slate-200 overflow-hidden mb-6">
                 {/* TAB NAVIGATION - ALWAYS VISIBLE TO TOGGLE BETWEEN REQUESTS AND REPORTS */}
@@ -864,6 +881,13 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                                         >
                                             CANCEL
                                         </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => window.open(`/dashboard/hiring/${candidateId}/print/bgv`, '_blank')}
+                                            className="px-6 py-2 text-xs font-bold text-white bg-slate-600 rounded-[2px]"
+                                        >
+                                            PRINT
+                                        </button>
                                         <button type="submit" className="px-8 py-2 text-xs font-bold bg-[#0d3c68] text-white shadow-md rounded-[2px]">SAVE REQUEST</button>
                                     </div>
                                 </div>
@@ -1131,6 +1155,13 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                                         >
                                             CANCEL
                                         </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => window.open(`/dashboard/hiring/${candidateId}/print/bgv`, '_blank')}
+                                            className="px-6 py-2 text-xs font-bold text-white bg-slate-600 rounded-[2px]"
+                                        >
+                                            PRINT
+                                        </button>
                                         <button type="submit" className="px-8 py-2 text-xs font-bold bg-[#0d3c68] text-white shadow-md rounded-[2px]">SAVE REPORT</button>
                                     </div>
                                 </div>
@@ -1141,12 +1172,12 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                     /* DATA TABLE VIEW */
                     <div className="p-0">
                         <DataTable
-              currentPage={currentPage}
-              onPageChange={setCurrentPage}
-              pageSize={itemsPerPage}
-              onPageSizeChange={setItemsPerPage}
-              searchValue={searchQuery}
-              onSearchChange={setSearchQuery}
+                            currentPage={currentPage}
+                            onPageChange={setCurrentPage}
+                            pageSize={itemsPerPage}
+                            onPageSizeChange={setItemsPerPage}
+                            searchValue={searchQuery}
+                            onSearchChange={setSearchQuery}
                             columns={[
                                 {
                                     key: 'sno', label: 'S.No', width: '60px', align: 'center',
@@ -1188,7 +1219,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                                         </div>
                                     ),
                                 },
-{
+                                {
                                     key: 'updatedAt',
                                     label: 'Last Update',
                                     width: '160px',
@@ -1232,12 +1263,9 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                                 color: white !important;
                             }
                         `}</style>
-
                     </div>
                 )}
             </div>
-            </CardContent>
-        </Card>
-    </HiringStepLayout>
+        </div>
     );
 }

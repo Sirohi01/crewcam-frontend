@@ -49,7 +49,7 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
         return;
       }
     }
-    const candidateId = idOf(row.candidateId) || (step?.entityField === 'candidateId' ? idOf(row[step?.entityField]) : null);
+    const candidateId = idOf(row.candidateId) || row.rawCandidateId || (step?.entityField === 'candidateId' ? (idOf(row[step?.entityField]) || row.rawCandidateId) : null);
     if (!candidateId) return;
     router.push(`/dashboard/hiring/${candidateId}/steps/${nextStep.id}`);
   };
@@ -144,7 +144,7 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
       router.push(`/dashboard/hiring/${response.data.candidateId}/steps/${stepId}?edit=${row._id}`);
       return;
     }
-    const candidateId = idOf(row.candidateId);
+    const candidateId = idOf(row.candidateId) || row.rawCandidateId;
     if (!candidateId) return;
     router.push(`/dashboard/hiring/${candidateId}/steps/${stepId}?edit=${row._id}`);
   };
@@ -352,8 +352,22 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                         <button onClick={() => { if (confirm('Are you sure you want to delete this record?')) deleteMutation.mutate(row._id); }} className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete">
                           <Trash2 size={13} />
                         </button>
-                        {step.hasPdf && (
-                          <button onClick={() => pdfMutation.mutate(row._id)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition-colors flex items-center gap-1" title="Generate PDF">
+                        {(step.hasPdf || (step as any).hasPrint) && (
+                          <button onClick={async () => {
+                            let candId = idOf(row.candidateId) || row.rawCandidateId;
+                            if (!candId && step.entityField === 'employeeId') {
+                              const empId = idOf(row.employeeId);
+                              if (empId) {
+                                const response = await api.get(`/hiring/employees/${empId}/candidate`);
+                                candId = response.data.candidateId;
+                              }
+                            }
+                            if (candId) {
+                              window.open(`/dashboard/hiring/${candId}/print/${step.id}`, '_blank');
+                            } else {
+                              window.alert('Candidate ID not found');
+                            }
+                          }} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition-colors flex items-center gap-1" title="Print/Generate PDF">
                             <FileText size={13} />
                           </button>
                         )}

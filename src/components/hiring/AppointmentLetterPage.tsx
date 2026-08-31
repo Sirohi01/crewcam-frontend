@@ -151,7 +151,10 @@ export default function AppointmentLetterPage({ candidateId }: { candidateId: st
               </CardContent>
             </Card>
 
-            <div className='flex justify-end my-6'>
+            <div className='flex justify-end gap-2 my-6'>
+              <Button type="button" onClick={() => window.open(`/dashboard/hiring/${candidateId}/print/appointment-letter`, '_blank')} className="px-4 py-1.5 bg-slate-600 hover:bg-slate-700 text-white">
+                PRINT
+              </Button>
               <Button type="submit" disabled={saveMutation.isPending} className="px-4 py-1.5  bg-amber-600 hover:bg-amber-700 text-white">
                 <Save size={16} /> {saveMutation.isPending ? 'Saving...' : 'Save Appointment Letter'}
               </Button>

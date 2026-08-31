@@ -10,7 +10,6 @@ import { CheckCircle2, Circle, ClipboardList, Download, ExternalLink, FileText, 
 import { HIRING_STEPS } from '@/lib/hiringSteps';
 import api from '@/lib/axios';
 import { openFileUrl, toAssetUrl } from '@/lib/fileUrls';
-import StepGate from './StepGate';
 import StepChecklist from './StepChecklist';
 import ResumeScreeningPanel from './ResumeScreeningPanel';
 import InterviewStepPanel from './InterviewStepPanel';
@@ -212,7 +211,6 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
                 <CardTitle className="flex items-center gap-2 text-sm text-slate-900">
                   <ClipboardList size={15} className="text-[#0e4778]" /> Step 1 - Manpower Request
                 </CardTitle>
-                <StepGate unlocked={manpowerStep?.gate.unlocked ?? true} blockedBy={manpowerStep?.gate.blockedBy || []} compact />
               </CardHeader>
               <CardContent className="p-4">
                 {linkedManpowerRequest ? (
@@ -272,7 +270,6 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
                       const entityId = step.entityField === 'employeeId' ? resolvedEmployeeId : candidateId;
                       const disabled = step.entityField === 'employeeId' && !resolvedEmployeeId;
                       const pipelineStep = pipelineStepByKey.get(step.stepKey);
-                      const locked = step.entityField === 'employeeId' ? !entityId : pipelineStep?.gate.unlocked === false;
 
                       return (
                         <div key={step.id} className="flex flex-col justify-between rounded-xl border border-slate-200 bg-slate-50/50 p-4 shadow-sm hover:shadow-md transition-shadow">
@@ -284,7 +281,6 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
                               <div className="min-w-0">
                                 <p className="text-sm font-semibold text-slate-900 leading-tight">Step {step.step}. {step.title}</p>
                                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                                  <StepGate unlocked={!locked} blockedBy={step.entityField === 'employeeId' && !entityId ? ['employeeId'] : pipelineStep?.gate.blockedBy || []} compact />
                                   <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusClass(pipelineStep?.status)}`}>{pipelineStep?.status || 'pending'}</span>
                                 </div>
                               </div>

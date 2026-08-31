@@ -4,8 +4,10 @@ import React from 'react';
 import { Download, Upload, Plus, Search, Filter, RotateCcw, ChevronDown, Users, Briefcase, Calendar, Hourglass, XCircle, Star, Eye, MessageSquare, MoreVertical, LayoutGrid, Mail, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
+import { useRouter } from 'next/navigation';
 
 export default function ShortlistedCandidatesUI() {
+  const router = useRouter();
   const [department, setDepartment] = React.useState('All Departments');
   const [jobOpening, setJobOpening] = React.useState('All Openings');
   const [experience, setExperience] = React.useState('All Experience');
@@ -57,12 +59,12 @@ export default function ShortlistedCandidatesUI() {
       .filter((c: any) => location === 'All Locations' || c.currentLocation === location)
       .map((c: any) => ({
         id: c._id || c.id,
-        name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
+        name: `${c.firstName || c.candidateId?.firstName || c.candidateName?.split(' ')[0] || ''} ${c.lastName || c.candidateId?.lastName || c.candidateName?.split(' ').slice(1).join(' ') || ''}`.trim() || c.name || 'Unknown',
         avatar: 'https://i.pravatar.cc/150?u=11',
         email: c.email || 'N/A',
         phone: c.phone || 'N/A',
         jobRole: c.jobRole || 'N/A',
-        jobId: 'N/A',
+        candidateCode: c.candidateCode || 'Pending',
         department: c.department?.name || c.department || 'N/A',
         experience: c.applicationDetails?.totalExperience ? `${c.applicationDetails.totalExperience} Years` : 'N/A',
         rating: c.rating || 4.0,
@@ -478,7 +480,7 @@ export default function ShortlistedCandidatesUI() {
                     <td className="px-3 py-2">
                       <div className="flex flex-col gap-0.5">
                         <span className="text-zinc-900 font-bold">{app.jobRole}</span>
-                        <span className="text-zinc-500 text-[9px]">{app.jobId}</span>
+                        <span className="text-zinc-500 text-[9px]">ID: {app.candidateCode}</span>
                       </div>
                     </td>
                   )}
@@ -522,13 +524,13 @@ export default function ShortlistedCandidatesUI() {
                   {visibleColumns.actions && (
                     <td className="px-3 py-2">
                       <div className="flex items-center justify-center gap-1.5">
-                        <button className="h-6 w-6 flex items-center justify-center rounded border border-indigo-100 text-indigo-700 hover:bg-indigo-50 bg-white shadow-sm transition-colors">
+                        <button onClick={() => router.push(`/dashboard/hiring/candidates/${app.id}`)} className="h-6 w-6 flex items-center justify-center rounded border border-indigo-100 text-indigo-700 hover:bg-indigo-50 bg-white shadow-sm transition-colors">
                           <Eye size={12} />
                         </button>
-                        <button className="h-6 w-6 flex items-center justify-center rounded border border-indigo-100 text-indigo-700 hover:bg-indigo-50 bg-white shadow-sm transition-colors">
+                        <button onClick={() => router.push(`/dashboard/hiring/candidates/${app.id}`)} className="h-6 w-6 flex items-center justify-center rounded border border-indigo-100 text-indigo-700 hover:bg-indigo-50 bg-white shadow-sm transition-colors">
                           <MessageSquare size={12} />
                         </button>
-                        <button className="h-6 w-6 flex items-center justify-center rounded border border-zinc-200 text-zinc-500 hover:bg-zinc-50 bg-white shadow-sm transition-colors">
+                        <button onClick={() => router.push(`/dashboard/hiring/candidates/${app.id}`)} className="h-6 w-6 flex items-center justify-center rounded border border-zinc-200 text-zinc-500 hover:bg-zinc-50 bg-white shadow-sm transition-colors">
                           <MoreVertical size={12} />
                         </button>
                       </div>

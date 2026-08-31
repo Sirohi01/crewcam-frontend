@@ -7,8 +7,9 @@ import { useRouter } from 'next/navigation';
 import {
   Download, Plus, Search, ChevronDown, Check, ChevronLeft, ChevronRight,
   Users, CheckCircle, XCircle, Video, Eye, Link as LinkIcon,
-  Trash
+  Trash, Zap, Edit
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import api from '@/lib/axios';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 
@@ -28,6 +29,7 @@ export default function CandidateRegister() {
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE);
+  const [isFastTracking, setIsFastTracking] = useState<string | null>(null);
 
   const [isStatusOpen, setIsStatusOpen] = useState(false);
 
@@ -71,6 +73,19 @@ export default function CandidateRegister() {
   const handleClear = () => {
     setQuery('');
     setStatusFilter('All Status');
+  };
+
+  const handleFastTrack = async (candidateId: string) => {
+    if (!confirm('Are you sure you want to fast-track this candidate to CTC Breakup? This will bypass all interviews and evaluation.')) return;
+    try {
+      setIsFastTracking(candidateId);
+      await api.post(`/hiring/candidates/${candidateId}/fast-track-ctc`);
+      toast.success('Candidate fast-tracked to CTC Breakup!');
+      router.push(`/dashboard/hiring/${candidateId}/steps/ctc-breakup`);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to fast-track candidate');
+      setIsFastTracking(null);
+    }
   };
 
   const statusOptions = ['All Status', 'Applied', 'Screening', 'Interviewing', 'Offered', 'Hired', 'Rejected', 'Hold'];
@@ -249,6 +264,21 @@ export default function CandidateRegister() {
                         title="Open Workflow"
                       >
                         <Eye className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => router.push(`/dashboard/hiring/candidates/edit/${candidate._id}`)}
+                        className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-emerald-50 hover:text-emerald-600 border border-zinc-200 hover:border-emerald-200 rounded-md transition-colors"
+                        title="Edit Candidate"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleFastTrack(candidate._id)}
+                        disabled={isFastTracking === candidate._id}
+                        className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-amber-50 hover:text-amber-600 border border-zinc-200 hover:border-amber-200 rounded-md transition-colors disabled:opacity-50"
+                        title="Fast-Track to CTC Breakup"
+                      >
+                        <Zap className="w-3.5 h-3.5" />
                       </button>
                       <button
                         // onClick={() => router.push(`/dashboard/hiring/${candidate._id}`)}

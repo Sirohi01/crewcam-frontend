@@ -40,6 +40,7 @@ export default function HiringStepRoutePage() {
   if (stepId === 'loi') return <LetterOfIntentForm candidateId={candidateId} />;
   if (stepId === 'joining-confirmation') return <JoiningConfirmationForm candidateId={candidateId} />;
   if (stepId === 'doc-checklist') return <DocumentChecklistForm candidateId={candidateId} />;
+  if (stepId === 'bgv') return <BGVRequestForm candidateId={candidateId} />;
 
   // Generic step page for remaining steps
   return <HiringStepPage candidateId={candidateId} stepId={stepId} />;

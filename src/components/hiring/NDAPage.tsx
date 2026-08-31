@@ -251,6 +251,12 @@ export default function NDAPage({ candidateId }: { candidateId: string }) {
 
                             <div className="flex flex-col sm:flex-row justify-start items-center gap-4 pt-2">
                                 <button
+                                    onClick={() => window.open(`/dashboard/hiring/${candidateId}/print/nda`, '_blank')}
+                                    className="flex items-center gap-2 px-8 py-2 text-xs font-bold bg-slate-600 text-white hover:bg-slate-700 shadow-md hover:shadow-lg transition-all rounded-[4px] tracking-wide"
+                                >
+                                    PRINT
+                                </button>
+                                <button
                                     onClick={handleSave}
                                     className="flex items-center gap-2 px-8 py-2 text-xs font-bold bg-[#1a1a1a] text-white hover:bg-black shadow-md hover:shadow-lg transition-all rounded-[4px] tracking-wide"
                                 >

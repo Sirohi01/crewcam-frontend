@@ -8,7 +8,6 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StepChecklist from './StepChecklist';
-import StepGate from './StepGate';
 import { getHiringStepById } from '@/lib/hiringSteps';
 import api from '@/lib/axios';
 
@@ -43,11 +42,6 @@ export function HiringStepLayout({ candidateId, stepId, children }: HiringStepLa
         <Button variant="ghost" className="h-8 gap-2 px-2 text-xs" onClick={() => router.push(`/dashboard/hiring/${candidateId}`)}>
           <ArrowLeft size={14} /> Candidate Workflow
         </Button>
-        <StepGate
-          unlocked={!locked}
-          blockedBy={step.entityField === 'employeeId' && !entityId ? ['employeeId'] : stepState?.gate.blockedBy || []}
-          compact
-        />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_340px]">

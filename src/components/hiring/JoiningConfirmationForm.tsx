@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Mail, Save, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import StepGate from './StepGate';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const empty = () => ({
   subject: 'Official Joining Confirmation',
@@ -37,31 +36,39 @@ const inputClass = "w-full h-7 px-2 bg-white border border-[#cbd5e1] hover:borde
 
 export default function JoiningConfirmationForm({ candidateId }: { candidateId: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
   const qc = useQueryClient();
   const [form, setForm] = useState(empty);
   const set = (patch: Partial<ReturnType<typeof empty>>) => setForm(old => ({ ...old, ...patch }));
 
   const { data: candidate } = useQuery<any>({ queryKey: ['candidate', candidateId], queryFn: async () => (await api.get(`/hiring/candidates/${candidateId}`)).data });
   const { data: pipeline } = useQuery<any>({ queryKey: ['candidate-pipeline', candidateId], queryFn: async () => (await api.get(`/hiring/candidates/${candidateId}/pipeline`)).data });
-  
-  const { data: records } = useQuery<any[]>({ 
-    queryKey: ['joining-confirmation', candidateId], 
-    queryFn: async () => { 
-      const response = await api.get('/hiring/joining-confirmation', { params: { candidateId } }); 
-      return Array.isArray(response.data) ? response.data : (response.data.data || []); 
-    } 
+
+  const { data: records } = useQuery<any[]>({
+    queryKey: ['joining-confirmation', candidateId],
+    queryFn: async () => {
+      const response = await api.get('/hiring/joining-confirmation', { params: { candidateId } });
+      return Array.isArray(response.data) ? response.data : (response.data.data || []);
+    }
   });
 
-  const { data: lois } = useQuery<any[]>({ 
-    queryKey: ['loi', candidateId], 
-    queryFn: async () => { 
-      const response = await api.get('/hiring/loi', { params: { candidateId } }); 
-      return Array.isArray(response.data) ? response.data : (response.data.data || []); 
-    } 
+  const { data: lois } = useQuery<any[]>({
+    queryKey: ['loi', candidateId],
+    queryFn: async () => {
+      const response = await api.get('/hiring/loi', { params: { candidateId } });
+      return Array.isArray(response.data) ? response.data : (response.data.data || []);
+    }
   });
+
+  const isInitialized = React.useRef(false);
 
   useEffect(() => {
-    const saved = records?.[0];
+    if (isInitialized.current) return;
+
+    if (records === undefined || lois === undefined || candidate === undefined) return;
+
+    const saved = editId ? records?.find(r => r._id === editId) : records?.[0];
     if (saved) {
       // Convert 12-hour AM/PM to 24-hour time input format if needed
       const convertTo24Hour = (time12: string) => {
@@ -115,7 +122,8 @@ export default function JoiningConfirmationForm({ candidateId }: { candidateId: 
         designation: candidate.jobRole || current.designation
       }));
     }
-  }, [records, lois, candidate]);
+    isInitialized.current = true;
+  }, [records, lois, candidate, editId]);
 
   // Update subject automatically when name or designation changes
   useEffect(() => {
@@ -149,10 +157,10 @@ export default function JoiningConfirmationForm({ candidateId }: { candidateId: 
         reportingLocation: form.reportingLocation,
         reportingTo: form.reportingTo,
         failureToReportDate: form.failureToReportDate || undefined,
-        status: 'Pending'
+        status: 'Finalized'
       };
-      
-      const existing = records?.[0];
+
+      const existing = editId ? records?.find(r => r._id === editId) : records?.[0];
       if (existing?._id) {
         return (await api.put(`/hiring/joining-confirmation/${existing._id}`, payload)).data;
       }
@@ -182,16 +190,10 @@ export default function JoiningConfirmationForm({ candidateId }: { candidateId: 
             <Mail className="h-4 w-4 text-[#0d3c68]" />
             {records?.[0] ? 'EDIT JOINING CONFIRMATION' : 'NEW JOINING CONFIRMATION ENTRY'}
           </h2>
-          <StepGate unlocked={gate.unlocked} blockedBy={gate.blockedBy || []} />
         </div>
 
-        {!gate.unlocked ? (
-          <div className="p-6">
-            <StepGate unlocked={false} blockedBy={gate.blockedBy || []} />
-          </div>
-        ) : (
-          <div className="p-2">
-            <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-2">
+        <div className="p-2">
+          <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-2">
               <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                 <Field title="Candidate Name" required className="md:col-span-1">
                   <input className={inputClass} value={form.candidateName} onChange={(e) => set({ candidateName: e.target.value })} required />
@@ -206,7 +208,7 @@ export default function JoiningConfirmationForm({ candidateId }: { candidateId: 
                   <input type="date" className={inputClass} value={form.joiningDate} onChange={(e) => {
                     set({ joiningDate: e.target.value });
                     if (!form.failureToReportDate || form.failureToReportDate === form.joiningDate) {
-                        set({ failureToReportDate: e.target.value });
+                      set({ failureToReportDate: e.target.value });
                     }
                   }} required />
                 </Field>
@@ -247,10 +249,16 @@ export default function JoiningConfirmationForm({ candidateId }: { candidateId: 
                   <Save className="h-4 w-4" />
                   {save.isPending ? 'SAVING...' : (records?.[0] ? 'UPDATE ENTRY' : 'SAVE ENTRY')}
                 </button>
+                <button
+                  type="button"
+                  onClick={() => window.open(`/dashboard/hiring/${candidateId}/print/joining-confirmation`, '_blank')}
+                  className="flex items-center gap-2 px-8 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-all rounded-[2px] tracking-wide"
+                >
+                  PRINT
+                </button>
               </div>
             </form>
           </div>
-        )}
       </div>
     </div>
   );

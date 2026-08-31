@@ -482,9 +482,6 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
           {editId && <div className="mt-1 rounded-md bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs text-amber-700">You are editing an existing record. Changes will update the saved entry.</div>}
         </CardHeader>
         <CardContent>
-          {locked ? (
-            <StepGate unlocked={false} blockedBy={step.entityField === 'employeeId' && !entityId ? ['employeeId'] : stepState?.gate.blockedBy || []} />
-          ) : (
             <form onSubmit={form.handleSubmit((values) => createMutation.mutate(values))} className="space-y-4">
               {step.id === 'evaluation' && (
                 <div className="rounded-md border border-dashed border-zinc-300 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-900">
@@ -535,7 +532,6 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
                 <Save size={16} /> {createMutation.isPending ? (editId ? 'Updating...' : 'Saving...') : (editId ? 'Update Record' : 'Save Step Record')}
               </Button>
             </form>
-          )}
         </CardContent>
       </Card>
 
