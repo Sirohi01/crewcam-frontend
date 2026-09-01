@@ -139,7 +139,8 @@ export default function SubmittedPage() {
             manpowerRequestId: data.manpowerRequestId || '',
             skills: appDetails.skills || [],
             experiences: appDetails.experiences || [],
-            education: appDetails.education || []
+            education: appDetails.education || [],
+            status: data.status || 'Applied'
           });
         } catch (err) {
           console.error(err);
@@ -169,12 +170,23 @@ export default function SubmittedPage() {
     link.click();
   };
 
+  const getActiveStepIndex = (status: string) => {
+    if (status === 'Applied') return 0;
+    if (status === 'Screening') return 1;
+    if (status === 'Interviewing') return 2;
+    if (status === 'Offered') return 3;
+    if (status === 'Hired') return 4;
+    return -1;
+  };
+
+  const activeStepIdx = candidate?.status ? getActiveStepIndex(candidate.status) : 0;
+
   const pipelineSteps = [
-    { title: "AI Screening", delay: "1-2 Days", desc: "Our AI will analyze your CV and match it with the job requirements.", icon: Sparkles, active: true, href: `/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}` },
-    { title: "HOD Review", delay: "2-3 Days", desc: "The hiring manager will review your profile and AI screening report.", icon: ClipboardList, active: false, href: `/dashboard/hiring/candidates/new/create/evaluation/${candidateId}` },
-    { title: "Interview", delay: "3-5 Days", desc: "If shortlisted, our team will contact you for interview scheduling.", icon: MessageSquare, active: false, href: `/dashboard/hiring/candidates/new/create/interview-process/${candidateId}` },
-    { title: "Offer", delay: "As per process", desc: "Selected candidates will receive an offer based on the discussion.", icon: Gift, active: false, href: '/dashboard/offers' },
-    { title: "Onboarding", delay: "After Offer", desc: "Welcome aboard! We'll help you through the joining process.", icon: UserCheck, active: false, href: '/dashboard/onboarding' }
+    { title: "AI Screening", delay: "1-2 Days", desc: "Our AI will analyze your CV and match it with the job requirements.", icon: Sparkles, active: activeStepIdx === 0, completed: activeStepIdx > 0, href: `/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}` },
+    { title: "HOD Review", delay: "2-3 Days", desc: "The hiring manager will review your profile and AI screening report.", icon: ClipboardList, active: activeStepIdx === 1, completed: activeStepIdx > 1, href: `/dashboard/hiring/candidates/new/create/evaluation/${candidateId}` },
+    { title: "Interview", delay: "3-5 Days", desc: "If shortlisted, our team will contact you for interview scheduling.", icon: MessageSquare, active: activeStepIdx === 2, completed: activeStepIdx > 2, href: `/dashboard/hiring/candidates/new/create/interview-process/${candidateId}` },
+    { title: "Offer", delay: "As per process", desc: "Selected candidates will receive an offer based on the discussion.", icon: Gift, active: activeStepIdx === 3, completed: activeStepIdx > 3, href: '/dashboard/offers' },
+    { title: "Onboarding", delay: "After Offer", desc: "Welcome aboard! We'll help you through the joining process.", icon: UserCheck, active: activeStepIdx === 4, completed: activeStepIdx > 4, href: '/dashboard/onboarding' }
   ];
 
   const summaryFields = [
@@ -312,28 +324,35 @@ export default function SubmittedPage() {
                           window.open(step.href, '_blank');
                         }
                       }}
-                      className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:scale-[1.02] flex flex-col ${step.active
-                        ? 'bg-indigo-50 border-indigo-300 shadow-xs'
-                        : 'bg-white border-slate-200 hover:border-slate-300'
-                        }`}
+                      className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:scale-[1.02] flex flex-col ${
+                        step.active ? 'bg-indigo-50 border-indigo-300 shadow-xs' : 
+                        step.completed ? 'bg-emerald-50/30 border-emerald-200 shadow-xs' : 'bg-white border-slate-200 hover:border-slate-300'
+                      }`}
                     >
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center mb-1.5 ${step.active ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'
-                        }`}>
-                        <Icon className="w-3.5 h-3.5" />
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center mb-1.5 ${
+                        step.completed ? 'bg-emerald-100 text-emerald-700' : 
+                        step.active ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'
+                      }`}>
+                        {step.completed ? <Check className="w-3.5 h-3.5" strokeWidth={3} /> : <Icon className="w-3.5 h-3.5" />}
                       </div>
-                      <span className={`text-[10px] font-bold ${step.active ? 'text-indigo-950' : 'text-slate-800'}`}>
+                      <span className={`text-[10px] font-bold ${
+                        step.completed ? 'text-emerald-800' : 
+                        step.active ? 'text-indigo-950' : 'text-slate-800'
+                      }`}>
                         {step.title}
                       </span>
                       <p className="text-[9px] text-slate-700 leading-tight mt-1 flex-1">
-                        {step.desc}
+                        {step.completed ? 'Completed' : step.desc}
                       </p>
-                      <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded-full mt-1.5 self-start ${step.active ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-800'
-                        }`}>
-                        {step.delay}
+                      <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded-full mt-1.5 self-start ${
+                        step.completed ? 'bg-emerald-100 text-emerald-800' : 
+                        step.active ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-800'
+                      }`}>
+                        {step.completed ? 'Done' : step.delay}
                       </span>
                       {step.active && (
                         <span className="text-[8px] text-indigo-800 font-bold block mt-1.5 text-right animate-pulse">
-                          Click to View Screening →
+                          Click to View Action →
                         </span>
                       )}
                     </div>

@@ -84,44 +84,100 @@ export default function JoiningConfirmationForm({ candidateId }: { candidateId: 
         return `${hour.toString().padStart(2, '0')}:${minutes}`;
       };
 
-      setForm(current => ({
-        ...current,
-        candidateName: saved.candidateName || current.candidateName,
-        subject: saved.subject || current.subject,
-        department: saved.department || current.department,
-        designation: saved.designation || current.designation,
-        joiningDate: saved.confirmedJoiningDate ? new Date(saved.confirmedJoiningDate).toISOString().slice(0, 10) : (saved.joiningDate ? new Date(saved.joiningDate).toISOString().slice(0, 10) : current.joiningDate),
-        reportingTime: convertTo24Hour(saved.reportingTime),
-        reportingLocation: saved.reportingLocation || current.reportingLocation,
-        reportingTo: saved.reportingTo || current.reportingTo,
-        failureToReportDate: saved.failureToReportDate ? new Date(saved.failureToReportDate).toISOString().slice(0, 10) : current.failureToReportDate,
-      }));
+      const candName = saved.candidateName || `${candidate?.firstName || ''} ${candidate?.lastName || ''}`.trim();
+      
+      // If we are missing reportingTo or reportingLocation, fetch from Selection Approval
+      if (!saved.reportingTo || !saved.reportingLocation) {
+        api.get('/hiring/selection-approval', { params: { candidateId } }).then(approvalRes => {
+          const approvals = Array.isArray(approvalRes.data?.data) ? approvalRes.data.data : (Array.isArray(approvalRes.data) ? approvalRes.data : [approvalRes.data]);
+          const approval = approvals?.find((a: any) => a && (a.candidateId === candidateId || a.candidateId?._id === candidateId));
+          
+          setForm(current => ({
+            ...current,
+            candidateName: candName || current.candidateName,
+            subject: saved.subject || current.subject,
+            department: saved.department || candidate?.departmentId?.name || candidate?.departmentId?.departmentName || current.department,
+            designation: saved.designation || candidate?.jobRole || current.designation,
+            joiningDate: saved.confirmedJoiningDate ? new Date(saved.confirmedJoiningDate).toISOString().slice(0, 10) : (saved.joiningDate ? new Date(saved.joiningDate).toISOString().slice(0, 10) : current.joiningDate),
+            reportingTime: convertTo24Hour(saved.reportingTime),
+            reportingLocation: saved.reportingLocation || approval?.workLocation || current.reportingLocation,
+            reportingTo: saved.reportingTo || approval?.reportingTo || current.reportingTo,
+            failureToReportDate: saved.failureToReportDate ? new Date(saved.failureToReportDate).toISOString().slice(0, 10) : current.failureToReportDate,
+          }));
+        }).catch(() => {
+          // Fallback if it fails
+          setForm(current => ({
+            ...current,
+            candidateName: candName || current.candidateName,
+            subject: saved.subject || current.subject,
+            department: saved.department || candidate?.departmentId?.name || candidate?.departmentId?.departmentName || current.department,
+            designation: saved.designation || candidate?.jobRole || current.designation,
+            joiningDate: saved.confirmedJoiningDate ? new Date(saved.confirmedJoiningDate).toISOString().slice(0, 10) : (saved.joiningDate ? new Date(saved.joiningDate).toISOString().slice(0, 10) : current.joiningDate),
+            reportingTime: convertTo24Hour(saved.reportingTime),
+            reportingLocation: saved.reportingLocation || current.reportingLocation,
+            reportingTo: saved.reportingTo || current.reportingTo,
+            failureToReportDate: saved.failureToReportDate ? new Date(saved.failureToReportDate).toISOString().slice(0, 10) : current.failureToReportDate,
+          }));
+        });
+      } else {
+        setForm(current => ({
+          ...current,
+          candidateName: candName || current.candidateName,
+          subject: saved.subject || current.subject,
+          department: saved.department || candidate?.departmentId?.name || candidate?.departmentId?.departmentName || current.department,
+          designation: saved.designation || candidate?.jobRole || current.designation,
+          joiningDate: saved.confirmedJoiningDate ? new Date(saved.confirmedJoiningDate).toISOString().slice(0, 10) : (saved.joiningDate ? new Date(saved.joiningDate).toISOString().slice(0, 10) : current.joiningDate),
+          reportingTime: convertTo24Hour(saved.reportingTime),
+          reportingLocation: saved.reportingLocation || current.reportingLocation,
+          reportingTo: saved.reportingTo || current.reportingTo,
+          failureToReportDate: saved.failureToReportDate ? new Date(saved.failureToReportDate).toISOString().slice(0, 10) : current.failureToReportDate,
+        }));
+      }
+
+      isInitialized.current = true;
       return;
     }
 
-    // Pre-fill from LOI
+    // Pre-fill from LOI or Selection Approval or Candidate
     const loi = lois?.[0];
     const candName = `${candidate?.firstName || ''} ${candidate?.lastName || ''}`.trim();
-    if (loi) {
-      const designation = loi.designation || loi.position || '';
+    
+    // We can also fetch Selection Approval for better fallback if LOI is missing or incomplete
+    api.get('/hiring/selection-approval', { params: { candidateId } }).then(approvalRes => {
+      const approvals = Array.isArray(approvalRes.data?.data) ? approvalRes.data.data : (Array.isArray(approvalRes.data) ? approvalRes.data : [approvalRes.data]);
+      const approval = approvals?.find((a: any) => a && (a.candidateId === candidateId || a.candidateId?._id === candidateId));
+
+      const designation = loi?.designation || loi?.position || candidate?.jobRole || '';
+      const department = loi?.department || approval?.department || candidate?.departmentId?.name || candidate?.departmentId?.departmentName || '';
+      const joiningDate = loi?.joiningDate || approval?.joiningDate || '';
+      
       setForm(current => ({
         ...current,
         candidateName: candName || current.candidateName,
-        department: loi.department || current.department,
+        department: department || current.department,
         designation: designation || current.designation,
-        joiningDate: loi.joiningDate ? new Date(loi.joiningDate).toISOString().slice(0, 10) : current.joiningDate,
-        failureToReportDate: loi.joiningDate ? new Date(loi.joiningDate).toISOString().slice(0, 10) : current.failureToReportDate,
-        reportingLocation: loi.reportingLocation || current.reportingLocation,
-        reportingTo: loi.reportingTo || current.reportingTo,
+        joiningDate: joiningDate ? new Date(joiningDate).toISOString().slice(0, 10) : current.joiningDate,
+        failureToReportDate: joiningDate ? new Date(joiningDate).toISOString().slice(0, 10) : current.failureToReportDate,
+        reportingLocation: loi?.reportingLocation || approval?.workLocation || current.reportingLocation,
+        reportingTo: loi?.reportingTo || approval?.reportingTo || current.reportingTo,
         subject: candName && designation ? `Official Joining Confirmation - ${candName} - ${designation}` : current.subject
       }));
-    } else if (candidate) {
+    }).catch(err => {
+      // Fallback if Selection Approval fetch fails
+      const designation = loi?.designation || loi?.position || candidate?.jobRole || '';
       setForm(current => ({
         ...current,
         candidateName: candName || current.candidateName,
-        designation: candidate.jobRole || current.designation
+        department: loi?.department || candidate?.departmentId?.name || candidate?.departmentId?.departmentName || current.department,
+        designation: designation || current.designation,
+        joiningDate: loi?.joiningDate ? new Date(loi.joiningDate).toISOString().slice(0, 10) : current.joiningDate,
+        failureToReportDate: loi?.joiningDate ? new Date(loi.joiningDate).toISOString().slice(0, 10) : current.failureToReportDate,
+        reportingLocation: loi?.reportingLocation || current.reportingLocation,
+        reportingTo: loi?.reportingTo || current.reportingTo,
+        subject: candName && designation ? `Official Joining Confirmation - ${candName} - ${designation}` : current.subject
       }));
-    }
+    });
+
     isInitialized.current = true;
   }, [records, lois, candidate, editId]);
 

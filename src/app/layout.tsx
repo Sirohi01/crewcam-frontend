@@ -22,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`h-full antialiased ${poppins.variable}`} suppressHydrationWarning>
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+    <html lang="en" className={`h-full print:h-auto antialiased ${poppins.variable}`} suppressHydrationWarning>
+      <body className="min-h-full print:min-h-0 print:h-auto print:block flex flex-col" suppressHydrationWarning>
         <ThemeProvider>
           <QueryProvider>
             {children}

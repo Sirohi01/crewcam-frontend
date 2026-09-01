@@ -53,8 +53,8 @@ export const useMasterDataStore = create<MasterDataState>((set, get) => ({
       ] = await Promise.allSettled([
         api.get('/companies/departments'),
         api.get('/designations'),
-        api.get('/locations'),
-        api.get('/policies'), // Master policies/categories
+        api.get('/companies/branches'), // Was /locations
+        api.get('/master-data/policies'), // Was /policies
         api.get('/employees')
       ]);
 

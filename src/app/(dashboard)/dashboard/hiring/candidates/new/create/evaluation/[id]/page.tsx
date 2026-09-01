@@ -58,13 +58,31 @@ export default function HODReviewTab() {
       if (recommendation === 'Hold / Consider') newStatus = 'Hold';
       if (recommendation === 'Not Recommended') newStatus = 'Rejected';
 
-      await api.put(`/hiring/candidates/${candidateId}/status`, { 
+      const targetId = candidate?._id || candidateId;
+
+      await api.put(`/hiring/candidates/${targetId}/status`, { 
         status: newStatus,
         rating: rating,
         comments: `Strengths: ${strengths.join(', ')}\nConcerns: ${concerns.join(', ')}` 
       });
 
       toast.success(`Candidate marked as ${newStatus}`);
+
+      // Update mock UI completed rounds
+      try {
+        const stored = JSON.parse(localStorage.getItem('ai_completed_rounds') || '[]');
+        if (!stored.includes(1)) {
+          localStorage.setItem('ai_completed_rounds', JSON.stringify([...stored, 1]));
+        } else if (!stored.includes(2)) {
+          localStorage.setItem('ai_completed_rounds', JSON.stringify([...stored, 2]));
+        } else if (!stored.includes(3)) {
+          localStorage.setItem('ai_completed_rounds', JSON.stringify([...stored, 3]));
+        } else if (!stored.includes(4)) {
+          localStorage.setItem('ai_completed_rounds', JSON.stringify([...stored, 4]));
+        } else if (!stored.includes(5)) {
+          localStorage.setItem('ai_completed_rounds', JSON.stringify([...stored, 5]));
+        }
+      } catch (e) {}
 
       // Routing
       if (newStatus === 'Interviewing') {

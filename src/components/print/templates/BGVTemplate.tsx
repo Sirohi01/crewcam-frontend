@@ -76,9 +76,9 @@ export default function BGVTemplate({ candidateId }: { candidateId: string }) {
     );
 
     return (
-        <div className="page-container bg-slate-50/50 min-h-screen print:bg-white print:py-0 print:px-0">
+        <div className="page-container bg-slate-50/50 min-h-screen print:h-auto print:min-h-0 print:bg-white print:py-0 print:px-0">
             {/* Printable Sheet */}
-            <div className="max-w-[900px] mx-auto bg-white shadow-lg print:shadow-none p-6 md:p-8 print:p-[1.3cm]">
+            <div className="max-w-[900px] mx-auto bg-white shadow-lg print:shadow-none p-6 md:p-8 print:p-[1.3cm] print:h-auto print:min-h-0">
                 <div>
                     <PrintHiringHeader
                         title={isRequest ? 'BGV REQUEST FORM' : 'BGV FINAL REPORT'}
@@ -198,7 +198,7 @@ export default function BGVTemplate({ candidateId }: { candidateId: string }) {
                                     <Divider />
                                     <SectionTitle>5. HR Confirmation <span className="text-[9px] font-normal italic" style={{ textTransform: 'none' }}>(To be completed by HR before final onboarding)</span></SectionTitle>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '9px 40px', marginBottom: '8px' }}>
-                                        <DetailField label="Requested By" value={data.requestedBy} />
+                                        <DetailField label="Requested By" value={typeof data.requestedBy === 'object' && data.requestedBy !== null ? `${data.requestedBy.firstName || ''} ${data.requestedBy.lastName || ''}`.trim() : data.requestedBy} />
                                         <DetailField label="Request Date" value={formatDate(data.requestDate)} />
                                         <DetailField label="Designation" value={data.requestDesignation} />
                                         <div style={{ display: 'flex', alignItems: 'center', fontSize: 11, fontWeight: 700, color: '#0f172a' }}>
@@ -434,12 +434,6 @@ export default function BGVTemplate({ candidateId }: { candidateId: string }) {
             min-height: 0 !important;
             padding: 0 !important;
             margin: 0 !important;
-        }
-        * { 
-            background: white !important;
-            background-color: white !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
         }
         html, body { 
             background: white !important; 

@@ -26,7 +26,7 @@ const INITIAL_FORM_DATA = {
     mobileNo: '',
     emailId: '',
     empCode: '',
-    status: 'active',
+    status: 'Initiated',
 
     // --- REQUEST FORM DATA ---
     fullName: '',
@@ -139,6 +139,17 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
     const [loading, setLoading] = useState(true);
     const [records, setRecords] = useState<any[]>([]);
 
+    // Fetch candidate data to prefill form if needed
+    const { data: candidate, isLoading: candidateLoading } = useQuery<any>({
+        queryKey: ['candidate', candidateId],
+        queryFn: async () => {
+            if (!candidateId) return null;
+            const res = await api.get(`/hiring/candidates/${candidateId}`);
+            return res.data?.data || res.data;
+        },
+        enabled: !!candidateId
+    });
+
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -148,7 +159,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
     const [formData, setFormData] = useState(INITIAL_FORM_DATA);
 
     const documentChecklistApi = {
-        getAll: () => api.get('/hiring/document-checklists').then(res => res.data),
+        getAll: (cid?: string) => api.get('/hiring/doc-checklist', { params: { candidateId: cid } }).then(res => res.data),
     };
 
     const bgvApi = {
@@ -170,59 +181,61 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
     useEffect(() => {
         fetchRecords();
         fetchMasterData();
+    }, []);
 
-        if (location.state?.preFill && !showForm) {
-            const preFill = location.state.preFill;
-            console.log('Step8 received preFill data:', preFill); // Debug log
+    useEffect(() => {
+        if (candidateLoading || loading) return;
+        if (hasInitialLoaded) return;
+
+        // If we are given an edit param, it's handled by another useEffect.
+        // But if no edit param, auto-open form for candidate:
+        if (records && records.length > 0 && !editIdParam) {
+            handleEdit(records[0], candidate);
+            setHasInitialLoaded(true);
+        } else if (candidate && records && records.length === 0 && !editIdParam) {
+            const preFill = {
+                fullName: (candidate.firstName || '') + ' ' + (candidate.lastName || ''),
+                candidateName: (candidate.firstName || '') + ' ' + (candidate.lastName || ''),
+                emailId: candidate.email || '',
+                phoneNo: candidate.phone || '',
+                mobileNo: candidate.phone || '',
+                position: candidate.jobRole || '',
+                positionFor: candidate.jobRole || '',
+                department: candidate.departmentId?.name || candidate.departmentId?.departmentName || '',
+                workLocation: candidate.location || '',
+            };
+
             setPreFillData(preFill);
-
             setFormData(prev => ({
                 ...prev,
-                type: 'request', // Default to request tab for pre-fill
+                type: 'request',
 
-                // Candidate Details (Section A)
-                candidateName: preFill.fullName || preFill.candidateName || prev.candidateName,
-                fullName: preFill.fullName || preFill.candidateName || prev.fullName,
-                joiningDate: preFill.joiningDate ? preFill.joiningDate.split('T')[0] : prev.joiningDate,
+                candidateName: preFill.candidateName || prev.candidateName,
+                fullName: preFill.fullName || prev.fullName,
                 department: preFill.department || prev.department,
-                position: preFill.positionFor || preFill.position || prev.position,
-                positionFor: preFill.positionFor || preFill.position || prev.positionFor,
-
-                // Contact Details
+                position: preFill.position || prev.position,
+                positionFor: preFill.positionFor || prev.positionFor,
                 emailId: preFill.emailId || prev.emailId,
-                mobileNo: preFill.phoneNo || preFill.mobileNo || prev.mobileNo,
+                mobileNo: preFill.mobileNo || prev.mobileNo,
+                workLocation: preFill.workLocation || prev.workLocation,
 
-                // Location & Reporting
-                workLocation: preFill.workLocation || preFill.location || prev.workLocation,
-                reportingTo: preFill.reportingTo || prev.reportingTo,
+                requestedBy: currentUsername || prev.requestedBy,
+                requestDate: new Date().toISOString().split('T')[0],
+                requestDesignation: 'HR Manager',
 
-                // Employee Code (from Step7)
-                empCode: preFill.empCode || preFill.employeeCode || prev.empCode,
-                reportEmpCode: preFill.empCode || preFill.employeeCode || prev.reportEmpCode,
-
-                // HR Confirmation Section (Section E)
-                requestedBy: preFill.requestedBy || currentUsername || prev.requestedBy,
-                requestDate: new Date().toISOString().split('T')[0], // Today's date
-                requestDesignation: preFill.requestDesignation || 'HR Manager',
-
-                // Report Tab Fields (for consistency)
-                reportCandidateName: preFill.fullName || preFill.candidateName || prev.reportCandidateName,
-                reportPosition: preFill.positionFor || preFill.position || prev.reportPosition,
+                reportCandidateName: preFill.fullName || prev.reportCandidateName,
+                reportPosition: preFill.position || prev.reportPosition,
                 reportDepartment: preFill.department || prev.reportDepartment,
-                reportDOJ: preFill.joiningDate ? preFill.joiningDate.split('T')[0] : prev.reportDOJ,
                 reportEmailId: preFill.emailId || prev.reportEmailId,
-                reportMobileNo: preFill.phoneNo || preFill.mobileNo || prev.reportMobileNo,
+                reportMobileNo: preFill.mobileNo || prev.reportMobileNo,
             }));
+
             setIsPreFilled(true);
             setActiveTab('request');
             setShowForm(true);
+            setHasInitialLoaded(true);
         }
-
-        setFormData((prev) => ({
-            ...prev,
-            requestedBy: prev.requestedBy || currentUsername
-        }));
-    }, [location.state]);
+    }, [candidate, candidateLoading, loading, records, editIdParam, hasInitialLoaded]);
 
     // Auto-fill HR employee as Requested By
     useEffect(() => {
@@ -247,27 +260,65 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
         }
     }, [employees, formData.requestedBy]);
 
-    // 3.5. Fetch Employee Code and DOJ from specific APIs if missing
+    // 3.5. Fetch Employee Code, DOJ, and Documents from specific APIs if missing
     useEffect(() => {
         const fetchAdditionalInfo = async () => {
-            const identifierName = (location.state?.preFill?.fullName || location.state?.preFill?.candidateName || formData.candidateName || formData.fullName || '').toLowerCase();
-            const identifierCode = location.state?.preFill?.empCode || location.state?.preFill?.employeeCode || formData.empCode || '';
-
-            if (!identifierName && !identifierCode) return;
-            if (formData.empCode && formData.joiningDate) return; // Already have both
+            if (!candidateId) return;
 
             try {
-                // Fetch Employee Code from Document Checklist API if missing
-                if (!formData.empCode) {
-                    const checklistData = await documentChecklistApi.getAll();
-                    const checklistList = Array.isArray(checklistData) ? checklistData : (checklistData?.data || []);
-                    const match = checklistList.find((r: any) =>
-                        (identifierCode && r.empCode === identifierCode) ||
-                        (identifierName && r.candidateName?.toLowerCase() === identifierName)
-                    );
-                    if (match && match.dateOfJoining) {
-                        setFormData(prev => ({ ...prev, joiningDate: match.dateOfJoining.split('T')[0] }));
-                    }
+                // Fetch Employee Code and other details from Document Checklist API
+                const checklistData = await documentChecklistApi.getAll(candidateId);
+                const checklistList = Array.isArray(checklistData) ? checklistData : (checklistData?.data || []);
+                const match = checklistList.find((r: any) => {
+                    const rCandId = r.candidateId?._id || r.candidateId;
+                    return rCandId === candidateId;
+                });
+
+                if (match) {
+                    setFormData(prev => {
+                        const next = { ...prev };
+                        if (match.dateOfJoining) next.joiningDate = match.dateOfJoining.split('T')[0];
+                        if (match.employeeCode && !next.empCode) next.empCode = match.employeeCode;
+                        if (match.workLocation && !next.workLocation) next.workLocation = match.workLocation;
+
+                        if (match.items && Array.isArray(match.items)) {
+                            const hasDoc = (name: string) => {
+                                const doc = match.items.find((i: any) => i.documentName?.toLowerCase().includes(name.toLowerCase()));
+                                return doc && (doc.status === 'Submitted' || doc.status === 'Verified');
+                            };
+                            next.docs = {
+                                ...prev.docs,
+                                aadhaarCard: hasDoc('aadhaar') || hasDoc('aadhar') || prev.docs.aadhaarCard,
+                                panCard: hasDoc('pan') || prev.docs.panCard,
+                                marksheet10: hasDoc('10th') || hasDoc('tenth') || prev.docs.marksheet10,
+                                marksheet12: hasDoc('12th') || hasDoc('twelfth') || prev.docs.marksheet12,
+                                graduationCert: hasDoc('grad') || prev.docs.graduationCert,
+                                pgCert: hasDoc('post grad') || hasDoc('pg') || prev.docs.pgCert,
+                                expCerts: hasDoc('experience') || prev.docs.expCerts,
+                                relievingLetter: hasDoc('relieving') || prev.docs.relievingLetter,
+                                prevApptLetters: hasDoc('appointment') || prev.docs.prevApptLetters,
+                                salarySlips3Months: hasDoc('salary slip') || prev.docs.salarySlips3Months,
+                                bankStatements3Months: hasDoc('bank') || prev.docs.bankStatements3Months,
+                                policeVerif: hasDoc('police') || prev.docs.policeVerif
+                            };
+                        }
+                        return next;
+                    });
+                }
+
+                // Fetch Selection Approval for reportingTo and workLocation
+                const approvalRes = await api.get('/hiring/selection-approval', { params: { candidateId } });
+                const approvalData = approvalRes.data?.data || approvalRes.data;
+                const approvals = Array.isArray(approvalData) ? approvalData : [approvalData];
+                const approvalMatch = approvals.find((a: any) => a && (a.candidateId === candidateId || a.candidateId?._id === candidateId));
+
+                if (approvalMatch) {
+                    setFormData(prev => {
+                        const next = { ...prev };
+                        if (approvalMatch.reportingTo && !next.reportingTo) next.reportingTo = approvalMatch.reportingTo;
+                        if (approvalMatch.workLocation && !next.workLocation) next.workLocation = approvalMatch.workLocation;
+                        return next;
+                    });
                 }
             } catch (error) {
                 console.error('Step8: Error fetching additional pre-fill data:', error);
@@ -277,7 +328,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
         if (showForm) {
             fetchAdditionalInfo();
         }
-    }, [showForm, formData.candidateName, formData.fullName, location.state]);
+    }, [showForm, candidateId]);
 
     const fetchRecords = async () => {
         try {
@@ -417,7 +468,9 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
         }
     };
 
-    const handleEdit = (record: any) => {
+    const handleEdit = (record: any, fallbackCandidate?: any) => {
+        const cData = fallbackCandidate || candidate;
+
         // Handle potential legacy nested data or missing fields
         const unpackedData = {
             ...record,
@@ -428,9 +481,16 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
         const formattedRecord = {
             ...INITIAL_FORM_DATA, // Start with a complete initial state
             ...unpackedData, // Overlay with record data
-            joiningDate: unpackedData.joiningDate ? unpackedData.joiningDate.split('T')[0] : '',
+            joiningDate: unpackedData.joiningDate ? unpackedData.joiningDate.split('T')[0] : (cData?.joiningDate ? cData.joiningDate.split('T')[0] : ''),
             requestDate: unpackedData.requestDate ? unpackedData.requestDate.split('T')[0] : '',
-            reportDOJ: unpackedData.reportDOJ ? unpackedData.reportDOJ.split('T')[0] : '',
+            reportDOJ: unpackedData.reportDOJ ? unpackedData.reportDOJ.split('T')[0] : (cData?.joiningDate ? cData.joiningDate.split('T')[0] : ''),
+            positionFor: unpackedData.positionFor || unpackedData.position || cData?.jobRole || '',
+            department: unpackedData.department || cData?.departmentId?.name || cData?.departmentId?.departmentName || '',
+            reportingTo: unpackedData.reportingTo || '', // candidate object usually doesn't have reportingTo
+            fullName: unpackedData.fullName || unpackedData.candidateName || (cData ? `${cData.firstName || ''} ${cData.lastName || ''}`.trim() : ''),
+            reportCandidateName: unpackedData.reportCandidateName || unpackedData.fullName || unpackedData.candidateName || (cData ? `${cData.firstName || ''} ${cData.lastName || ''}`.trim() : ''),
+            reportPosition: unpackedData.reportPosition || unpackedData.positionFor || unpackedData.position || cData?.jobRole || '',
+            reportDepartment: unpackedData.reportDepartment || unpackedData.department || cData?.departmentId?.name || cData?.departmentId?.departmentName || '',
         };
 
         // Deep merge nested objects to ensure completeness
@@ -558,7 +618,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
         if (editIdParam && records.length > 0 && !hasInitialLoaded) {
             const recordToEdit = records.find((r: any) => r._id === editIdParam);
             if (recordToEdit) {
-                handleEdit(recordToEdit);
+                handleEdit(recordToEdit, candidate);
                 setEditId(editIdParam);
                 setHasInitialLoaded(true);
             }
@@ -642,7 +702,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                                                     <FormInput value={formData.positionFor} readOnly />
                                                 ) : (
                                                     <FormSelect
-                                                        options={requestDesignationOptions}
+                                                        options={designationOptions}
                                                         value={formData.positionFor}
                                                         onChange={(e) => handleChange('positionFor', e.target.value)}
                                                         required
@@ -847,14 +907,14 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
 
                                             <FormField label="Designation:" required>
                                                 {isPreFilled ? (
-                                                    <FormInput value={formData.positionFor} readOnly />
+                                                    <FormInput value={formData.requestDesignation} readOnly />
                                                 ) : (
                                                     <FormSelect
-                                                        options={requestDesignationOptions}
-                                                        value={formData.positionFor}
-                                                        onChange={(e) => handleChange('positionFor', e.target.value)}
+                                                        options={designationOptions}
+                                                        value={formData.requestDesignation}
+                                                        onChange={(e) => handleChange('requestDesignation', e.target.value)}
                                                         required
-                                                        placeholder="Select Position"
+                                                        placeholder="Select Designation"
                                                     />
                                                 )}
                                             </FormField>
@@ -1240,7 +1300,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                             data={filteredRecords}
                             onEdit={handleEdit}
                             onDelete={(row) => handleDelete(row._id)}
-                            onView={(row) => router.push(`/hiring/step-8/view/${row._id}`)}
+                            onView={(row) => handleEdit(row)}
                             onNextStep={handleNextStep}
                             selectable
                             onBulkDelete={handleBulkDelete}

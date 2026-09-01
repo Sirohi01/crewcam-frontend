@@ -45,6 +45,7 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
           const appDetails = data.applicationDetails || {};
 
           setCandidate({
+            _id: data._id,
             fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
             email: data.email || '',
             mobile: data.phone || '',

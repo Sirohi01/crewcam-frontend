@@ -40,7 +40,7 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
     update: (id: string, data: any) => api.put('/hiring/joining-form/' + id, data),
     delete: (id: string) => api.delete('/hiring/joining-form/' + id)
   };
-  const documentChecklistApi = { getAll: () => api.get('/hiring/document-checklist') };
+  const documentChecklistApi = { getAll: () => api.get('/hiring/doc-checklist') };
   const selectionApi = { getAll: () => api.get('/hiring/selection-approval') };
 
   const location = { state: null as any };
@@ -236,31 +236,43 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
     }
   }, [location.state]);
 
-  // 2b. Handle pre-fill from existing employee if candidate email matches
+  // 2b. Handle pre-fill from Candidate profile, Selection Approval, and Joining Confirmation if no existing form is present
   useEffect(() => {
-    if (!showForm && candidate?.email && employees?.length > 0 && dataList.length === 0 && !editId) {
-      const existingEmployee = employees.find(emp => emp.email === candidate.email);
-      if (existingEmployee) {
-        console.log('Step9: Prefilling from existing employee data');
+    if (!showForm && candidate && dataList.length === 0 && !editId) {
+      console.log('Step9: Prefilling from candidate data');
+      
+      Promise.all([
+        api.get('/hiring/selection-approval', { params: { candidateId } }).catch(() => ({ data: { data: [] } })),
+        api.get('/hiring/joining-confirmation', { params: { candidateId } }).catch(() => ({ data: { data: [] } }))
+      ]).then(([approvalRes, confirmationRes]) => {
+        const approvals = Array.isArray(approvalRes.data?.data) ? approvalRes.data.data : (Array.isArray(approvalRes.data) ? approvalRes.data : [approvalRes.data]);
+        const approval = approvals?.find((a: any) => a && (a.candidateId === candidateId || a.candidateId?._id === candidateId));
+        
+        const confirmations = Array.isArray(confirmationRes.data?.data) ? confirmationRes.data.data : (Array.isArray(confirmationRes.data) ? confirmationRes.data : [confirmationRes.data]);
+        const confirmation = confirmations?.find((c: any) => c && (c.candidateId === candidateId || c.candidateId?._id === candidateId));
+        
+        const confirmedDOJ = confirmation?.confirmedJoiningDate || confirmation?.joiningDate;
+        const approvalDOJ = approval?.joiningDate;
+        const finalDOJ = (confirmedDOJ && confirmedDOJ !== 'N/A') ? confirmedDOJ : ((approvalDOJ && approvalDOJ !== 'N/A') ? approvalDOJ : null);
+        
         setFormData(prev => ({
           ...prev,
-          fullName: `${existingEmployee.firstName || ''} ${existingEmployee.lastName || ''}`.trim() || prev.fullName,
-          department: existingEmployee.department || prev.department,
-          designation: existingEmployee.designation || existingEmployee.jobRole || prev.designation,
-          joiningDate: existingEmployee.dateOfJoining ? existingEmployee.dateOfJoining.split('T')[0] : prev.joiningDate,
-          personalEmailId: existingEmployee.email || prev.personalEmailId,
-          mobileNumber: existingEmployee.mobileNumber || existingEmployee.phone || prev.mobileNumber,
-          workLocation: existingEmployee.location || prev.workLocation,
-          empCode: existingEmployee.employeeCode || prev.empCode,
-          gender: existingEmployee.gender || prev.gender,
-          bloodGroup: existingEmployee.bloodGroup || prev.bloodGroup,
-          maritalStatus: existingEmployee.maritalStatus || prev.maritalStatus,
-          currentAddress: existingEmployee.currentAddress || prev.currentAddress,
-          permanentAddress: existingEmployee.permanentAddress || '', //prev.permanentAddress
+          fullName: `${candidate.firstName || ''} ${candidate.lastName || ''}`.trim() || prev.fullName,
+          personalEmailId: candidate.email || prev.personalEmailId,
+          mobileNumber: candidate.phone || candidate.mobile || prev.mobileNumber,
+          department: (candidate.departmentId?.name || candidate.departmentId?.departmentName || (approval?.department !== 'N/A' ? approval?.department : null) || prev.department),
+          designation: candidate.jobRole || (approval?.designation !== 'N/A' ? approval?.designation : null) || prev.designation,
+          workLocation: (confirmation?.reportingLocation !== 'N/A' ? confirmation?.reportingLocation : null) || (approval?.workLocation !== 'N/A' ? approval?.workLocation : null) || prev.workLocation,
+          reportingManager: (confirmation?.reportingTo !== 'N/A' ? confirmation?.reportingTo : null) || (approval?.reportingTo !== 'N/A' ? approval?.reportingTo : null) || prev.reportingManager,
+          joiningDate: finalDOJ ? String(finalDOJ).split('T')[0] : prev.joiningDate,
+          gender: candidate.gender || prev.gender,
+          dob: candidate.dob ? candidate.dob.split('T')[0] : prev.dob,
+          currentAddress: candidate.address || prev.currentAddress,
+          empCode: candidate.candidateCode || prev.empCode,
         }));
         setIsPreFilled(true);
         setShowForm(true);
-      }
+      });
     }
   }, [candidate, employees, dataList, showForm, editId]);
 
@@ -273,15 +285,7 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
     if (editId) {
       existingRecord = dataList.find(r => r._id === editId);
     } else {
-      const identifierName = (location.state?.preFill?.fullName || location.state?.preFill?.candidateName || formData.fullName || '').toLowerCase();
-      const identifierCode = location.state?.preFill?.empCode || location.state?.preFill?.employeeCode || formData.empCode || '';
-
-      if (identifierName || identifierCode) {
-        existingRecord = dataList.find(r =>
-          (identifierCode && r.positionDetails?.empCode === identifierCode) ||
-          (identifierName && r.personalDetails?.fullName?.toLowerCase() === identifierName)
-        );
-      }
+      existingRecord = dataList[0];
     }
 
     if (existingRecord) {
@@ -851,6 +855,7 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
                     options={['Male', 'Female', 'Other'].map(opt => ({ value: opt, label: opt }))}
                     value={formData.gender}
                     onChange={(e) => handleChange('gender', e.target.value)}
+                    placeholder="Select Gender"
                     required />
                 </FormField>
                 <FormField label="3. Date of Birth:" required>
