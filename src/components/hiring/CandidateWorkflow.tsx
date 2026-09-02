@@ -113,7 +113,7 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
   useEffect(() => {
     if (searchParams?.get('autoNext') === 'true' && pipeline && pipeline.steps) {
       // Find the first step that is not completed and is unlocked
-      const pendingStep = pipeline.steps.find((s: any) => 
+      const pendingStep = pipeline.steps.find((s: any) =>
         s.status !== 'completed' && s.status !== 'approved' && s.gate?.unlocked !== false
       );
       if (pendingStep) {
@@ -192,11 +192,10 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`whitespace-nowrap px-4 py-2.5 text-[13px] font-semibold transition-colors border-b-2 ${
-                activeTab === tab
+              className={`whitespace-nowrap px-4 py-2.5 text-[13px] font-semibold transition-colors border-b-2 ${activeTab === tab
                   ? 'border-[#0e4778] text-[#0e4778]'
                   : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
-              }`}
+                }`}
             >
               {tab}
             </button>
@@ -295,10 +294,16 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
                               </div>
                             )}
                           </div>
-                          
+
                           <div className="flex shrink-0 flex-wrap gap-2 mt-4 pt-3 border-t border-slate-100 justify-end">
                             {step.hasPdf && latest && (
-                              <Button variant="ghost" className="h-7 gap-1 px-2 text-xs" onClick={() => pdfMutation.mutate({ apiPath: step.apiPath, recordId: latest._id })}>
+                              <Button variant="ghost" className="h-7 gap-1 px-2 text-xs" onClick={() => {
+                                if (step.id === 'selection-approval' || step.id === 'probation-review') {
+                                  window.open(`/dashboard/hiring/print/${step.id}/${latest._id}`, '_blank');
+                                } else {
+                                  pdfMutation.mutate({ apiPath: step.apiPath, recordId: latest._id });
+                                }
+                              }}>
                                 {latest.pdfUrl ? <Download size={13} /> : <FileText size={13} />}
                                 {latest.pdfUrl ? 'Re-generate' : 'PDF'}
                               </Button>

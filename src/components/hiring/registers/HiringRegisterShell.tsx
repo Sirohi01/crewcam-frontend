@@ -161,12 +161,12 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
 
   const sortedData = sortKey
     ? [...filteredData].sort((a, b) => {
-        const aVal = String(nestedValue(a, sortKey) ?? '').toLowerCase();
-        const bVal = String(nestedValue(b, sortKey) ?? '').toLowerCase();
-        if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
-        if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
-        return 0;
-      })
+      const aVal = String(nestedValue(a, sortKey) ?? '').toLowerCase();
+      const bVal = String(nestedValue(b, sortKey) ?? '').toLowerCase();
+      if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    })
     : filteredData;
 
   const handleSort = (key: string) => {
@@ -326,7 +326,7 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                           }
                         }
                       }
-                      
+
                       if ((!val || val === '—') && col.key === 'lastUpdate') {
                         val = row.updatedAt || row.createdAt || val;
                       }
@@ -334,7 +334,7 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                       if ((!val || val === '—') && col.key === 'status') {
                         val = row.status || row.finalStatus || row.overallStatus || row.signedStatus || 'Saved';
                       }
-                      
+
                       return (
                         <td key={col.key} className="px-3 py-2 border-r border-slate-100 text-slate-700">
                           {displayValue(val)}
@@ -366,20 +366,20 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                             return true;
                           })
                           .map((action) => {
-                          const lower = action.label.toLowerCase();
-                          const isApprove = lower.includes('approve') || lower.includes('accept') || lower.includes('confirm') || lower.includes('verify') || lower.includes('issue');
-                          const isReject = lower.includes('reject') || lower.includes('decline') || lower.includes('terminate');
-                          return (
-                            <button
-                              key={action.label}
-                              onClick={() => actionMutation.mutate({ recordId: row._id, action })}
-                              className={`p-1.5 rounded transition-colors flex items-center gap-1 ${isApprove ? 'text-emerald-600 hover:bg-emerald-50' : isReject ? 'text-red-600 hover:bg-red-50' : 'text-indigo-600 hover:bg-indigo-50'}`}
-                              title={action.label}
-                            >
-                              {isApprove ? <CheckCircle size={13} /> : isReject ? <XCircle size={13} /> : <ShieldCheck size={13} />}
-                            </button>
-                          );
-                        })}
+                            const lower = action.label.toLowerCase();
+                            const isApprove = lower.includes('approve') || lower.includes('accept') || lower.includes('confirm') || lower.includes('verify') || lower.includes('issue');
+                            const isReject = lower.includes('reject') || lower.includes('decline') || lower.includes('terminate');
+                            return (
+                              <button
+                                key={action.label}
+                                onClick={() => actionMutation.mutate({ recordId: row._id, action })}
+                                className={`p-1.5 rounded transition-colors flex items-center gap-1 ${isApprove ? 'text-emerald-600 hover:bg-emerald-50' : isReject ? 'text-red-600 hover:bg-red-50' : 'text-indigo-600 hover:bg-indigo-50'}`}
+                                title={action.label}
+                              >
+                                {isApprove ? <CheckCircle size={13} /> : isReject ? <XCircle size={13} /> : <ShieldCheck size={13} />}
+                              </button>
+                            );
+                          })}
                         {nextStep && (
                           <button onClick={() => proceedToNextStep(row)} className="p-1.5 text-zinc-600 hover:bg-zinc-100 rounded transition-colors flex items-center gap-1" title="Proceed to Next Step">
                             <ArrowRight size={13} />
@@ -495,14 +495,26 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
         </div>
       )}
       {selectedRecord && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-              <div><h3 className="text-base font-semibold text-slate-900">{step.title} Details</h3><p className="text-xs text-slate-500">{subjectName(selectedRecord)}</p></div>
-              <button onClick={() => setSelectedRecord(null)} className="rounded p-1.5 text-slate-500 hover:bg-slate-100"><X size={18} /></button>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity">
+          <div className="flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl border border-slate-200 ring-1 ring-black/5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-6 py-5">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">{step.title} Details</h3>
+                <p className="text-sm font-medium text-slate-500 mt-1">{subjectName(selectedRecord)}</p>
+              </div>
+              <button onClick={() => setSelectedRecord(null)} className="rounded-full bg-white border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-all shadow-sm">
+                <X size={18} strokeWidth={2.5} />
+              </button>
             </div>
-            <div className="grid flex-1 gap-x-6 gap-y-3 overflow-y-auto p-5 md:grid-cols-2">
-              {detailRows(selectedRecord).map((entry, index) => <div key={`${entry.label}-${index}`} className="border-b border-slate-100 pb-2"><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{entry.label}</p><p className="mt-1 break-words text-sm text-slate-800">{entry.value}</p></div>)}
+            <div className="flex-1 overflow-y-auto p-6 bg-white">
+              <div className="grid gap-4 md:grid-cols-2 rounded-xl border border-slate-200 bg-slate-50 p-5 shadow-[inset_0_1px_4px_rgba(0,0,0,0.02)]">
+                {detailRows(selectedRecord).map((entry, index) => (
+                  <div key={`${entry.label}-${index}`} className="flex flex-col rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-blue-200/80">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#0d3c68]/80 mb-2">{entry.label}</p>
+                    <p className="break-words text-[13px] font-medium text-slate-800 leading-relaxed">{entry.value}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
