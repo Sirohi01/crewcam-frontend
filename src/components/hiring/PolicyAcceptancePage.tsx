@@ -34,11 +34,23 @@ function PolicyPage({ candidateId, stepKey, apiPath, title, step, color, content
   });
 
   useEffect(() => {
-    if (editId && records.length > 0) {
-      const record = records.find(r => r._id === editId);
-      if (record) reset(record);
+    let defaultRecord: any = null;
+    if (records.length > 0) {
+      defaultRecord = editId ? records.find((r: any) => r._id === editId) : records[0];
     }
-  }, [editId, records, reset]);
+
+    if (defaultRecord) {
+      reset(defaultRecord);
+    } else if (candidate) {
+      reset({
+        hasRead: false, understands: false, agreesToComply: false, understandsConsequences: false, agreesToAbide: false,
+        [versionField]: '', [titleField]: '',
+        signerName: `${candidate.firstName || ''} ${candidate.lastName || ''}`.trim(),
+        signerDesignation: candidate.jobRole || '',
+        [contentField]: ''
+      });
+    }
+  }, [editId, records, reset, candidate, versionField, titleField, contentField]);
 
   const saveMutation = useMutation({
     mutationFn: async (v: any) => {
@@ -84,7 +96,6 @@ function PolicyPage({ candidateId, stepKey, apiPath, title, step, color, content
 
       <div className="px-4 space-y-4 w-full mx-auto">
 
-        {!locked && (
           <form onSubmit={handleSubmit((v) => saveMutation.mutate(v))} className="space-y-4">
             <div className="section-card shadow-sm border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300 no-print mt-4">
               <div className="bg-white pb-3 border-b border-slate-100 flex items-center justify-between">
@@ -151,8 +162,6 @@ function PolicyPage({ candidateId, stepKey, apiPath, title, step, color, content
               </button>
             </div>
           </form>
-        )}
-        {locked && <StepGate unlocked={false} blockedBy={stepState?.gate?.blockedBy || []} />}
       </div>
     </div>
   );
