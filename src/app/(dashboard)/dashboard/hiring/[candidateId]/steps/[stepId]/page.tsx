@@ -15,6 +15,7 @@ import BankPayrollPage from '@/components/hiring/BankPayrollPage';
 import EmergencyContactPage from '@/components/hiring/EmergencyContactPage';
 import { ITPolicyPage, CodeOfConductPage } from '@/components/hiring/PolicyAcceptancePage';
 import AppointmentLetterPage from '@/components/hiring/AppointmentLetterPage';
+import AssetAccessPage from '@/components/hiring/AssetAccessPage';
 import OfferLetterPage from '@/components/hiring/OfferLetterPage';
 import NDAPage from '@/components/hiring/NDAPage';
 
@@ -30,6 +31,7 @@ export default function HiringStepRoutePage() {
   if (stepId === 'it-policy-accept') return <ITPolicyPage candidateId={candidateId} />;
   if (stepId === 'code-of-conduct-accept') return <CodeOfConductPage candidateId={candidateId} />;
   if (stepId === 'appointment-letter') return <AppointmentLetterPage candidateId={candidateId} />;
+  if (stepId === 'asset-access') return <AssetAccessPage candidateId={candidateId} />;
   if (stepId === 'offer-letter') return <OfferLetterPage candidateId={candidateId} />;
   if (stepId === 'nda') return <NDAPage candidateId={candidateId} />;
 

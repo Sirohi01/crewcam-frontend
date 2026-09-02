@@ -84,7 +84,7 @@ export default function SOSButton() {
   return (
     <>
       {/* Floating SOS Button */}
-      <div className="fixed bottom-6 right-6 z-[100] group">
+      <div className="fixed bottom-6 right-6 z-[100] group print:hidden">
         <button
           id="sos-floating-button"
           onClick={captureScreen}

@@ -60,7 +60,7 @@ export default function DashboardTopbar() {
 
   return (
     <header
-      className="print:hidden h-12 flex items-center justify-between px-5 shrink-0 gap-4"
+      className="print:!hidden h-12 flex items-center justify-between px-5 shrink-0 gap-4"
       style={{
         // background: 'linear-gradient(90deg, #0f172a 0%, #1e1b4b 100%)',
         background: 'rgba(0, 19, 51)',
