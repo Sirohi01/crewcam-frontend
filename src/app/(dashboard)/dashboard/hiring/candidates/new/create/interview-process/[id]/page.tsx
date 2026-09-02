@@ -109,8 +109,10 @@ export default function InterviewProcessPage() {
 
   React.useEffect(() => {
     try {
-      const stored = JSON.parse(localStorage.getItem('ai_completed_rounds') || '[]');
-      setCompletedRounds(stored);
+      const storedMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
+      const maxCompleted = storedMap[candidateId] || 0;
+      const arr = Array.from({ length: maxCompleted }, (_, i) => i + 1);
+      setCompletedRounds(arr);
     } catch (e) { }
   }, []);
 

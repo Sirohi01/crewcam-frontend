@@ -130,6 +130,7 @@ export default function AssessmentRoundPage() {
           const appDetails = data.applicationDetails || {};
 
           setCandidate({
+            _id: data._id,
             fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
             email: data.email || '',
             mobile: data.phone || '',
@@ -154,12 +155,29 @@ export default function AssessmentRoundPage() {
 
   // Seed with the same starting scenario as the original mock:
   // question 1 & 2 already answered, question 3 is current.
-  const [activeTab, setActiveTab] = useState<TabName>('Written Assessment');
+  const [activeTab, setActiveTab] = useState<TabName>('Instructions');
   const [currentQuestion, setCurrentQuestion] = useState<number>(3);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({ 1: 'B', 2: 'C', 3: 'C' });
   const [visited, setVisited] = useState<Set<number>>(new Set([1, 2, 3]));
   const [marked, setMarked] = useState<Set<number>>(new Set());
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [hasStarted, setHasStarted] = useState(false);
+  
+  const totalSeconds = 3600;
+  const [timeLeft, setTimeLeft] = useState(totalSeconds);
+
+  React.useEffect(() => {
+    let timer: any;
+    if (hasStarted && timeLeft > 0 && !isSubmitted) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0 && !isSubmitted) {
+      setIsSubmitted(true);
+      setActiveTab('Result');
+    }
+    return () => clearInterval(timer);
+  }, [hasStarted, timeLeft, isSubmitted]);
 
   const totalQuestions = questions.length;
   const attempted = Object.keys(selectedAnswers).length;
@@ -229,6 +247,11 @@ export default function AssessmentRoundPage() {
   const marksObtained = correctCount * (100 / totalQuestions);
   const isPass = scorePct >= 60;
 
+  const timeProgressPct = Math.max(0, Math.min(100, (timeLeft / totalSeconds) * 100));
+  const mm = Math.floor(timeLeft / 60);
+  const ss = timeLeft % 60;
+  const totalMm = Math.floor(totalSeconds / 60);
+
   if (!candidate) return <div className="p-8 text-center text-zinc-500 font-medium">Loading candidate details...</div>;
 
   return (
@@ -263,6 +286,11 @@ export default function AssessmentRoundPage() {
             if (!completedRounds.includes(4)) completedRounds.push(4);
             localStorage.setItem('ai_completed_rounds', JSON.stringify(completedRounds));
             toast.success('Interview Completed!');
+            try {
+              const storedMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
+              storedMap[candidateId] = Math.max(storedMap[candidateId] || 0, 4);
+              localStorage.setItem('ai_completed_rounds_map', JSON.stringify(storedMap));
+            } catch (e) {}
             router.push(`/dashboard/hiring/candidates/new/create/round-5/${candidateId}`);
           }} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700">
             End & Next Round
@@ -317,8 +345,8 @@ export default function AssessmentRoundPage() {
               <button
                 key={t}
                 type="button"
-                onClick={() => setActiveTab(t)}
-                className={`whitespace-nowrap border-b-2 py-1 text-[11px] font-semibold ${t === activeTab ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}
+                onClick={() => (!hasStarted && t !== 'Instructions' ? toast.error('Please start the assessment first.') : setActiveTab(t))}
+                className={`whitespace-nowrap border-b-2 py-1 text-[11px] font-semibold ${t === activeTab ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'} ${!hasStarted && t !== 'Instructions' ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 {t}
               </button>
@@ -330,11 +358,10 @@ export default function AssessmentRoundPage() {
             <div className="grid grid-cols-1 gap-2 lg:grid-cols-[1fr_2.4fr]">
               <Card title="Written Assessment in Progress">
                 <p className="text-[10px] leading-snug text-zinc-500">This is a role-based written assessment with AI-generated questions.</p>
-
                 <div
                   className="relative mx-auto my-3 grid h-[114px] w-[114px] place-items-center rounded-full"
                   style={{
-                    background: `conic-gradient(#4f46e5 ${progressPct}%, #e5e7eb 0)`,
+                    background: `conic-gradient(#4f46e5 ${timeProgressPct}%, #e5e7eb 0)`,
                   }}
                 >
                   <div className="flex h-[94px] w-[94px] flex-col items-center justify-center rounded-full bg-white text-center">
@@ -343,11 +370,11 @@ export default function AssessmentRoundPage() {
                     </p>
 
                     <p className="text-[18px] font-bold leading-tight text-zinc-900">
-                      48:25
+                      {String(mm).padStart(2, '0')}:{String(ss).padStart(2, '0')}
                     </p>
 
                     <p className="text-[9px] leading-tight text-zinc-500">
-                      of 60:00
+                      of {String(totalMm).padStart(2, '0')}:00
                     </p>
                   </div>
                 </div>
@@ -480,10 +507,10 @@ export default function AssessmentRoundPage() {
               <div className="mt-3 flex justify-end">
                 <button
                   type="button"
-                  onClick={() => setActiveTab('Written Assessment')}
+                  onClick={() => { setHasStarted(true); setActiveTab('Written Assessment'); }}
                   className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700"
                 >
-                  Proceed to Assessment <ArrowRight size={13} />
+                  {hasStarted ? 'Resume Assessment' : 'Start Assessment'} <ArrowRight size={13} />
                 </button>
               </div>
             </Card>

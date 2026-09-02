@@ -70,18 +70,9 @@ export default function HODReviewTab() {
 
       // Update mock UI completed rounds
       try {
-        const stored = JSON.parse(localStorage.getItem('ai_completed_rounds') || '[]');
-        if (!stored.includes(1)) {
-          localStorage.setItem('ai_completed_rounds', JSON.stringify([...stored, 1]));
-        } else if (!stored.includes(2)) {
-          localStorage.setItem('ai_completed_rounds', JSON.stringify([...stored, 2]));
-        } else if (!stored.includes(3)) {
-          localStorage.setItem('ai_completed_rounds', JSON.stringify([...stored, 3]));
-        } else if (!stored.includes(4)) {
-          localStorage.setItem('ai_completed_rounds', JSON.stringify([...stored, 4]));
-        } else if (!stored.includes(5)) {
-          localStorage.setItem('ai_completed_rounds', JSON.stringify([...stored, 5]));
-        }
+        const storedMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
+        storedMap[targetId] = Math.max(storedMap[targetId] || 0, 1);
+        localStorage.setItem('ai_completed_rounds_map', JSON.stringify(storedMap));
       } catch (e) {}
 
       // Routing

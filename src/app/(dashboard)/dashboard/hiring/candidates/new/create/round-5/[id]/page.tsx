@@ -183,6 +183,11 @@ function PageHeader({ candidateId }: { candidateId: string }) {
               localStorage.setItem('ai_completed_rounds', JSON.stringify(completedRounds));
               await api.post(`/hiring/candidates/${candidateId}/bypass-interviews`);
               toast.success("Interview completed! Proceeding to CTC Breakup stage");
+              try {
+                const storedMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
+                storedMap[candidateId] = Math.max(storedMap[candidateId] || 0, 5);
+                localStorage.setItem('ai_completed_rounds_map', JSON.stringify(storedMap));
+              } catch (e) {}
               router.push(`/dashboard/hiring/${candidateId}/steps/ctc-breakup`);
             } catch (err) {
               toast.error("Failed to process interview completion.");
@@ -326,29 +331,30 @@ function TabsBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) =
 
 // ─── Circular timer ─────────────────────────────────────────────────────────
 function CircularTimer({ remainingSeconds, totalSeconds }: { remainingSeconds: number; totalSeconds: number }) {
-  const radius = 46;
-  const circumference = 2 * Math.PI * radius;
-  const pct = Math.max(0, Math.min(1, remainingSeconds / totalSeconds));
-  const offset = circumference * (1 - pct);
+  const timeProgressPct = Math.max(0, Math.min(100, (remainingSeconds / totalSeconds) * 100));
   const mm = Math.floor(remainingSeconds / 60);
   const ss = remainingSeconds % 60;
   const totalMm = Math.floor(totalSeconds / 60);
 
   return (
-    <div className="relative grid place-items-center h-[118px] w-[118px] mx-auto">
-      <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90">
-        <circle cx="60" cy="60" r={radius} fill="none" stroke="#f0eefc" strokeWidth="8" />
-        <circle
-          cx="60" cy="60" r={radius} fill="none" stroke="#7c3aed" strokeWidth="8"
-          strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
-        />
-      </svg>
-      <div className="absolute inset-0 grid place-items-center flex-col text-center">
-        <div className="flex flex-col items-center">
-          <span className="text-[10px] text-zinc-400 font-medium">Time Remaining</span>
-          <span className="text-[20px] font-bold text-violet-700 leading-tight">{String(mm).padStart(2, '0')}:{String(ss).padStart(2, '0')}</span>
-          <span className="text-[10px] text-zinc-400">of {String(totalMm).padStart(2, '0')}:00</span>
-        </div>
+    <div
+      className="relative mx-auto my-3 grid h-[114px] w-[114px] place-items-center rounded-full shrink-0"
+      style={{
+        background: `conic-gradient(#4f46e5 ${timeProgressPct}%, #e5e7eb 0)`,
+      }}
+    >
+      <div className="flex h-[94px] w-[94px] flex-col items-center justify-center rounded-full bg-white text-center">
+        <p className="text-[10px] leading-tight text-zinc-500">
+          Time Remaining
+        </p>
+
+        <p className="text-[18px] font-bold leading-tight text-zinc-900">
+          {String(mm).padStart(2, '0')}:{String(ss).padStart(2, '0')}
+        </p>
+
+        <p className="text-[9px] leading-tight text-zinc-500">
+          of {String(totalMm).padStart(2, '0')}:00
+        </p>
       </div>
     </div>
   );
@@ -660,7 +666,9 @@ export default function InterviewRoundPage() {
           setQuestions([
             { tag: 'AI Generated - Culture Fit', text: 'Based on your experience, how do you handle remote collaboration?', aiInsight: 'Evaluates adaptability and communication in a distributed team environment.' },
             { tag: 'AI Generated - HR', text: 'Describe a time when you had to align a difficult stakeholder with your project goals.', aiInsight: 'Assesses negotiation and stakeholder management skills.' },
-            { tag: 'AI Generated - Role Specific', text: 'What are the core metrics you track to ensure team success?', aiInsight: 'Checks for data-driven decision making.' }
+            { tag: 'AI Generated - Role Specific', text: 'What are the core metrics you track to ensure team success?', aiInsight: 'Checks for data-driven decision making.' },
+            { tag: 'AI Generated - Problem Solving', text: 'Can you provide an example of a time you had to pivot your strategy halfway through a project?', aiInsight: 'Evaluates agility and critical thinking under pressure.' },
+            { tag: 'AI Generated - Leadership', text: 'How do you foster a culture of continuous feedback within your team?', aiInsight: 'Measures leadership style and focus on team development.' }
           ]);
         } else {
           setQuestions(QUESTIONS); // Fallback to static
@@ -704,6 +712,7 @@ export default function InterviewRoundPage() {
           const appDetails = data.applicationDetails || {};
           
           setCandidate({
+            _id: data._id,
             fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
             email: data.email || '',
             mobile: data.phone || '',
@@ -774,13 +783,13 @@ export default function InterviewRoundPage() {
                       remainingSeconds={remainingSeconds}
                       totalSeconds={totalSeconds}
                       answered={answeredCount}
-                      total={questions.length + 4}
+                      total={Math.max(questions.length, 1)}
                     />
                   </div>
                   <div className="lg:col-span-6 min-w-0 overflow-hidden">
                     <QuestionPanel
                       index={questionIndex}
-                      total={questions.length + 4}
+                      total={Math.max(questions.length, 1)}
                       question={questions[questionIndex] ?? questions[questions.length - 1]}
                       answer={answers[questionIndex] ?? ''}
                       onAnswerChange={handleAnswerChange}

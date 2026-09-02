@@ -44,23 +44,112 @@ export default function InterviewUI() {
   const [hasStarted, setHasStarted] = React.useState(false);
   const [interviewId, setInterviewId] = React.useState<string | null>(null);
 
+  const [timeLeft, setTimeLeft] = React.useState(totalSeconds);
+  const [warnings, setWarnings] = React.useState(0);
+  const [isForceExited, setIsForceExited] = React.useState(false);
+  const [flaggedQuestions, setFlaggedQuestions] = React.useState<number[]>([]);
+
+  const toggleFlag = () => {
+    setFlaggedQuestions(prev => 
+      prev.includes(currentQuestionIndex) 
+        ? prev.filter(q => q !== currentQuestionIndex) 
+        : [...prev, currentQuestionIndex]
+    );
+  };
+
+  const handleBulkSave = async () => {
+    if (!interviewId) return;
+    try {
+      setIsSaving(true);
+      const dbQuestions = activeQuestions.map((q: any, idx: number) => ({
+        question: q.text,
+        transcript: answers[idx] || '',
+        answerAnalysis: {
+          verdict: answers[idx]?.length > 50 ? 'adequate' : 'weak',
+          reasoning: q.insight
+        }
+      }));
+      await api.put(`/hiring/interviews/${interviewId}/questions`, { questions: dbQuestions });
+    } catch (error) {
+      console.error('Failed to bulk save answers', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   React.useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (hasStarted && !isCompleted) {
+    if (hasStarted && !isCompleted && timeLeft > 0) {
       timer = setInterval(() => {
-        setTimeElapsed(prev => prev + 1);
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            handleEndExam(true); // timeout auto-submit
+            return 0;
+          }
+          return prev - 1;
+        });
       }, 1000);
     }
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [hasStarted, isCompleted]);
+  }, [hasStarted, isCompleted, timeLeft]);
+
+  React.useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && hasStarted && !isCompleted && !isForceExited) {
+        setWarnings(w => w + 1);
+        toast.error('Warning: Tab switching is not allowed during the exam!', { duration: 5000 });
+      }
+    };
+
+    const handleFullscreenChange = async () => {
+      if (!document.fullscreenElement && hasStarted && !isCompleted && !isForceExited) {
+        setWarnings(w => w + 1);
+        toast.error('Warning: Exiting Fullscreen is not allowed during the exam! Forcing fullscreen...', { duration: 5000 });
+        try {
+          await document.documentElement.requestFullscreen();
+        } catch (err) {
+          console.warn("Could not re-request fullscreen:", err);
+        }
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key.toLowerCase() === 'h') {
+        e.preventDefault();
+        setIsForceExited(true);
+        toast.success('Exam lock bypassed (Secret Shortcut used). You may now exit fullscreen.');
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [hasStarted, isCompleted, isForceExited]);
 
   const initInterview = async () => {
     const userId = user?._id || user?.id;
     if (!candidate || !userId) return;
     try {
       setIsConnecting(true);
+      
+      try {
+        await document.documentElement.requestFullscreen();
+      } catch (err) {
+        console.warn("Could not request fullscreen:", err);
+      }
+
       // Fetch candidate's interviews
       const { data: interviews } = await api.get(`/hiring/interviews/${candidate._id}`);
       let activeInterview = interviews.find((i: any) => i.roundType === 'Technical');
@@ -137,8 +226,14 @@ export default function InterviewUI() {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  const handleEndExam = async () => {
+  const handleEndExam = async (isAutoSubmit = false) => {
     try {
+      await handleBulkSave(); // Bulk save all answers before closing
+      
+      if (document.fullscreenElement) {
+        await document.exitFullscreen().catch(err => console.error("Error exiting fullscreen:", err));
+      }
+
       if (interviewId) {
         await api.put(`/hiring/interviews/${interviewId}/feedback`, { status: 'Completed', rating: 0, feedback: 'Completed via AI Round 2' });
       }
@@ -151,8 +246,11 @@ export default function InterviewUI() {
       if (!completedRounds.includes(2)) completedRounds.push(2);
       localStorage.setItem('ai_completed_rounds', JSON.stringify(completedRounds));
 
-      toast.success('Interview Completed!');
-      window.open(`/dashboard/hiring/candidates/new/create/round-3/${candidateId}`, '_blank');
+      if (isAutoSubmit) {
+        toast.success('Time is up! Exam auto-submitted.', { duration: 5000 });
+      } else {
+        toast.success('Interview Completed!');
+      }
     } catch (e) {
       toast.error('Failed to end interview');
     }
@@ -237,9 +335,11 @@ export default function InterviewUI() {
   }, [candidateId]);
 
   if (!candidate) return <div className="p-8 text-center text-zinc-500 font-medium">Loading candidate details...</div>;
-  return (
-    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
+  const immersiveClasses = hasStarted && !isCompleted ? "fixed inset-0 z-[100] bg-zinc-50 overflow-y-auto w-full h-full" : "w-full";
 
+  return (
+    <div className={immersiveClasses}>
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
 
       {/* Header & Steps */}
       <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4  pb-2">
@@ -282,7 +382,7 @@ export default function InterviewUI() {
             <ArrowLeft className="w-3 h-3 mr-1" /> Back to Process
           </button>
           {!isCompleted && hasStarted && (
-            <button onClick={handleEndExam} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
+            <button onClick={() => handleEndExam(false)} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
               End Exam & Next Round <StopCircle className="w-3 h-3 ml-1" />
             </button>
           )}
@@ -383,8 +483,8 @@ export default function InterviewUI() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-6 border-b border-zinc-200 px-2">
-        {['Interview', 'AI Questions', 'Notes', 'Attachments'].map((tab) => (
+      <div className="flex items-center gap-6 border-b border-zinc-200 px-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+        {['Interview', 'AI Questions', 'Notes', 'Attachments', 'Score'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -414,14 +514,14 @@ export default function InterviewUI() {
               <svg className="absolute inset-0 w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="46" fill="transparent" strokeWidth="8" className="text-zinc-100 stroke-current" />
                 <circle cx="50" cy="50" r="46" fill="transparent" strokeWidth="8"
-                  className="text-emerald-600 stroke-current transition-all duration-1000 ease-linear"
+                  className={`${timeLeft < 300 ? 'text-rose-500' : 'text-emerald-600'} stroke-current transition-all duration-1000 ease-linear`}
                   strokeDasharray={2 * Math.PI * 46}
-                  strokeDashoffset={2 * Math.PI * 46 * (timeElapsed / totalSeconds)}
+                  strokeDashoffset={2 * Math.PI * 46 * (1 - timeLeft / totalSeconds)}
                   strokeLinecap="round" />
               </svg>
               <div className="absolute inset-2 flex flex-col items-center justify-center bg-white shadow-[0_0_15px_rgba(0,0,0,0.03)] rounded-full z-10">
-                <span className="text-[9px] text-zinc-500 font-medium mb-0.5">Time Elapsed</span>
-                <span className="text-2xl font-bold text-emerald-600 leading-none mb-1">{formatTime(timeElapsed)}</span>
+                <span className="text-[9px] text-zinc-500 font-medium mb-0.5">Time Left</span>
+                <span className={`text-2xl font-bold ${timeLeft < 300 ? 'text-rose-500' : 'text-emerald-600'} leading-none mb-1`}>{formatTime(timeLeft)}</span>
                 <span className="text-[9px] text-zinc-400">of 40:00</span>
               </div>
             </div>
@@ -430,6 +530,7 @@ export default function InterviewUI() {
               <div className="flex items-center justify-between"><span className="text-zinc-500">Total Questions</span><span className="font-bold">{activeQuestions.length}</span></div>
               <div className="flex items-center justify-between"><span className="text-zinc-500">Answered</span><span className="font-bold">{answeredCount}</span></div>
               <div className="flex items-center justify-between"><span className="text-zinc-500">Remaining</span><span className="font-bold">{activeQuestions.length - answeredCount}</span></div>
+              <div className="flex items-center justify-between"><span className="text-zinc-500">Flagged</span><span className="font-bold text-rose-600">{flaggedQuestions.length}</span></div>
             </div>
 
             <div className="mt-6 bg-indigo-50/50 rounded-lg p-3 border border-indigo-100">
@@ -450,8 +551,13 @@ export default function InterviewUI() {
                 <h2 className="text-[15px] font-bold text-zinc-900">Question {currentQuestionIndex + 1} of {activeQuestions.length}</h2>
                 <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">{currentQuestion.category}</span>
               </div>
-              <button className="flex items-center gap-1.5 text-[10px] font-semibold text-rose-600 bg-white border border-rose-200 px-2 py-1 rounded hover:bg-rose-50 transition-colors shadow-sm">
-                <Flag size={12} /> Flag Question
+              <button onClick={toggleFlag} className={`flex items-center gap-1.5 text-[10px] font-semibold border px-2 py-1 rounded transition-colors shadow-sm ${
+                flaggedQuestions.includes(currentQuestionIndex) 
+                ? 'text-white bg-rose-600 border-rose-600 hover:bg-rose-700'
+                : 'text-rose-600 bg-white border-rose-200 hover:bg-rose-50'
+              }`}>
+                <Flag size={12} className={flaggedQuestions.includes(currentQuestionIndex) ? "fill-current" : ""} /> 
+                {flaggedQuestions.includes(currentQuestionIndex) ? "Flagged" : "Flag Question"}
               </button>
             </div>
 
@@ -723,9 +829,34 @@ export default function InterviewUI() {
                     </div>
                   </div>
                   <div className="ml-7 bg-zinc-50 p-3 rounded-lg border border-zinc-200">
-                    <p className="text-[11px] text-zinc-700 whitespace-pre-wrap leading-relaxed">
+                    <p className="text-[11px] text-zinc-700 whitespace-pre-wrap leading-relaxed mb-3">
                       {answers[idx] ? answers[idx] : <span className="italic text-zinc-400">No answer provided.</span>}
                     </p>
+                    <div className="bg-white border border-zinc-200 rounded p-3 flex flex-col gap-2 mt-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-zinc-800">AI Evaluation Result</span>
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
+                          q.answerAnalysis?.verdict === 'adequate' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                          q.answerAnalysis?.verdict === 'weak' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                          'bg-zinc-100 text-zinc-600 border border-zinc-200'
+                        }`}>
+                          {q.answerAnalysis?.verdict?.toUpperCase() || 'NO_ANSWER'}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-zinc-600 leading-relaxed">
+                        {q.answerAnalysis?.reasoning || 'No analysis available.'}
+                      </p>
+                      
+                      <div className="mt-2 pt-2 border-t border-zinc-100 flex items-center justify-between">
+                        <span className="text-[9px] text-zinc-500">Need to override AI score?</span>
+                        <select className="text-[9px] border border-zinc-200 rounded px-2 py-1 bg-zinc-50 focus:outline-none">
+                          <option>Select Manual Rating</option>
+                          <option value="strong">Strongly Meets</option>
+                          <option value="adequate">Meets Requirements</option>
+                          <option value="weak">Below Requirements</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))
@@ -739,6 +870,33 @@ export default function InterviewUI() {
           <FileText className="text-zinc-300 w-8 h-8 mb-2" />
           <h3 className="text-[13px] font-bold text-zinc-900">{activeTab}</h3>
           <p className="text-[11px] text-zinc-500 mt-1 max-w-sm">This section is coming soon. You will be able to manage {activeTab.toLowerCase()} here.</p>
+        </div>
+      )}
+
+      {activeTab === 'Score' && (
+        <div className="mt-4 p-8 rounded-xl border border-zinc-200 bg-white shadow-sm flex flex-col items-center justify-center text-center min-h-[400px]">
+          <Sparkles className="text-indigo-600 w-12 h-12 mb-4 bg-indigo-50 p-2 rounded-full" />
+          <h3 className="text-[18px] font-bold text-zinc-900 mb-2">Round 2 Test Score</h3>
+          <p className="text-[12px] text-zinc-500 max-w-md mb-6">
+            The candidate's score is calculated based on the AI Evaluation verdicts and any manual overrides applied.
+          </p>
+          <div className="flex items-center justify-center w-32 h-32 rounded-full border-[8px] border-emerald-500 text-emerald-600 font-bold text-3xl mb-8 shadow-sm">
+            {Math.round((activeQuestions.filter((q: any) => q.answerAnalysis?.verdict === 'adequate' || q.answerAnalysis?.verdict === 'strong').length / Math.max(activeQuestions.length, 1)) * 100)}%
+          </div>
+          <button 
+            onClick={() => {
+              toast.success('Candidate scheduled for Next Round!');
+              try {
+                const storedMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
+                storedMap[candidateId] = Math.max(storedMap[candidateId] || 0, 2);
+                localStorage.setItem('ai_completed_rounds_map', JSON.stringify(storedMap));
+              } catch (e) {}
+              router.push(`/dashboard/hiring/candidates/new/create/round-3/${candidateId}`);
+            }}
+            className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[13px] rounded-lg shadow-md transition-colors"
+          >
+            Schedule Next Round &rarr;
+          </button>
         </div>
       )}
 
@@ -774,7 +932,7 @@ export default function InterviewUI() {
       )}
 
     </div>
-
+    </div>
   );
 }
 

@@ -541,40 +541,48 @@ export default function SubmittedPage() {
 
               <div className="flex-1 overflow-visible lg:overflow-y-auto pr-0.5 space-y-3.5 max-h-[420px] lg:max-h-none">
                 {[
-                  { title: "Application Submitted", date: "15 June 2026, 11:32 AM", active: true, checked: true, desc: "Form details saved and credentials locked." },
-                  { title: "Awaiting AI Screening", date: "15 June 2026, 11:32 AM", active: true, checked: false, desc: "CV matches queued for algorithmic screening.", current: true },
-                  { title: "HOD Review", date: "Pending", active: false, checked: false, desc: "Department heads review candidate scorecard." },
-                  { title: "Interview", date: "Pending", active: false, checked: false, desc: "Interaction panel scheduling with engineer leads." },
-                  { title: "Offer", date: "Pending", active: false, checked: false, desc: "Drafting contract and salary package allocations." },
-                  { title: "Onboarding", date: "Pending", active: false, checked: false, desc: "Provisioning systems and welcoming candidate." }
-                ].map((act, i) => (
+                  { title: "Application Submitted", date: "15 June 2026, 11:32 AM", desc: "Form details saved and credentials locked.", route: null },
+                  { title: "Awaiting AI Screening", date: "15 June 2026, 11:32 AM", desc: "CV matches queued for algorithmic screening.", route: `/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}` },
+                  { title: "HOD Review", date: "Pending", desc: "Department heads review candidate scorecard.", route: null },
+                  { title: "Interview", date: "Pending", desc: "Interaction panel scheduling with engineer leads.", route: null },
+                  { title: "Offer", date: "Pending", desc: "Drafting contract and salary package allocations.", route: null },
+                  { title: "Onboarding", date: "Pending", desc: "Provisioning systems and welcoming candidate.", route: null }
+                ].map((act, i) => {
+                  // If we are at index i, it is 'current'
+                  // If we are past index i, it is 'checked'
+                  // activeStepIdx comes from: Applied=0, Screening=1, Interviewing=2, Offered=3, Hired=4
+                  const isChecked = activeStepIdx > i;
+                  const isCurrent = activeStepIdx === i;
+                  const isActive = activeStepIdx >= i;
+
+                  return (
                   <div key={i} className="flex gap-2 text-[10px]">
                     <div className="flex flex-col items-center shrink-0">
-                      <span className={`w-4 h-4 rounded-full flex items-center justify-center font-bold text-[8px] border ${act.checked
+                      <span className={`w-4 h-4 rounded-full flex items-center justify-center font-bold text-[8px] border ${isChecked
                         ? 'bg-emerald-100 border-emerald-400 text-emerald-800'
-                        : act.current
+                        : isCurrent
                           ? 'bg-indigo-600 border-indigo-600 text-white animate-pulse'
                           : 'bg-slate-100 border-slate-300 text-slate-500'
                         }`}>
-                        {act.checked ? "✓" : act.current ? <Clock className="w-2.5 h-2.5" /> : i + 1}
+                        {isChecked ? "✓" : isCurrent ? <Clock className="w-2.5 h-2.5" /> : i + 1}
                       </span>
-                      {i < 5 && <div className={`w-[2px] flex-1 min-h-[14px] mt-1 ${act.active ? 'bg-indigo-400' : 'bg-slate-200'}`} />}
+                      {i < 5 && <div className={`w-[2px] flex-1 min-h-[14px] mt-1 ${isActive ? 'bg-indigo-400' : 'bg-slate-200'}`} />}
                     </div>
                     <div className="flex-1 min-w-0 pb-1">
                       <div className="flex flex-wrap items-center justify-between gap-x-2">
-                        <span className={`font-bold ${act.active ? 'text-indigo-950' : 'text-slate-800'}`}>
+                        <span className={`font-bold ${isActive ? 'text-indigo-950' : 'text-slate-800'}`}>
                           {act.title}
                         </span>
                         <span className="text-[7.5px] text-slate-600 font-semibold font-mono whitespace-nowrap">
-                          {act.date}
+                          {isChecked || isCurrent ? act.date : "Pending"}
                         </span>
                       </div>
                       <p className="text-[8.5px] text-slate-700 leading-tight mt-0.5">
                         {act.desc}
                       </p>
-                      {act.current && (
+                      {isCurrent && act.route && (
                         <button
-                          onClick={() => router.push(`/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}`)}
+                          onClick={() => router.push(act.route!)}
                           className="text-[8px] text-indigo-700 hover:text-indigo-950 font-bold underline mt-1 block text-left"
                         >
                           Explore Active Screening Report →
@@ -582,7 +590,7 @@ export default function SubmittedPage() {
                       )}
                     </div>
                   </div>
-                ))}
+                )})}
               </div>
             </div>
 
