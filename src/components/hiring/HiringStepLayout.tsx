@@ -37,14 +37,14 @@ export function HiringStepLayout({ candidateId, stepId, children }: HiringStepLa
   }
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-10 px-2 lg:px-4">
-      <div className="flex items-center justify-between border-b border-zinc-200 pb-3 dark:border-zinc-800">
+    <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-2 px-2 lg:px-2">
+      {/* <div className="flex items-center justify-between border-b border-zinc-200 pb-3 dark:border-zinc-800">
         <Button variant="ghost" className="h-8 gap-2 px-2 text-xs" onClick={() => router.push(`/dashboard/hiring/${candidateId}`)}>
           <ArrowLeft size={14} /> Candidate Workflow
         </Button>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
+      </div> */}
+      {children}
+      {/* <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
         <div className="space-y-4 w-full overflow-hidden">
           {children}
         </div>
@@ -67,7 +67,7 @@ export function HiringStepLayout({ candidateId, stepId, children }: HiringStepLa
             </CardContent>
           </Card>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

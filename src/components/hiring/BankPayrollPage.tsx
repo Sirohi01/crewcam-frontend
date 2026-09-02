@@ -55,6 +55,47 @@ export default function BankPayrollPage({ candidateId }: { candidateId: string }
             const candidateRes = await api.get(`/hiring/candidates/${candidateId}`);
             const cand = candidateRes.data;
 
+            let fetchedEmpCode = cand.employeeCode || '';
+            let fetchedDesignation = cand.jobRole || '';
+            let fetchedDepartment = cand.departmentId?.name || cand.department || '';
+            let fetchedAadhaar = '';
+            let fetchedPan = '';
+            const defaultEmployeeName = `${cand.firstName} ${cand.lastName || ''}`.trim();
+
+            try {
+                // Auto-fetch from prior steps
+                const nomRes = await api.get('/hiring/nomination', { params: { candidateId } });
+                const nomList = Array.isArray(nomRes.data) ? nomRes.data : (nomRes.data?.data || []);
+                if (nomList.length > 0) {
+                    const nom = nomList[0];
+                    if (nom.empCode) fetchedEmpCode = nom.empCode;
+                    if (nom.designation) fetchedDesignation = nom.designation;
+                    if (nom.department) fetchedDepartment = nom.department;
+                    if (nom.aadhaarNo) fetchedAadhaar = nom.aadhaarNo;
+                    if (nom.panNo) fetchedPan = nom.panNo;
+                }
+            } catch (e) { }
+
+            try {
+                if (!fetchedEmpCode) {
+                    const docRes = await api.get('/hiring/doc-checklist', { params: { candidateId } });
+                    const docList = Array.isArray(docRes.data) ? docRes.data : (docRes.data?.data || []);
+                    if (docList.length > 0) fetchedEmpCode = docList[0].empCode || docList[0].employeeCode || fetchedEmpCode;
+                }
+            } catch (e) { }
+
+            try {
+                if (!fetchedAadhaar || !fetchedPan) {
+                    const joinRes = await api.get('/hiring/joining-form', { params: { candidateId } });
+                    const joinList = Array.isArray(joinRes.data) ? joinRes.data : (joinRes.data?.data || []);
+                    if (joinList.length > 0) {
+                        const jf = joinList[0];
+                        if (jf.aadhaarNumber && !fetchedAadhaar) fetchedAadhaar = jf.aadhaarNumber;
+                        if (jf.panNumber && !fetchedPan) fetchedPan = jf.panNumber;
+                    }
+                }
+            } catch (e) { }
+
             const res = await api.get('/hiring/bank-payroll', { params: { candidateId } });
             const list = Array.isArray(res.data) ? res.data : (res.data?.data || []);
 
@@ -62,21 +103,26 @@ export default function BankPayrollPage({ candidateId }: { candidateId: string }
                 const row = list[0];
                 setFormData({
                     ...row,
-                    employeeName: row.employeeName || `${cand.firstName} ${cand.lastName || ''}`.trim(),
-                    empCode: row.empCode || cand.employeeCode || '',
-                    designation: row.designation || cand.jobRole || '',
-                    department: row.department || cand.department || '',
+                    employeeName: row.employeeName || defaultEmployeeName,
+                    accountHolderName: row.accountHolderName || defaultEmployeeName,
+                    empCode: row.empCode || fetchedEmpCode,
+                    designation: row.designation || fetchedDesignation,
+                    department: row.department || fetchedDepartment,
+                    aadhaarNumber: row.aadhaarNumber || fetchedAadhaar,
+                    panNumber: row.panNumber || fetchedPan,
                     hrVerifiedBy: row.hrVerifiedBy || currentUsername
                 });
                 setIsPreFilled(true);
             } else {
                 setFormData(prev => ({
                     ...prev,
-                    accountHolderName: `${cand.firstName} ${cand.lastName || ''}`.trim(),
-                    employeeName: `${cand.firstName} ${cand.lastName || ''}`.trim(),
-                    empCode: cand.employeeCode || '',
-                    designation: cand.jobRole || '',
-                    department: cand.department || '',
+                    employeeName: defaultEmployeeName,
+                    accountHolderName: defaultEmployeeName,
+                    empCode: fetchedEmpCode,
+                    designation: fetchedDesignation,
+                    department: fetchedDepartment,
+                    aadhaarNumber: fetchedAadhaar,
+                    panNumber: fetchedPan,
                 }));
             }
         } catch (error: any) {

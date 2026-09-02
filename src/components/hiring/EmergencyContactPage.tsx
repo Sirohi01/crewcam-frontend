@@ -68,6 +68,67 @@ export default function EmergencyContactPage({ candidateId }: { candidateId: str
             setLoading(true);
             const candidateRes = await api.get(`/hiring/candidates/${candidateId}`);
             const cand = candidateRes.data;
+            let fetchedEmpCode = cand.employeeCode || '';
+            let fetchedDoj = '';
+            let fetchedWorkLocation = cand.workLocation || '';
+            let fetchedReportingTo = cand.reportingTo || '';
+            let fetchedDesignation = cand.jobRole || '';
+            let fetchedDepartment = cand.departmentId?.name || cand.department || '';
+            let fetchedBloodGroup = '';
+
+            try {
+                // Auto-fetch from Nomination API (Step 10) which already has most of this
+                const nomRes = await api.get('/hiring/nomination', { params: { candidateId } });
+                const nomList = Array.isArray(nomRes.data) ? nomRes.data : (nomRes.data?.data || []);
+                if (nomList.length > 0) {
+                    const nom = nomList[0];
+                    if (nom.empCode) fetchedEmpCode = nom.empCode;
+                    if (nom.dateOfJoining) fetchedDoj = new Date(nom.dateOfJoining).toISOString().split('T')[0];
+                    if (nom.workLocation) fetchedWorkLocation = nom.workLocation;
+                    if (nom.reportingTo) fetchedReportingTo = nom.reportingTo;
+                    if (nom.designation) fetchedDesignation = nom.designation;
+                    if (nom.department) fetchedDepartment = nom.department;
+                }
+            } catch (e) { console.log("Could not fetch nomination data"); }
+
+            try {
+                // Auto-fetch Employee Code from Document Checklist API if still missing
+                if (!fetchedEmpCode) {
+                    const docRes = await api.get('/hiring/doc-checklist', { params: { candidateId } });
+                    const docList = Array.isArray(docRes.data) ? docRes.data : (docRes.data?.data || []);
+                    if (docList.length > 0) fetchedEmpCode = docList[0].empCode || docList[0].employeeCode || fetchedEmpCode;
+                }
+            } catch (e) { console.log("Could not fetch document checklist"); }
+
+            try {
+                // Auto-fetch from Selection Approval API if still missing
+                if (!fetchedDoj || !fetchedWorkLocation || !fetchedReportingTo) {
+                    const selRes = await api.get('/hiring/selection-approval', { params: { candidateId } });
+                    const selList = Array.isArray(selRes.data) ? selRes.data : (selRes.data?.data || []);
+                    if (selList.length > 0) {
+                        const sel = selList[0];
+                        const dateRaw = sel.dateOfJoining || sel.joiningDate;
+                        if (dateRaw && !fetchedDoj) fetchedDoj = new Date(dateRaw).toISOString().split('T')[0];
+                        if (sel.workLocation && !fetchedWorkLocation) fetchedWorkLocation = sel.workLocation;
+                        if (sel.reportingTo && !fetchedReportingTo) fetchedReportingTo = sel.reportingTo;
+                    }
+                }
+            } catch (e) { console.log("Could not fetch selection approval"); }
+
+            try {
+                // Auto-fetch from Joining Form API for blood group
+                const joinRes = await api.get('/hiring/joining-form', { params: { candidateId } });
+                const joinList = Array.isArray(joinRes.data) ? joinRes.data : (joinRes.data?.data || []);
+                if (joinList.length > 0) {
+                    const jf = joinList[0];
+                    if (jf.bloodGroup) fetchedBloodGroup = jf.bloodGroup;
+                }
+            } catch (e) { console.log("Could not fetch joining form data"); }
+
+            const appDetails = cand.applicationDetails || {};
+            const defaultDesignation = fetchedDesignation || appDetails.title || '';
+            const defaultDepartment = fetchedDepartment || '';
+            const defaultEmployeeName = `${cand.firstName} ${cand.lastName || ''}`.trim();
 
             const res = await api.get('/hiring/emergency-contact', { params: { candidateId } });
             const list = Array.isArray(res.data) ? res.data : (res.data?.data || []);
@@ -82,14 +143,14 @@ export default function EmergencyContactPage({ candidateId }: { candidateId: str
                         aadhaarEmployee: false,
                         other: false
                     },
-                    bloodGroup: row.medicalInfo?.bloodGroup || row.bloodGroup || '',
-                    employeeName: row.employeeName || `${cand.firstName} ${cand.lastName || ''}`.trim(),
-                    empCode: row.empCode || cand.employeeCode || '',
-                    designation: row.designation || cand.jobRole || '',
-                    department: row.department || cand.department || '',
-                    dateOfJoining: row.dateOfJoining ? row.dateOfJoining.split('T')[0] : '',
-                    workLocation: row.workLocation || cand.workLocation || '',
-                    reportingTo: row.reportingTo || cand.reportingTo || '',
+                    bloodGroup: row.medicalInfo?.bloodGroup || row.bloodGroup || fetchedBloodGroup || '',
+                    employeeName: row.employeeName || defaultEmployeeName,
+                    empCode: row.empCode || fetchedEmpCode,
+                    designation: row.designation || defaultDesignation,
+                    department: row.department || defaultDepartment,
+                    dateOfJoining: row.dateOfJoining ? row.dateOfJoining.split('T')[0] : fetchedDoj,
+                    workLocation: row.workLocation || fetchedWorkLocation,
+                    reportingTo: row.reportingTo || fetchedReportingTo,
                     verificationDate: row.verificationDate ? row.verificationDate.split('T')[0] : '',
                     verifiedBy: row.verifiedBy || currentUsername
                 });
@@ -97,12 +158,14 @@ export default function EmergencyContactPage({ candidateId }: { candidateId: str
             } else {
                 setFormData(prev => ({
                     ...prev,
-                    employeeName: `${cand.firstName} ${cand.lastName || ''}`.trim(),
-                    empCode: cand.employeeCode || '',
-                    designation: cand.jobRole || '',
-                    department: cand.department || '',
-                    workLocation: cand.workLocation || '',
-                    reportingTo: cand.reportingTo || '',
+                    bloodGroup: fetchedBloodGroup || '',
+                    employeeName: defaultEmployeeName,
+                    empCode: fetchedEmpCode,
+                    designation: defaultDesignation,
+                    department: defaultDepartment,
+                    dateOfJoining: fetchedDoj,
+                    workLocation: fetchedWorkLocation,
+                    reportingTo: fetchedReportingTo,
                     verifiedBy: currentUsername,
                 }));
             }

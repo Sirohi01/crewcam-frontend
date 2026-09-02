@@ -9,11 +9,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
+import { useMasterDataStore } from '@/store/masterDataStore';
 
 export default function OfferLetterPage({ candidateId }: { candidateId: string }) {
     const router = useRouter();
     const { user } = useAuthStore();
     const currentUsername = `${(user as any)?.firstName || ''} ${(user as any)?.lastName || ''}`.trim() || 'Admin';
+    const { departments, designations, fetchMasterData } = useMasterDataStore();
 
     const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState({
@@ -29,6 +31,7 @@ export default function OfferLetterPage({ candidateId }: { candidateId: string }
         annualCTC: '',
         workScheduleDays: '',
         workScheduleTimeStart: '',
+        workScheduleTimeEnd: '',
         designation: '',
         joiningDate: '',
         validUntil: '',
@@ -39,37 +42,87 @@ export default function OfferLetterPage({ candidateId }: { candidateId: string }
         try {
             setLoading(true);
             const { data } = await api.get(`/hiring/offer-letter?candidateId=${candidateId}`);
-            
-            // Check if we got data back for this candidate
+
+            // Auto-fetch defaults from Selection Approval and Candidate
+            let fetchedCandidateName = '';
+            let fetchedDepartment = '';
+            let fetchedLocation = '';
+            let fetchedReportingTo = '';
+            let fetchedDesignation = '';
+            let fetchedJoiningDate = '';
+            let fetchedAddress = '';
+            let fetchedMonthlyCTC = '';
+            let fetchedAnnualCTC = '';
+
+            try {
+                const candidateRes = await api.get(`/hiring/candidates/${candidateId}`);
+                const cand = candidateRes.data;
+                fetchedCandidateName = `${cand.firstName} ${cand.lastName || ''}`.trim();
+                fetchedDepartment = cand.departmentId?.name || cand.department || '';
+                fetchedDesignation = cand.jobRole || '';
+            } catch (e) { console.log('Could not fetch candidate'); }
+
+            try {
+                const selRes = await api.get('/hiring/selection-approval', { params: { candidateId } });
+                const selList = Array.isArray(selRes.data) ? selRes.data : (selRes.data?.data || []);
+                if (selList.length > 0) {
+                    const sel = selList[0];
+                    if (sel.candidateName) fetchedCandidateName = sel.candidateName;
+                    if (sel.department) fetchedDepartment = sel.department;
+                    if (sel.workLocation) fetchedLocation = sel.workLocation;
+                    if (sel.reportingTo) fetchedReportingTo = sel.reportingTo;
+                    if (sel.designation) fetchedDesignation = sel.designation;
+                    if (sel.proposedMonthlyCTC) fetchedMonthlyCTC = sel.proposedMonthlyCTC;
+                    if (sel.proposedAnnualCTC) fetchedAnnualCTC = sel.proposedAnnualCTC;
+                    const dateRaw = sel.dateOfJoining || sel.joiningDate;
+                    if (dateRaw) fetchedJoiningDate = new Date(dateRaw).toISOString().split('T')[0];
+                }
+            } catch (e) { console.log('Could not fetch selection approval'); }
+
+            try {
+                const joinRes = await api.get('/hiring/joining-form', { params: { candidateId } });
+                const joinList = Array.isArray(joinRes.data) ? joinRes.data : (joinRes.data?.data || []);
+                if (joinList.length > 0) {
+                    const jf = joinList[0];
+                    fetchedAddress = jf.currentAddress || jf.permanentAddress || '';
+                }
+            } catch (e) { }
+
             if (data && Array.isArray(data) && data.length > 0) {
-                const record = data[0]; // Assuming one offer letter per candidate
+                const record = data[0];
                 setFormData(prev => ({
                     ...prev,
                     _id: record._id,
-                    candidateName: record.candidateName || prev.candidateName,
-                    department: record.department || prev.department,
+                    candidateName: record.candidateName || fetchedCandidateName || prev.candidateName,
+                    department: record.department || fetchedDepartment || prev.department,
                     date: record.date ? new Date(record.date).toISOString().split('T')[0] : prev.date,
-                    location: record.location || prev.location,
-                    reportingTo: record.reportingTo || prev.reportingTo,
+                    location: record.location || fetchedLocation || prev.location,
+                    reportingTo: record.reportingTo || fetchedReportingTo || prev.reportingTo,
                     probationPeriod: record.probationPeriod || prev.probationPeriod,
-                    address: record.address || prev.address,
-                    monthlyCTC: record.monthlyCTC || prev.monthlyCTC,
-                    annualCTC: record.annualCTC || prev.annualCTC,
+                    address: record.address || fetchedAddress || prev.address,
+                    monthlyCTC: record.monthlyCTC || fetchedMonthlyCTC || prev.monthlyCTC,
+                    annualCTC: record.annualCTC || fetchedAnnualCTC || prev.annualCTC,
                     workScheduleDays: record.workScheduleDays || prev.workScheduleDays,
                     workScheduleTimeStart: record.workScheduleTimeStart || prev.workScheduleTimeStart,
-                    designation: record.designation || prev.designation,
-                    joiningDate: record.joiningDate ? new Date(record.joiningDate).toISOString().split('T')[0] : prev.joiningDate,
+                    workScheduleTimeEnd: record.workScheduleTimeEnd || prev.workScheduleTimeEnd,
+                    designation: record.designation || fetchedDesignation || prev.designation,
+                    joiningDate: record.joiningDate ? new Date(record.joiningDate).toISOString().split('T')[0] : fetchedJoiningDate || prev.joiningDate,
                     validUntil: record.validUntil ? new Date(record.validUntil).toISOString().split('T')[0] : prev.validUntil,
                     offerContent: record.offerContent || prev.offerContent,
                 }));
             } else {
-                // If no Offer Letter, maybe we can fetch Candidate details to prefill name/designation/etc
-                try {
-                    const { data: pipelineData } = await api.get(`/hiring/candidates/${candidateId}/pipeline`);
-                    // This is optional if pipeline has candidate details, else skip
-                } catch (e) {
-                    // ignore
-                }
+                setFormData(prev => ({
+                    ...prev,
+                    candidateName: fetchedCandidateName || prev.candidateName,
+                    department: fetchedDepartment || prev.department,
+                    location: fetchedLocation || prev.location,
+                    reportingTo: fetchedReportingTo || prev.reportingTo,
+                    address: fetchedAddress || prev.address,
+                    monthlyCTC: fetchedMonthlyCTC || prev.monthlyCTC,
+                    annualCTC: fetchedAnnualCTC || prev.annualCTC,
+                    designation: fetchedDesignation || prev.designation,
+                    joiningDate: fetchedJoiningDate || prev.joiningDate,
+                }));
             }
         } catch (error) {
             console.error('Error fetching Offer Letter details:', error);
@@ -81,6 +134,7 @@ export default function OfferLetterPage({ candidateId }: { candidateId: string }
 
     useEffect(() => {
         if (candidateId) {
+            fetchMasterData();
             fetchOfferLetter();
         }
     }, [candidateId]);
@@ -92,7 +146,7 @@ export default function OfferLetterPage({ candidateId }: { candidateId: string }
     const handleSave = async () => {
         try {
             const { _id, ...submitData } = formData;
-            
+
             const payload = {
                 ...submitData,
                 candidateId,
@@ -145,112 +199,132 @@ export default function OfferLetterPage({ candidateId }: { candidateId: string }
                         </div>
 
                         <div className="p-3 space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormField label="Candidate Name">
-                                    <FormInput
-                                        value={formData.candidateName}
-                                        onChange={(e) => handleChange('candidateName', e.target.value)}
-                                        placeholder="e.g., Value"
-                                    />
-                                </FormField>
-                                <FormField label="Department">
-                                    <FormInput
-                                        value={formData.department}
-                                        onChange={(e) => handleChange('department', e.target.value)}
-                                        placeholder="e.g., Software Development"
-                                    />
-                                </FormField>
-                                
-                                <FormField label="Date">
-                                    <FormInput
-                                        value={formData.date}
-                                        onChange={(e) => handleChange('date', e.target.value)}
-                                        placeholder="e.g., Value"
-                                        type="date"
-                                    />
-                                </FormField>
-                                <FormField label="Location">
-                                    <FormInput
-                                        value={formData.location}
-                                        onChange={(e) => handleChange('location', e.target.value)}
-                                        placeholder="e.g., Value"
-                                    />
-                                </FormField>
+                            <div className="space-y-3 pt-2">
+                                <h3 className="text-xs font-bold text-slate-900 border-b border-slate-100 pb-1 flex items-center gap-2 uppercase tracking-wide">
+                                    <span className="bg-[#0d3c68] text-white w-4 h-4 flex items-center justify-center text-[10px] rounded-full">1</span>
+                                    Candidate & Appointment Details
+                                </h3>
 
-                                <FormField label="Reporting To">
-                                    <FormInput
-                                        value={formData.reportingTo}
-                                        onChange={(e) => handleChange('reportingTo', e.target.value)}
-                                        placeholder="e.g., Value"
-                                    />
-                                </FormField>
-                                <FormField label="Probation Period">
-                                    <FormInput
-                                        value={formData.probationPeriod}
-                                        onChange={(e) => handleChange('probationPeriod', e.target.value)}
-                                        placeholder="e.g., Value"
-                                    />
-                                </FormField>
+                                <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
+                                    <FormField label="Candidate Name">
+                                        <FormInput
+                                            value={formData.candidateName}
+                                            onChange={(e) => handleChange('candidateName', e.target.value)}
+                                            placeholder="Full Name"
+                                        />
+                                    </FormField>
+                                    <FormField label="Department">
+                                        <FormSelect
+                                            options={departments.map((d: any) => ({ value: d.name, label: d.name }))}
+                                            value={formData.department}
+                                            onChange={(e) => handleChange('department', e.target.value)}
+                                            placeholder="Select Department"
+                                        />
+                                    </FormField>
+                                    <FormField label="Designation">
+                                        <FormSelect
+                                            options={designations.map((d: any) => ({ value: d.name, label: d.name }))}
+                                            value={formData.designation}
+                                            onChange={(e) => handleChange('designation', e.target.value)}
+                                            placeholder="Select Designation"
+                                        />
+                                    </FormField>
+                                    <FormField label="Offer Date">
+                                        <FormInput
+                                            value={formData.date}
+                                            onChange={(e) => handleChange('date', e.target.value)}
+                                            type="date"
+                                        />
+                                    </FormField>
+                                    <FormField label="Joining Date">
+                                        <FormInput
+                                            value={formData.joiningDate}
+                                            onChange={(e) => handleChange('joiningDate', e.target.value)}
+                                            type="date"
+                                        />
+                                    </FormField>
+                                    <FormField label="Offer Valid Until">
+                                        <FormInput
+                                            value={formData.validUntil}
+                                            onChange={(e) => handleChange('validUntil', e.target.value)}
+                                            type="date"
+                                        />
+                                    </FormField>
+                                    <FormField label="Work Location" className="md:col-span-1">
+                                        <FormInput
+                                            value={formData.location}
+                                            onChange={(e) => handleChange('location', e.target.value)}
+                                            placeholder="e.g. Head Office in Ghaziabad"
+                                        />
+                                    </FormField>
+                                    <FormField label="Reporting To">
+                                        <FormInput
+                                            value={formData.reportingTo}
+                                            onChange={(e) => handleChange('reportingTo', e.target.value)}
+                                        />
+                                    </FormField>
+                                    <FormField label="Probation Period">
+                                        <FormInput
+                                            value={formData.probationPeriod}
+                                            onChange={(e) => handleChange('probationPeriod', e.target.value)}
+                                            placeholder="e.g. six (6) months"
+                                        />
+                                    </FormField>
+                                    <FormField label="Address" className="md:col-span-1">
+                                        <FormInput
+                                            value={formData.address}
+                                            onChange={(e) => handleChange('address', e.target.value)}
+                                        />
+                                    </FormField>
+                                </div>
+                            </div>
 
-                                <FormField label="Address">
-                                    <FormInput
-                                        value={formData.address}
-                                        onChange={(e) => handleChange('address', e.target.value)}
-                                        placeholder="e.g., Value"
-                                    />
-                                </FormField>
-                                <FormField label="Monthly C T C">
-                                    <FormInput
-                                        value={formData.monthlyCTC}
-                                        onChange={(e) => handleChange('monthlyCTC', e.target.value)}
-                                        placeholder="e.g., Value"
-                                    />
-                                </FormField>
+                            <div className="space-y-3 pt-2">
+                                <h3 className="text-xs font-bold text-slate-900 border-b border-slate-100 pb-1 flex items-center gap-2 uppercase tracking-wide">
+                                    <span className="bg-[#0d3c68] text-white w-4 h-4 flex items-center justify-center text-[10px] rounded-full">2</span>
+                                    Salary & Work Schedule
+                                </h3>
 
-                                <FormField label="Annual C T C">
-                                    <FormInput
-                                        value={formData.annualCTC}
-                                        onChange={(e) => handleChange('annualCTC', e.target.value)}
-                                        placeholder="e.g., Value"
-                                    />
-                                </FormField>
-                                <FormField label="Work Schedule Days">
-                                    <FormInput
-                                        value={formData.workScheduleDays}
-                                        onChange={(e) => handleChange('workScheduleDays', e.target.value)}
-                                        placeholder="e.g., Value"
-                                    />
-                                </FormField>
-
-                                <FormField label="Work Schedule Time Start">
-                                    <FormInput
-                                        value={formData.workScheduleTimeStart}
-                                        onChange={(e) => handleChange('workScheduleTimeStart', e.target.value)}
-                                        placeholder="e.g., Value"
-                                    />
-                                </FormField>
-                                <FormField label="Designation">
-                                    <FormInput
-                                        value={formData.designation}
-                                        onChange={(e) => handleChange('designation', e.target.value)}
-                                        placeholder="e.g., Frontend Developer"
-                                    />
-                                </FormField>
-
-                                <FormField label="Joining Date">
-                                    <FormInput
-                                        value={formData.joiningDate}
-                                        onChange={(e) => handleChange('joiningDate', e.target.value)}
-                                        type="date"
-                                    />
-                                </FormField>
-                                <FormField label="Offer Valid Until">
-                                    <FormInput
-                                        value={formData.validUntil}
-                                        onChange={(e) => handleChange('validUntil', e.target.value)}
-                                        type="date"
-                                    />
-                                </FormField>
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    <FormField label="Monthly CTC (₹)">
+                                        <FormInput
+                                            value={formData.monthlyCTC}
+                                            onChange={(e) => handleChange('monthlyCTC', e.target.value)}
+                                            placeholder="e.g. 28,000"
+                                        />
+                                    </FormField>
+                                    <FormField label="Annual CTC (₹)">
+                                        <FormInput
+                                            value={formData.annualCTC}
+                                            onChange={(e) => handleChange('annualCTC', e.target.value)}
+                                            placeholder="e.g. 3,36,000"
+                                        />
+                                    </FormField>
+                                    <FormField label="Regular Working Days" className="md:col-span-1.5">
+                                        <FormInput
+                                            value={formData.workScheduleDays}
+                                            onChange={(e) => handleChange('workScheduleDays', e.target.value)}
+                                            placeholder="e.g. Monday to Saturday"
+                                        />
+                                    </FormField>
+                                    <FormField label="Regular Office Hours" className="md:col-span-1.5">
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="time"
+                                                value={formData.workScheduleTimeStart}
+                                                onChange={(e) => handleChange('workScheduleTimeStart', e.target.value)}
+                                                className="flex-1 h-8 px-2 text-[12px] border border-slate-200 rounded-[2px] focus:outline-none focus:ring-1 focus:ring-[#0d3c68] focus:border-[#0d3c68] transition-all"
+                                            />
+                                            <span className="text-slate-500 text-sm font-medium">to</span>
+                                            <input
+                                                type="time"
+                                                value={formData.workScheduleTimeEnd || ''}
+                                                onChange={(e) => handleChange('workScheduleTimeEnd', e.target.value)}
+                                                className="flex-1 h-8 px-2 text-[12px] border border-slate-200 rounded-[2px] focus:outline-none focus:ring-1 focus:ring-[#0d3c68] focus:border-[#0d3c68] transition-all"
+                                            />
+                                        </div>
+                                    </FormField>
+                                </div>
                             </div>
 
                             <div className="pt-2">

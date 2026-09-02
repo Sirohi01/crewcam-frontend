@@ -3,14 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FileText, Save } from 'lucide-react';
-import { FormField, FormInput } from '@/components/common/FormComponents';
+import { FormField, FormInput, FormSelect } from '@/components/common/FormComponents';
 import { HiringStepLayout } from './HiringStepLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
+import { useMasterDataStore } from '@/store/masterDataStore';
 
 export default function NDAPage({ candidateId }: { candidateId: string }) {
     const router = useRouter();
+    const { departments, designations, fetchMasterData } = useMasterDataStore();
     const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState({
         _id: '',
@@ -35,18 +37,68 @@ export default function NDAPage({ candidateId }: { candidateId: string }) {
             setLoading(true);
             const { data } = await api.get(`/hiring/nda?candidateId=${candidateId}`);
 
+            // Auto-fetch defaults
+            let fetchedCandidateName = '';
+            let fetchedFatherName = '';
+            let fetchedDepartment = '';
+            let fetchedDesignation = '';
+            let fetchedAddress = '';
+            let fetchedAge = '';
+
+            try {
+                const candidateRes = await api.get(`/hiring/candidates/${candidateId}`);
+                const cand = candidateRes.data;
+                fetchedCandidateName = `${cand.firstName} ${cand.lastName || ''}`.trim();
+                fetchedDepartment = cand.departmentId?.name || cand.department || '';
+                fetchedDesignation = cand.jobRole || '';
+            } catch (e) { }
+
+            try {
+                const joinRes = await api.get('/hiring/joining-form', { params: { candidateId } });
+                const joinList = Array.isArray(joinRes.data) ? joinRes.data : (joinRes.data?.data || []);
+                if (joinList.length > 0) {
+                    const jf = joinList[0];
+                    fetchedFatherName = jf.fatherName || jf.fatherHusbandSpouse || jf.fatherMotherName || '';
+                    fetchedAddress = jf.currentAddress || jf.permanentAddress || '';
+                    
+                    if (jf.dob) {
+                        const birthDate = new Date(jf.dob);
+                        const today = new Date();
+                        let age = today.getFullYear() - birthDate.getFullYear();
+                        const m = today.getMonth() - birthDate.getMonth();
+                        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                            age--;
+                        }
+                        fetchedAge = age.toString();
+                    }
+                }
+            } catch (e) { }
+
+            try {
+                if (!fetchedDepartment || !fetchedDesignation) {
+                    const nomRes = await api.get('/hiring/nomination', { params: { candidateId } });
+                    const nomList = Array.isArray(nomRes.data) ? nomRes.data : (nomRes.data?.data || []);
+                    if (nomList.length > 0) {
+                        const nom = nomList[0];
+                        if (!fetchedDepartment && nom.department) fetchedDepartment = nom.department;
+                        if (!fetchedDesignation && nom.designation) fetchedDesignation = nom.designation;
+                        if (!fetchedFatherName && nom.fatherName) fetchedFatherName = nom.fatherName;
+                    }
+                }
+            } catch (e) { }
+
             if (data && Array.isArray(data) && data.length > 0) {
                 const record = data[0];
                 setFormData(prev => ({
                     ...prev,
                     _id: record._id,
-                    candidateName: record.candidateName || prev.candidateName,
-                    fatherName: record.fatherName || prev.fatherName,
-                    age: record.age || prev.age,
-                    department: record.department || prev.department,
-                    designation: record.designation || prev.designation,
-                    residentOf1: record.residentOf1 || prev.residentOf1,
-                    residentOf2: record.residentOf2 || prev.residentOf2,
+                    candidateName: record.candidateName || fetchedCandidateName || prev.candidateName,
+                    fatherName: record.fatherName || fetchedFatherName || prev.fatherName,
+                    age: record.age || fetchedAge || prev.age,
+                    department: record.department || fetchedDepartment || prev.department,
+                    designation: record.designation || fetchedDesignation || prev.designation,
+                    residentOf1: record.residentOf1 || fetchedAddress || prev.residentOf1,
+                    residentOf2: record.residentOf2 || fetchedAddress || prev.residentOf2,
                     witness1Name: record.witness1Name || prev.witness1Name,
                     witness1Address: record.witness1Address || prev.witness1Address,
                     witness1Date: record.witness1Date ? new Date(record.witness1Date).toISOString().split('T')[0] : prev.witness1Date,
@@ -54,6 +106,17 @@ export default function NDAPage({ candidateId }: { candidateId: string }) {
                     witness2Address: record.witness2Address || prev.witness2Address,
                     witness2Date: record.witness2Date ? new Date(record.witness2Date).toISOString().split('T')[0] : prev.witness2Date,
                     documentContent: record.documentContent || prev.documentContent,
+                }));
+            } else {
+                setFormData(prev => ({
+                    ...prev,
+                    candidateName: fetchedCandidateName || prev.candidateName,
+                    fatherName: fetchedFatherName || prev.fatherName,
+                    age: fetchedAge || prev.age,
+                    department: fetchedDepartment || prev.department,
+                    designation: fetchedDesignation || prev.designation,
+                    residentOf1: fetchedAddress || prev.residentOf1,
+                    residentOf2: fetchedAddress || prev.residentOf2,
                 }));
             }
         } catch (error) {
@@ -66,6 +129,7 @@ export default function NDAPage({ candidateId }: { candidateId: string }) {
 
     useEffect(() => {
         if (candidateId) {
+            fetchMasterData();
             fetchNDA();
         }
     }, [candidateId]);
@@ -136,106 +200,135 @@ export default function NDAPage({ candidateId }: { candidateId: string }) {
                         </div>
 
                         <div className="p-3 space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormField label="Candidate Name">
-                                    <FormInput
-                                        value={formData.candidateName}
-                                        onChange={(e) => handleChange('candidateName', e.target.value)}
-                                        placeholder="e.g., Value"
-                                    />
-                                </FormField>
-                                <FormField label="Father Name">
-                                    <FormInput
-                                        value={formData.fatherName}
-                                        onChange={(e) => handleChange('fatherName', e.target.value)}
-                                        placeholder="e.g., Value"
-                                    />
-                                </FormField>
+                            {/* Party Details */}
+                            <div className="space-y-2">
+                                <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1">
+                                    Party Details (The Employee)
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
+                                    <FormField label="Candidate Name">
+                                        <FormInput
+                                            value={formData.candidateName}
+                                            onChange={(e) => handleChange('candidateName', e.target.value)}
+                                            placeholder="Full Name"
+                                        />
+                                    </FormField>
+                                    <FormField label="Father's Name">
+                                        <FormInput
+                                            value={formData.fatherName}
+                                            onChange={(e) => handleChange('fatherName', e.target.value)}
+                                            placeholder="S/o"
+                                        />
+                                    </FormField>
+                                    <FormField label="Age">
+                                        <FormInput
+                                            value={formData.age}
+                                            onChange={(e) => handleChange('age', e.target.value)}
+                                            placeholder="Aged about"
+                                        />
+                                    </FormField>
 
-                                <FormField label="Age">
-                                    <FormInput
-                                        value={formData.age}
-                                        onChange={(e) => handleChange('age', e.target.value)}
-                                        placeholder="e.g., Value"
-                                    />
-                                </FormField>
-                                <FormField label="Department">
-                                    <FormInput
-                                        value={formData.department}
-                                        onChange={(e) => handleChange('department', e.target.value)}
-                                        placeholder="e.g., Software Developer"
-                                    />
-                                </FormField>
+                                    <FormField label="Department">
+                                        <FormSelect
+                                            options={departments.map((d: any) => ({ value: d.name, label: d.name }))}
+                                            value={formData.department}
+                                            onChange={(e) => handleChange('department', e.target.value)}
+                                            placeholder="Select Department"
+                                        />
+                                    </FormField>
+                                    <FormField label="Appointed As (Designation)">
+                                        <FormSelect
+                                            options={designations.map((d: any) => ({ value: d.name, label: d.name }))}
+                                            value={formData.designation}
+                                            onChange={(e) => handleChange('designation', e.target.value)}
+                                            placeholder="Select Designation"
+                                        />
+                                    </FormField>
+                                    <FormField label="Resident Of (Line 1)" className="md:col-span-2">
+                                        <FormInput
+                                            value={formData.residentOf1}
+                                            onChange={(e) => handleChange('residentOf1', e.target.value)}
+                                            placeholder="Address Line 1"
+                                        />
+                                    </FormField>
+                                    <FormField label="Resident Of (Line 2)">
+                                        <FormInput
+                                            value={formData.residentOf2}
+                                            onChange={(e) => handleChange('residentOf2', e.target.value)}
+                                            placeholder="Address Line 2"
+                                        />
+                                    </FormField>
+                                </div>
+                            </div>
 
-                                <FormField label="Designation">
-                                    <FormInput
-                                        value={formData.designation}
-                                        onChange={(e) => handleChange('designation', e.target.value)}
-                                        placeholder="e.g., Frontend Developer"
-                                    />
-                                </FormField>
-                                <FormField label="Resident Of1">
-                                    <FormInput
-                                        value={formData.residentOf1}
-                                        onChange={(e) => handleChange('residentOf1', e.target.value)}
-                                        placeholder="e.g., Value"
-                                    />
-                                </FormField>
+                            <div className="space-y-2">
+                                {/* 1st Witness */}
+                                <div className="bg-slate-50 p-2 rounded-[2px]">
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">
+                                        1st Witness Details
+                                    </p>
 
-                                <FormField label="Resident Of2">
-                                    <FormInput
-                                        value={formData.residentOf2}
-                                        onChange={(e) => handleChange('residentOf2', e.target.value)}
-                                        placeholder="e.g., Value"
-                                    />
-                                </FormField>
-                                <FormField label="Witness1 Name">
-                                    <FormInput
-                                        value={formData.witness1Name}
-                                        onChange={(e) => handleChange('witness1Name', e.target.value)}
-                                        placeholder="e.g., Value"
-                                    />
-                                </FormField>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                        <FormField label="Name" className="space-y-0.5">
+                                            <FormInput
+                                                className="h-8"
+                                                value={formData.witness1Name}
+                                                onChange={(e) => handleChange('witness1Name', e.target.value)}
+                                            />
+                                        </FormField>
 
-                                <FormField label="Witness1 Address">
-                                    <FormInput
-                                        value={formData.witness1Address}
-                                        onChange={(e) => handleChange('witness1Address', e.target.value)}
-                                        placeholder="e.g., Value"
-                                    />
-                                </FormField>
-                                <FormField label="Witness1 Date">
-                                    <FormInput
-                                        value={formData.witness1Date}
-                                        onChange={(e) => handleChange('witness1Date', e.target.value)}
-                                        placeholder="e.g., Value"
-                                        type="date"
-                                    />
-                                </FormField>
+                                        <FormField label="Address" className="space-y-0.5">
+                                            <FormInput
+                                                className="h-8"
+                                                value={formData.witness1Address}
+                                                onChange={(e) => handleChange('witness1Address', e.target.value)}
+                                            />
+                                        </FormField>
 
-                                <FormField label="Witness2 Name">
-                                    <FormInput
-                                        value={formData.witness2Name}
-                                        onChange={(e) => handleChange('witness2Name', e.target.value)}
-                                        placeholder="e.g., Value"
-                                    />
-                                </FormField>
-                                <FormField label="Witness2 Address">
-                                    <FormInput
-                                        value={formData.witness2Address}
-                                        onChange={(e) => handleChange('witness2Address', e.target.value)}
-                                        placeholder="e.g., Value"
-                                    />
-                                </FormField>
+                                        <FormField label="Date" className="space-y-0.5">
+                                            <FormInput
+                                                className="h-8"
+                                                type="date"
+                                                value={formData.witness1Date}
+                                                onChange={(e) => handleChange('witness1Date', e.target.value)}
+                                            />
+                                        </FormField>
+                                    </div>
+                                </div>
 
-                                <FormField label="Witness2 Date">
-                                    <FormInput
-                                        value={formData.witness2Date}
-                                        onChange={(e) => handleChange('witness2Date', e.target.value)}
-                                        placeholder="e.g., Value"
-                                        type="date"
-                                    />
-                                </FormField>
+                                {/* 2nd Witness */}
+                                <div className="bg-slate-50 p-2 rounded-[2px]">
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">
+                                        2nd Witness Details
+                                    </p>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                        <FormField label="Name" className="space-y-0.5">
+                                            <FormInput
+                                                className="h-8"
+                                                value={formData.witness2Name}
+                                                onChange={(e) => handleChange('witness2Name', e.target.value)}
+                                            />
+                                        </FormField>
+
+                                        <FormField label="Address" className="space-y-0.5">
+                                            <FormInput
+                                                className="h-8"
+                                                value={formData.witness2Address}
+                                                onChange={(e) => handleChange('witness2Address', e.target.value)}
+                                            />
+                                        </FormField>
+
+                                        <FormField label="Date" className="space-y-0.5">
+                                            <FormInput
+                                                className="h-8"
+                                                type="date"
+                                                value={formData.witness2Date}
+                                                onChange={(e) => handleChange('witness2Date', e.target.value)}
+                                            />
+                                        </FormField>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="pt-2">
