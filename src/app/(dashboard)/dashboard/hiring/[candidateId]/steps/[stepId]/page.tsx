@@ -20,7 +20,7 @@ import OfferLetterPage from '@/components/hiring/OfferLetterPage';
 import NDAPage from '@/components/hiring/NDAPage';
 import EngagementConfirmPage from '@/components/hiring/EngagementConfirmPage';
 import InductionPage from '@/components/hiring/InductionPage';
-
+import TeamIntroPage from '@/components/hiring/TeamIntroPage';
 export default function HiringStepRoutePage() {
   const params = useParams<{ candidateId: string; stepId: string }>();
   const { candidateId, stepId } = params;
@@ -36,7 +36,7 @@ export default function HiringStepRoutePage() {
   if (stepId === 'asset-access') return <AssetAccessPage candidateId={candidateId} />;
   if (stepId === 'offer-letter') return <OfferLetterPage candidateId={candidateId} />;
   if (stepId === 'nda') return <NDAPage candidateId={candidateId} />;
-
+  if (stepId === 'team-intro') return <TeamIntroPage candidateId={candidateId} />;
   // Existing dedicated pages
   if (stepId === 'evaluation') return <InterviewEvaluationSheet candidateId={candidateId} />;
   if (stepId === 'selection-approval') return <SelectionApprovalNote candidateId={candidateId} />;
