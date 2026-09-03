@@ -19,6 +19,7 @@ import AssetAccessPage from '@/components/hiring/AssetAccessPage';
 import OfferLetterPage from '@/components/hiring/OfferLetterPage';
 import NDAPage from '@/components/hiring/NDAPage';
 import EngagementConfirmPage from '@/components/hiring/EngagementConfirmPage';
+import InductionPage from '@/components/hiring/InductionPage';
 
 export default function HiringStepRoutePage() {
   const params = useParams<{ candidateId: string; stepId: string }>();
@@ -47,5 +48,6 @@ export default function HiringStepRoutePage() {
 
   // Generic step page for remaining steps
   if (stepId === 'engagement-confirm') return <EngagementConfirmPage candidateId={candidateId} />;
+  if (stepId === 'induction') return <InductionPage candidateId={candidateId} />;
   return <HiringStepPage candidateId={candidateId} stepId={stepId} />;
 }
