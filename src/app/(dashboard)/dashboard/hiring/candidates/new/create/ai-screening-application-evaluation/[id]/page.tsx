@@ -146,6 +146,7 @@ export default function EvaluationPage() {
   const [zoom, setZoom] = React.useState<number>(100);
   const [screeningData, setScreeningData] = React.useState<any>(null);
   const [loadingScreening, setLoadingScreening] = React.useState(true);
+  const [realCandidateId, setRealCandidateId] = React.useState<string | null>(null);
 
   const mockScreeningData = {
     fitScore: 87,
@@ -173,12 +174,14 @@ export default function EvaluationPage() {
             else throw new Error("Candidate not found");
           }
 
+          setRealCandidateId(cId);
+
           const res = await api.get(`/hiring/candidates/${cId}`);
           const data = res.data;
           const appDetails = data.applicationDetails || {};
 
           setCandidate({
-            fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
+            fullName: `${data.firstName || ''} ${data.lastName || ''}`.trim().toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()),
             email: data.email || '',
             mobile: data.phone || '',
             currentLocation: appDetails.currentLocation || '',
@@ -248,14 +251,29 @@ export default function EvaluationPage() {
   const handleShortlist = async () => {
     try {
       setIsShortlisting(true);
-      await api.put(`/hiring/candidates/${candidateId}/status`, { status: 'Interviewing' });
+      await api.put(`/hiring/candidates/${realCandidateId || candidateId}/status`, { status: 'Interviewing' });
       toast.success('Candidate shortlisted for interview');
-      router.push(`/dashboard/hiring/candidates/new/create/interview-process/${candidateId}`);
+      router.push(`/dashboard/hiring/candidates/new/create/interview-process/${realCandidateId || candidateId}`);
     } catch (err: any) {
       console.error(err);
       toast.error(err?.response?.data?.message || 'Failed to shortlist candidate');
     } finally {
       setIsShortlisting(false);
+    }
+  };
+
+  const [isMovingToHOD, setIsMovingToHOD] = React.useState(false);
+  const handleMoveToHOD = async () => {
+    try {
+      setIsMovingToHOD(true);
+      await api.put(`/hiring/candidates/${realCandidateId || candidateId}/status`, { status: 'HOD_APPROVAL' });
+      toast.success('Candidate moved to HOD Review successfully');
+      router.push('/dashboard/hiring/hod-evaluation');
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.response?.data?.message || 'Failed to move candidate to HOD Review');
+    } finally {
+      setIsMovingToHOD(false);
     }
   };
 
@@ -299,11 +317,11 @@ export default function EvaluationPage() {
             <ChevronLeft className="w-3 h-3 mr-1" /> Back to Applications
           </button>
           <button
-            onClick={() => {
-              router.push(`/dashboard/hiring/candidates/new/create/evaluation/${candidateId}`);
-            }}
+            onClick={handleMoveToHOD}
+            disabled={isMovingToHOD}
             className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors"
           >
+            {isMovingToHOD ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
             Move to HOD Review &rarr;
           </button>
         </div>
@@ -758,11 +776,11 @@ export default function EvaluationPage() {
                     <Star className="w-3.5 h-3.5" />
                   </button>
                   <button
-                    onClick={() => {
-                      router.push(`/dashboard/hiring/candidates/new/create/evaluation/${candidateId}`);
-                    }}
+                    onClick={handleMoveToHOD}
+                    disabled={isMovingToHOD}
                     className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded flex items-center gap-1 shadow-xs transition-all text-xs"
                   >
+                    {isMovingToHOD ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                     <span>Send to HOD Review</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>

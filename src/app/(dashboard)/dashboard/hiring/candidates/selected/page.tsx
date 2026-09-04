@@ -12,29 +12,6 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import { Loader2 } from 'lucide-react';
 
-// Dummy data / static mockup — matches the approved design 1:1.
-
-const KPIS = [
-  { label: 'Total Selected', value: '52', sub: 'This Month', icon: Users, accent: 'bg-indigo-50 text-indigo-700' },
-  { label: 'Ready for Offer', value: '18', sub: '34.61%', icon: Clock3, accent: 'bg-blue-50 text-blue-600' },
-  { label: 'Offer Released', value: '12', sub: '23.08%', icon: FileText, accent: 'bg-amber-50 text-amber-600' },
-  { label: 'Offer Accepted', value: '9', sub: '17.31%', icon: CheckCircle2, accent: 'bg-emerald-50 text-emerald-600' },
-  { label: 'Joined', value: '6', sub: '11.54%', icon: UserCheck, accent: 'bg-blue-50 text-blue-600' },
-  { label: 'Offer Declined', value: '3', sub: '5.77%', icon: XCircle, accent: 'bg-rose-50 text-rose-600' },
-];
-
-const tabs = [
-  { label: 'All Selected', count: 52 },
-  { label: 'Ready for Offer', count: 18 },
-  { label: 'Offer Released', count: 12 },
-  { label: 'Offer Accepted', count: 9 },
-  { label: 'Joined', count: 6 },
-  { label: 'Offer Declined', count: 3 },
-  { label: 'On Hold', count: 4 },
-];
-
-// Data fetched dynamically
-
 const stageStyle: Record<string, string> = {
   'Final Interview': 'bg-blue-50 text-blue-600',
   Assessment: 'bg-amber-50 text-amber-600',
@@ -97,11 +74,13 @@ export default function SelectedCandidatesPage() {
   const [tab, setTab] = useState('All Selected');
   const [view, setView] = useState<'table' | 'kanban'>('table');
   const [department, setDepartment] = useState('All Departments');
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const { data: candidatesResponse, isLoading } = useQuery({
     queryKey: ['selected-candidates'],
     queryFn: async () => {
-      const res = await api.get('/hiring/candidates');
+      const res = await api.get('/hiring/candidates?limit=1000');
       return res.data;
     }
   });
@@ -118,28 +97,75 @@ export default function SelectedCandidatesPage() {
     return Array.isArray(departmentsRes?.data) ? departmentsRes.data : [];
   }, [departmentsRes]);
 
-  const candidates = React.useMemo(() => {
+  const allCandidates = React.useMemo(() => {
     const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
     return rawCandidates
-      .filter((c: any) => c.status === 'Hired' || c.status === 'Offered' || c.status === 'Hold') // Mock statuses include hold
-      .filter((c: any) => department === 'All Departments' || c.department?.name === department)
-      .map((c: any) => ({
-        id: c._id || c.id,
-        name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
-        email: c.email || 'N/A',
-        phone: c.phone || 'N/A',
-        title: c.jobRole || 'N/A',
-        code: 'NA',
-        dept: c.department?.name || 'N/A',
-        stage: 'Final Interview',
-        score: c.rating ? c.rating * 20 : 80, // rough conversion to 100 scale
-        ctc: 'N/A',
-        status: c.status === 'Hired' ? 'Joined' : c.status === 'Offered' ? 'Offer Released' : c.status === 'Hold' ? 'On Hold' : 'Ready for Offer',
-        selected: false
-      }));
-  }, [candidatesResponse, department]);
+      .filter((c: any) => c.status === 'Hired' || c.status === 'Offered' || c.status === 'Hold' || c.status === 'SHORTLISTED' || c.status === 'INTERVIEW_SCHEDULED')
+      .map((c: any) => {
+        let status = 'Ready for Offer';
+        if (c.status === 'Hired') status = 'Joined';
+        else if (c.status === 'Offered') status = 'Offer Released';
+        else if (c.status === 'Hold') status = 'On Hold';
+        else if (c.status === 'SHORTLISTED' || c.status === 'INTERVIEW_SCHEDULED') status = 'Ready for Offer';
 
-  const active = candidates[0];
+        return {
+          id: c._id || c.id,
+          name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
+          email: c.email || 'N/A',
+          phone: c.phone || 'N/A',
+          title: c.jobRole || 'N/A',
+          code: 'NA',
+          dept: c.department?.name || 'N/A',
+          stage: 'Final Interview',
+          score: c.rating ? c.rating * 20 : 80,
+          ctc: c.applicationDetails?.expectedCTC || 'N/A',
+          status: status,
+          raw: c
+        };
+      });
+  }, [candidatesResponse]);
+
+  const KPIS = React.useMemo(() => {
+    const total = allCandidates.length;
+    const ready = allCandidates.filter((c: any) => c.status === 'Ready for Offer').length;
+    const released = allCandidates.filter((c: any) => c.status === 'Offer Released').length;
+    const accepted = allCandidates.filter((c: any) => c.status === 'Offer Accepted').length;
+    const joined = allCandidates.filter((c: any) => c.status === 'Joined').length;
+    const declined = allCandidates.filter((c: any) => c.status === 'Offer Declined').length;
+
+    const calcPct = (num: number) => total ? ((num / total) * 100).toFixed(2) + '%' : '0%';
+
+    return [
+      { label: 'Total Selected', value: total.toString(), sub: 'This Month', icon: Users, accent: 'bg-indigo-50 text-indigo-700' },
+      { label: 'Ready for Offer', value: ready.toString(), sub: calcPct(ready), icon: Clock3, accent: 'bg-emerald-50 text-emerald-600' },
+      { label: 'Offer Released', value: released.toString(), sub: calcPct(released), icon: FileText, accent: 'bg-blue-50 text-blue-600' },
+      { label: 'Offer Accepted', value: accepted.toString(), sub: calcPct(accepted), icon: CheckCircle2, accent: 'bg-emerald-50 text-emerald-600' },
+      { label: 'Joined', value: joined.toString(), sub: calcPct(joined), icon: UserCheck, accent: 'bg-indigo-50 text-indigo-700' },
+      { label: 'Offer Declined', value: declined.toString(), sub: calcPct(declined), icon: XCircle, accent: 'bg-rose-50 text-rose-600' },
+    ];
+  }, [allCandidates]);
+
+  const tabs = React.useMemo(() => {
+    return [
+      { label: 'All Selected', count: allCandidates.length },
+      { label: 'Ready for Offer', count: allCandidates.filter((c: any) => c.status === 'Ready for Offer').length },
+      { label: 'Offer Released', count: allCandidates.filter((c: any) => c.status === 'Offer Released').length },
+      { label: 'Offer Accepted', count: allCandidates.filter((c: any) => c.status === 'Offer Accepted').length },
+      { label: 'Joined', count: allCandidates.filter((c: any) => c.status === 'Joined').length },
+      { label: 'Offer Declined', count: allCandidates.filter((c: any) => c.status === 'Offer Declined').length },
+      { label: 'On Hold', count: allCandidates.filter((c: any) => c.status === 'On Hold').length },
+    ];
+  }, [allCandidates]);
+
+  const candidates = React.useMemo(() => {
+    return allCandidates
+      .filter((c: any) => department === 'All Departments' || c.dept === department)
+      .filter((c: any) => tab === 'All Selected' || c.status === tab);
+  }, [allCandidates, department, tab]);
+
+
+
+  const active = React.useMemo(() => candidates.find((c: any) => c.id === activeId) || candidates[0], [candidates, activeId]);
 
   return (
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
@@ -197,7 +223,7 @@ export default function SelectedCandidatesPage() {
                   onClick={() => setTab(t.label)}
                   className={`whitespace-nowrap border-b-2 py-1 text-[11.5px] font-semibold ${tab === t.label ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}
                 >
-                  {t.label} ({t.label === 'All Selected' ? candidates.length : t.count})
+                  {t.label} ({t.label === 'All Selected' ? allCandidates.length : t.count})
                 </button>
               ))}
             </div>
@@ -252,16 +278,29 @@ export default function SelectedCandidatesPage() {
             <div className="overflow-x-auto rounded-[2px] border border-zinc-200 bg-white shadow-sm">
               <table className="w-full min-w-[900px] border-collapse">
                 <thead>
-                  <tr className="border-b border-zinc-100 text-left text-[9.5px] font-semibold uppercase tracking-wide text-zinc-400">
-                    <th className="w-8 py-0.5 pl-3"><input type="checkbox" className="h-3.5 w-3.5 rounded-[2px] accent-indigo-600" /></th>
-                    <th className="py-0.5 pr-2">Candidate</th>
-                    <th className="py-0.5 pr-2">Job Title</th>
-                    <th className="py-0.5 pr-2">Department</th>
-                    <th className="py-0.5 pr-2">Stage</th>
-                    <th className="py-0.5 pr-2">Interview Score</th>
-                    <th className="py-0.5 pr-2">Expected CTC</th>
-                    <th className="py-0.5 pr-2">Status</th>
-                    <th className="py-0.5 pr-3 text-right">Actions</th>
+                  <tr className="border-b border-zinc-100 text-left text-[9.5px] font-semibold uppercase tracking-wide text-zinc-400 bg-zinc-50/50">
+                    <th className="w-8 py-2 pl-3">
+                      <input
+                        type="checkbox"
+                        className="h-3.5 w-3.5 rounded-[2px] accent-indigo-600"
+                        checked={candidates.length > 0 && selectedIds.length === candidates.length}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedIds(candidates.map((c: any) => c.id));
+                          } else {
+                            setSelectedIds([]);
+                          }
+                        }}
+                      />
+                    </th>
+                    <th className="py-2 pr-2">Candidate</th>
+                    <th className="py-2 pr-2">Job Title</th>
+                    <th className="py-2 pr-2">Department</th>
+                    <th className="py-2 pr-2">Stage</th>
+                    <th className="py-2 pr-2">Interview Score</th>
+                    <th className="py-2 pr-2">Expected CTC</th>
+                    <th className="py-2 pr-2">Status</th>
+                    <th className="py-2 pr-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-50">
@@ -270,42 +309,62 @@ export default function SelectedCandidatesPage() {
                   ) : candidates.length === 0 ? (
                     <tr><td colSpan={9} className="py-10 text-center text-[12px] text-zinc-500">No candidates found</td></tr>
                   ) : candidates.map((c: any) => (
-                    <tr key={c.email} className={c.selected ? 'bg-indigo-50/40' : 'hover:bg-zinc-50/60'}>
-                      <td className="py-0.5 pl-3"><input type="checkbox" defaultChecked={c.selected} className="h-3.5 w-3.5 rounded-[2px] accent-indigo-600" /></td>
-                      <td className="py-0.5 pr-2">
+                    <tr key={c.id} onClick={() => setActiveId(c.id)} className={`cursor-pointer transition-colors ${c.id === activeId ? 'bg-indigo-50/40' : 'hover:bg-zinc-50/60'}`}>
+                      <td className="py-1.5 pl-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(c.id)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            if (e.target.checked) {
+                              setSelectedIds(prev => [...prev, c.id]);
+                            } else {
+                              setSelectedIds(prev => prev.filter(id => id !== c.id));
+                            }
+                          }}
+                          className="h-3.5 w-3.5 rounded-[2px] accent-indigo-600"
+                        />
+                      </td>
+                      <td className="py-1.5 pr-2">
                         <div className="flex items-center gap-2">
                           <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[2px] bg-zinc-100 text-[10px] font-bold text-zinc-500">
                             {c.name.split(' ').map((n: any) => n[0]).slice(0, 2).join('')}
                           </span>
                           <div className="min-w-0">
-                            <Link href={`/dashboard/hiring/candidates/${c.email.split('@')[0]}`} className="block truncate text-[11px] font-semibold text-indigo-600 hover:underline">{c.name}</Link>
+                            <Link href={`/dashboard/hiring/candidates/${c.id}`} className="block truncate text-[11px] font-semibold text-indigo-600 hover:underline">{c.name.toLowerCase().replace(/\b\w/g, (char: string) => char.toUpperCase())}</Link>
                             <p className="truncate text-[9.5px] text-zinc-400">{c.email}</p>
                             <p className="truncate text-[9.5px] text-zinc-400">{c.phone}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="py-0.5 pr-2">
+                      <td className="py-1.5 pr-2">
                         <p className="text-[11px] font-medium text-zinc-700">{c.title}</p>
                         <p className="text-[9.5px] text-zinc-400">{c.code}</p>
                       </td>
-                      <td className="py-0.5 pr-2 text-[11px] text-zinc-600">{c.dept}</td>
-                      <td className="py-0.5 pr-2">
+                      <td className="py-1.5 pr-2 text-[11px] text-zinc-600">{c.dept}</td>
+                      <td className="py-1.5 pr-2">
                         <span className={`inline-block whitespace-nowrap rounded-[2px] px-2 py-0.5 text-[9.5px] font-semibold ${stageStyle[c.stage] || ''}`}>{c.stage}</span>
                       </td>
-                      <td className="py-0.5 pr-2">
+                      <td className="py-1.5 pr-2">
                         <div className="flex items-center gap-1.5">
                           <span className="text-[11px] font-semibold text-zinc-700">{c.score}%</span>
                           <Stars score={c.score} />
                         </div>
                       </td>
-                      <td className="py-0.5 pr-2 text-[11px] font-semibold text-zinc-700">{c.ctc}</td>
-                      <td className="py-0.5 pr-2">
+                      <td className="py-1.5 pr-2 text-[11px] font-semibold text-zinc-700">{c.ctc}</td>
+                      <td className="py-1.5 pr-2">
                         <span className={`inline-block whitespace-nowrap rounded-[2px] px-2 py-0.5 text-[9.5px] font-semibold ${statusStyle[c.status] || ''}`}>{c.status}</span>
                       </td>
-                      <td className="py-0.5 pr-3">
+                      <td className="py-1.5 pr-3">
                         <div className="flex items-center justify-end gap-1">
-                          <button type="button" className="grid h-6 w-6 place-items-center rounded-[2px] text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"><Eye size={13} /></button>
-                          <button type="button" className="grid h-6 w-6 place-items-center rounded-[2px] text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"><MoreVertical size={13} /></button>
+                          <Link href={`/dashboard/hiring/candidates/${c.id}`} onClick={(e) => e.stopPropagation()}>
+                            <button type="button" className="grid h-6 w-6 place-items-center rounded-[2px] text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600">
+                              <Eye size={13} />
+                            </button>
+                          </Link>
+                          <button type="button" onClick={(e) => e.stopPropagation()} className="grid h-6 w-6 place-items-center rounded-[2px] text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600">
+                            <MoreVertical size={13} />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -389,7 +448,7 @@ export default function SelectedCandidatesPage() {
                       {active.name.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-[12px] font-bold text-zinc-900">{active.name}</p>
+                      <p className="truncate text-[12px] font-bold text-zinc-900">{active.name.toLowerCase().replace(/\b\w/g, (char: string) => char.toUpperCase())}</p>
                       <p className="truncate text-[10.5px] text-zinc-500">{active.title}</p>
                       <span className={`mt-0.5 inline-block whitespace-nowrap rounded-[2px] px-2 py-0.5 text-[9px] font-semibold ${statusStyle[active.status]}`}>{active.status}</span>
                     </div>
@@ -398,27 +457,27 @@ export default function SelectedCandidatesPage() {
                   <div className="mt-1.5 space-y-1 border-t border-zinc-100 pt-1.5">
                     <p className="flex items-center gap-1.5 text-[10.5px] text-zinc-600"><Mail size={12} className="text-zinc-400" /> {active.email}</p>
                     <p className="flex items-center gap-1.5 text-[10.5px] text-zinc-600"><Phone size={12} className="text-zinc-400" /> {active.phone}</p>
-                    <p className="flex items-center gap-1.5 text-[10.5px] text-zinc-600"><MapPin size={12} className="text-zinc-400" /> Noida, Uttar Pradesh</p>
+                    <p className="flex items-center gap-1.5 text-[10.5px] text-zinc-600"><MapPin size={12} className="text-zinc-400" /> {active.raw?.applicationDetails?.currentLocation || 'Not Specified'}</p>
                   </div>
 
                   <div className="mt-1.5 border-t border-zinc-100 pt-1.5">
                     <p className={labelCls}>Resume</p>
                     <div className="mt-0.5 flex items-center justify-between rounded-[2px] border border-zinc-200 px-2 py-1">
                       <span className="truncate text-[10.5px] text-zinc-600">Resume.pdf</span>
-                      <Download size={13} className="shrink-0 text-zinc-400" />
+                      <a href={active.raw?.resumeUrl || '#'} target="_blank" rel="noreferrer"><Download size={13} className="shrink-0 text-indigo-500 hover:text-indigo-700 cursor-pointer" /></a>
                     </div>
                   </div>
 
                   <div className="mt-1.5 grid grid-cols-2 gap-1.5 border-t border-zinc-100 pt-1.5 text-[10.5px]">
-                    <div><p className="text-zinc-400">Current Company</p><p className="font-semibold text-zinc-800">ABC Pvt. Ltd.</p></div>
-                    <div><p className="text-zinc-400">Notice Period</p><p className="font-semibold text-zinc-800">30 Days</p></div>
-                    <div><p className="text-zinc-400">Total Experience</p><p className="font-semibold text-zinc-800">5 Years</p></div>
+                    <div><p className="text-zinc-400">Current Company</p><p className="font-semibold text-zinc-800">{active.raw?.applicationDetails?.currentCompany || '-'}</p></div>
+                    <div><p className="text-zinc-400">Notice Period</p><p className="font-semibold text-zinc-800">{active.raw?.applicationDetails?.noticePeriod || '-'}</p></div>
+                    <div><p className="text-zinc-400">Total Experience</p><p className="font-semibold text-zinc-800">{active.raw?.applicationDetails?.totalExperience ? `${active.raw.applicationDetails.totalExperience} Years` : '-'}</p></div>
                     <div><p className="text-zinc-400">Expected CTC</p><p className="font-semibold text-zinc-800">{active.ctc}</p></div>
                   </div>
 
-                  <button type="button" className="mt-1.5 flex w-full items-center justify-center gap-1.5 rounded-[2px] bg-indigo-600 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-700">
+                  <Link href={`/dashboard/hiring/candidates/${active.id}`} className="mt-1.5 flex w-full items-center justify-center gap-1.5 rounded-[2px] bg-indigo-600 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-700">
                     Move to Next Stage <ChevronDown size={13} />
-                  </button>
+                  </Link>
                 </>
               ) : (
                 <div className="py-10 text-center text-[11px] text-zinc-500">

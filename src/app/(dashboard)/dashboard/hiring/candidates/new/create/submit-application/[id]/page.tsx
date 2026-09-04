@@ -108,11 +108,11 @@ export default function SubmittedPage() {
             if (match) cId = match._id;
             else throw new Error("Candidate not found");
           }
-          
+
           const res = await api.get(`/hiring/candidates/${cId}`);
           const data = res.data;
           const appDetails = data.applicationDetails || {};
-          
+
           setCandidate({
             fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
             email: data.email || '',
@@ -219,6 +219,7 @@ export default function SubmittedPage() {
             <span className="hidden xs:inline sm:inline">Go to Dashboard</span>
           </button>
           <button
+            // onClick={() => router.push(`/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}`)}
             onClick={() => router.push(`/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}`)}
             className="flex-1 sm:flex-none justify-center px-3 py-2 sm:py-1.5 text-xs bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold flex items-center gap-1.5 transition-colors whitespace-nowrap"
           >
@@ -324,30 +325,26 @@ export default function SubmittedPage() {
                           window.open(step.href, '_blank');
                         }
                       }}
-                      className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:scale-[1.02] flex flex-col ${
-                        step.active ? 'bg-indigo-50 border-indigo-300 shadow-xs' : 
-                        step.completed ? 'bg-emerald-50/30 border-emerald-200 shadow-xs' : 'bg-white border-slate-200 hover:border-slate-300'
-                      }`}
+                      className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:scale-[1.02] flex flex-col ${step.active ? 'bg-indigo-50 border-indigo-300 shadow-xs' :
+                          step.completed ? 'bg-emerald-50/30 border-emerald-200 shadow-xs' : 'bg-white border-slate-200 hover:border-slate-300'
+                        }`}
                     >
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center mb-1.5 ${
-                        step.completed ? 'bg-emerald-100 text-emerald-700' : 
-                        step.active ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'
-                      }`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center mb-1.5 ${step.completed ? 'bg-emerald-100 text-emerald-700' :
+                          step.active ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'
+                        }`}>
                         {step.completed ? <Check className="w-3.5 h-3.5" strokeWidth={3} /> : <Icon className="w-3.5 h-3.5" />}
                       </div>
-                      <span className={`text-[10px] font-bold ${
-                        step.completed ? 'text-emerald-800' : 
-                        step.active ? 'text-indigo-950' : 'text-slate-800'
-                      }`}>
+                      <span className={`text-[10px] font-bold ${step.completed ? 'text-emerald-800' :
+                          step.active ? 'text-indigo-950' : 'text-slate-800'
+                        }`}>
                         {step.title}
                       </span>
                       <p className="text-[9px] text-slate-700 leading-tight mt-1 flex-1">
                         {step.completed ? 'Completed' : step.desc}
                       </p>
-                      <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded-full mt-1.5 self-start ${
-                        step.completed ? 'bg-emerald-100 text-emerald-800' : 
-                        step.active ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-800'
-                      }`}>
+                      <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded-full mt-1.5 self-start ${step.completed ? 'bg-emerald-100 text-emerald-800' :
+                          step.active ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-800'
+                        }`}>
                         {step.completed ? 'Done' : step.delay}
                       </span>
                       {step.active && (
@@ -556,41 +553,42 @@ export default function SubmittedPage() {
                   const isActive = activeStepIdx >= i;
 
                   return (
-                  <div key={i} className="flex gap-2 text-[10px]">
-                    <div className="flex flex-col items-center shrink-0">
-                      <span className={`w-4 h-4 rounded-full flex items-center justify-center font-bold text-[8px] border ${isChecked
-                        ? 'bg-emerald-100 border-emerald-400 text-emerald-800'
-                        : isCurrent
-                          ? 'bg-indigo-600 border-indigo-600 text-white animate-pulse'
-                          : 'bg-slate-100 border-slate-300 text-slate-500'
-                        }`}>
-                        {isChecked ? "✓" : isCurrent ? <Clock className="w-2.5 h-2.5" /> : i + 1}
-                      </span>
-                      {i < 5 && <div className={`w-[2px] flex-1 min-h-[14px] mt-1 ${isActive ? 'bg-indigo-400' : 'bg-slate-200'}`} />}
-                    </div>
-                    <div className="flex-1 min-w-0 pb-1">
-                      <div className="flex flex-wrap items-center justify-between gap-x-2">
-                        <span className={`font-bold ${isActive ? 'text-indigo-950' : 'text-slate-800'}`}>
-                          {act.title}
+                    <div key={i} className="flex gap-2 text-[10px]">
+                      <div className="flex flex-col items-center shrink-0">
+                        <span className={`w-4 h-4 rounded-full flex items-center justify-center font-bold text-[8px] border ${isChecked
+                          ? 'bg-emerald-100 border-emerald-400 text-emerald-800'
+                          : isCurrent
+                            ? 'bg-indigo-600 border-indigo-600 text-white animate-pulse'
+                            : 'bg-slate-100 border-slate-300 text-slate-500'
+                          }`}>
+                          {isChecked ? "✓" : isCurrent ? <Clock className="w-2.5 h-2.5" /> : i + 1}
                         </span>
-                        <span className="text-[7.5px] text-slate-600 font-semibold font-mono whitespace-nowrap">
-                          {isChecked || isCurrent ? act.date : "Pending"}
-                        </span>
+                        {i < 5 && <div className={`w-[2px] flex-1 min-h-[14px] mt-1 ${isActive ? 'bg-indigo-400' : 'bg-slate-200'}`} />}
                       </div>
-                      <p className="text-[8.5px] text-slate-700 leading-tight mt-0.5">
-                        {act.desc}
-                      </p>
-                      {isCurrent && act.route && (
-                        <button
-                          onClick={() => router.push(act.route!)}
-                          className="text-[8px] text-indigo-700 hover:text-indigo-950 font-bold underline mt-1 block text-left"
-                        >
-                          Explore Active Screening Report →
-                        </button>
-                      )}
+                      <div className="flex-1 min-w-0 pb-1">
+                        <div className="flex flex-wrap items-center justify-between gap-x-2">
+                          <span className={`font-bold ${isActive ? 'text-indigo-950' : 'text-slate-800'}`}>
+                            {act.title}
+                          </span>
+                          <span className="text-[7.5px] text-slate-600 font-semibold font-mono whitespace-nowrap">
+                            {isChecked || isCurrent ? act.date : "Pending"}
+                          </span>
+                        </div>
+                        <p className="text-[8.5px] text-slate-700 leading-tight mt-0.5">
+                          {act.desc}
+                        </p>
+                        {isCurrent && act.route && (
+                          <button
+                            onClick={() => router.push(act.route!)}
+                            className="text-[8px] text-indigo-700 hover:text-indigo-950 font-bold underline mt-1 block text-left"
+                          >
+                            Explore Active Screening Report →
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )})}
+                  )
+                })}
               </div>
             </div>
 

@@ -129,7 +129,16 @@ function Card({
 
 export default function CreateCandidatePage() {
   const [candidate, setCandidate] = useState<CandidateInfo>(emptyCandidate);
-  const handleInputChange = (field: keyof CandidateInfo, value: string) => setCandidate(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (field: keyof CandidateInfo, value: string) => {
+    let formattedValue = value;
+    if (field === 'fullName') {
+      formattedValue = value
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+    }
+    setCandidate(prev => ({ ...prev, [field]: formattedValue }));
+  };
 
   const [file, setFile] = React.useState<File | null>(null);
   const [cvZoom, setCvZoom] = React.useState<number>(100);

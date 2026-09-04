@@ -20,13 +20,27 @@ function unwrapList(payload: any) {
   return { rows: payload?.data || [], meta: payload?.meta || { page: 1, totalPages: 1, total: 0 } };
 }
 
-export default function CandidateRegister() {
+interface CandidateRegisterProps {
+  defaultStatusFilter?: string;
+  customViewPath?: (id: string) => string;
+  customEditPath?: (id: string) => string;
+  customTitle?: string;
+  customSubtitle?: string;
+}
+
+export default function CandidateRegister({
+  defaultStatusFilter = 'All Status',
+  customViewPath,
+  customEditPath,
+  customTitle = 'Add Candidates',
+  customSubtitle = 'View, add, edit and manage all candidates in the system.'
+}: CandidateRegisterProps = {}) {
   const router = useRouter();
   const filterRef = useRef<HTMLDivElement>(null);
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All Status');
+  const [statusFilter, setStatusFilter] = useState(defaultStatusFilter);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE);
   const [isFastTracking, setIsFastTracking] = useState<string | null>(null);
@@ -49,7 +63,7 @@ export default function CandidateRegister() {
     ...(debouncedQuery.trim() ? { search: debouncedQuery.trim() } : {}),
   };
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['candidates', params],
     queryFn: async () => unwrapList((await api.get('/hiring/candidates', { params })).data),
   });
@@ -75,6 +89,17 @@ export default function CandidateRegister() {
     setStatusFilter('All Status');
   };
 
+  const handleDelete = async (candidateId: string) => {
+    if (!confirm('Are you sure you want to delete this candidate?')) return;
+    try {
+      await api.delete(`/hiring/candidates/${candidateId}`);
+      toast.success('Candidate deleted successfully');
+      refetch();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to delete candidate');
+    }
+  };
+
   const handleFastTrack = async (candidateId: string) => {
     if (!confirm('Are you sure you want to fast-track this candidate to CTC Breakup? This will bypass all interviews and evaluation.')) return;
     try {
@@ -88,7 +113,7 @@ export default function CandidateRegister() {
     }
   };
 
-  const statusOptions = ['All Status', 'Applied', 'Screening', 'Interviewing', 'Offered', 'Hired', 'Rejected', 'Hold'];
+  const statusOptions = ['All Status', 'Applied', 'AI_SCREENING', 'HOD_APPROVAL', 'SHORTLISTED', 'INTERVIEW_SCHEDULED', 'Screening', 'Interviewing', 'Offered', 'Hired', 'Rejected', 'Hold'];
 
   const topCards = [
     { title: 'Total Candidates', value: totalEntries.toString(), subtitle: 'All Time', icon: Users, bg: 'bg-blue-50', text: 'text-blue-600' },
@@ -109,8 +134,8 @@ export default function CandidateRegister() {
               { label: 'Candidates Register' },
             ]}
           />
-          <h1 className="text-lg font-bold text-zinc-900 mb-0.5">Add Candidates</h1>
-          <p className="text-[11px] text-zinc-500">View, add, edit and manage all candidates in the system.</p>
+          <h1 className="text-lg font-bold text-zinc-900 mb-0.5">{customTitle}</h1>
+          <p className="text-[11px] text-zinc-500">{customSubtitle}</p>
         </div>
         <div className="flex items-center gap-2">
           <button className="flex items-center gap-1.5 h-8 px-2.5 bg-white border border-zinc-200 rounded-md text-[11px] font-semibold hover:bg-zinc-50 transition-colors shadow-sm text-zinc-700">
@@ -223,11 +248,11 @@ export default function CandidateRegister() {
                   <td className="py-2.5 px-3">
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold shrink-0 text-[10px]">
-                        {candidate.firstName?.[0]}{candidate.lastName?.[0]}
+                        {`${candidate.firstName?.[0] || ''}${candidate.lastName?.[0] || ''}`.trim().toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
                       </div>
                       <div className="leading-tight">
                         <Link href={`/dashboard/hiring/candidates/${candidate._id}`} className="font-bold text-zinc-800 text-[11px] hover:text-indigo-600 hover:underline">
-                          {candidate.firstName} {candidate.lastName}
+                          {`${candidate.firstName || ''} ${candidate.lastName || ''}`.trim().toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
                         </Link>
                       </div>
                     </div>
@@ -250,8 +275,11 @@ export default function CandidateRegister() {
                   <td className="py-2.5 px-3 text-center">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border ${candidate.status === 'Hired' || candidate.status === 'Offered' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
                       candidate.status === 'Rejected' ? 'bg-rose-50 text-rose-600 border-rose-100' :
-                        candidate.status === 'Interviewing' ? 'bg-purple-50 text-purple-600 border-purple-100' :
-                          'bg-zinc-100 text-zinc-600 border-zinc-200'
+                        candidate.status === 'Interviewing' || candidate.status === 'INTERVIEW_SCHEDULED' ? 'bg-purple-50 text-purple-600 border-purple-100' :
+                          candidate.status === 'SHORTLISTED' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                            candidate.status === 'AI_SCREENING' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                              candidate.status === 'HOD_APPROVAL' ? 'bg-orange-50 text-orange-600 border-orange-100' :
+                                'bg-zinc-100 text-zinc-600 border-zinc-200'
                       }`}>
                       {candidate.status || 'Applied'}
                     </span>
@@ -259,14 +287,14 @@ export default function CandidateRegister() {
                   <td className="py-2 px-3 text-center">
                     <div className="flex items-center justify-center gap-1.5">
                       <button
-                        onClick={() => router.push(`/dashboard/hiring/${candidate._id}`)}
+                        onClick={() => router.push(customViewPath ? customViewPath(candidate._id) : `/dashboard/hiring/candidates/${candidate._id}`)}
                         className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-blue-50 hover:text-blue-600 border border-zinc-200 hover:border-blue-200 rounded-md transition-colors"
                         title="Open Workflow"
                       >
                         <Eye className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => router.push(`/dashboard/hiring/candidates/edit/${candidate._id}`)}
+                        onClick={() => router.push(customEditPath ? customEditPath(candidate._id) : `/dashboard/hiring/candidates/new/create/review-and-edit/${candidate._id}`)}
                         className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-emerald-50 hover:text-emerald-600 border border-zinc-200 hover:border-emerald-200 rounded-md transition-colors"
                         title="Edit Candidate"
                       >
@@ -281,7 +309,7 @@ export default function CandidateRegister() {
                         <Zap className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        // onClick={() => router.push(`/dashboard/hiring/${candidate._id}`)}
+                        onClick={() => handleDelete(candidate._id)}
                         className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-red-50 hover:text-red-600 border border-zinc-200 hover:border-red-200 rounded-md transition-colors"
                         title="Delete Candidate"
                       >

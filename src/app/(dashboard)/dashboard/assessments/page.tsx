@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/axios'
+import Link from 'next/link'
 
 // ---------- TYPES & INTERFACES ----------
 
@@ -172,7 +173,7 @@ const AssessmentsPage: React.FC = () => {
   const { data: candidatesResponse, isLoading } = useQuery({
     queryKey: ['assessments-candidates'],
     queryFn: async () => {
-      const res = await api.get('/hiring/candidates')
+      const res = await api.get('/hiring/candidates?status=ASSESSMENT')
       return res.data
     }
   })
@@ -182,7 +183,7 @@ const AssessmentsPage: React.FC = () => {
     return rawCandidates.map((c: any) => ({
       id: c._id || c.id,
       candidate: { 
-        name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown', 
+        name: `${c.firstName || ''} ${c.lastName || ''}`.trim().toLowerCase().replace(/\b\w/g, (char: string) => char.toUpperCase()) || 'Unknown', 
         email: c.email || 'N/A', 
         phone: c.phone || 'N/A' 
       },
@@ -203,6 +204,16 @@ const AssessmentsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('all')
   const [selectedOpening, setSelectedOpening] = useState<string>('All Openings')
   const [selectedType, setSelectedType] = useState<string>('All Types')
+
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false)
+  const [selectedCandidateForSchedule, setSelectedCandidateForSchedule] = useState<any>(null)
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
+
+  React.useEffect(() => {
+    const closeDropdown = () => setActiveDropdown(null)
+    window.addEventListener('click', closeDropdown)
+    return () => window.removeEventListener('click', closeDropdown)
+  }, [])
 
   // Button actions alert triggers for full interactivity
   const handleActionClick = (actionName: string, entity?: string) => {
@@ -488,15 +499,16 @@ const AssessmentsPage: React.FC = () => {
                 </td>
 
                 {/* Actions Icons */}
-                <td className="p-2">
+                <td className="p-2 relative">
                   <div className="flex items-center justify-center gap-1">
-                    <button 
-                      onClick={() => handleActionClick('View Record', row.candidate.name)}
-                      className="p-1 rounded text-slate-700 hover:bg-slate-100 transition-colors" 
-                      title="View Details"
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                    </button>
+                    <Link href={`/dashboard/hiring/candidates/${row.id}`}>
+                      <button 
+                        className="p-1 rounded text-slate-700 hover:bg-slate-100 transition-colors" 
+                        title="View Details"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+                    </Link>
                     {row.status === 'In Progress' ? (
                       <button 
                         onClick={() => handleActionClick('Resume/Monitor Test', row.candidate.name)}
@@ -506,12 +518,29 @@ const AssessmentsPage: React.FC = () => {
                         <Play className="w-3.5 h-3.5 fill-current" />
                       </button>
                     ) : (
-                      <button 
-                        onClick={() => handleActionClick('Open More Menu', row.candidate.name)}
-                        className="p-1 rounded text-slate-700 hover:bg-slate-100 transition-colors"
-                      >
-                        <MoreVertical className="w-3.5 h-3.5" />
-                      </button>
+                      <div>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === row.id ? null : row.id); }}
+                          className="p-1 rounded text-slate-700 hover:bg-slate-100 transition-colors"
+                        >
+                          <MoreVertical className="w-3.5 h-3.5" />
+                        </button>
+                        {activeDropdown === row.id && (
+                          <div className="absolute right-8 top-8 mt-1 w-36 bg-white border border-slate-200 shadow-lg rounded-md z-50 py-1" onClick={(e) => e.stopPropagation()}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedCandidateForSchedule(row);
+                                setScheduleModalOpen(true);
+                                setActiveDropdown(null);
+                              }}
+                              className="w-full text-left px-3 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                            >
+                              Schedule Interview
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 </td>
@@ -559,8 +588,68 @@ const AssessmentsPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
 
+      {scheduleModalOpen && selectedCandidateForSchedule && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm overflow-hidden flex flex-col">
+            <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+              <h3 className="text-xs font-bold text-slate-800">Schedule Interview</h3>
+              <button onClick={() => setScheduleModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                <AlertCircle className="w-4 h-4 opacity-0" />
+                &times;
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              <div>
+                <label className="block text-[10px] font-semibold text-slate-600 mb-1">Candidate</label>
+                <div className="text-[11px] font-semibold text-slate-900 bg-slate-50 px-2 py-1.5 rounded border border-slate-200">
+                  {selectedCandidateForSchedule.candidate.name}
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-semibold text-slate-600 mb-1">Interviewer</label>
+                <select id="interviewer-select" className="w-full border border-slate-300 rounded px-2 py-1.5 text-[11px] text-slate-800 outline-none focus:border-indigo-500">
+                  <option value="">Select Interviewer...</option>
+                  <option value="660a1b2c3d4e5f6g7h8i9j0a">Sohil Sirohi (Tech Lead)</option>
+                  <option value="660a1b2c3d4e5f6g7h8i9j0b">Pooja Sharma (HR Manager)</option>
+                  <option value="660a1b2c3d4e5f6g7h8i9j0c">Amit Singh (Engineering Manager)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-semibold text-slate-600 mb-1">Date & Time</label>
+                <input id="interview-date" type="datetime-local" className="w-full border border-slate-300 rounded px-2 py-1.5 text-[11px] text-slate-800 outline-none focus:border-indigo-500" />
+              </div>
+            </div>
+            <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+              <button onClick={() => setScheduleModalOpen(false)} className="px-3 py-1.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-200 rounded transition-colors">Cancel</button>
+              <button onClick={async () => {
+                const interviewerId = (document.getElementById('interviewer-select') as HTMLSelectElement).value;
+                const scheduledDate = (document.getElementById('interview-date') as HTMLInputElement).value;
+                if (!interviewerId || !scheduledDate) return alert('Please fill all fields');
+                
+                try {
+                  await api.post('/hiring/interviews', {
+                    candidateId: selectedCandidateForSchedule.id,
+                    interviewerId,
+                    scheduledDate,
+                    round: 'Technical',
+                    status: 'Scheduled'
+                  });
+                  setScheduleModalOpen(false);
+                  alert('Interview Scheduled & SMS Sent!');
+                } catch (e) {
+                  console.error(e);
+                  alert('Error scheduling interview');
+                }
+              }} className="px-3 py-1.5 text-[11px] font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded shadow-sm transition-colors">
+                Schedule & Send SMS
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
   )
 }
 

@@ -60,7 +60,7 @@ export default function AiScreening() {
       const fitScore = screening ? screening.fitScore || screening.starRating * 20 : (c.rating ? c.rating * 20 : 50);
       return {
         id: c._id || c.id,
-        name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
+        name: `${c.firstName || ''} ${c.lastName || ''}`.trim().toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase()) || 'Unknown',
         email: c.email || 'N/A',
         phone: c.phone || 'N/A',
         jobAppliedFor: {
