@@ -148,15 +148,15 @@ export default function EvaluationPage() {
   const [loadingScreening, setLoadingScreening] = React.useState(true);
   const [realCandidateId, setRealCandidateId] = React.useState<string | null>(null);
 
-  const mockScreeningData = {
-    fitScore: 87,
-    matchedSkills: ["Sales Strategy", "Team Leadership", "Client Relationship Management", "Business Development", "CRM"],
-    missingSkills: ["Advanced Data Analytics", "PPC / Google Ads", "Digital Marketing", "Salesforce Automation"],
-    summary: "This candidate has a strong background in sales and marketing with 7 years of relevant experience. They possess excellent leadership and CRM skills, making them a good fit for the role despite lacking some advanced digital marketing analytics experience."
-  };
+  // const mockScreeningData = {
+  //   fitScore: 87,
+  //   matchedSkills: ["Sales Strategy", "Team Leadership", "Client Relationship Management", "Business Development", "CRM"],
+  //   missingSkills: ["Advanced Data Analytics", "PPC / Google Ads", "Digital Marketing", "Salesforce Automation"],
+  //   summary: "This candidate has a strong background in sales and marketing with 7 years of relevant experience. They possess excellent leadership and CRM skills, making them a good fit for the role despite lacking some advanced digital marketing analytics experience."
+  // };
 
-  const displayData = screeningData || mockScreeningData;
-
+  // const displayData = screeningData || mockScreeningData;
+  const displayData = screeningData
   React.useEffect(() => {
     if (candidateId) {
       const fetchCandidate = async () => {
@@ -224,6 +224,23 @@ export default function EvaluationPage() {
       fetchCandidate();
     }
   }, [candidateId]);
+
+  const handleRunScreening = async () => {
+    if (!realCandidateId) return;
+    try {
+      setLoadingScreening(true);
+      const res = await api.post(`/hiring/resume-screen/${realCandidateId}`);
+      if (res.data) {
+        setScreeningData(res.data);
+        toast.success('AI Screening completed successfully!');
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to run AI screening. Please try again.');
+    } finally {
+      setLoadingScreening(false);
+    }
+  };
 
   // Add a Note (interactive)
   const handleAddNote = () => {
@@ -404,17 +421,7 @@ export default function EvaluationPage() {
                       <div>
                         <p className="text-[10px] font-medium text-slate-500">Department</p>
                         <p className="mt-0.5 text-xs font-semibold text-slate-900">
-                          {loadingScreening ? (
-                            <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-indigo-500" /></div>
-                          ) : displayData?.summary ? (
-                            <p className="text-[10.5px] leading-relaxed text-slate-700">
-                              {displayData.summary}
-                            </p>
-                          ) : (
-                            <p className="mt-0.5 text-xs font-semibold text-slate-900">
-                              {candidate.employmentType}
-                            </p>
-                          )}
+                          {(candidate as any).departmentName || candidate.department}
                         </p>
                       </div>
 
@@ -477,6 +484,16 @@ export default function EvaluationPage() {
 
                   {activeSubTab === 'AI Screening Report' && (
                     <>
+                      {/* AI Summary Block */}
+                      {displayData?.summary && !loadingScreening && (
+                        <div className="bg-indigo-50/50 border border-indigo-100 rounded-lg p-3 text-[11px] text-slate-800 mb-2 leading-relaxed shadow-sm">
+                          <span className="font-bold text-indigo-950 uppercase tracking-wider text-[10px] mb-1.5 flex items-center gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5 text-indigo-600" /> AI Executive Summary
+                          </span>
+                          {displayData.summary}
+                        </div>
+                      )}
+
                       {/* Grid 1: Gauge Chart & Progress Bars (Compact) */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
 
@@ -489,7 +506,15 @@ export default function EvaluationPage() {
                           {!displayData ? (
                             <div className="flex flex-col items-center justify-center py-4">
                               {loadingScreening ? <Loader2 className="w-5 h-5 text-indigo-400 animate-spin mb-2" /> : <AlertTriangle className="w-5 h-5 text-zinc-400 mb-2" />}
-                              <span className="text-[10px] text-zinc-500 font-medium">{loadingScreening ? 'Loading score...' : 'Not Screened'}</span>
+                              <span className="text-[10px] text-zinc-500 font-medium mb-2">{loadingScreening ? 'Loading score...' : 'Not Screened'}</span>
+                              {!loadingScreening && (
+                                <button
+                                  onClick={handleRunScreening}
+                                  className="text-[10px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded transition-colors flex items-center gap-1.5"
+                                >
+                                  <Sparkles className="w-3 h-3" /> Run AI Screening
+                                </button>
+                              )}
                             </div>
                           ) : (
                             <>
@@ -809,7 +834,7 @@ export default function EvaluationPage() {
                 <div className="space-y-1.5 text-[10px] text-slate-800">
                   <div className="flex justify-between">
                     <span className="font-medium text-slate-600">Application ID</span>
-                    <span className="font-bold text-slate-900 font-mono">APP-2026-000124</span>
+                    <span className="font-bold text-slate-900 font-mono">{(candidate as any)?.candidateCode || 'APP-PENDING'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium text-slate-600">Applied On</span>

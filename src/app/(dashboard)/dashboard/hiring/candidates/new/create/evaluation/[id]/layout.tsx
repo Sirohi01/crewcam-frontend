@@ -239,7 +239,7 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
             <CardContent className="p-3 flex-1 flex flex-col justify-center">
               <div className="space-y-2">
                 {[
-                  { label: 'Application ID', val: 'APP-2026-000124', icon: <ClipboardList className="w-3.5 h-3.5" /> },
+                  { label: 'Application ID', val: (candidate as any)?.candidateCode || 'APP-PENDING', icon: <ClipboardList className="w-3.5 h-3.5" /> },
                   { label: 'Applied On', val: '15 June 2026, 11:32 AM', icon: <Clock className="w-3.5 h-3.5" /> },
                   { label: 'Current Stage', val: 'HOD Review', icon: <Circle className="w-3 h-3" /> },
                   { label: 'Source', val: 'Company Website', icon: <MapPin className="w-3.5 h-3.5" /> },

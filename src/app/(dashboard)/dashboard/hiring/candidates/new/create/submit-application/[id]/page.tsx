@@ -140,7 +140,8 @@ export default function SubmittedPage() {
             skills: appDetails.skills || [],
             experiences: appDetails.experiences || [],
             education: appDetails.education || [],
-            status: data.status || 'Applied'
+            status: data.status || 'Applied',
+            candidateCode: data.candidateCode || 'APP-PENDING'
           });
         } catch (err) {
           console.error(err);
@@ -190,7 +191,7 @@ export default function SubmittedPage() {
   ];
 
   const summaryFields = [
-    { icon: Hash, label: "Application ID", value: "APP-2026-000124" },
+    { icon: Hash, label: "Application ID", value: (candidate as any).candidateCode || "APP-PENDING" },
     { icon: Calendar, label: "Applied On", value: "15 June 2026, 11:32 AM" },
     { icon: IndianRupee, label: "Expected CTC", value: `₹ ${candidate.expectedCTC}` },
     { icon: Clock, label: "Notice Period", value: candidate.noticePeriod },
@@ -291,7 +292,7 @@ export default function SubmittedPage() {
                   </p>
                   <div className="flex flex-wrap items-center gap-2 mt-2">
                     <span className="text-[10px] font-mono bg-white text-emerald-800 px-2 py-0.5 rounded border border-emerald-300 font-bold">
-                      Application ID: APP-2026-000124
+                      Application ID: {(candidate as any).candidateCode || 'APP-PENDING'}
                     </span>
                     <span className="text-[10px] text-emerald-800 font-bold bg-white px-2 py-0.5 rounded border border-emerald-300">
                       Status: Awaiting AI Screening

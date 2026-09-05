@@ -31,6 +31,7 @@ export interface CandidateInfo {
   experiences?: any[];
   education?: any[];
   status?: string;
+  candidateCode?: string;
 }
 
 export interface Note {

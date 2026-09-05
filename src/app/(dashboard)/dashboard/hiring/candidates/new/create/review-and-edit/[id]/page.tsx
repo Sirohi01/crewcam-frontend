@@ -373,93 +373,93 @@ export default function ReviewPage() {
                   </div>
                   <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1 flex-wrap">
-                    <h2 className="font-display font-bold text-sm text-indigo-950 leading-tight">
-                      {candidate.fullName}
-                    </h2>
-                    <span className="bg-emerald-100 text-emerald-800 text-[9px] font-semibold px-1.5 py-0.5 rounded-md flex items-center gap-0.5 border border-emerald-200 whitespace-nowrap">
-                      AI Extracted
-                    </span>
-                  </div>
+                <div className="flex-1 min-w-0 flex justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <h2 className="font-display font-bold text-sm text-indigo-950 leading-tight">
+                        {candidate.fullName}
+                      </h2>
+                      <span className="bg-emerald-100 text-emerald-800 text-[9px] font-semibold px-1.5 py-0.5 rounded-md flex items-center gap-0.5 border border-emerald-200 whitespace-nowrap">
+                        AI Extracted
+                      </span>
+                    </div>
 
-                  <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5 text-[10px] mt-2">
-                    <span className="flex items-center gap-0.5"> {candidate.appliedFor}</span>
-
-
-                  </div>
-                  <div className="flex w-full justify-between gap-2 mt-0.5 text-[10px]">
-                    {/* Left Section */}
-                    <div className="flex-1 min-w-0 flex flex-col gap-1 text-[10px] ">
-                      {/* Email & Mobile */}
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                        <div className="flex items-center gap-1 shrink-0">
-                          <Phone className="w-3 h-3 text-indigo-700 shrink-0" />
-                          <span>{candidate.mobile}</span>
-                        </div>
-                        <div className="flex items-center gap-1 min-w-0">
-                          <Mail className="w-3 h-3 text-indigo-700 shrink-0" />
-                          <span className="truncate">{candidate.email}</span>
-                        </div>
-
-                      </div>
-
-                      {/* Location & LinkedIn */}
-                      <div className="flex flex-col flex-wrap gap-x-4 gap-y-1">
-                        <div className="flex items-center gap-1 min-w-0">
-                          <MapPin className="w-3 h-3 text-indigo-700 shrink-0" />
-                          <span className="truncate">{candidate.currentLocation}</span>
-                        </div>
-
-                        {candidate.linkedin && (
-                          <div className="flex items-center gap-1 min-w-0">
-                            <FaLinkedinIn className="w-3 h-3 text-[#0A66C2] shrink-0" />
-                            <span className="truncate">{candidate.linkedin}</span>
+                    <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5 text-[10px] mt-2">
+                      <span className="flex items-center gap-0.5"> {candidate.appliedFor}</span>
+                    </div>
+                    <div className="flex w-full justify-between gap-2 mt-0.5 text-[10px]">
+                      {/* Left Section */}
+                      <div className="flex-1 min-w-0 flex flex-col gap-1 text-[10px] ">
+                        {/* Email & Mobile */}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                          <div className="flex items-center gap-1 shrink-0">
+                            <Phone className="w-3 h-3 text-indigo-700 shrink-0" />
+                            <span>{candidate.mobile}</span>
                           </div>
-                        )}
+                          <div className="flex items-center gap-1 min-w-0">
+                            <Mail className="w-3 h-3 text-indigo-700 shrink-0" />
+                            <span className="truncate">{candidate.email}</span>
+                          </div>
+
+                        </div>
+
+                        {/* Location & LinkedIn */}
+                        <div className="flex flex-col flex-wrap gap-x-4 gap-y-1">
+                          <div className="flex items-center gap-1 min-w-0">
+                            <MapPin className="w-3 h-3 text-indigo-700 shrink-0" />
+                            <span className="truncate">{candidate.currentLocation}</span>
+                          </div>
+
+                          {candidate.linkedin && (
+                            <div className="flex items-center gap-1 min-w-0">
+                              <FaLinkedinIn className="w-3 h-3 text-[#0A66C2] shrink-0" />
+                              <span className="truncate">{candidate.linkedin}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Section */}
+                  <div className="self-start grid grid-cols-2 gap-x-4 md:gap-x-8 gap-y-2 shrink-0 border-l border-gray-300 px-4 ml-auto">
+                    <div className="">
+                      <div className="text-[8px] uppercase font-semibold text-indigo-900">
+                        Applied For
+                      </div>
+                      <div
+                        className="font-bold text-[9px] truncate"
+                        title={candidate.appliedFor}
+                      >
+                        {candidate.appliedFor}
                       </div>
                     </div>
 
-                    {/* Right Section */}
-                    <div className="self-start flex items-center gap-2 md:gap-6 shrink-0 border-l border-gray-300 p-4 ml-auto">
-                      <div className="">
-                        <div className="text-[8px] uppercase font-semibold text-indigo-900">
-                          Applied For
-                        </div>
-                        <div
-                          className="font-bold text-[9px] truncate"
-                          title={candidate.appliedFor}
-                        >
-                          {candidate.appliedFor}
-                        </div>
+                    <div className="">
+                      <div className="text-[8px] uppercase font-semibold text-indigo-900">
+                        Department
                       </div>
-
-                      <div className="">
-                        <div className="text-[8px] uppercase font-semibold text-indigo-900">
-                          Department
-                        </div>
-                        <div
-                          className="font-bold text-[9px] truncate"
-                          title={candidate.departmentName || candidate.department}
-                        >
-                          {candidate.departmentName || candidate.department}
-                        </div>
+                      <div
+                        className="font-bold text-[9px] truncate"
+                        title={candidate.departmentName || candidate.department}
+                      >
+                        {candidate.departmentName || candidate.department}
                       </div>
-                      <div className="">
-                        <div className="text-[8px] uppercase font-semibold text-indigo-900">
-                          Employement Type
-                        </div>
-                        <div className="font-bold text-[9px]">
-                          {candidate.employmentType}
-                        </div>
+                    </div>
+                    <div className="">
+                      <div className="text-[8px] uppercase font-semibold text-indigo-900">
+                        Employment Type
                       </div>
-                      <div className="">
-                        <div className="text-[8px] uppercase font-semibold text-indigo-900">
-                          Notice Period
-                        </div>
-                        <div className="font-bold text-[9px]">
-                          {candidate.noticePeriod || '0 Days'}
-                        </div>
+                      <div className="font-bold text-[9px]">
+                        {candidate.employmentType}
+                      </div>
+                    </div>
+                    <div className="">
+                      <div className="text-[8px] uppercase font-semibold text-indigo-900">
+                        Notice Period
+                      </div>
+                      <div className="font-bold text-[9px]">
+                        {candidate.noticePeriod || '0 Days'}
                       </div>
                     </div>
                   </div>
@@ -933,7 +933,7 @@ export default function ReviewPage() {
                 <div className="flex items-center gap-1">
 
                   <button
-                    onClick={handleSave}
+                    onClick={handleSubmitApplication}
                     className="flex-1 sm:flex-none justify-center px-3 h-8 text-xs bg-indigo-600 text-white rounded font-semibold hover:bg-indigo-700 shadow-xs hover:shadow-md transition-all flex items-center gap-1"
                   >
                     Save Progress
