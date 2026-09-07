@@ -110,11 +110,11 @@ export default function SelectedCandidatesPage() {
 
         return {
           id: c._id || c.id,
-          name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
+          name: (`${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown').toLowerCase().replace(/\b\w/g, (char: string) => char.toUpperCase()),
           email: c.email || 'N/A',
           phone: c.phone || 'N/A',
           title: c.jobRole || 'N/A',
-          code: 'NA',
+          code: c.candidateCode || 'NA',
           dept: c.department?.name || 'N/A',
           stage: 'Final Interview',
           score: c.rating ? c.rating * 20 : 80,

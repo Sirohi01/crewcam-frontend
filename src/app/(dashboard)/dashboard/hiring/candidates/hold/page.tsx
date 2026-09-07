@@ -469,7 +469,7 @@ export default function HoldCandidatesPage() {
     return rawCandidates.map((c: any): HoldCandidate => {
       return {
         id: c._id || c.id || Math.random().toString(),
-        name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
+        name: (`${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown').toLowerCase().replace(/\b\w/g, (char: string) => char.toUpperCase()),
         avatar: '',
         email: c.email || 'N/A',
         phone: c.phone || 'N/A',
