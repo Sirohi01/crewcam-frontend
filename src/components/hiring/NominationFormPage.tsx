@@ -97,6 +97,53 @@ export default function NominationFormPage({ candidateId }: { candidateId: strin
                 console.warn('Candidate data could not be loaded, proceeding with existing nomination data if available.');
             }
 
+            let fetchedEmpCode = cand.employeeCode || '';
+            let fetchedDoj = '';
+            let fetchedDob = '';
+            let fetchedGender = '';
+            let fetchedFather = '';
+            let fetchedAddress = '';
+            let fetchedAadhaar = '';
+            let fetchedPan = '';
+
+            try {
+                const docRes = await api.get('/hiring/doc-checklist', { params: { candidateId } });
+                const docList = Array.isArray(docRes.data) ? docRes.data : (docRes.data?.data || []);
+                if (docList.length > 0) fetchedEmpCode = docList[0].empCode || docList[0].employeeCode || fetchedEmpCode;
+            } catch (e) { }
+
+            try {
+                const selRes = await api.get('/hiring/selection-approval', { params: { candidateId } });
+                const selList = Array.isArray(selRes.data) ? selRes.data : (selRes.data?.data || []);
+                if (selList.length > 0) {
+                    const sel = selList[0];
+                    const dateRaw = sel.dateOfJoining || sel.joiningDate;
+                    if (dateRaw) fetchedDoj = new Date(dateRaw).toISOString().split('T')[0];
+                }
+            } catch (e) { }
+
+            try {
+                const joinRes = await api.get('/hiring/joining-form', { params: { candidateId } });
+                const joinList = Array.isArray(joinRes.data) ? joinRes.data : (joinRes.data?.data || []);
+                if (joinList.length > 0) {
+                    const jf = joinList[0];
+                    if (jf.dob) fetchedDob = new Date(jf.dob).toISOString().split('T')[0];
+                    fetchedGender = jf.gender || '';
+                    fetchedFather = jf.fatherName || jf.fatherHusbandSpouse || jf.fatherMotherName || '';
+                    fetchedAddress = jf.currentAddress || jf.permanentAddress || '';
+                    fetchedAadhaar = jf.aadhaarNumber || '';
+                    fetchedPan = jf.panNumber || '';
+                }
+            } catch (e) { }
+
+            const appDetails = cand.applicationDetails || {};
+            if (!fetchedDob && appDetails.dateOfBirth) fetchedDob = new Date(appDetails.dateOfBirth).toISOString().split('T')[0];
+            if (!fetchedGender && appDetails.gender) fetchedGender = appDetails.gender;
+            
+            const defaultDesignation = cand.jobRole || appDetails.title || '';
+            const defaultDepartment = cand.departmentId?.name || cand.department || '';
+            const defaultEmployeeName = cand.firstName + ' ' + (cand.lastName || '');
+
             const nomRes = await api.get('/hiring/nomination', { params: { candidateId } });
             const list = Array.isArray(nomRes.data) ? nomRes.data : (nomRes.data?.data || []);
 
@@ -106,8 +153,21 @@ export default function NominationFormPage({ candidateId }: { candidateId: strin
                     ...row,
                     empCode: row.empCode || cand.candidateCode || '',
                     docs: row.docs || formData.docs,
-                    dob: row.dob ? new Date(row.dob).toISOString().split('T')[0] : '',
-                    dateOfJoining: row.dateOfJoining ? new Date(row.dateOfJoining).toISOString().split('T')[0] : '',
+                    employeeName: row.employeeName || defaultEmployeeName,
+                    empCode: row.empCode || fetchedEmpCode,
+                    designation: row.designation || defaultDesignation,
+                    department: row.department || defaultDepartment,
+                    emailId: row.emailId || cand.email || '',
+                    mobileNumber: row.mobileNumber || cand.phone || '',
+                    dob: row.dob ? new Date(row.dob).toISOString().split('T')[0] : fetchedDob,
+                    dateOfJoining: row.dateOfJoining ? new Date(row.dateOfJoining).toISOString().split('T')[0] : fetchedDoj,
+                    gender: row.gender || fetchedGender,
+                    fatherName: row.fatherName || fetchedFather,
+                    maritalStatus: row.maritalStatus || '',
+                    presentAddress: row.presentAddress || fetchedAddress,
+                    permanentAddress: row.permanentAddress || fetchedAddress,
+                    aadhaarNo: row.aadhaarNo || fetchedAadhaar,
+                    panNo: row.panNo || fetchedPan,
                     nominee1Dob: row.nominee1Dob ? new Date(row.nominee1Dob).toISOString().split('T')[0] : '',
                     nominee2Dob: row.nominee2Dob ? new Date(row.nominee2Dob).toISOString().split('T')[0] : '',
                     employeeSignatureDate: row.employeeSignatureDate ? new Date(row.employeeSignatureDate).toISOString().split('T')[0] : '',
@@ -118,12 +178,29 @@ export default function NominationFormPage({ candidateId }: { candidateId: strin
             } else {
                 setFormData(prev => ({
                     ...prev,
+<<<<<<< HEAD
                     employeeName: cand.firstName ? cand.firstName + ' ' + (cand.lastName || '') : '',
                     designation: cand.jobRole || '',
                     department: cand.department || '',
                     emailId: cand.email || '',
                     mobileNumber: cand.phone || '',
                     empCode: cand.candidateCode || '',
+=======
+                    employeeName: defaultEmployeeName,
+                    empCode: fetchedEmpCode,
+                    designation: defaultDesignation,
+                    department: defaultDepartment,
+                    emailId: cand.email || '',
+                    mobileNumber: cand.phone || '',
+                    dob: fetchedDob,
+                    dateOfJoining: fetchedDoj,
+                    gender: fetchedGender,
+                    fatherName: fetchedFather,
+                    presentAddress: fetchedAddress,
+                    permanentAddress: fetchedAddress,
+                    aadhaarNo: fetchedAadhaar,
+                    panNo: fetchedPan,
+>>>>>>> 7851ce0e735311be5718e4055267c415b5c74ce5
                 }));
             }
         } catch (error: any) {

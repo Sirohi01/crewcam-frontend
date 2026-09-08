@@ -15,9 +15,12 @@ import BankPayrollPage from '@/components/hiring/BankPayrollPage';
 import EmergencyContactPage from '@/components/hiring/EmergencyContactPage';
 import { ITPolicyPage, CodeOfConductPage } from '@/components/hiring/PolicyAcceptancePage';
 import AppointmentLetterPage from '@/components/hiring/AppointmentLetterPage';
+import AssetAccessPage from '@/components/hiring/AssetAccessPage';
 import OfferLetterPage from '@/components/hiring/OfferLetterPage';
 import NDAPage from '@/components/hiring/NDAPage';
-
+import EngagementConfirmPage from '@/components/hiring/EngagementConfirmPage';
+import InductionPage from '@/components/hiring/InductionPage';
+import TeamIntroPage from '@/components/hiring/TeamIntroPage';
 export default function HiringStepRoutePage() {
   const params = useParams<{ candidateId: string; stepId: string }>();
   const { candidateId, stepId } = params;
@@ -30,9 +33,10 @@ export default function HiringStepRoutePage() {
   if (stepId === 'it-policy-accept') return <ITPolicyPage candidateId={candidateId} />;
   if (stepId === 'code-of-conduct-accept') return <CodeOfConductPage candidateId={candidateId} />;
   if (stepId === 'appointment-letter') return <AppointmentLetterPage candidateId={candidateId} />;
+  if (stepId === 'asset-access') return <AssetAccessPage candidateId={candidateId} />;
   if (stepId === 'offer-letter') return <OfferLetterPage candidateId={candidateId} />;
   if (stepId === 'nda') return <NDAPage candidateId={candidateId} />;
-
+  if (stepId === 'team-intro') return <TeamIntroPage candidateId={candidateId} />;
   // Existing dedicated pages
   if (stepId === 'evaluation') return <InterviewEvaluationSheet candidateId={candidateId} />;
   if (stepId === 'selection-approval') return <SelectionApprovalNote candidateId={candidateId} />;
@@ -43,5 +47,7 @@ export default function HiringStepRoutePage() {
   if (stepId === 'bgv') return <BGVRequestForm candidateId={candidateId} />;
 
   // Generic step page for remaining steps
+  if (stepId === 'engagement-confirm') return <EngagementConfirmPage candidateId={candidateId} />;
+  if (stepId === 'induction') return <InductionPage candidateId={candidateId} />;
   return <HiringStepPage candidateId={candidateId} stepId={stepId} />;
 }

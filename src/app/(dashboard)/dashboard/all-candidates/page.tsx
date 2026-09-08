@@ -182,7 +182,7 @@ export default function CandidateRegisterUI() {
     const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
     return rawCandidates.map((c: any) => ({
       id: c._id || c.id,
-      name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
+      name: `${c.firstName || ''} ${c.lastName || ''}`.trim().toLowerCase().replace(/\b\w/g, (char: string) => char.toUpperCase()) || 'Unknown',
       rating: c.rating || 4.0,
       avatar: 'https://i.pravatar.cc/150?u=1', // Placeholder avatar
       email: c.email || 'N/A',
@@ -531,7 +531,7 @@ export default function CandidateRegisterUI() {
                         {c.name.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
                       </span>
                       <div className="flex flex-col">
-                        <Link href={`/dashboard/hiring/candidates/${c.id}`} className="text-indigo-700 font-bold hover:underline">{c.name}</Link>
+                        <Link href={`/dashboard/hiring/candidates/${c.id}`} className="text-indigo-700 font-bold hover:underline">{c.name.trim().toLowerCase().replace(/\b\w/g, (char: string) => char.toUpperCase())}</Link>
                         <div className="flex items-center gap-1 mt-0.5">
                           <Star size={8} className="fill-amber-400 text-amber-400" />
                           <span className="text-[9px] font-medium text-zinc-600">{c.rating}</span>

@@ -30,11 +30,23 @@ function PolicyPage({ candidateId, stepKey, apiPath, title, step, color, content
   });
 
   useEffect(() => {
-    if (editId && records.length > 0) {
-      const record = records.find(r => r._id === editId);
-      if (record) reset(record);
+    let defaultRecord: any = null;
+    if (records.length > 0) {
+      defaultRecord = editId ? records.find((r: any) => r._id === editId) : records[0];
     }
-  }, [editId, records, reset]);
+
+    if (defaultRecord) {
+      reset(defaultRecord);
+    } else if (candidate) {
+      reset({
+        hasRead: false, understands: false, agreesToComply: false, understandsConsequences: false, agreesToAbide: false,
+        [versionField]: '', [titleField]: '',
+        signerName: `${candidate.firstName || ''} ${candidate.lastName || ''}`.trim(),
+        signerDesignation: candidate.jobRole || '',
+        [contentField]: ''
+      });
+    }
+  }, [editId, records, reset, candidate, versionField, titleField, contentField]);
 
   const saveMutation = useMutation({
     mutationFn: async (v: any) => {
@@ -69,6 +81,7 @@ function PolicyPage({ candidateId, stepKey, apiPath, title, step, color, content
   );
 
   return (
+<<<<<<< HEAD
     <HiringStepLayout candidateId={candidateId} stepId={stepKey === 'itPolicyAcceptance' ? 'it-policy-accept' : 'code-of-conduct-accept'}>
       <Card className="rounded-md border-zinc-200/80 shadow-sm dark:border-zinc-800 w-full overflow-hidden">
         <CardHeader className="pb-0 flex flex-row items-center justify-between">
@@ -83,6 +96,51 @@ function PolicyPage({ candidateId, stepKey, apiPath, title, step, color, content
                     <Shield className="h-4 w-4 text-[#0d3c68]" />
                     Policy Details
                   </h2>
+=======
+    <div className="page-container bg-slate-50/50 min-h-screen pb-10">
+      {/* Page Header - hr-crm-final style */}
+      <div className="bg-white border-b border-slate-200 px-6 py-4 mb-4 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-[#0d3c68] uppercase tracking-[0.18em] mb-1">HIRING · STEP {step} · ONBOARDING</p>
+            <h1 className="text-[22px] font-extrabold text-[#0d3c68] uppercase tracking-tight leading-none">{title.toUpperCase()}</h1>
+            {candidate && <p className="mt-1 text-[12px] text-slate-500">{candidate.firstName} {candidate.lastName} · {candidate.jobRole}</p>}
+          </div>
+          <div className="flex gap-2 items-center">
+            <StepGate unlocked={!locked} blockedBy={stepState?.gate?.blockedBy || []} compact />
+            <Button variant="ghost" className="h-8 gap-2 px-3 text-xs border border-slate-200" onClick={() => router.push(`/dashboard/hiring/${candidateId}`)}>
+              <ArrowLeft size={14} /> Back
+            </Button>
+          </div>
+        </div>
+        <div className="mt-3 h-[3px] w-full bg-[#0d3c68] rounded-full" />
+      </div>
+
+      <div className="px-4 space-y-4 w-full mx-auto">
+
+          <form onSubmit={handleSubmit((v) => saveMutation.mutate(v))} className="space-y-4">
+            <div className="section-card shadow-sm border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300 no-print mt-4">
+              <div className="bg-white pb-3 border-b border-slate-100 flex items-center justify-between">
+                <h2 className="text-[13px] font-bold text-[#0d3c68] flex items-center gap-2 uppercase tracking-tight">
+                  <Shield className="h-4 w-4 text-[#0d3c68]" />
+                  Policy Details
+                </h2>
+              </div>
+              <div className="p-3 space-y-3">
+                <div className="grid gap-4 md:grid-cols-4">
+                  <FormField label={`${labelPrefix} Version`}>
+                    <FormInput {...register(versionField as any)} placeholder="Version" />
+                  </FormField>
+                  <FormField label={`${labelPrefix} Title`}>
+                    <FormInput {...register(titleField as any)} placeholder="Title" />
+                  </FormField>
+                  <FormField label="Signer Name" required>
+                    <FormInput {...register('signerName' as any, { required: true })} placeholder="Signer Name" />
+                  </FormField>
+                  <FormField label="Signer Designation">
+                    <FormInput {...register('signerDesignation' as any)} placeholder="Signer Designation" />
+                  </FormField>
+>>>>>>> 7851ce0e735311be5718e4055267c415b5c74ce5
                 </div>
                 
                 <div className="p-3 space-y-4">
@@ -154,10 +212,51 @@ function PolicyPage({ candidateId, stepKey, apiPath, title, step, color, content
             <div className="p-8 text-center text-sm text-zinc-500 bg-slate-50 mt-4 rounded border border-slate-200">
               This step is locked. Please complete the previous steps.
             </div>
+<<<<<<< HEAD
           )}
         </CardContent>
       </Card>
     </HiringStepLayout>
+=======
+
+            {/* Acknowledgement Checkboxes */}
+            <div className="section-card shadow-sm border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300 no-print mt-4">
+              <div className="bg-white pb-3 border-b border-slate-100 flex items-center justify-between">
+                <h2 className="text-[13px] font-bold text-[#0d3c68] flex items-center gap-2 uppercase tracking-tight">
+                  <CheckCircle2 className="h-4 w-4 text-[#0d3c68]" />
+                  Acknowledgement
+                </h2>
+              </div>
+              <div className="p-3 space-y-3">
+                <p className="text-xs text-zinc-500">All checkboxes must be confirmed before saving.</p>
+                {[
+                  ['hasRead', `I have fully read the ${labelPrefix} document.`],
+                  ['understands', 'I understand the policies and my responsibilities.'],
+                  ['agreesToComply', 'I agree to comply with all stated policies.'],
+                  ...(stepKey === 'conductAcceptance' ? [
+                    ['understandsConsequences', 'I understand the consequences of non-compliance.'],
+                    ['agreesToAbide', 'I agree to abide by the Code of Conduct at all times.'],
+                  ] : []),
+                ].map(([k, l]) => (
+                  <FormCheckbox key={k} {...register(k as any)} label={l} />
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row justify-end items-center gap-4 pt-2">
+              <button
+                type="submit"
+                disabled={saveMutation.isPending}
+                className="flex items-center gap-2 px-8 py-2 text-xs font-bold bg-[#1a1a1a] text-white hover:bg-black shadow-md hover:shadow-lg transition-all rounded-[4px] tracking-wide"
+              >
+                <Save className="h-4 w-4" />
+                {saveMutation.isPending ? 'Saving...' : `Record ${title}`}
+              </button>
+            </div>
+          </form>
+      </div>
+    </div>
+>>>>>>> 7851ce0e735311be5718e4055267c415b5c74ce5
   );
 }
 

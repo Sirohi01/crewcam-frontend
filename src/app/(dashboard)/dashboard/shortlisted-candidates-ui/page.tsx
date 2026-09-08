@@ -59,7 +59,7 @@ export default function ShortlistedCandidatesUI() {
       .filter((c: any) => location === 'All Locations' || c.currentLocation === location)
       .map((c: any) => ({
         id: c._id || c.id,
-        name: `${c.firstName || c.candidateId?.firstName || c.candidateName?.split(' ')[0] || ''} ${c.lastName || c.candidateId?.lastName || c.candidateName?.split(' ').slice(1).join(' ') || ''}`.trim() || c.name || 'Unknown',
+        name: `${c.firstName || c.candidateId?.firstName || c.candidateName?.split(' ')[0] || ''} ${c.lastName || c.candidateId?.lastName || c.candidateName?.split(' ').slice(1).join(' ') || ''}`.trim().toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase()) || c.name || 'Unknown',
         avatar: 'https://i.pravatar.cc/150?u=11',
         email: c.email || 'N/A',
         phone: c.phone || 'N/A',

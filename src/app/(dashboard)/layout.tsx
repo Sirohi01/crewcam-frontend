@@ -8,7 +8,7 @@ import SOSButton from '@/components/common/SOSButton';
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthGuard>
-      <div className="flex h-screen w-full bg-zinc-100 dark:bg-zinc-950 overflow-hidden text-zinc-900 dark:text-zinc-50 print:h-auto print:overflow-visible print:block">
+      <div className="flex h-screen w-full bg-zinc-100 dark:bg-zinc-950 overflow-hidden text-zinc-900 dark:text-zinc-50 print:h-auto print:overflow-visible print:!block print:bg-white">
         <OnboardingWizardPrompt />
         {/* Sidebar (Tight Layout) */}
         <CompanySidebar />

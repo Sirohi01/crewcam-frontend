@@ -54,7 +54,7 @@ export default function HODReviewTab() {
     try {
       setIsSubmitting(true);
       
-      let newStatus = 'Interviewing';
+      let newStatus = 'ASSESSMENT';
       if (recommendation === 'Hold / Consider') newStatus = 'Hold';
       if (recommendation === 'Not Recommended') newStatus = 'Rejected';
 
@@ -76,8 +76,8 @@ export default function HODReviewTab() {
       } catch (e) {}
 
       // Routing
-      if (newStatus === 'Interviewing') {
-        router.push(`/dashboard/hiring/candidates/new/create/interview-process/${candidateId}`);
+      if (newStatus === 'ASSESSMENT') {
+        router.push(`/dashboard/assessments`);
       } else {
         router.push(`/dashboard/all-candidates?status=${newStatus}`);
       }

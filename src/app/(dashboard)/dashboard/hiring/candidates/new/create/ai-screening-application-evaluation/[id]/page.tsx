@@ -146,16 +146,17 @@ export default function EvaluationPage() {
   const [zoom, setZoom] = React.useState<number>(100);
   const [screeningData, setScreeningData] = React.useState<any>(null);
   const [loadingScreening, setLoadingScreening] = React.useState(true);
+  const [realCandidateId, setRealCandidateId] = React.useState<string | null>(null);
 
-  const mockScreeningData = {
-    fitScore: 87,
-    matchedSkills: ["Sales Strategy", "Team Leadership", "Client Relationship Management", "Business Development", "CRM"],
-    missingSkills: ["Advanced Data Analytics", "PPC / Google Ads", "Digital Marketing", "Salesforce Automation"],
-    summary: "This candidate has a strong background in sales and marketing with 7 years of relevant experience. They possess excellent leadership and CRM skills, making them a good fit for the role despite lacking some advanced digital marketing analytics experience."
-  };
+  // const mockScreeningData = {
+  //   fitScore: 87,
+  //   matchedSkills: ["Sales Strategy", "Team Leadership", "Client Relationship Management", "Business Development", "CRM"],
+  //   missingSkills: ["Advanced Data Analytics", "PPC / Google Ads", "Digital Marketing", "Salesforce Automation"],
+  //   summary: "This candidate has a strong background in sales and marketing with 7 years of relevant experience. They possess excellent leadership and CRM skills, making them a good fit for the role despite lacking some advanced digital marketing analytics experience."
+  // };
 
-  const displayData = screeningData || mockScreeningData;
-
+  // const displayData = screeningData || mockScreeningData;
+  const displayData = screeningData
   React.useEffect(() => {
     if (candidateId) {
       const fetchCandidate = async () => {
@@ -173,12 +174,14 @@ export default function EvaluationPage() {
             else throw new Error("Candidate not found");
           }
 
+          setRealCandidateId(cId);
+
           const res = await api.get(`/hiring/candidates/${cId}`);
           const data = res.data;
           const appDetails = data.applicationDetails || {};
 
           setCandidate({
-            fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
+            fullName: `${data.firstName || ''} ${data.lastName || ''}`.trim().toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()),
             email: data.email || '',
             mobile: data.phone || '',
             currentLocation: appDetails.currentLocation || '',
@@ -222,6 +225,23 @@ export default function EvaluationPage() {
     }
   }, [candidateId]);
 
+  const handleRunScreening = async () => {
+    if (!realCandidateId) return;
+    try {
+      setLoadingScreening(true);
+      const res = await api.post(`/hiring/resume-screen/${realCandidateId}`);
+      if (res.data) {
+        setScreeningData(res.data);
+        toast.success('AI Screening completed successfully!');
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to run AI screening. Please try again.');
+    } finally {
+      setLoadingScreening(false);
+    }
+  };
+
   // Add a Note (interactive)
   const handleAddNote = () => {
     if (!newNoteText.trim()) return;
@@ -248,14 +268,29 @@ export default function EvaluationPage() {
   const handleShortlist = async () => {
     try {
       setIsShortlisting(true);
-      await api.put(`/hiring/candidates/${candidateId}/status`, { status: 'Interviewing' });
+      await api.put(`/hiring/candidates/${realCandidateId || candidateId}/status`, { status: 'Interviewing' });
       toast.success('Candidate shortlisted for interview');
-      router.push(`/dashboard/hiring/candidates/new/create/interview-process/${candidateId}`);
+      router.push(`/dashboard/hiring/candidates/new/create/interview-process/${realCandidateId || candidateId}`);
     } catch (err: any) {
       console.error(err);
       toast.error(err?.response?.data?.message || 'Failed to shortlist candidate');
     } finally {
       setIsShortlisting(false);
+    }
+  };
+
+  const [isMovingToHOD, setIsMovingToHOD] = React.useState(false);
+  const handleMoveToHOD = async () => {
+    try {
+      setIsMovingToHOD(true);
+      await api.put(`/hiring/candidates/${realCandidateId || candidateId}/status`, { status: 'HOD_APPROVAL' });
+      toast.success('Candidate moved to HOD Review successfully');
+      router.push('/dashboard/hiring/hod-evaluation');
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.response?.data?.message || 'Failed to move candidate to HOD Review');
+    } finally {
+      setIsMovingToHOD(false);
     }
   };
 
@@ -299,11 +334,11 @@ export default function EvaluationPage() {
             <ChevronLeft className="w-3 h-3 mr-1" /> Back to Applications
           </button>
           <button
-            onClick={() => {
-              router.push(`/dashboard/hiring/candidates/new/create/evaluation/${candidateId}`);
-            }}
+            onClick={handleMoveToHOD}
+            disabled={isMovingToHOD}
             className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors"
           >
+            {isMovingToHOD ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
             Move to HOD Review &rarr;
           </button>
         </div>
@@ -385,6 +420,7 @@ export default function EvaluationPage() {
 
                       <div>
                         <p className="text-[10px] font-medium text-slate-500">Department</p>
+<<<<<<< HEAD
                         <div className="mt-0.5 text-xs font-semibold text-slate-900">
                           {loadingScreening ? (
                             <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-indigo-500" /></div>
@@ -398,6 +434,11 @@ export default function EvaluationPage() {
                             </p>
                           )}
                         </div>
+=======
+                        <p className="mt-0.5 text-xs font-semibold text-slate-900">
+                          {(candidate as any).departmentName || candidate.department}
+                        </p>
+>>>>>>> 7851ce0e735311be5718e4055267c415b5c74ce5
                       </div>
 
                       <div>
@@ -459,6 +500,16 @@ export default function EvaluationPage() {
 
                   {activeSubTab === 'AI Screening Report' && (
                     <>
+                      {/* AI Summary Block */}
+                      {displayData?.summary && !loadingScreening && (
+                        <div className="bg-indigo-50/50 border border-indigo-100 rounded-lg p-3 text-[11px] text-slate-800 mb-2 leading-relaxed shadow-sm">
+                          <span className="font-bold text-indigo-950 uppercase tracking-wider text-[10px] mb-1.5 flex items-center gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5 text-indigo-600" /> AI Executive Summary
+                          </span>
+                          {displayData.summary}
+                        </div>
+                      )}
+
                       {/* Grid 1: Gauge Chart & Progress Bars (Compact) */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
 
@@ -471,7 +522,15 @@ export default function EvaluationPage() {
                           {!displayData ? (
                             <div className="flex flex-col items-center justify-center py-4">
                               {loadingScreening ? <Loader2 className="w-5 h-5 text-indigo-400 animate-spin mb-2" /> : <AlertTriangle className="w-5 h-5 text-zinc-400 mb-2" />}
-                              <span className="text-[10px] text-zinc-500 font-medium">{loadingScreening ? 'Loading score...' : 'Not Screened'}</span>
+                              <span className="text-[10px] text-zinc-500 font-medium mb-2">{loadingScreening ? 'Loading score...' : 'Not Screened'}</span>
+                              {!loadingScreening && (
+                                <button
+                                  onClick={handleRunScreening}
+                                  className="text-[10px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded transition-colors flex items-center gap-1.5"
+                                >
+                                  <Sparkles className="w-3 h-3" /> Run AI Screening
+                                </button>
+                              )}
                             </div>
                           ) : (
                             <>
@@ -758,11 +817,11 @@ export default function EvaluationPage() {
                     <Star className="w-3.5 h-3.5" />
                   </button>
                   <button
-                    onClick={() => {
-                      router.push(`/dashboard/hiring/candidates/new/create/evaluation/${candidateId}`);
-                    }}
+                    onClick={handleMoveToHOD}
+                    disabled={isMovingToHOD}
                     className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded flex items-center gap-1 shadow-xs transition-all text-xs"
                   >
+                    {isMovingToHOD ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                     <span>Send to HOD Review</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
@@ -791,7 +850,7 @@ export default function EvaluationPage() {
                 <div className="space-y-1.5 text-[10px] text-slate-800">
                   <div className="flex justify-between">
                     <span className="font-medium text-slate-600">Application ID</span>
-                    <span className="font-bold text-slate-900 font-mono">APP-2026-000124</span>
+                    <span className="font-bold text-slate-900 font-mono">{(candidate as any)?.candidateCode || 'APP-PENDING'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium text-slate-600">Applied On</span>
