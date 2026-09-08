@@ -24,7 +24,14 @@ export function HiringStepLayout({ candidateId, stepId, children }: HiringStepLa
 
   const { data: pipeline } = useQuery<any>({
     queryKey: ['candidate-pipeline', candidateId],
-    queryFn: async () => (await api.get(`/hiring/candidates/${candidateId}/pipeline`)).data,
+    queryFn: async () => {
+      try {
+        return (await api.get(`/hiring/candidates/${candidateId}/pipeline`)).data;
+      } catch (err: any) {
+        if (err.response?.status === 404) return null;
+        throw err;
+      }
+    },
     enabled: !!candidateId,
   });
 
@@ -37,35 +44,54 @@ export function HiringStepLayout({ candidateId, stepId, children }: HiringStepLa
   }
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-10 px-2 lg:px-4">
-      <div className="flex items-center justify-between border-b border-zinc-200 pb-3 dark:border-zinc-800">
-        <Button variant="ghost" className="h-8 gap-2 px-2 text-xs" onClick={() => router.push(`/dashboard/hiring/${candidateId}`)}>
-          <ArrowLeft size={14} /> Candidate Workflow
+    <div className="w-full max-w-[1500px] mx-auto space-y-3 mb-10 px-2 lg:px-4">
+      <div className="border-b-2 border-[#0d3c68] px-1 pb-2 flex items-center justify-between">
+        <h1 className="text-xl font-bold text-[#0d3c68] uppercase tracking-tight font-poppins px-1">
+          {step.title}
+        </h1>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7 px-3 text-xs font-bold text-[#0d3c68] border-[#0d3c68] hover:bg-[#0d3c68] hover:text-white rounded-[2px] uppercase transition-all"
+          onClick={() => router.push(`/dashboard/hiring/${candidateId}`)}
+        >
+          <ArrowLeft size={13} className="mr-1" /> Back to Pipeline
         </Button>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
+      <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <div className="space-y-4 w-full overflow-hidden">
           {children}
         </div>
 
         <div className="space-y-4">
           <StepChecklist items={stepState?.checklist} />
-          <Card className="rounded-md border-zinc-200/80 shadow-sm dark:border-zinc-800">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Pipeline State</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-zinc-500">Status</span><span className="font-medium">{stepState?.status || 'pending'}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-500">Current Step</span><span className="font-medium">{pipeline?.currentStep || 1}</span></div>
+          <div className="rounded-[2px] border border-slate-200 shadow-sm bg-white overflow-hidden">
+            <div className="pb-2 pt-3 px-3.5 border-b border-slate-100">
+              <h4 className="text-xs font-bold text-[#0d3c68] uppercase tracking-tight">Pipeline State</h4>
+            </div>
+            <div className="space-y-2 text-xs pt-3 px-3.5 pb-3">
+              <div className="flex justify-between">
+                <span className="text-slate-500 uppercase font-medium">Status</span>
+                <span className="font-semibold text-slate-800 uppercase">{stepState?.status || 'pending'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 uppercase font-medium">Current Step</span>
+                <span className="font-semibold text-[#0d3c68]">{pipeline?.currentStep || 1}</span>
+              </div>
               {step.entityField === 'employeeId' && !entityId && (
-                <div className="rounded-md bg-amber-50 p-2 text-xs text-amber-700">Link an employee through Step 9 before this post-joining step can be used.</div>
+                <div className="rounded-[2px] bg-amber-50 p-2 text-xs text-amber-700 border border-amber-200">
+                  Link an employee through Step 9 before this post-joining step can be used.
+                </div>
               )}
-              <Link href={`/dashboard/hiring/${candidateId}`} className="block pt-2 text-xs font-medium text-zinc-700 underline dark:text-zinc-200">
-                View all hiring steps
+              <Link
+                href={`/dashboard/hiring/${candidateId}`}
+                className="block pt-2 text-xs font-bold text-[#0d3c68] hover:underline uppercase tracking-wide"
+              >
+                View all hiring steps →
               </Link>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -4,21 +4,17 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Save, FileText, CheckCircle2, Briefcase } from 'lucide-react';
+import { Save, FileText, Briefcase, Clock, FileSignature, Wallet, UserCheck } from 'lucide-react';
 import api from '@/lib/axios';
-import { Button } from '@/components/ui/button';
+import { FormField, FormInput, FormSelect, FormTextarea } from '@/components/common/FormComponents';
+import { HiringStepLayout } from './HiringStepLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import StepGate from './StepGate';
-import { DataTable } from '@/components/shared/DataTable';
-
-const inp = 'w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-zinc-700 dark:bg-zinc-950 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]';
-const lbl = 'block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1';
+import toast from 'react-hot-toast';
 
 export default function AppointmentLetterPage({ candidateId }: { candidateId: string }) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { data: candidate } = useQuery<any>({ queryKey: ['candidate', candidateId], queryFn: async () => (await api.get(`/hiring/candidates/${candidateId}`)).data });
   const { data: pipeline } = useQuery<any>({ queryKey: ['candidate-pipeline', candidateId], queryFn: async () => (await api.get(`/hiring/candidates/${candidateId}/pipeline`)).data });
   const { data: records = [] } = useQuery<any[]>({ queryKey: ['hiring-step-records', 'appointment-letter', candidateId], queryFn: async () => (await api.get(`/hiring/appointment-letter?candidateId=${candidateId}`)).data });
 
@@ -46,123 +42,160 @@ export default function AppointmentLetterPage({ candidateId }: { candidateId: st
       return (await api.post('/hiring/appointment-letter', { ...submitData, candidateId })).data;
     },
     onSuccess: () => { 
+      toast.success('Appointment letter saved successfully');
       queryClient.invalidateQueries({ queryKey: ['hiring-step-records', 'appointment-letter', candidateId] }); 
       queryClient.invalidateQueries({ queryKey: ['candidate-pipeline', candidateId] }); 
       setTimeout(() => {
         router.push('/dashboard/hiring/steps/appointment-letter');
       }, 500);
     },
-  });
-  const pdfMutation = useMutation({
-    mutationFn: async (id: string) => (await api.post(`/hiring/appointment-letter/${id}/generate-pdf`)).data,
-    onSuccess: (data) => { if (data.pdfUrl) window.open(`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1').replace('/api/v1', '')}${data.pdfUrl}`, '_blank'); queryClient.invalidateQueries({ queryKey: ['hiring-step-records', 'appointment-letter', candidateId] }); },
-  });
-  const ackMutation = useMutation({
-    mutationFn: async (id: string) => (await api.put(`/hiring/appointment-letter/${id}/acknowledge`, {})).data,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hiring-step-records', 'appointment-letter', candidateId] }),
+    onError: () => {
+      toast.error('Failed to save appointment letter');
+    }
   });
 
-  const Section = ({ title }: { title: string }) => (
-    <div className="flex items-center gap-2 border-b border-zinc-100 pb-2 mb-3 dark:border-zinc-800">
-      <Briefcase size={14} className="text-amber-600" />
-      <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{title}</h3>
+  const SectionHeader = ({ id, title, icon: Icon }: { id: number, title: string, icon: any }) => (
+    <div className="flex items-center justify-between border-b border-slate-100 pb-1 mb-4">
+      <h3 className="text-xs font-bold text-slate-900 flex items-center gap-2 uppercase tracking-wide">
+        <span className="bg-[#0d3c68] text-white w-4 h-4 flex items-center justify-center text-[10px] rounded-full">{id}</span>
+        {title}
+      </h3>
+      <Icon className="h-4 w-4 text-slate-300" />
     </div>
   );
 
   return (
-    <div className="page-container bg-slate-50/50 min-h-screen pb-10">
-      {/* Page Header - hr-crm-final style */}
-      <div className="bg-white border-b border-slate-200 px-6 py-4 mb-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold text-[#0d3c68] uppercase tracking-[0.18em] mb-1">HIRING · STEP 17 · OFFER &amp; LEGAL</p>
-            <h1 className="text-[22px] font-extrabold text-[#0d3c68] uppercase tracking-tight leading-none">APPOINTMENT LETTER</h1>
-            {candidate && <p className="mt-1 text-[12px] text-slate-500">{candidate.firstName} {candidate.lastName} · {candidate.jobRole}</p>}
-          </div>
-          <div className="flex gap-2 items-center">
-            <StepGate unlocked={!locked} blockedBy={stepState?.gate?.blockedBy || []} compact />
-            <Button variant="ghost" className="h-8 gap-2 px-3 text-xs border border-slate-200" onClick={() => router.push(`/dashboard/hiring/${candidateId}`)}>
-              <ArrowLeft size={14} /> Back
-            </Button>
-          </div>
-        </div>
-        <div className="mt-3 h-[3px] w-full bg-[#0d3c68] rounded-full" />
-      </div>
-
-      <div className="px-4 space-y-4 w-full mx-auto">
-
-
-
-        {!locked && (
-          <form onSubmit={handleSubmit((v) => saveMutation.mutate(v))} className="space-y-4">
-            <Card>
-              <CardContent className="pt-5 space-y-4">
-                <Section title="Role & Department" />
-                <div className="grid gap-3 md:grid-cols-4">
-                  <label><span className={lbl}>Designation*</span><input {...register('designation', { required: 'Required' })} className={inp} placeholder="e.g. Frontend Developer" />{errors.designation && <p className="text-xs text-rose-600 mt-1">{errors.designation.message as string}</p>}</label>
-                  <label><span className={lbl}>Department</span><input {...register('departmentName')} className={inp} placeholder="e.g. Engineering" /></label>
-                  <label><span className={lbl}>Reporting To</span><input {...register('reportingTo')} className={inp} placeholder="e.g. John Doe" /></label>
-                  <label><span className={lbl}>Work Location</span><input {...register('workLocation')} className={inp} placeholder="e.g. Remote" /></label>
+    <HiringStepLayout candidateId={candidateId} stepId="appointment-letter">
+      <Card className="rounded-md border-zinc-200/80 shadow-sm dark:border-zinc-800 w-full overflow-hidden">
+        <CardHeader className="pb-0 flex flex-row items-center justify-between">
+          <CardTitle className="text-base uppercase">APPOINTMENT LETTER</CardTitle>
+        </CardHeader>
+        <CardContent className="w-full overflow-hidden">
+          {!locked ? (
+            <form onSubmit={handleSubmit((v) => saveMutation.mutate(v))} className="space-y-4">
+              <div className="section-card shadow-sm border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300 no-print mt-4">
+                <div className="bg-white pb-3 border-b border-slate-100 flex items-center justify-between">
+                  <h2 className="text-[13px] font-bold text-[#0d3c68] flex items-center gap-2 uppercase tracking-tight">
+                    <FileText className="h-4 w-4 text-[#0d3c68]" />
+                    Appointment Details
+                  </h2>
                 </div>
-              </CardContent>
-            </Card>
 
-            <Card>
-              <CardContent className="pt-5 space-y-4">
-                <Section title="Joining & Probation" />
-                <div className="grid gap-3 md:grid-cols-3">
-                  <label><span className={lbl}>Joining Date</span><input {...register('joiningDate')} type="date" className={inp} /></label>
-                  <label><span className={lbl}>Probation (months)</span><input {...register('probationPeriodMonths')} type="number" className={inp} defaultValue={6} /></label>
-                  <label><span className={lbl}>Payment Mode</span>
-                    <select {...register('paymentMode')} className="w-full h-[38px] rounded-md border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-indigo-400 dark:border-zinc-700 dark:bg-zinc-950">
-                      <option value="">Select...</option>
-                      {['Bank Transfer', 'Cheque', 'Cash'].map(o => <option key={o}>{o}</option>)}
-                    </select>
-                  </label>
+                <div className="p-3 space-y-4">
+                  {/* 1. ROLE & DEPARTMENT */}
+                  <div className="space-y-4">
+                    <SectionHeader id={1} title="Role & Department" icon={UserCheck} />
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <FormField label="Designation*" error={errors.designation?.message as string}>
+                        <FormInput {...register('designation', { required: 'Required' })} placeholder="e.g. Frontend Developer" />
+                      </FormField>
+                      <FormField label="Department">
+                        <FormInput {...register('departmentName')} placeholder="e.g. Engineering" />
+                      </FormField>
+                      <FormField label="Reporting To">
+                        <FormInput {...register('reportingTo')} placeholder="e.g. John Doe" />
+                      </FormField>
+                      <FormField label="Work Location">
+                        <FormInput {...register('workLocation')} placeholder="e.g. Remote" />
+                      </FormField>
+                    </div>
+                  </div>
+
+                  {/* 2. JOINING & PROBATION */}
+                  <div className="space-y-4 mt-6">
+                    <SectionHeader id={2} title="Joining & Probation" icon={Briefcase} />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <FormField label="Joining Date">
+                        <FormInput type="date" {...register('joiningDate')} />
+                      </FormField>
+                      <FormField label="Probation (months)">
+                        <FormInput type="number" {...register('probationPeriodMonths')} defaultValue={6} />
+                      </FormField>
+                      <FormField label="Payment Mode">
+                        <FormSelect 
+                          {...register('paymentMode')} 
+                          options={[
+                            { value: 'Bank Transfer', label: 'Bank Transfer' },
+                            { value: 'Cheque', label: 'Cheque' },
+                            { value: 'Cash', label: 'Cash' }
+                          ]} 
+                          placeholder="Select..."
+                        />
+                      </FormField>
+                    </div>
+                  </div>
+
+                  {/* 3. COMPENSATION */}
+                  <div className="space-y-4 mt-6">
+                    <SectionHeader id={3} title="Compensation (CTC)" icon={Wallet} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField label="Annual CTC (₹)">
+                        <FormInput type="number" {...register('ctc')} placeholder="e.g. 500000" />
+                      </FormField>
+                      <FormField label="CTC In Words">
+                        <FormInput {...register('ctcInWords')} placeholder="e.g. Three Lakhs Per Annum" />
+                      </FormField>
+                    </div>
+                  </div>
+
+                  {/* 4. WORKING HOURS */}
+                  <div className="space-y-4 mt-6">
+                    <SectionHeader id={4} title="Working Hours" icon={Clock} />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <FormField label="Working Hours">
+                        <FormInput {...register('workingHours')} placeholder="e.g. 9:00 AM – 6:00 PM" />
+                      </FormField>
+                      <FormField label="Working Days">
+                        <FormInput {...register('workingDays')} placeholder="e.g. Mon–Sat" />
+                      </FormField>
+                      <FormField label="Weekly Off">
+                        <FormInput {...register('weeklyOff')} placeholder="e.g. Sunday" />
+                      </FormField>
+                    </div>
+                  </div>
+
+                  {/* 5. LETTER CONTENT */}
+                  <div className="space-y-4 mt-6">
+                    <SectionHeader id={5} title="Letter Content" icon={FileSignature} />
+                    <div className="grid grid-cols-1 gap-4">
+                      <FormField label="Full Letter Body">
+                        <FormTextarea 
+                          {...register('letterContent')} 
+                          rows={6} 
+                          placeholder="Enter the full appointment letter body. This content will be preserved in the PDF even if candidate details change later." 
+                        />
+                      </FormField>
+                    </div>
+                  </div>
+
+                  {/* BUTTONS */}
+                  <div className="flex flex-col sm:flex-row justify-end items-center gap-2 pt-6">
+                    <button
+                      type="button"
+                      onClick={() => window.open(`/dashboard/hiring/${candidateId}/print/appointment-letter`, '_blank')}
+                      className="group flex items-center gap-2 px-5 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all rounded-[2px]"
+                    >
+                      PRINT
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={saveMutation.isPending}
+                      className="flex items-center gap-2 px-8 py-2 text-xs font-bold bg-[#0d3c68] text-white hover:bg-[#0a2e50] shadow-md hover:shadow-lg transition-all rounded-[2px] tracking-wide"
+                    >
+                      <Save className="h-4 w-4" />
+                      {saveMutation.isPending ? 'SAVING...' : 'SAVE DETAILS'}
+                    </button>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-5 space-y-4">
-                <Section title="Compensation (CTC)" />
-                <div className="grid gap-3 md:grid-cols-2">
-                  <label><span className={lbl}>Annual CTC (₹)</span><input {...register('ctc')} type="number" className={inp} placeholder="e.g. 500000" /></label>
-                  <label><span className={lbl}>CTC In Words</span><input {...register('ctcInWords')} className={inp} placeholder="e.g. Three Lakhs Per Annum" /></label>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-5 space-y-4">
-                <Section title="Working Hours" />
-                <div className="grid gap-3 md:grid-cols-3">
-                  <label><span className={lbl}>Working Hours</span><input {...register('workingHours')} className={inp} placeholder="e.g. 9:00 AM – 6:00 PM" /></label>
-                  <label><span className={lbl}>Working Days</span><input {...register('workingDays')} className={inp} placeholder="e.g. Mon–Sat" /></label>
-                  <label><span className={lbl}>Weekly Off</span><input {...register('weeklyOff')} className={inp} placeholder="e.g. Sunday" /></label>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-5 space-y-4">
-                <Section title="Letter Content" />
-                <textarea {...register('letterContent')} rows={4} className={inp} placeholder="Enter the full appointment letter body. This content will be preserved in the PDF even if candidate details change later." />
-              </CardContent>
-            </Card>
-
-            <div className='flex justify-end gap-2 my-6'>
-              <Button type="button" onClick={() => window.open(`/dashboard/hiring/${candidateId}/print/appointment-letter`, '_blank')} className="px-4 py-1.5 bg-slate-600 hover:bg-slate-700 text-white">
-                PRINT
-              </Button>
-              <Button type="submit" disabled={saveMutation.isPending} className="px-4 py-1.5  bg-amber-600 hover:bg-amber-700 text-white">
-                <Save size={16} /> {saveMutation.isPending ? 'Saving...' : 'Save Appointment Letter'}
-              </Button>
+              </div>
+            </form>
+          ) : (
+            <div className="p-8 text-center text-sm text-zinc-500 bg-slate-50 mt-4 rounded border border-slate-200">
+              This step is locked. Please complete the previous steps.
             </div>
-          </form>
-        )}
-        {locked && <StepGate unlocked={false} blockedBy={stepState?.gate?.blockedBy || []} />}
-      </div>
-    </div>
+          )}
+        </CardContent>
+      </Card>
+    </HiringStepLayout>
   );
 }

@@ -385,7 +385,11 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
         // Fetch Employee Code from Document Checklist API if missing
         if (!formData.empCode) {
           const checklistData = await documentChecklistApi.getAll();
-          const checklistList = Array.isArray(checklistData) ? checklistData : (checklistData?.data || []);
+          let checklistList = [];
+          if (Array.isArray(checklistData)) checklistList = checklistData;
+          else if (Array.isArray(checklistData?.data)) checklistList = checklistData.data;
+          else if (Array.isArray(checklistData?.data?.data)) checklistList = checklistData.data.data;
+
           const match = checklistList.find((r: any) =>
             (identifierCode && r.empCode === identifierCode) ||
             (identifierName && r.candidateName?.toLowerCase() === identifierName)
@@ -398,7 +402,11 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
         // Fetch DOJ from Selection Approval API if missing
         if (!formData.joiningDate) {
           const selectionData = await selectionApi.getAll();
-          const selectionList = Array.isArray(selectionData) ? selectionData : (selectionData?.data || []);
+          let selectionList = [];
+          if (Array.isArray(selectionData)) selectionList = selectionData;
+          else if (Array.isArray(selectionData?.data)) selectionList = selectionData.data;
+          else if (Array.isArray(selectionData?.data?.data)) selectionList = selectionData.data.data;
+
           const match = selectionList.find((r: any) =>
             (identifierCode && r.empCode === identifierCode) ||
             (identifierName && r.candidateName?.toLowerCase() === identifierName)

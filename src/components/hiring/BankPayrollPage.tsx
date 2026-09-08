@@ -52,8 +52,13 @@ export default function BankPayrollPage({ candidateId }: { candidateId: string }
     const fetchBankPayrollData = async () => {
         try {
             setLoading(true);
-            const candidateRes = await api.get(`/hiring/candidates/${candidateId}`);
-            const cand = candidateRes.data;
+            let cand: any = {};
+            try {
+                const candidateRes = await api.get(`/hiring/candidates/${candidateId}`);
+                cand = candidateRes.data || {};
+            } catch (err) {
+                console.warn('Candidate data could not be loaded, proceeding with existing payroll data if available.');
+            }
 
             const res = await api.get('/hiring/bank-payroll', { params: { candidateId } });
             const list = Array.isArray(res.data) ? res.data : (res.data?.data || []);
@@ -62,7 +67,7 @@ export default function BankPayrollPage({ candidateId }: { candidateId: string }
                 const row = list[0];
                 setFormData({
                     ...row,
-                    employeeName: row.employeeName || `${cand.firstName} ${cand.lastName || ''}`.trim(),
+                    employeeName: row.employeeName || (cand.firstName ? `${cand.firstName} ${cand.lastName || ''}`.trim() : ''),
                     empCode: row.empCode || cand.employeeCode || '',
                     designation: row.designation || cand.jobRole || '',
                     department: row.department || cand.department || '',
@@ -72,8 +77,8 @@ export default function BankPayrollPage({ candidateId }: { candidateId: string }
             } else {
                 setFormData(prev => ({
                     ...prev,
-                    accountHolderName: `${cand.firstName} ${cand.lastName || ''}`.trim(),
-                    employeeName: `${cand.firstName} ${cand.lastName || ''}`.trim(),
+                    accountHolderName: cand.firstName ? `${cand.firstName} ${cand.lastName || ''}`.trim() : '',
+                    employeeName: cand.firstName ? `${cand.firstName} ${cand.lastName || ''}`.trim() : '',
                     empCode: cand.employeeCode || '',
                     designation: cand.jobRole || '',
                     department: cand.department || '',

@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { useForm, useFieldArray, FieldValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, FileText, Plus, Save, ShieldCheck, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, FileText, Plus, Save, ShieldCheck, Trash2, CheckCircle, XCircle, RotateCcw } from 'lucide-react';
 import api from '@/lib/axios';
 import { ArrayFieldConfig, getHiringStepById, HiringStepConfig, StepField } from '@/lib/hiringSteps';
 import { openFileUrl } from '@/lib/fileUrls';
@@ -19,7 +19,9 @@ import StepGate from './StepGate';
 import StepChecklist from './StepChecklist';
 import toast from 'react-hot-toast';
 
-const inputClass = 'w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 min-h-[38px]';
+const inputClass = "w-full h-7 px-2 bg-white border border-[#cbd5e1] hover:border-[#94a3b8] rounded-[2px] text-[13px] transition-all duration-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#0d3c68] focus:border-[#0d3c68] disabled:bg-slate-50 disabled:text-slate-500";
+const selectClass = "w-full h-7 px-2 bg-white border border-[#cbd5e1] hover:border-[#94a3b8] rounded-[2px] text-[13px] transition-all duration-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#0d3c68] focus:border-[#0d3c68]";
+const textareaClass = "w-full px-2 py-1.5 bg-white border border-[#cbd5e1] hover:border-[#94a3b8] rounded-[2px] text-[13px] transition-all duration-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#0d3c68] focus:border-[#0d3c68] resize-none";
 
 interface Candidate {
   _id: string;
@@ -104,6 +106,11 @@ const defaultValuesFor = (step: HiringStepConfig) => {
 
 const normalizePayload = (values: FieldValues, step: HiringStepConfig, entityId: string) => {
   const payload: Record<string, unknown> = { ...values, [step.entityField]: entityId };
+  if (step.entityField === 'candidateId') {
+    if (payload.employeeId && !/^[0-9a-fA-F]{24}$/.test(String(payload.employeeId))) {
+      delete payload.employeeId;
+    }
+  }
   for (const arrayField of step.arrayFields || []) {
     const rows = Array.isArray(values[arrayField.name]) ? values[arrayField.name] : [];
     if (arrayField.scalarArray) {
@@ -159,26 +166,26 @@ function FieldInput({ field, register, error }: { field: StepField; register: an
   if (field.type === 'select') {
     return (
       <>
-        <select {...register(field.name)} className={inputClass}>
-          <option value="">Select...</option>
+        <select {...register(field.name)} className={selectClass}>
+          <option value="">Select {field.label}...</option>
           {field.options?.map((option) => <option key={option} value={option}>{option}</option>)}
         </select>
-        {error && <div className="mt-1 text-xs text-rose-600">{error}</div>}
+        {error && <div className="mt-0.5 text-[11px] text-red-500">{error}</div>}
       </>
     );
   }
   if (field.type === 'textarea') {
     return (
       <>
-        <textarea {...register(field.name)} className={inputClass} rows={4} placeholder={field.placeholder} />
-        {error && <div className="mt-1 text-xs text-rose-600">{error}</div>}
+        <textarea {...register(field.name)} className={textareaClass} rows={3} placeholder={field.placeholder || `Enter ${field.label}`} />
+        {error && <div className="mt-0.5 text-[11px] text-red-500">{error}</div>}
       </>
     );
   }
   return (
     <>
-      <input {...register(field.name)} type={field.type} className={inputClass} placeholder={field.placeholder} />
-      {error && <div className="mt-1 text-xs text-rose-600">{error}</div>}
+      <input {...register(field.name)} type={field.type} className={inputClass} placeholder={field.placeholder || `Enter ${field.label}`} />
+      {error && <div className="mt-0.5 text-[11px] text-red-500">{error}</div>}
     </>
   );
 }
@@ -187,46 +194,69 @@ function ArrayFieldEditor({ field, control, register, setValue, employees = [] }
   const { fields, append, remove } = useFieldArray({ control, name: field.name });
 
   return (
-    <div className="rounded-md border border-zinc-200 p-3 dark:border-zinc-800">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="text-sm font-md text-zinc-800 dark:text-zinc-100">{field.label}</div>
-        <Button type="button" variant="outline" className="h-8 gap-2 px-2 text-xs" onClick={() => append({})}>
-          <Plus size={14} /> Add
-        </Button>
+    <div className="rounded-[2px] border border-slate-200 bg-slate-50/50 p-3 space-y-3 mt-2">
+      <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
+        <h4 className="text-xs font-bold text-[#0d3c68] flex items-center gap-2 uppercase tracking-tight">
+          {field.label}
+        </h4>
+        <button
+          type="button"
+          onClick={() => append({})}
+          className="inline-flex items-center gap-1 border border-[#0d3c68] text-[#0d3c68] hover:bg-[#0d3c68] hover:text-white px-2 py-0.5 text-[11px] font-bold rounded-[2px] transition-all uppercase"
+        >
+          <Plus size={12} /> Add Item
+        </button>
       </div>
-      <div className="space-y-3">
+      <div className="space-y-2.5">
+        {fields.length === 0 && (
+          <div className="text-[12px] text-slate-400 italic py-1">No items added yet. Click &quot;Add Item&quot; to add an entry.</div>
+        )}
         {fields.map((row, index) => (
-          <div key={row.id} className="grid gap-2 rounded-md bg-zinc-50 p-3 dark:bg-zinc-900 md:grid-cols-[1fr_auto]">
-            <div className="grid gap-2 md:grid-cols-2">
+          <div key={row.id} className="grid gap-2.5 rounded-[2px] bg-white p-2.5 border border-slate-200 md:grid-cols-[1fr_auto] items-end shadow-xs">
+            <div className="grid gap-2.5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               {field.subFields.map((subField) => (
-                <label key={subField.name} className="text-xs font-md text-zinc-600 dark:text-zinc-300">
-                  {subField.label}
+                <div key={subField.name}>
+                  <label className="block text-[11px] font-semibold text-black uppercase mb-0.5">
+                    {subField.label}
+                    {subField.required && <span className="text-red-500 ml-0.5">*</span>}
+                  </label>
                   {field.employeePicker && subField.name === 'approverId' ? (() => {
                     const registration = register(`${field.name}.${index}.${subField.name}`);
-                    return <select {...registration} onChange={(event) => {
-                      registration.onChange(event);
-                      const employee = employees.find((entry: any) => entry._id === event.target.value);
-                      setValue(`${field.name}.${index}.role`, employee?.roleId?.name || 'Employee', { shouldDirty: true, shouldValidate: true });
-                    }} className={`${inputClass} mt-1`}>
-                      <option value="">Select employee...</option>
-                      {employees.map((employee: any) => <option key={employee._id} value={employee._id}>{employee.firstName} {employee.lastName} {employee.employeeCode ? `(${employee.employeeCode})` : ''}</option>)}
-                    </select>
+                    return (
+                      <select {...registration} onChange={(event) => {
+                        registration.onChange(event);
+                        const employee = employees.find((entry: any) => entry._id === event.target.value);
+                        setValue(`${field.name}.${index}.role`, employee?.roleId?.name || 'Employee', { shouldDirty: true, shouldValidate: true });
+                      }} className={selectClass}>
+                        <option value="">Select employee...</option>
+                        {employees.map((employee: any) => (
+                          <option key={employee._id} value={employee._id}>
+                            {employee.firstName} {employee.lastName} {employee.employeeCode ? `(${employee.employeeCode})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    );
                   })() : field.employeePicker && subField.name === 'role' ? (
-                    <input {...register(`${field.name}.${index}.${subField.name}`)} readOnly className={`${inputClass} mt-1 bg-zinc-100 text-zinc-600`} placeholder="Auto-filled from selected employee" />
+                    <input {...register(`${field.name}.${index}.${subField.name}`)} readOnly className={`${inputClass} bg-slate-100 text-slate-600`} placeholder="Auto-filled from selected employee" />
                   ) : subField.type === 'select' ? (
-                    <select {...register(`${field.name}.${index}.${subField.name}`)} className={`${inputClass} mt-1`}>
+                    <select {...register(`${field.name}.${index}.${subField.name}`)} className={selectClass}>
                       <option value="">Select...</option>
                       {subField.options?.map((option) => <option key={option} value={option}>{option}</option>)}
                     </select>
                   ) : (
-                    <input {...register(`${field.name}.${index}.${subField.name}`)} type={subField.type} className={`${inputClass} mt-1`} placeholder={subField.placeholder} />
+                    <input {...register(`${field.name}.${index}.${subField.name}`)} type={subField.type} className={inputClass} placeholder={subField.placeholder} />
                   )}
-                </label>
+                </div>
               ))}
             </div>
-            <Button type="button" variant="ghost" className="h-9 w-9 p-0 text-rose-600" onClick={() => remove(index)}>
-              <Trash2 size={15} />
-            </Button>
+            <button
+              type="button"
+              className="h-7 w-7 flex items-center justify-center text-rose-500 hover:text-white hover:bg-rose-600 rounded-[2px] transition-all border border-rose-200"
+              onClick={() => remove(index)}
+              title="Remove item"
+            >
+              <Trash2 size={13} />
+            </button>
           </div>
         ))}
       </div>
@@ -327,8 +357,14 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
       'positionDetails.workLocation': position.workLocation || manpower.workLocation || '',
       strengths: evaluation.strengths || '',
       areasOfImprovement: evaluation.improvementAreas || '',
-      uniqueId: hiringProfile.employee?.employeeCode || position.empCode || records[0]?.uniqueId || '',
-      employeeId: hiringProfile.employee?.employeeCode || position.empCode || records[0]?.employeeId || records[0]?.uniqueId || '',
+      uniqueId: position.empCode || records[0]?.uniqueId || hiringProfile.employee?.employeeCode || '',
+      employeeId: (hiringProfile.employeeId && /^[0-9a-fA-F]{24}$/.test(String(hiringProfile.employeeId)))
+        ? String(hiringProfile.employeeId)
+        : (pipeline?.employeeId && /^[0-9a-fA-F]{24}$/.test(String(pipeline.employeeId)))
+          ? String(pipeline.employeeId)
+          : (records[0]?.employeeId && /^[0-9a-fA-F]{24}$/.test(String(records[0].employeeId)))
+            ? String(records[0].employeeId)
+            : '',
     };
     const values: Record<string, any> = defaultValuesFor(step);
     Object.entries(shared).forEach(([key, value]) => {
@@ -423,7 +459,12 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
       }
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || error?.response?.data?.error || `Unable to save ${step?.title || 'this record'}`);
+      const errDetail = error?.response?.data?.error;
+      const errMsg = error?.response?.data?.message;
+      const displayMsg = errDetail && errMsg && !errMsg.includes(errDetail)
+        ? `${errMsg}: ${errDetail}`
+        : (errMsg || errDetail || `Unable to save ${step?.title || 'this record'}`);
+      toast.error(displayMsg);
     },
   });
 
@@ -475,119 +516,210 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
 
   return (
     <HiringStepLayout candidateId={candidateId} stepId={stepId}>
-      <Card className="rounded-md border-zinc-200/80 shadow-sm dark:border-zinc-800">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Step {step.step}. {step.title}{editId ? ' — Editing Record' : ''}</CardTitle>
-          {candidate && <div className="text-xs text-zinc-500">{candidate.firstName} {candidate.lastName} · {candidate.jobRole} · {candidate.email}</div>}
-          {editId && <div className="mt-1 rounded-md bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs text-amber-700">You are editing an existing record. Changes will update the saved entry.</div>}
-        </CardHeader>
-        <CardContent>
-            <form onSubmit={form.handleSubmit((values) => createMutation.mutate(values))} className="space-y-4">
-              {step.id === 'evaluation' && (
-                <div className="rounded-md border border-dashed border-zinc-300 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-900">
-                  <div className="text-sm font-medium text-zinc-800 dark:text-zinc-100">AI Evaluation Rows</div>
-                  <div className="mt-1 text-xs text-zinc-500">No AI resume, voice, or video evaluation rows yet.</div>
-                </div>
-              )}
+      <div className="section-card shadow-sm border border-slate-200 overflow-hidden bg-white rounded-[2px]">
+        {/* Top Header */}
+        <div className="bg-white px-4 py-2.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-[13px] font-bold text-[#0d3c68] flex items-center gap-2 uppercase tracking-tight font-poppins">
+            <FileText className="h-4 w-4 text-[#0d3c68]" />
+            STEP {step.step}: {step.title}
+          </h2>
+          {candidate && (
+            <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-[2px]">
+              {candidate.firstName} {candidate.lastName} · {candidate.jobRole} · {candidate.email}
+            </span>
+          )}
+        </div>
 
-              {step.id === 'ctc-breakup' && annualCtc > 0 && (
-                <div className="grid gap-3 rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-900 md:grid-cols-3">
-                  <div>
-                    <div className="text-xs font-medium uppercase text-zinc-500">Annual CTC</div>
-                    <div className="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{annualCtc.toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs font-medium uppercase text-zinc-500">Monthly Gross</div>
-                    <div className="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{monthlyGross.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs font-medium uppercase text-zinc-500">Backend Calculator</div>
-                    <div className="mt-1 text-zinc-600 dark:text-zinc-300">Final take-home is calculated after save.</div>
-                  </div>
-                </div>
-              )}
-
-              {step.id === 'bgv' && (
-                <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
-                  BGV report actions are restricted to the backend permission gate; sensitive discrepancy detail is not rendered in this list view.
-                </div>
-              )}
-
-              <div className="grid gap-3 md:grid-cols-2">
-                {step.fields.map((field) => (
-                  <label key={field.name} className={field.type === 'textarea' ? 'text-xs font-medium text-zinc-600 dark:text-zinc-300 md:col-span-2' : 'text-xs font-medium text-zinc-600 dark:text-zinc-300'}>
-                    {field.label}
-                    <div className="mt-1">
-                      <FieldInput field={field} register={form.register} error={(form.formState.errors as any)[field.name]?.message} />
-                    </div>
-                  </label>
-                ))}
+        <div className="p-3.5 space-y-3.5">
+          {/* Edit Alert */}
+          {editId && (
+            <div className="rounded-[2px] bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs text-amber-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="font-bold uppercase text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded-[2px]">Notice</span>
+                <span>You are editing an existing record. Changes will update the saved entry.</span>
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  router.push(`/dashboard/hiring/${candidateId}/steps/${stepId}`);
+                  form.reset(defaultValuesFor(step));
+                }}
+                className="text-[11px] font-bold text-[#0d3c68] hover:underline uppercase"
+              >
+                + Create New Instead
+              </button>
+            </div>
+          )}
 
-              {(step.arrayFields || []).map((field) => (
-                <ArrayFieldEditor key={field.name} field={field} control={form.control} register={form.register} setValue={form.setValue} employees={approvalEmployees} />
+          <form onSubmit={form.handleSubmit((values) => createMutation.mutate(values))} className="space-y-3.5">
+            {/* Form Section Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-1 mb-3">
+              <h3 className="text-xs font-bold text-slate-900 flex items-center gap-2 uppercase tracking-wide">
+                <span className="bg-[#0d3c68] text-white w-4 h-4 flex items-center justify-center text-[10px] rounded-full">{step.step}</span>
+                {step.title} Details
+              </h3>
+            </div>
+
+            {step.id === 'evaluation' && (
+              <div className="rounded-[2px] border border-dashed border-slate-300 bg-slate-50 p-3 text-xs text-slate-500">
+                <div className="text-xs font-bold text-[#0d3c68] uppercase mb-1">AI Evaluation Rows</div>
+                No AI resume, voice, or video evaluation rows yet.
+              </div>
+            )}
+
+            {step.id === 'ctc-breakup' && annualCtc > 0 && (
+              <div className="grid gap-3 rounded-[2px] border border-slate-200 bg-slate-50/70 p-3 text-sm md:grid-cols-3">
+                <div>
+                  <div className="text-[11px] font-bold uppercase text-slate-500">Annual CTC</div>
+                  <div className="mt-0.5 font-bold text-[#0d3c68] text-base">₹{annualCtc.toLocaleString('en-IN')}</div>
+                </div>
+                <div>
+                  <div className="text-[11px] font-bold uppercase text-slate-500">Monthly Gross</div>
+                  <div className="mt-0.5 font-bold text-slate-800 text-base">₹{monthlyGross.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
+                </div>
+                <div>
+                  <div className="text-[11px] font-bold uppercase text-slate-500">Backend Calculator</div>
+                  <div className="mt-0.5 text-xs text-slate-600">Final take-home is calculated after save.</div>
+                </div>
+              </div>
+            )}
+
+            {step.id === 'bgv' && (
+              <div className="rounded-[2px] border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-600">
+                BGV report actions are restricted to the backend permission gate; sensitive discrepancy detail is not rendered in this list view.
+              </div>
+            )}
+
+            {/* Grid of Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {step.fields.map((field) => (
+                <div key={field.name} className={field.type === 'textarea' ? 'md:col-span-2 lg:col-span-3' : ''}>
+                  <label className="block text-[11px] font-semibold text-black uppercase mb-0.5">
+                    {field.label}
+                    {field.required && <span className="text-red-500 ml-0.5">*</span>}
+                  </label>
+                  <FieldInput field={field} register={form.register} error={(form.formState.errors as any)[field.name]?.message} />
+                </div>
               ))}
+            </div>
 
-              <Button type="submit" disabled={createMutation.isPending} className="gap-2 bg-zinc-900 text-white hover:bg-zinc-800">
-                <Save size={16} /> {createMutation.isPending ? (editId ? 'Updating...' : 'Saving...') : (editId ? 'Update Record' : 'Save Step Record')}
-              </Button>
-            </form>
-        </CardContent>
-      </Card>
+            {/* Array Fields */}
+            {(step.arrayFields || []).map((field) => (
+              <ArrayFieldEditor key={field.name} field={field} control={form.control} register={form.register} setValue={form.setValue} employees={approvalEmployees} />
+            ))}
 
-      <Card className="rounded-md border-zinc-200/80 shadow-sm dark:border-zinc-800">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Records</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {records.length === 0 && <div className="text-sm text-zinc-500">No records for this step yet.</div>}
+            {/* Form Actions */}
+            <div className="flex justify-end items-center gap-3 pt-3 border-t border-slate-100 mt-4">
+              <button
+                type="button"
+                onClick={() => form.reset()}
+                className="group flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-red-600 hover:bg-red-700 transition-all rounded-[2px] uppercase"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                RESET
+              </button>
+              <button
+                type="submit"
+                disabled={createMutation.isPending}
+                className="flex items-center gap-2 px-5 py-2 text-xs font-bold bg-[#0d3c68] text-white hover:bg-[#0a2e50] shadow-sm hover:shadow transition-all rounded-[2px] tracking-wide uppercase disabled:opacity-50"
+              >
+                <Save className="h-3.5 w-3.5" />
+                {createMutation.isPending ? 'SAVING...' : (editId ? 'UPDATE RECORD' : 'SAVE STEP RECORD')}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Saved Records Section */}
+      <div className="mt-4 shadow-sm border border-slate-200 overflow-hidden bg-white rounded-[2px]">
+        <div className="bg-white px-4 py-2.5 border-b border-slate-100 flex items-center justify-between">
+          <h3 className="text-[12px] font-bold text-[#0d3c68] flex items-center gap-1.5 uppercase tracking-tight font-poppins">
+            <FileText className="h-3.5 w-3.5 text-[#0d3c68]" />
+            Saved Records ({records.length})
+          </h3>
+        </div>
+        <div className="p-3 space-y-2.5">
+          {records.length === 0 && <div className="text-xs text-slate-400 italic py-2 text-center">No saved records for this step yet.</div>}
           {records.map((record) => (
-            <div key={record._id} className="rounded-md border border-zinc-200 p-3 text-sm dark:border-zinc-800">
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <div className="font-medium text-zinc-900 dark:text-zinc-100">{record.status || record.finalStatus || record.overallStatus || record.signedStatus || 'Saved'}</div>
-                <div className="flex gap-2">
-                  {step.id === 'loi' && <select value={record.status || 'Draft'} onChange={(event) => loiStatusMutation.mutate({ recordId: record._id, status: event.target.value })} className="h-8 rounded-md border border-zinc-300 bg-white px-2 text-xs dark:border-zinc-700 dark:bg-zinc-950"><option>Draft</option><option>Sent</option><option>Accepted</option><option>Declined</option><option>Expired</option></select>}
+            <div key={record._id} className="rounded-[2px] border border-slate-200 p-3 text-xs bg-slate-50/40 hover:bg-slate-50 transition-colors shadow-xs">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-800 uppercase">Status:</span>
+                  <span className="inline-block px-2 py-0.5 text-[10px] font-bold uppercase rounded-[2px] bg-emerald-100 text-emerald-800">
+                    {record.status || record.finalStatus || record.overallStatus || record.signedStatus || 'Saved'}
+                  </span>
+                  {record.updatedAt && (
+                    <span className="text-[10px] text-slate-400">
+                      Updated: {new Date(record.updatedAt).toLocaleDateString('en-GB')}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {step.id === 'loi' && (
+                    <select
+                      value={record.status || 'Draft'}
+                      onChange={(event) => loiStatusMutation.mutate({ recordId: record._id, status: event.target.value })}
+                      className="h-6 rounded-[2px] border border-slate-300 bg-white px-2 text-[11px] font-semibold text-slate-700"
+                    >
+                      <option>Draft</option>
+                      <option>Sent</option>
+                      <option>Accepted</option>
+                      <option>Declined</option>
+                      <option>Expired</option>
+                    </select>
+                  )}
                   {step.hasPdf && (
-                    <Button type="button" variant="outline" className="h-8 gap-2 px-2 text-xs" onClick={() => {
-                      if (step.id === 'selection-approval' || step.id === 'probation-review') {
-                        window.open(`/dashboard/hiring/print/${step.id}/${record._id}`, '_blank');
-                      } else {
-                        pdfMutation.mutate(record._id);
-                      }
-                    }}>
-                      <FileText size={14} /> {step.id === 'loi' && record.status === 'Draft' ? 'Generate & Send LOI' : 'PDF'}
-                    </Button>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 h-6 px-2 text-[11px] font-bold rounded-[2px] border border-[#0d3c68] text-[#0d3c68] hover:bg-[#0d3c68] hover:text-white transition-all uppercase"
+                      onClick={() => {
+                        if (step.id === 'selection-approval' || step.id === 'probation-review') {
+                          window.open(`/dashboard/hiring/print/${step.id}/${record._id}`, '_blank');
+                        } else {
+                          pdfMutation.mutate(record._id);
+                        }
+                      }}
+                    >
+                      <FileText size={11} /> {step.id === 'loi' && record.status === 'Draft' ? 'Generate & Send LOI' : 'PDF'}
+                    </button>
                   )}
                   {(step.postCreateActions || []).filter((action) => !(step.id === 'selection-approval' && record.finalStatus && record.finalStatus !== 'Pending')).map((action) => {
                     const lower = action.label.toLowerCase();
                     const isApprove = lower.includes('approve') || lower.includes('accept') || lower.includes('confirm') || lower.includes('verify') || lower.includes('issue');
                     const isReject = lower.includes('reject') || lower.includes('decline') || lower.includes('terminate');
                     return (
-                      <Button
+                      <button
                         key={action.label}
                         type="button"
-                        variant="outline"
-                        className={`h-8 gap-2 px-2 text-xs ${isApprove ? 'text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700' : isReject ? 'text-red-600 hover:bg-red-50 hover:text-red-700' : ''}`}
+                        disabled={actionMutation.isPending}
                         onClick={() => actionMutation.mutate({ recordId: record._id, action })}
+                        className={`inline-flex items-center gap-1 h-6 px-2 text-[11px] font-bold rounded-[2px] transition-all uppercase ${
+                          isApprove
+                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                            : isReject
+                              ? 'bg-rose-600 hover:bg-rose-700 text-white'
+                              : 'border border-slate-300 text-slate-700 hover:bg-slate-100'
+                        }`}
                       >
-                        {isApprove ? <CheckCircle size={14} /> : isReject ? <XCircle size={14} /> : <ShieldCheck size={14} />} {action.label}
-                      </Button>
+                        {isApprove ? <CheckCircle size={11} /> : isReject ? <XCircle size={11} /> : <ShieldCheck size={11} />} {action.label}
+                      </button>
                     );
                   })}
                 </div>
               </div>
-              <div className="grid gap-x-5 gap-y-2 text-xs text-zinc-500 md:grid-cols-2">
+              <div className="grid gap-x-5 gap-y-1.5 text-xs text-slate-600 md:grid-cols-3">
                 {Object.entries(record).filter(([key]) => !['_id', '__v', 'tenantId', 'createdAt', 'updatedAt'].includes(key)).map(([key, value]) => (
-                  <div key={key} className={key === 'approvalChain' || typeof value === 'object' ? 'md:col-span-2' : ''}>
-                    <span className="font-medium text-zinc-600 dark:text-zinc-300">{recordLabel(key)}: </span>
-                    <span className="break-words">{recordDisplayValue(key, value)}</span>
+                  <div key={key} className={key === 'approvalChain' || typeof value === 'object' ? 'md:col-span-3' : ''}>
+                    <span className="font-semibold text-slate-700 uppercase text-[10px]">{recordLabel(key)}: </span>
+                    <span className="break-words text-slate-900">{recordDisplayValue(key, value)}</span>
                   </div>
                 ))}
               </div>
             </div>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </HiringStepLayout>
   );
 }

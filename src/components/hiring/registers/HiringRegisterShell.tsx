@@ -8,6 +8,7 @@ import api from '@/lib/axios';
 import { getHiringStepById, HIRING_STEPS } from '@/lib/hiringSteps';
 import { openFileUrl } from '@/lib/fileUrls';
 import { Button } from '@/components/ui/button';
+import toast from 'react-hot-toast';
 
 const idOf = (value: any) => typeof value === 'object' && value ? String(value._id || '') : String(value || '');
 const nameOf = (value: any) => value && typeof value === 'object' && value.firstName ? `${value.firstName} ${value.lastName || ''}`.trim() : '';
@@ -93,8 +94,12 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => (await api.delete(`${step!.apiPath}/${id}`)).data,
     onSuccess: () => {
+      toast.success('Record deleted successfully');
       queryClient.invalidateQueries({ queryKey: ['hiring-register', step?.apiPath] });
     },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to delete record. Deletion might not be supported for this step.');
+    }
   });
 
   const pdfMutation = useMutation({
@@ -161,12 +166,12 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
 
   const sortedData = sortKey
     ? [...filteredData].sort((a, b) => {
-        const aVal = String(nestedValue(a, sortKey) ?? '').toLowerCase();
-        const bVal = String(nestedValue(b, sortKey) ?? '').toLowerCase();
-        if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
-        if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
-        return 0;
-      })
+      const aVal = String(nestedValue(a, sortKey) ?? '').toLowerCase();
+      const bVal = String(nestedValue(b, sortKey) ?? '').toLowerCase();
+      if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    })
     : filteredData;
 
   const handleSort = (key: string) => {
@@ -282,127 +287,142 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
               ) : paginatedData.length === 0 ? (
                 <tr><td colSpan={dynamicColumns.length + 3} className="p-4 text-center text-slate-500">No records found.</td></tr>
               ) : (
-                paginatedData.map((row, index) => (
-                  <tr key={row._id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-3 py-2 border-r border-slate-100 text-center">
-                      <input type="checkbox" className="rounded" checked={selectedRowIds.has(row._id)} onChange={(e) => toggleSelectRow(row._id, e.target.checked)} />
-                    </td>
-                    <td className="px-3 py-2 border-r border-slate-100 text-center font-medium text-slate-500">
-                      {(page - 1) * pageSize + index + 1}
-                    </td>
-                    {dynamicColumns.map((col) => {
-                      let val: any = nestedValue(row, col.key);
-                      // Fallback to linked candidate or employee directory data if field is missing on the row
-                      if (!val || val === '—') {
-                        if (row.employeeId) {
-                          const emp = employeeDirectory.find((e: any) => String(e._id) === idOf(row.employeeId));
-                          if (emp) {
-                            if (col.key === 'employeeName' || col.key === 'candidateName' || col.key === 'employeename') {
-                              val = `${emp.firstName} ${emp.lastName || ''}`.trim();
-                            } else if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId') {
-                              val = emp.employeeCode || val;
-                            } else if (col.key === 'designation' || col.key === 'position') {
-                              val = emp.designation || emp.jobRole || val;
-                            } else if (col.key === 'department') {
-                              val = emp.department || val;
-                            } else if (col.key === 'joiningDate') {
-                              val = emp.dateOfJoining || emp.expectedJoiningDate || val;
+                paginatedData.map((row, index) => {
+                  const rowKey = row._id || `row-${index}`;
+                  return (
+                    <tr key={rowKey} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-3 py-2 border-r border-slate-100 text-center">
+                        <input type="checkbox" className="rounded" checked={selectedRowIds.has(rowKey)} onChange={(e) => toggleSelectRow(rowKey, e.target.checked)} />
+                      </td>
+                      <td className="px-3 py-2 border-r border-slate-100 text-center font-medium text-slate-500">
+                        {(page - 1) * pageSize + index + 1}
+                      </td>
+                      {dynamicColumns.map((col) => {
+                        let val: any = nestedValue(row, col.key);
+                        // Fallback to linked candidate or employee directory data if field is missing on the row
+                        if (!val || val === '—') {
+                          if (row.employeeId) {
+                            const emp = employeeDirectory.find((e: any) => String(e._id) === idOf(row.employeeId));
+                            if (emp) {
+                              if (col.key === 'employeeName' || col.key === 'candidateName' || col.key === 'employeename') {
+                                val = `${emp.firstName} ${emp.lastName || ''}`.trim();
+                              } else if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId') {
+                                val = emp.employeeCode || val;
+                              } else if (col.key === 'designation' || col.key === 'position') {
+                                val = emp.designation || emp.jobRole || val;
+                              } else if (col.key === 'department') {
+                                val = emp.department || val;
+                              } else if (col.key === 'joiningDate') {
+                                val = emp.dateOfJoining || emp.expectedJoiningDate || val;
+                              }
                             }
-                          }
-                        } else if (row.candidateId) {
-                          const cand = candidateDirectory.find((c: any) => String(c._id) === idOf(row.candidateId));
-                          if (cand) {
-                            if (col.key === 'employeeName' || col.key === 'candidateName' || col.key === 'employeename') {
-                              val = `${cand.firstName} ${cand.lastName || ''}`.trim();
-                            } else if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId') {
-                              val = cand.employeeCode || val;
-                            } else if (col.key === 'designation' || col.key === 'position') {
-                              val = cand.jobRole || val;
-                            } else if (col.key === 'department') {
-                              val = cand.department || val;
-                            } else if (col.key === 'joiningDate') {
-                              val = cand.expectedJoiningDate || cand.dateOfJoining || val;
+                          } else if (row.candidateId) {
+                            const cand = candidateDirectory.find((c: any) => String(c._id) === idOf(row.candidateId));
+                            if (cand) {
+                              if (col.key === 'employeeName' || col.key === 'candidateName' || col.key === 'employeename') {
+                                val = `${cand.firstName} ${cand.lastName || ''}`.trim();
+                              } else if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId') {
+                                val = cand.employeeCode || cand.candidateCode || val;
+                              } else if (col.key === 'designation' || col.key === 'position') {
+                                val = cand.jobRole || val;
+                              } else if (col.key === 'department') {
+                                val = cand.department || val;
+                              } else if (col.key === 'joiningDate') {
+                                val = cand.expectedJoiningDate || cand.dateOfJoining || val;
+                              }
                             }
                           }
                         }
-                      }
-                      
-                      if ((!val || val === '—') && col.key === 'lastUpdate') {
-                        val = row.updatedAt || row.createdAt || val;
-                      }
 
-                      if ((!val || val === '—') && col.key === 'status') {
-                        val = row.status || row.finalStatus || row.overallStatus || row.signedStatus || 'Saved';
-                      }
-                      
-                      return (
-                        <td key={col.key} className="px-3 py-2 border-r border-slate-100 text-slate-700">
-                          {displayValue(val)}
-                        </td>
-                      );
-                    })}
-                    <td className="px-3 py-2 text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <button onClick={() => setSelectedRecord(row)} className="p-1.5 text-slate-700 hover:bg-slate-100 rounded transition-colors" title="View complete details">
-                          <Eye size={13} />
-                        </button>
-                        <button onClick={() => openRecordForm(row)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
-                          <Edit2 size={13} />
-                        </button>
-                        <button onClick={() => { if (confirm('Are you sure you want to delete this record?')) deleteMutation.mutate(row._id); }} className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete">
-                          <Trash2 size={13} />
-                        </button>
-                        {(step.hasPdf || (step as any).hasPrint) && (
-                          <button onClick={async () => {
-                            let candId = idOf(row.candidateId) || row.rawCandidateId;
-                            if (!candId && step.entityField === 'employeeId') {
-                              const empId = idOf(row.employeeId);
-                              if (empId) {
-                                const response = await api.get(`/hiring/employees/${empId}/candidate`);
-                                candId = response.data.candidateId;
+                        // Fallback for nominees if the backend returns them in an array instead of root level
+                        if ((!val || val === '—') && col.key === 'nominee1FullName' && Array.isArray(row.nominees) && row.nominees.length > 0) {
+                          val = row.nominees[0].name;
+                        }
+                        if ((!val || val === '—') && col.key === 'nominee2FullName' && Array.isArray(row.nominees) && row.nominees.length > 1) {
+                          val = row.nominees[1].name;
+                        }
+
+                        if ((!val || val === '—') && col.key === 'lastUpdate') {
+                          val = row.updatedAt || row.createdAt || val;
+                        }
+
+                        if ((!val || val === '—') && col.key === 'status') {
+                          val = row.status || row.finalStatus || row.overallStatus || row.signedStatus || 'Saved';
+                        }
+
+                        if ((!val || val === '—') && col.key === 'medicalInfo.bloodGroup') {
+                          val = row.bloodGroup || val;
+                        }
+
+                        return (
+                          <td key={col.key} className="px-3 py-2 border-r border-slate-100 text-slate-700">
+                            {displayValue(val)}
+                          </td>
+                        );
+                      })}
+                      <td className="px-3 py-2 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <button onClick={() => setSelectedRecord(row)} className="p-1.5 text-slate-700 hover:bg-slate-100 rounded transition-colors" title="View complete details">
+                            <Eye size={13} />
+                          </button>
+                          <button onClick={() => openRecordForm(row)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
+                            <Edit2 size={13} />
+                          </button>
+                          <button onClick={() => { if (confirm('Are you sure you want to delete this record?')) deleteMutation.mutate(row._id); }} className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete">
+                            <Trash2 size={13} />
+                          </button>
+                          {(step.hasPdf || (step as any).hasPrint) && (
+                            <button onClick={async () => {
+                              let candId = idOf(row.candidateId) || row.rawCandidateId;
+                              if (!candId && step.entityField === 'employeeId') {
+                                const empId = idOf(row.employeeId);
+                                if (empId) {
+                                  const response = await api.get(`/hiring/employees/${empId}/candidate`);
+                                  candId = response.data.candidateId;
+                                }
                               }
-                            }
-                            if (candId) {
-                              window.open(`/dashboard/hiring/${candId}/print/${step.id}`, '_blank');
-                            } else {
-                              window.alert('Candidate ID not found');
-                            }
-                          }} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition-colors flex items-center gap-1" title="Print/Generate PDF">
-                            <FileText size={13} />
-                          </button>
-                        )}
-                        {(step.postCreateActions || [])
-                          .filter((action) => {
-                            if (step.id === 'selection-approval' && row.finalStatus && row.finalStatus !== 'Pending') return false;
-                            if (step.id === 'induction' && action.label === 'Complete First Module') {
-                              if (!row.modules || row.modules.length === 0 || row.modules[0].completed) return false;
-                            }
-                            return true;
-                          })
-                          .map((action) => {
-                          const lower = action.label.toLowerCase();
-                          const isApprove = lower.includes('approve') || lower.includes('accept') || lower.includes('confirm') || lower.includes('verify') || lower.includes('issue');
-                          const isReject = lower.includes('reject') || lower.includes('decline') || lower.includes('terminate');
-                          return (
-                            <button
-                              key={action.label}
-                              onClick={() => actionMutation.mutate({ recordId: row._id, action })}
-                              className={`p-1.5 rounded transition-colors flex items-center gap-1 ${isApprove ? 'text-emerald-600 hover:bg-emerald-50' : isReject ? 'text-red-600 hover:bg-red-50' : 'text-indigo-600 hover:bg-indigo-50'}`}
-                              title={action.label}
-                            >
-                              {isApprove ? <CheckCircle size={13} /> : isReject ? <XCircle size={13} /> : <ShieldCheck size={13} />}
+                              if (candId) {
+                                window.open(`/dashboard/hiring/${candId}/print/${step.id}`, '_blank');
+                              } else {
+                                window.alert('Candidate ID not found');
+                              }
+                            }} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition-colors flex items-center gap-1" title="Print/Generate PDF">
+                              <FileText size={13} />
                             </button>
-                          );
-                        })}
-                        {nextStep && (
-                          <button onClick={() => proceedToNextStep(row)} className="p-1.5 text-zinc-600 hover:bg-zinc-100 rounded transition-colors flex items-center gap-1" title="Proceed to Next Step">
-                            <ArrowRight size={13} />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                          )}
+                          {(step.postCreateActions || [])
+                            .filter((action) => {
+                              if (step.id === 'selection-approval' && row.finalStatus && row.finalStatus !== 'Pending') return false;
+                              if (step.id === 'induction' && action.label === 'Complete First Module') {
+                                if (!row.modules || row.modules.length === 0 || row.modules[0].completed) return false;
+                              }
+                              return true;
+                            })
+                            .map((action) => {
+                              const lower = action.label.toLowerCase();
+                              const isApprove = lower.includes('approve') || lower.includes('accept') || lower.includes('confirm') || lower.includes('verify') || lower.includes('issue');
+                              const isReject = lower.includes('reject') || lower.includes('decline') || lower.includes('terminate');
+                              return (
+                                <button
+                                  key={action.label}
+                                  onClick={() => actionMutation.mutate({ recordId: row._id, action })}
+                                  className={`p-1.5 rounded transition-colors flex items-center gap-1 ${isApprove ? 'text-emerald-600 hover:bg-emerald-50' : isReject ? 'text-red-600 hover:bg-red-50' : 'text-indigo-600 hover:bg-indigo-50'}`}
+                                  title={action.label}
+                                >
+                                  {isApprove ? <CheckCircle size={13} /> : isReject ? <XCircle size={13} /> : <ShieldCheck size={13} />}
+                                </button>
+                              );
+                            })}
+                          {nextStep && (
+                            <button onClick={() => proceedToNextStep(row)} className="p-1.5 text-zinc-600 hover:bg-zinc-100 rounded transition-colors flex items-center gap-1" title="Proceed to Next Step">
+                              <ArrowRight size={13} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
             <tfoot className="bg-slate-50">

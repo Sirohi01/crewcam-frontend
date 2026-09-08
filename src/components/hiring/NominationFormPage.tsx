@@ -89,8 +89,13 @@ export default function NominationFormPage({ candidateId }: { candidateId: strin
     const fetchNominationData = async () => {
         try {
             setLoading(true);
-            const candidateRes = await api.get(`/hiring/candidates/${candidateId}`);
-            const cand = candidateRes.data;
+            let cand: any = {};
+            try {
+                const candidateRes = await api.get(`/hiring/candidates/${candidateId}`);
+                cand = candidateRes.data || {};
+            } catch (err) {
+                console.warn('Candidate data could not be loaded, proceeding with existing nomination data if available.');
+            }
 
             const nomRes = await api.get('/hiring/nomination', { params: { candidateId } });
             const list = Array.isArray(nomRes.data) ? nomRes.data : (nomRes.data?.data || []);
@@ -99,6 +104,7 @@ export default function NominationFormPage({ candidateId }: { candidateId: strin
                 const row = list[0];
                 setFormData({
                     ...row,
+                    empCode: row.empCode || cand.candidateCode || '',
                     docs: row.docs || formData.docs,
                     dob: row.dob ? new Date(row.dob).toISOString().split('T')[0] : '',
                     dateOfJoining: row.dateOfJoining ? new Date(row.dateOfJoining).toISOString().split('T')[0] : '',
@@ -112,11 +118,12 @@ export default function NominationFormPage({ candidateId }: { candidateId: strin
             } else {
                 setFormData(prev => ({
                     ...prev,
-                    employeeName: cand.firstName + ' ' + (cand.lastName || ''),
+                    employeeName: cand.firstName ? cand.firstName + ' ' + (cand.lastName || '') : '',
                     designation: cand.jobRole || '',
                     department: cand.department || '',
                     emailId: cand.email || '',
                     mobileNumber: cand.phone || '',
+                    empCode: cand.candidateCode || '',
                 }));
             }
         } catch (error: any) {

@@ -385,7 +385,7 @@ export default function EvaluationPage() {
 
                       <div>
                         <p className="text-[10px] font-medium text-slate-500">Department</p>
-                        <p className="mt-0.5 text-xs font-semibold text-slate-900">
+                        <div className="mt-0.5 text-xs font-semibold text-slate-900">
                           {loadingScreening ? (
                             <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-indigo-500" /></div>
                           ) : displayData?.summary ? (
@@ -394,10 +394,10 @@ export default function EvaluationPage() {
                             </p>
                           ) : (
                             <p className="mt-0.5 text-xs font-semibold text-slate-900">
-                              {candidate.employmentType}
+                              {candidate.department || candidate.employmentType}
                             </p>
                           )}
-                        </p>
+                        </div>
                       </div>
 
                       <div>

@@ -10,10 +10,16 @@ import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
 import { cn } from '@/lib/utils';
+import { useMasterDataStore } from '@/store/masterDataStore';
 
 export default function EmergencyContactPage({ candidateId }: { candidateId: string }) {
     const router = useRouter();
     const { user } = useAuthStore();
+    const { departments, designations, fetchMasterData } = useMasterDataStore();
+    
+    const departmentOptions = [{ value: '', label: 'Select Department' }, ...departments.map((d: any) => ({ value: d.name || '', label: d.name || '' }))];
+    const designationOptions = [{ value: '', label: 'Select Designation' }, ...designations.map((d: any) => ({ value: d.title || d.name || '', label: d.title || d.name || '' }))];
+
     const currentUsername = `${(user as any)?.firstName || ''} ${(user as any)?.lastName || ''}`.trim() || 'Admin';
 
     const [loading, setLoading] = useState(true);
@@ -117,6 +123,7 @@ export default function EmergencyContactPage({ candidateId }: { candidateId: str
         if (candidateId) {
             fetchEmergencyData();
         }
+        fetchMasterData();
     }, [candidateId]);
 
     const handleChange = (field: string, value: any) => {
@@ -205,13 +212,15 @@ export default function EmergencyContactPage({ candidateId }: { candidateId: str
                                         />
                                     </FormField>
                                     <FormField label="2. Designation:">
-                                        <FormInput
+                                        <FormSelect
+                                            options={designationOptions}
                                             value={formData.designation}
                                             onChange={(e) => handleChange('designation', e.target.value)}
                                         />
                                     </FormField>
                                     <FormField label="Department:">
-                                        <FormInput
+                                        <FormSelect
+                                            options={departmentOptions}
                                             value={formData.department}
                                             onChange={(e) => handleChange('department', e.target.value)}
                                         />
