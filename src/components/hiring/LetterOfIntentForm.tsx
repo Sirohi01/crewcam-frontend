@@ -86,7 +86,7 @@ export default function LetterOfIntentForm({ candidateId }: { candidateId: strin
         ...current,
         department: saved.department || current.department,
         position: saved.position || current.position,
-        joiningDate: saved.joiningDate ? new Date(saved.joiningDate).toISOString().slice(0, 10) : current.joiningDate,
+        joiningDate: (saved.joiningDate && !isNaN(new Date(saved.joiningDate).getTime())) ? new Date(saved.joiningDate).toISOString().slice(0, 10) : current.joiningDate,
         reportingTime: convertTo24Hour(saved.reportingTime),
         reportingLocation: saved.reportingLocation || current.reportingLocation,
         reportingTo: saved.reportingTo || current.reportingTo
@@ -101,7 +101,7 @@ export default function LetterOfIntentForm({ candidateId }: { candidateId: strin
         ...current,
         department: ctc.department || current.department,
         position: ctc.position || current.position,
-        joiningDate: ctc.effectiveDate ? new Date(ctc.effectiveDate).toISOString().slice(0, 10) : current.joiningDate,
+        joiningDate: (ctc.effectiveDate && !isNaN(new Date(ctc.effectiveDate).getTime())) ? new Date(ctc.effectiveDate).toISOString().slice(0, 10) : current.joiningDate,
         reportingLocation: ctc.workLocation || current.reportingLocation,
         reportingTo: ctc.reportingTo || current.reportingTo
       }));

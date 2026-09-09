@@ -76,7 +76,7 @@ export default function CTCBreakupForm({ candidateId }: { candidateId: string })
         workLocation: saved.workLocation || current.workLocation,
         reportingTo: saved.reportingTo || current.reportingTo,
         effectiveDate: saved.effectiveDate ? new Date(saved.effectiveDate).toISOString().slice(0, 10) : current.effectiveDate,
-        monthlyGross: saved.monthlyGross ? String(saved.monthlyGross) : current.monthlyGross
+        monthlyGross: saved.monthlyGross ? String(saved.monthlyGross).replace(/,/g, '') : current.monthlyGross
       }));
       return;
     }
@@ -92,7 +92,7 @@ export default function CTCBreakupForm({ candidateId }: { candidateId: string })
         workLocation: selection.workLocation || current.workLocation,
         reportingTo: selection.reportingTo || current.reportingTo,
         effectiveDate: (selection.joiningDate && !isNaN(new Date(selection.joiningDate).getTime())) ? new Date(selection.joiningDate).toISOString().slice(0, 10) : current.effectiveDate,
-        monthlyGross: selection.proposedMonthlyCTC ? String(selection.proposedMonthlyCTC) : current.monthlyGross
+        monthlyGross: selection.proposedMonthlyCTC ? String(selection.proposedMonthlyCTC).replace(/,/g, '') : current.monthlyGross
       }));
     } else if (candidate) {
       setForm(current => ({
