@@ -13,11 +13,13 @@ import { ArrayFieldConfig, getHiringStepById, HiringStepConfig, StepField } from
 import { openFileUrl } from '@/lib/fileUrls';
 
 import { HiringStepLayout } from './HiringStepLayout';
+import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StepGate from './StepGate';
 import StepChecklist from './StepChecklist';
 import toast from 'react-hot-toast';
+import { formatEmployeeId } from '@/lib/utils';
 
 const inputClass = "w-full h-7 px-2 bg-white border border-[#cbd5e1] hover:border-[#94a3b8] rounded-[2px] text-[13px] transition-all duration-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#0d3c68] focus:border-[#0d3c68] disabled:bg-slate-50 disabled:text-slate-500";
 const selectClass = "w-full h-7 px-2 bg-white border border-[#cbd5e1] hover:border-[#94a3b8] rounded-[2px] text-[13px] transition-all duration-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#0d3c68] focus:border-[#0d3c68]";
@@ -132,16 +134,115 @@ const maskSensitive = (key: string, value: unknown) => {
   return text;
 };
 
-const recordDisplayValue = (key: string, value: any) => {
+const isPersonKey = (key: string) => [
+  'checkedBy',
+  'employeeId',
+  'candidateId',
+  'reviewerId',
+  'evaluatorId',
+  'issuedBy',
+  'assignedBy',
+  'receivedBy',
+  'createdBy',
+  'updatedBy'
+].includes(key);
+
+const isPersonObject = (key: string, value: any) => {
+  if (isPersonKey(key)) return true;
+  if (value && typeof value === 'object' && !Array.isArray(value) && (value.firstName || value.lastName || value.name || value.employeeCode)) {
+    return true;
+  }
+  return false;
+};
+
+const formatPersonObject = (key: string, value: any) => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const name = `${value.firstName || ''} ${value.lastName || ''}`.trim() || value.name;
+  if (key === 'candidateId') return name || 'Candidate';
+  if (key === 'employeeId') {
+    if (name && value.employeeCode) return `${name} (${formatEmployeeId(value.employeeCode)})`;
+    return name || formatEmployeeId(value.employeeCode) || value.email || 'Employee';
+  }
+  if (name) {
+    if (value.employeeCode) return `${name} (${formatEmployeeId(value.employeeCode)})`;
+    return name;
+  }
+  return value.email || formatEmployeeId(value.employeeCode) || null;
+};
+
+const recordDisplayValue = (
+  key: string,
+  value: any,
+  ctx?: {
+    currentUser?: any;
+    candidate?: any;
+    hiringProfile?: any;
+    employees?: any[];
+    pipeline?: any;
+  }
+) => {
   if (value === undefined || value === null || value === '') return '—';
   if (typeof value === 'number') return Math.round(value).toLocaleString('en-IN');
-  if (key === 'candidateId' && typeof value === 'object') return `${value.firstName || ''} ${value.lastName || ''}`.trim() || 'Candidate';
-  if (key === 'employeeId' && typeof value === 'object') return `${value.firstName || ''} ${value.lastName || ''}`.trim() || value.employeeCode || 'Employee';
+
+  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    const formatted = formatPersonObject(key, value);
+    if (formatted) return formatted;
+    if (value.firstName) return `${value.firstName} ${value.lastName || ''}`.trim();
+    return value.name || value.title || 'Saved details';
+  }
+
+  if (isPersonKey(key) && typeof value === 'string') {
+    const valStr = String(value).trim();
+
+    // 1. Current user match
+    if (ctx?.currentUser && (String(ctx.currentUser._id) === valStr || String(ctx.currentUser.id) === valStr)) {
+      const name = `${ctx.currentUser.firstName || ''} ${ctx.currentUser.lastName || ''}`.trim();
+      if (name) return name;
+      if (ctx.currentUser.email) return ctx.currentUser.email;
+    }
+
+    // 2. Candidate / pipeline match for candidateId or employeeId
+    if (key === 'employeeId' || key === 'candidateId') {
+      const cand = ctx?.candidate || ctx?.hiringProfile?.candidate;
+      const emp = ctx?.hiringProfile?.employee;
+      const pipeEmpId = ctx?.pipeline?.employeeId;
+      const pipeCandId = ctx?.pipeline?.candidateId;
+      if (cand && (valStr === String(cand._id) || valStr === String(pipeCandId) || valStr === String(pipeEmpId) || valStr === String(emp?._id))) {
+        const name = `${cand.firstName || ''} ${cand.lastName || ''}`.trim();
+        const code = formatEmployeeId(emp?.employeeCode || (cand as any)?.candidateCode || (cand as any)?.uniqueId);
+        if (name && code) return `${name} (${code})`;
+        if (name) return name;
+      }
+    }
+
+    // 3. Employees lookup match
+    if (ctx?.employees && ctx.employees.length > 0) {
+      const found = ctx.employees.find((e: any) => String(e._id) === valStr || String(e.id) === valStr || e.employeeCode === valStr);
+      if (found) {
+        const name = `${found.firstName || ''} ${found.lastName || ''}`.trim() || found.name;
+        const code = formatEmployeeId(found.employeeCode);
+        if (name && code) return `${name} (${code})`;
+        if (name) return name;
+        if (found.email) return found.email;
+      }
+    }
+
+    // 4. Fallback for 24-character hex ID on checkedBy
+    if (/^[0-9a-fA-F]{24}$/.test(valStr) && key === 'checkedBy') {
+      if (ctx?.currentUser) {
+        const name = `${ctx.currentUser.firstName || ''} ${ctx.currentUser.lastName || ''}`.trim();
+        if (name) return name;
+      }
+      return 'Authorized User';
+    }
+  }
+
   if (key === 'approvalChain' && Array.isArray(value)) return value.map((entry: any) => {
     const approver = entry.approverId;
     const name = typeof approver === 'object' ? `${approver.firstName || ''} ${approver.lastName || ''}`.trim() : 'Selected approver';
     return `${entry.role || 'Approver'}: ${name} — ${entry.status || 'Pending'}`;
   }).join(' | ');
+
   if (Array.isArray(value)) return value.map((entry) => {
     if (typeof entry === 'number') return Math.round(entry).toLocaleString('en-IN');
     if (typeof entry === 'object' && entry !== null) {
@@ -152,8 +253,11 @@ const recordDisplayValue = (key: string, value: any) => {
     }
     return String(entry);
   }).join(' | ');
-  if (typeof value === 'object') return value.firstName ? `${value.firstName} ${value.lastName || ''}`.trim() : (value.name || value.title || 'Saved details');
+
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}(T|$)/.test(value)) return new Date(value).toLocaleDateString('en-GB');
+  if (key === 'uniqueId' || key === 'employeeCode' || key === 'empCode' || key === 'candidateCode') {
+    return formatEmployeeId(String(value));
+  }
   return maskSensitive(key, value);
 };
 const recordLabel = (key: string) => key
@@ -231,7 +335,7 @@ function ArrayFieldEditor({ field, control, register, setValue, employees = [] }
                         <option value="">Select employee...</option>
                         {employees.map((employee: any) => (
                           <option key={employee._id} value={employee._id}>
-                            {employee.firstName} {employee.lastName} {employee.employeeCode ? `(${employee.employeeCode})` : ''}
+                            {employee.firstName} {employee.lastName} {employee.employeeCode ? `(${formatEmployeeId(employee.employeeCode)})` : ''}
                           </option>
                         ))}
                       </select>
@@ -292,11 +396,21 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
   const entityId = step?.entityField === 'employeeId' ? pipeline?.employeeId : candidateId;
   const stepState = step ? pipeline?.steps.find((entry) => entry.key === step.stepKey) : undefined;
 
-  const { data: approvalEmployees = [] } = useQuery<any[]>({
-    queryKey: ['selection-approval-employees'],
-    queryFn: async () => (await api.get('/employees')).data.data || [],
-    enabled: step?.id === 'selection-approval',
+  const currentUser = useAuthStore((state) => state.user);
+
+  const { data: allEmployees = [] } = useQuery<any[]>({
+    queryKey: ['hiring-all-employees'],
+    queryFn: async () => {
+      try {
+        const res = await api.get('/employees?limit=200');
+        return res.data?.data || res.data || [];
+      } catch {
+        return [];
+      }
+    },
+    staleTime: 5 * 60 * 1000,
   });
+  const approvalEmployees = allEmployees;
 
   const { data: records = [] } = useQuery<any[]>({
     queryKey: ['hiring-step-records', step?.id, entityId],
@@ -357,7 +471,8 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
       'positionDetails.workLocation': position.workLocation || manpower.workLocation || '',
       strengths: evaluation.strengths || '',
       areasOfImprovement: evaluation.improvementAreas || '',
-      uniqueId: position.empCode || records[0]?.uniqueId || hiringProfile.employee?.employeeCode || '',
+      uniqueId: formatEmployeeId((candidate as any)?.candidateCode || (candidate as any)?.uniqueId || (candidate as any)?.employeeCode || profileCandidate?.candidateCode || profileCandidate?.uniqueId || profileCandidate?.employeeCode || (position.empCode && !position.empCode.startsWith('EMP-') ? position.empCode : '') || (records[0]?.uniqueId && !records[0].uniqueId.startsWith('EMP-') ? records[0].uniqueId : '') || hiringProfile.employee?.employeeCode || ''),
+      employeeCode: formatEmployeeId((candidate as any)?.candidateCode || (candidate as any)?.uniqueId || (candidate as any)?.employeeCode || profileCandidate?.candidateCode || profileCandidate?.uniqueId || profileCandidate?.employeeCode || (position.empCode && !position.empCode.startsWith('EMP-') ? position.empCode : '') || (records[0]?.employeeCode && !records[0].employeeCode.startsWith('EMP-') ? records[0].employeeCode : '') || hiringProfile.employee?.employeeCode || ''),
       employeeId: (hiringProfile.employeeId && /^[0-9a-fA-F]{24}$/.test(String(hiringProfile.employeeId)))
         ? String(hiringProfile.employeeId)
         : (pipeline?.employeeId && /^[0-9a-fA-F]{24}$/.test(String(pipeline.employeeId)))
@@ -376,7 +491,7 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
       cursor[parts[parts.length - 1]] = value instanceof Date ? value.toISOString().slice(0, 10) : (isDateField && typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value) ? value.slice(0, 10) : value);
     });
     form.reset(values);
-  }, [form, hiringProfile, step, records[0]?.uniqueId]);
+  }, [form, hiringProfile, step, records[0]?.uniqueId, (candidate as any)?.candidateCode, (candidate as any)?.uniqueId, (candidate as any)?.employeeCode]);
 
   // When editing an existing record from the register table (?edit=recordId),
   // override the form with the saved record's exact field values.
@@ -391,7 +506,11 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
         if (['_id', '__v', 'tenantId', 'createdAt', 'updatedAt'].includes(key)) continue;
         const fullKey = prefix ? `${prefix}.${key}` : key;
         if (value !== null && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
-          Object.assign(result, flattenRecord(value as any, fullKey));
+          if ((value as any)._id && ((value as any).firstName || (value as any).email || (value as any).name || (value as any).employeeCode)) {
+            result[fullKey] = (value as any)._id;
+          } else {
+            Object.assign(result, flattenRecord(value as any, fullKey));
+          }
         } else {
           result[fullKey] = value;
         }
@@ -404,8 +523,14 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
 
     // Populate scalar fields from the saved record
     for (const field of step.fields) {
-      const val = flat[field.name];
+      let val = flat[field.name];
       if (val === undefined || val === null) continue;
+      if ((field.name === 'uniqueId' || field.name === 'employeeCode') && (String(val).startsWith('EMP-') || !val)) {
+        const canonicalCode = (candidate as any)?.candidateCode || (candidate as any)?.uniqueId || (candidate as any)?.employeeCode;
+        if (canonicalCode) val = formatEmployeeId(canonicalCode);
+      } else if (field.name === 'uniqueId' || field.name === 'employeeCode' || field.name === 'empCode') {
+        if (val) val = formatEmployeeId(String(val));
+      }
       const parts = field.name.split('.');
       let cursor = values;
       parts.slice(0, -1).forEach((part) => { cursor[part] = cursor[part] || {}; cursor = cursor[part]; });
@@ -694,13 +819,12 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
                         type="button"
                         disabled={actionMutation.isPending}
                         onClick={() => actionMutation.mutate({ recordId: record._id, action })}
-                        className={`inline-flex items-center gap-1 h-6 px-2 text-[11px] font-bold rounded-[2px] transition-all uppercase ${
-                          isApprove
-                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                            : isReject
-                              ? 'bg-rose-600 hover:bg-rose-700 text-white'
-                              : 'border border-slate-300 text-slate-700 hover:bg-slate-100'
-                        }`}
+                        className={`inline-flex items-center gap-1 h-6 px-2 text-[11px] font-bold rounded-[2px] transition-all uppercase ${isApprove
+                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                          : isReject
+                            ? 'bg-rose-600 hover:bg-rose-700 text-white'
+                            : 'border border-slate-300 text-slate-700 hover:bg-slate-100'
+                          }`}
                       >
                         {isApprove ? <CheckCircle size={11} /> : isReject ? <XCircle size={11} /> : <ShieldCheck size={11} />} {action.label}
                       </button>
@@ -709,12 +833,24 @@ export default function HiringStepPage({ candidateId, stepId }: { candidateId: s
                 </div>
               </div>
               <div className="grid gap-x-5 gap-y-1.5 text-xs text-slate-600 md:grid-cols-3">
-                {Object.entries(record).filter(([key]) => !['_id', '__v', 'tenantId', 'createdAt', 'updatedAt'].includes(key)).map(([key, value]) => (
-                  <div key={key} className={key === 'approvalChain' || typeof value === 'object' ? 'md:col-span-3' : ''}>
-                    <span className="font-semibold text-slate-700 uppercase text-[10px]">{recordLabel(key)}: </span>
-                    <span className="break-words text-slate-900">{recordDisplayValue(key, value)}</span>
-                  </div>
-                ))}
+                {Object.entries(record).filter(([key]) => !['_id', '__v', 'tenantId', 'createdAt', 'updatedAt'].includes(key)).map(([key, value]) => {
+                  const isPerson = isPersonObject(key, value);
+                  const isFullSpan = key === 'approvalChain' || (typeof value === 'object' && value !== null && !isPerson);
+                  return (
+                    <div key={key} className={isFullSpan ? 'md:col-span-3' : ''}>
+                      <span className="font-semibold text-slate-700 uppercase text-[10px]">{recordLabel(key)}: </span>
+                      <span className="break-words text-slate-900">
+                        {recordDisplayValue(key, value, {
+                          currentUser,
+                          candidate,
+                          hiringProfile,
+                          employees: allEmployees,
+                          pipeline,
+                        })}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))}

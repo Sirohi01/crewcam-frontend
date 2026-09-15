@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
 import PrintHiringHeader from '@/components/print/PrintHiringHeader';
+import { formatEmployeeId } from '@/lib/utils';
 
 // ── Capitalize first letter of every word ──────────────────────────────────
 const toTitleCase = (str?: string) => {
@@ -247,7 +248,7 @@ export default function DocumentChecklistTemplate({ candidateId }: { candidateId
                                 <InlineField label="Designation" labelWidth={140} value={toTitleCase(data.designation)} />
                                 <InlineField label="Work Location" labelWidth={140} value={toTitleCase(data.workLocation)} />
                                 <InlineField label="Department" labelWidth={140} value={toTitleCase(data.department)} />
-                                <InlineField label="Employee Code" labelWidth={140} value={data.employeeCode} />
+                                <InlineField label="Employee Code" labelWidth={140} value={formatEmployeeId(data.employeeCode)} />
                             </div>
                         </section>
 

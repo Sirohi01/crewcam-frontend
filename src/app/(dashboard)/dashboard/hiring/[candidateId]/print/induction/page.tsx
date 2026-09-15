@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import { Printer, ArrowLeft, Loader2 } from 'lucide-react';
 import PrintHiringHeader from '@/components/common/PrintHiringHeader';
+import { formatEmployeeId } from '@/lib/utils';
 
 const toTitleCase = (str?: string) => {
     if (!str) return '';
@@ -114,7 +115,7 @@ export default function InductionPrintPage() {
                                     <td className="py-2 px-3 bg-slate-100 font-bold w-1/4 border-r border-slate-300">Employee Name</td>
                                     <td className="py-2 px-3 font-semibold w-1/4 border-r border-slate-300">{toTitleCase(data.employeeName) || '-'}</td>
                                     <td className="py-2 px-3 bg-slate-100 font-bold w-1/4 border-r border-slate-300">Unique ID</td>
-                                    <td className="py-2 px-3 font-semibold w-1/4">{data.uniqueId || '-'}</td>
+                                    <td className="py-2 px-3 font-semibold w-1/4">{formatEmployeeId(data.uniqueId) || '-'}</td>
                                 </tr>
                                 <tr className="border-b border-slate-300">
                                     <td className="py-2 px-3 bg-slate-100 font-bold border-r border-slate-300">Department</td>

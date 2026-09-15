@@ -9,6 +9,7 @@ import { getHiringStepById, HIRING_STEPS } from '@/lib/hiringSteps';
 import { openFileUrl } from '@/lib/fileUrls';
 import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
+import { formatEmployeeId } from '@/lib/utils';
 
 const idOf = (value: any) => typeof value === 'object' && value ? String(value._id || '') : String(value || '');
 const nameOf = (value: any) => value && typeof value === 'object' && value.firstName ? `${value.firstName} ${value.lastName || ''}`.trim() : '';
@@ -23,13 +24,20 @@ const displayValue = (value: any): string => {
   return String(value);
 };
 const nestedValue = (row: Record<string, any>, path: string): any => path.split('.').reduce((value, key) => value?.[key], row);
-const detailRows = (value: any, prefix = ''): { label: string; value: string }[] => {
+const detailRows = (value: any, prefix = '', canonicalId = ''): { label: string; value: string }[] => {
   if (value === undefined || value === null || value === '') return [];
-  if (Array.isArray(value)) return value.flatMap((item, index) => detailRows(item, `${prefix || 'Item'} ${index + 1}`));
+  if (Array.isArray(value)) return value.flatMap((item, index) => detailRows(item, `${prefix || 'Item'} ${index + 1}`, canonicalId));
   if (typeof value === 'object' && !(value instanceof Date)) return Object.entries(value)
     .filter(([key]) => !['_id', '__v', 'tenantId', 'passwordHash'].includes(key))
-    .flatMap(([key, item]) => detailRows(item, prefix ? `${prefix} · ${prettyKey(key)}` : prettyKey(key)));
-  const masked = /aadhaar|pan|account number/i.test(prefix) ? `••••${String(value).slice(-4)}` : displayValue(value);
+    .flatMap(([key, item]) => detailRows(item, prefix ? `${prefix} · ${prettyKey(key)}` : prettyKey(key), canonicalId));
+  let masked = /aadhaar|pan|account number/i.test(prefix) ? `••••${String(value).slice(-4)}` : displayValue(value);
+  if (/unique id|employee code|emp code|candidate code/i.test(prefix)) {
+    if (canonicalId && (String(value).startsWith('EMP-') || !value)) {
+      masked = formatEmployeeId(canonicalId);
+    } else if (value) {
+      masked = formatEmployeeId(String(value));
+    }
+  }
   return [{ label: prefix || 'Value', value: masked }];
 };
 
@@ -131,7 +139,50 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
 
   if (!step) return <div className="p-8 text-center text-sm text-zinc-500">Unknown register step.</div>;
 
-  const dynamicColumns = step.listColumns || step.fields.slice(0, 3).map((f) => ({ key: f.name, label: f.label }));
+  const dynamicColumns = step.listColumns || step.fields.slice(0, 3).map((f: any) => ({ key: f.name, label: f.label }));
+
+  const getRecordCanonicalId = (record: any) => {
+    if (!record) return '';
+    let resolved = '';
+    const candId = idOf(record.candidateId) || record.rawCandidateId;
+    if (candId) {
+      const cand = candidateDirectory.find((c: any) => String(c._id) === candId);
+      if (cand?.candidateCode || cand?.uniqueId || cand?.employeeCode) {
+        resolved = cand.candidateCode || cand.uniqueId || cand.employeeCode;
+      }
+    }
+    if (!resolved) {
+      const empId = idOf(record.employeeId);
+      if (empId) {
+        const emp = employeeDirectory.find((e: any) => String(e._id) === empId);
+        if (emp) {
+          const candByEmp = candidateDirectory.find(
+            (c: any) => (c.email && emp.email && c.email.toLowerCase() === emp.email.toLowerCase()) ||
+                        (c.employeeCode && c.employeeCode === emp.employeeCode)
+          );
+          if (candByEmp?.candidateCode || candByEmp?.uniqueId || candByEmp?.employeeCode) {
+            resolved = candByEmp.candidateCode || candByEmp.uniqueId || candByEmp.employeeCode;
+          }
+          if (!resolved && emp.employeeCode && !emp.employeeCode.startsWith('EMP-')) {
+            resolved = emp.employeeCode;
+          }
+        }
+      }
+    }
+    if (!resolved && (record.candidateName || record.employeeName)) {
+      const name = String(record.candidateName || record.employeeName).toLowerCase().trim();
+      const candByName = candidateDirectory.find((c: any) => `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().trim() === name);
+      if (candByName?.candidateCode || candByName?.uniqueId || candByName?.employeeCode) {
+        resolved = candByName.candidateCode || candByName.uniqueId || candByName.employeeCode;
+      }
+    }
+    if (!resolved) {
+      const raw = record.employeeCode || record.uniqueId || record.candidateCode || record.empCode;
+      resolved = raw && !raw.startsWith('EMP-') ? raw : (raw || '');
+    }
+    return formatEmployeeId(resolved);
+  };
+
   const subjectName = (row: any) => {
     const linked = step.entityField === 'employeeId' ? row.employeeId : row.candidateId;
     const direct = nameOf(linked);
@@ -299,6 +350,19 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                       </td>
                       {dynamicColumns.map((col) => {
                         let val: any = nestedValue(row, col.key);
+                        if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId' || col.key === 'candidateCode') {
+                          const canonical = getRecordCanonicalId(row);
+                          if (canonical && (!val || val === '—' || String(val).startsWith('EMP-'))) {
+                            val = canonical;
+                          } else if (val && val !== '—') {
+                            val = formatEmployeeId(String(val));
+                          }
+                        }
+                        if (!val || val === '—') {
+                          if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId') {
+                            val = row.employeeCode || row.empCode || row.uniqueId || row.candidateCode || val;
+                          }
+                        }
                         // Fallback to linked candidate or employee directory data if field is missing on the row
                         if (!val || val === '—') {
                           if (row.employeeId) {
@@ -322,7 +386,7 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                               if (col.key === 'employeeName' || col.key === 'candidateName' || col.key === 'employeename') {
                                 val = `${cand.firstName} ${cand.lastName || ''}`.trim();
                               } else if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId') {
-                                val = cand.employeeCode || cand.candidateCode || val;
+                                val = cand.employeeCode || cand.uniqueId || cand.candidateCode || val;
                               } else if (col.key === 'designation' || col.key === 'position') {
                                 val = cand.jobRole || val;
                               } else if (col.key === 'department') {
@@ -532,11 +596,21 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
           <div className="flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-              <div><h3 className="text-base font-semibold text-slate-900">{step.title} Details</h3><p className="text-xs text-slate-500">{subjectName(selectedRecord)}</p></div>
+              <div>
+                <h3 className="text-base font-semibold text-slate-900">{step.title} Details</h3>
+                <div className="flex items-center gap-3 mt-0.5">
+                  <p className="text-xs text-slate-500">{subjectName(selectedRecord)}</p>
+                  {(getRecordCanonicalId(selectedRecord) || selectedRecord.employeeCode || selectedRecord.uniqueId || selectedRecord.candidateCode || selectedRecord.empCode) && (
+                    <span className="text-xs font-mono font-bold text-[#0d3c68] bg-slate-100 px-2 py-0.5 rounded">
+                      ID: {getRecordCanonicalId(selectedRecord) || formatEmployeeId(selectedRecord.employeeCode || selectedRecord.uniqueId || selectedRecord.candidateCode || selectedRecord.empCode)}
+                    </span>
+                  )}
+                </div>
+              </div>
               <button onClick={() => setSelectedRecord(null)} className="rounded p-1.5 text-slate-500 hover:bg-slate-100"><X size={18} /></button>
             </div>
             <div className="grid flex-1 gap-x-6 gap-y-3 overflow-y-auto p-5 md:grid-cols-2">
-              {detailRows(selectedRecord).map((entry, index) => <div key={`${entry.label}-${index}`} className="border-b border-slate-100 pb-2"><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{entry.label}</p><p className="mt-1 break-words text-sm text-slate-800">{entry.value}</p></div>)}
+              {detailRows(selectedRecord, '', getRecordCanonicalId(selectedRecord)).map((entry, index) => <div key={`${entry.label}-${index}`} className="border-b border-slate-100 pb-2"><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{entry.label}</p><p className="mt-1 break-words text-sm text-slate-800">{entry.value}</p></div>)}
             </div>
           </div>
         </div>

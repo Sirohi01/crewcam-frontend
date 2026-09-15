@@ -5,6 +5,7 @@ import { Printer, ArrowLeft, Loader2 } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
 import PrintHiringHeader from '@/components/print/PrintHiringHeader';
+import { formatEmployeeId } from '@/lib/utils';
 
 export default function OfferLetterTemplate({ candidateId }: { candidateId: string }) {
     const [data, setData] = useState<any>(null);
@@ -28,6 +29,7 @@ export default function OfferLetterTemplate({ candidateId }: { candidateId: stri
                 setData({
                     ...recordData,
                     candidateName: candidateData ? `${candidateData.firstName} ${candidateData.lastName}`.trim() : recordData.candidateName,
+                    employeeCode: formatEmployeeId(recordData.employeeCode || recordData.empCode || recordData.uniqueId || candidateData?.employeeCode || candidateData?.uniqueId || candidateData?.candidateCode || ''),
                 });
                 setTimeout(() => {
                     window.print();
@@ -127,9 +129,17 @@ export default function OfferLetterTemplate({ candidateId }: { candidateId: stri
                                 <div className="font-bold">{data.candidateName}</div>
                                 <div className="font-bold mt-1">{data.address || '___________________'}</div>
                             </div>
-                            <div className="flex items-center justify-end gap-2 mt-2">
-                                <span className="font-bold">Date:</span>
-                                <span className="data-value">{formattedDate}</span>
+                            <div className="flex flex-col items-end gap-1 mt-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-bold">Date:</span>
+                                    <span className="data-value">{formattedDate}</span>
+                                </div>
+                                {(data.employeeCode || data.uniqueId || data.candidateCode) && (
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-bold">Emp ID:</span>
+                                        <span className="font-mono font-bold text-slate-800">{formatEmployeeId(data.employeeCode || data.uniqueId || data.candidateCode)}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
 

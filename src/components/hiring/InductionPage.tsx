@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import api from '@/lib/axios';
 import { HiringStepLayout } from '@/components/hiring/HiringStepLayout';
+import { formatEmployeeId } from '@/lib/utils';
 
 const DEFAULT_MODULES = [
   'Welcome & Registration',
@@ -65,6 +66,7 @@ export default function InductionPage({ candidateId }: { candidateId: string }) 
     defaultValues: {
       employeeName: '',
       uniqueId: '',
+      employeeCode: '',
       department: '',
       designation: '',
       joiningDate: '',
@@ -130,9 +132,12 @@ export default function InductionPage({ candidateId }: { candidateId: string }) 
         targetRecord = records[records.length - 1];
       }
 
+      const empCode = formatEmployeeId(targetRecord.employeeCode || targetRecord.empCode || targetRecord.uniqueId || targetRecord.candidateCode || candidate?.employeeCode || candidate?.uniqueId || candidate?.candidateCode || '');
       reset({
         ...targetRecord,
         employeeName: targetRecord.employeeName || `${candidate.firstName || ''} ${candidate.lastName || ''}`.trim(),
+        uniqueId: empCode,
+        employeeCode: empCode,
         inductionDate: targetRecord.inductionDate ? new Date(targetRecord.inductionDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         joiningDate: targetRecord.joiningDate ? new Date(targetRecord.joiningDate).toISOString().split('T')[0] : '',
         modules: targetRecord.modules?.length > 0 ? targetRecord.modules.map((m: any) => ({
@@ -152,6 +157,9 @@ export default function InductionPage({ candidateId }: { candidateId: string }) 
       if (candidate) {
         defaultData.employeeName = `${candidate.firstName || ''} ${candidate.lastName || ''}`.trim();
         defaultData.designation = candidate.jobRole || defaultData.designation;
+        const empCode = formatEmployeeId(candidate.employeeCode || candidate.uniqueId || candidate.candidateCode || '');
+        defaultData.uniqueId = empCode;
+        defaultData.employeeCode = empCode;
       }
 
       reset({
@@ -165,7 +173,14 @@ export default function InductionPage({ candidateId }: { candidateId: string }) 
 
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
-      const payload = { ...data, candidateId };
+      const empCode = formatEmployeeId(data.uniqueId || data.employeeCode || candidate?.employeeCode || candidate?.uniqueId || candidate?.candidateCode || '');
+      const payload = {
+        ...data,
+        candidateId,
+        employeeCode: empCode,
+        uniqueId: empCode,
+        candidateCode: empCode
+      };
       if (editId) {
         return await api.put(`/hiring/induction/${editId}`, payload);
       } else if (records && records.length > 0 && records[0]._id) {
@@ -222,8 +237,8 @@ export default function InductionPage({ candidateId }: { candidateId: string }) 
                 <FormField label="Employee Name:" required>
                   <FormInput {...register('employeeName')} readOnly />
                 </FormField>
-                <FormField label="Unique ID:">
-                  <FormInput {...register('uniqueId')} />
+                <FormField label="Employee ID / Unique ID:">
+                  <FormInput {...register('uniqueId')} className="font-mono bg-slate-50 font-semibold" placeholder="e.g. NAM/HQ/26/0011" />
                 </FormField>
                 <FormField label="Department:" required>
                   <FormSelect {...register('department')}>

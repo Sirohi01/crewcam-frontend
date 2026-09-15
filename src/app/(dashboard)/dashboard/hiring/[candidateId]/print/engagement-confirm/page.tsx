@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import { Printer, ArrowLeft, Loader2 } from 'lucide-react';
 import PrintHiringHeader from '@/components/common/PrintHiringHeader';
+import { formatEmployeeId } from '@/lib/utils';
 
 const SOCIAL_PLATFORMS = ['FB', 'IG', 'LinkedIn', 'X', 'YT'];
 
@@ -132,7 +133,7 @@ export default function EngagementConfirmPrintPage() {
                         <SectionTitle>1. Employee Information</SectionTitle>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '9px 40px' }}>
                             <InlineField label="Employee Name"         labelWidth={160} value={data.employeeName || data.candidateName}    titleCase />
-                            <InlineField label="Unique ID (if issued)" labelWidth={160} value={data.uniqueId} />
+                            <InlineField label="Unique ID (if issued)" labelWidth={160} value={formatEmployeeId(data.uniqueId)} />
                             <InlineField label="Department"            labelWidth={160} value={data.department}      titleCase />
                             <InlineField label="Designation"           labelWidth={160} value={data.designation}     titleCase />
                             <InlineField label="Joining Date"          labelWidth={160} value={formatDate(data.joiningDate)} />

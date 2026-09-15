@@ -5,6 +5,7 @@ import api from '@/lib/axios';
 import { Printer, ArrowLeft, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PrintHiringHeader from '@/components/common/PrintHiringHeader';
+import { formatEmployeeId } from '@/lib/utils';
 
 export default function ITAssetsPrint() {
     const params = useParams<{ candidateId: string }>();
@@ -167,7 +168,7 @@ export default function ITAssetsPrint() {
                                 <SectionTitle>1. Employee Information</SectionTitle>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '9px 40px' }}>
                                     <InlineField label="Employee Name" labelWidth={140} value={data.candidateName} />
-                                    <InlineField label="Unique ID (if issued)" labelWidth={140} value={data.uniqueId} />
+                                    <InlineField label="Unique ID (if issued)" labelWidth={140} value={formatEmployeeId(data.uniqueId)} />
                                     <InlineField label="Personal Email" labelWidth={140} value={data.personalEmail} isEmail />
                                     <InlineField label="Official Email ID" labelWidth={140} value={data.officialEmail} isEmail />
                                     <InlineField label="Mobile Number" labelWidth={140} value={data.mobileNumber} />

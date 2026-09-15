@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { cn, formatEmployeeId } from '@/lib/utils';
 
 interface DocumentItem {
   id: string;
@@ -137,6 +137,10 @@ export default function DocumentChecklistForm({ candidateId }: { candidateId: st
 
   useEffect(() => {
     const saved = records?.[0];
+    const jc = joiningConfirmations?.[0];
+    const candName = `${candidate?.firstName || ''} ${candidate?.lastName || ''}`.trim();
+    const candCode = formatEmployeeId(saved?.employeeCode || saved?.uniqueId || saved?.candidateCode || jc?.candidateCode || jc?.uniqueId || jc?.employeeCode || candidate?.employeeCode || candidate?.uniqueId || candidate?.candidateCode || '');
+
     if (saved) {
       setForm(current => ({
         ...current,
@@ -145,7 +149,7 @@ export default function DocumentChecklistForm({ candidateId }: { candidateId: st
         designation: saved.designation || current.designation,
         dateOfJoining: saved.dateOfJoining ? new Date(saved.dateOfJoining).toISOString().slice(0, 10) : current.dateOfJoining,
         workLocation: saved.workLocation || current.workLocation,
-        employeeCode: saved.employeeCode || current.employeeCode,
+        employeeCode: candCode || current.employeeCode,
         employeeSignatureDate: saved.employeeSignatureDate ? new Date(saved.employeeSignatureDate).toISOString().slice(0, 10) : current.employeeSignatureDate,
         hrName: saved.hrName || current.hrName,
         hrRemarks: saved.hrRemarks || current.hrRemarks,
@@ -170,8 +174,6 @@ export default function DocumentChecklistForm({ candidateId }: { candidateId: st
       return;
     }
 
-    const jc = joiningConfirmations?.[0];
-    const candName = `${candidate?.firstName || ''} ${candidate?.lastName || ''}`.trim();
     if (jc) {
       setForm(current => ({
         ...current,
@@ -180,13 +182,15 @@ export default function DocumentChecklistForm({ candidateId }: { candidateId: st
         designation: jc.designation || current.designation,
         dateOfJoining: jc.confirmedJoiningDate ? new Date(jc.confirmedJoiningDate).toISOString().slice(0, 10) : (jc.joiningDate ? new Date(jc.joiningDate).toISOString().slice(0, 10) : current.dateOfJoining),
         workLocation: jc.reportingLocation || current.workLocation,
-        reportingTo: jc.reportingTo || current.reportingTo
+        reportingTo: jc.reportingTo || current.reportingTo,
+        employeeCode: candCode || current.employeeCode,
       }));
     } else if (candidate) {
       setForm(current => ({
         ...current,
         employeeName: candName || current.employeeName,
-        designation: candidate.jobRole || current.designation
+        designation: candidate.jobRole || current.designation,
+        employeeCode: candCode || current.employeeCode,
       }));
     }
   }, [records, joiningConfirmations, candidate]);
@@ -286,7 +290,7 @@ export default function DocumentChecklistForm({ candidateId }: { candidateId: st
             </div>
             <div className="flex border-b border-slate-100 pb-1">
               <span className="w-32 font-bold uppercase text-[10px] text-slate-500">Employee Code:</span>
-              <span className="font-bold border-b border-slate-900 w-full">{form.employeeCode || '____________________'}</span>
+              <span className="font-bold border-b border-slate-900 w-full">{formatEmployeeId(form.employeeCode) || '____________________'}</span>
             </div>
           </div>
         </div>
@@ -413,8 +417,8 @@ export default function DocumentChecklistForm({ candidateId }: { candidateId: st
                 <Field title="Reporting To">
                   <input className={inputClass} value={form.reportingTo} onChange={(e) => set({ reportingTo: e.target.value })} />
                 </Field>
-                <Field title="Employee Code">
-                  <input className={inputClass} value={form.employeeCode} onChange={(e) => set({ employeeCode: e.target.value })} placeholder="Auto-generated later" />
+                <Field title="Employee Code / Unique ID">
+                  <input className={`${inputClass} bg-slate-50 font-medium text-[#0d3c68] font-mono`} value={formatEmployeeId(form.employeeCode)} onChange={(e) => set({ employeeCode: e.target.value })} placeholder="e.g. NAM/HQ/26/0011" />
                 </Field>
               </div>
             </div>

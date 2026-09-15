@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
 import PrintHiringHeader from '@/components/print/PrintHiringHeader';
+import { formatEmployeeId } from '@/lib/utils';
 
 export default function NDATemplate({ candidateId }: { candidateId: string }) {
     const [data, setData] = useState<any>(null);
@@ -21,7 +22,17 @@ export default function NDATemplate({ candidateId }: { candidateId: string }) {
             let recordData = Array.isArray(record) ? record[0] : (record.data?.[0] || record.data || record);
 
             if (recordData) {
-                setData(recordData);
+                let empCode = formatEmployeeId(recordData.employeeCode || recordData.empCode || recordData.uniqueId || recordData.candidateCode || '');
+                if (!empCode) {
+                    try {
+                        const candRes = await api.get(`/hiring/candidates/${candidateId}`);
+                        empCode = formatEmployeeId(candRes.data?.employeeCode || candRes.data?.uniqueId || candRes.data?.candidateCode || '');
+                    } catch (e) { }
+                }
+                setData({
+                    ...recordData,
+                    employeeCode: empCode,
+                });
                 setTimeout(() => {
                     window.print();
                 }, 500);
@@ -179,8 +190,10 @@ export default function NDATemplate({ candidateId }: { candidateId: string }) {
                         <span style={bold}>of the FIRST PART;</span>
                     </p>
 
-                    <p style={{ ...body, textAlign: 'left' }}><span style={bold}>AND</span></p>
-                    <p style={{ ...body, marginBottom: 3 }}>Mr. <span style={{ textDecoration: 'underline' }}>{data.candidateName || '__________________'}</span>,</p>
+                    <p style={{ ...body, marginBottom: 3 }}>
+                        Mr. <span style={{ textDecoration: 'underline' }}>{data.candidateName || '__________________'}</span>
+                        {(data.employeeCode || data.uniqueId || data.candidateCode) ? <span style={{ fontWeight: 700, marginLeft: 6 }}>[Emp ID: {formatEmployeeId(data.employeeCode || data.uniqueId || data.candidateCode)}]</span> : null},
+                    </p>
                     <p style={{ ...body, marginBottom: 3 }}>S/o <span style={{ textDecoration: 'underline' }}>{data.fatherName || '______________'}</span>,</p>
                     <p style={{ ...body, marginBottom: 3 }}>aged about <span style={{ textDecoration: 'underline' }}>{data.age || '__________'}</span>,</p>
                     <p style={{ ...body, marginBottom: 3 }}>resident of <span style={{ textDecoration: 'underline' }}>{data.residentOf1 ? `${data.residentOf1} ${data.residentOf2 || ''}` : '_______________________________________________'}</span></p>

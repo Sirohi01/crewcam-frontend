@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StepChecklist from './StepChecklist';
 import { getHiringStepById } from '@/lib/hiringSteps';
 import api from '@/lib/axios';
+import { formatEmployeeId } from '@/lib/utils';
 
 
 interface HiringStepLayoutProps {
@@ -35,6 +36,12 @@ export function HiringStepLayout({ candidateId, stepId, children }: HiringStepLa
     enabled: !!candidateId,
   });
 
+  const { data: candidate } = useQuery<any>({
+    queryKey: ['candidate', candidateId],
+    queryFn: async () => (await api.get(`/hiring/candidates/${candidateId}`)).data,
+    enabled: !!candidateId,
+  });
+
   const entityId = step?.entityField === 'employeeId' ? pipeline?.employeeId : candidateId;
   const stepState = step ? pipeline?.steps.find((entry: any) => entry.key === step.stepKey) : undefined;
   const locked = step?.entityField === 'employeeId' ? !entityId : stepState?.gate.unlocked === false;
@@ -43,13 +50,28 @@ export function HiringStepLayout({ candidateId, stepId, children }: HiringStepLa
     return <div className="p-6 text-sm text-zinc-500">Unknown hiring step.</div>;
   }
 
+  const rawEmpCode = candidate?.employeeCode || candidate?.uniqueId || candidate?.candidateCode || pipeline?.candidateCode || '';
+  const empCode = formatEmployeeId(rawEmpCode);
+
   return (
-<<<<<<< HEAD
     <div className="w-full max-w-[1500px] mx-auto space-y-3 mb-10 px-2 lg:px-4">
-      <div className="border-b-2 border-[#0d3c68] px-1 pb-2 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-[#0d3c68] uppercase tracking-tight font-poppins px-1">
-          {step.title}
-        </h1>
+      <div className="border-b-2 border-[#0d3c68] px-1 pb-2 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h1 className="text-xl font-bold text-[#0d3c68] uppercase tracking-tight font-poppins px-1">
+            {step.title}
+          </h1>
+          {candidate && (
+            <div className="flex flex-wrap items-center gap-2 px-1 text-xs text-slate-600 font-medium mt-0.5">
+              <span>Candidate: <strong className="text-slate-800">{candidate.firstName} {candidate.lastName || ''}</strong></span>
+              {empCode && (
+                <>
+                  <span className="text-slate-300">•</span>
+                  <span>Employee ID: <strong className="font-mono text-[#0d3c68] bg-slate-100 border border-slate-200 px-2 py-0.5 rounded font-bold">{empCode}</strong></span>
+                </>
+              )}
+            </div>
+          )}
+        </div>
         <Button
           variant="outline"
           size="sm"
@@ -61,16 +83,6 @@ export function HiringStepLayout({ candidateId, stepId, children }: HiringStepLa
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-=======
-    <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-2 px-2 lg:px-2">
-      {/* <div className="flex items-center justify-between border-b border-zinc-200 pb-3 dark:border-zinc-800">
-        <Button variant="ghost" className="h-8 gap-2 px-2 text-xs" onClick={() => router.push(`/dashboard/hiring/${candidateId}`)}>
-          <ArrowLeft size={14} /> Candidate Workflow
-        </Button>
-      </div> */}
-      {children}
-      {/* <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
->>>>>>> 7851ce0e735311be5718e4055267c415b5c74ce5
         <div className="space-y-4 w-full overflow-hidden">
           {children}
         </div>
@@ -90,6 +102,12 @@ export function HiringStepLayout({ candidateId, stepId, children }: HiringStepLa
                 <span className="text-slate-500 uppercase font-medium">Current Step</span>
                 <span className="font-semibold text-[#0d3c68]">{pipeline?.currentStep || 1}</span>
               </div>
+              {empCode && (
+                <div className="flex justify-between items-center border-t border-slate-100 pt-2">
+                  <span className="text-slate-500 uppercase font-medium">Employee ID</span>
+                  <span className="font-mono font-bold text-[#0d3c68] bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">{empCode}</span>
+                </div>
+              )}
               {step.entityField === 'employeeId' && !entityId && (
                 <div className="rounded-[2px] bg-amber-50 p-2 text-xs text-amber-700 border border-amber-200">
                   Link an employee through Step 9 before this post-joining step can be used.
@@ -104,7 +122,7 @@ export function HiringStepLayout({ candidateId, stepId, children }: HiringStepLa
             </div>
           </div>
         </div>
-      </div> */}
+      </div>
     </div>
   );
 }

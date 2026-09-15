@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
 import PrintHiringHeader from '@/components/print/PrintHiringHeader';
+import { formatEmployeeId } from '@/lib/utils';
 
 export default function AppointmentLetterTemplate({ candidateId }: { candidateId: string }) {
     const [data, setData] = useState<any>(null);
@@ -21,7 +22,17 @@ export default function AppointmentLetterTemplate({ candidateId }: { candidateId
             let recordData = Array.isArray(record) ? record[0] : (record.data?.[0] || record.data || record);
 
             if (recordData) {
-                setData(recordData);
+                let empCode = formatEmployeeId(recordData.employeeCode || recordData.empCode || recordData.uniqueId || recordData.candidateCode || '');
+                if (!empCode) {
+                    try {
+                        const candRes = await api.get(`/hiring/candidates/${candidateId}`);
+                        empCode = formatEmployeeId(candRes.data?.employeeCode || candRes.data?.uniqueId || candRes.data?.candidateCode || '');
+                    } catch (e) { }
+                }
+                setData({
+                    ...recordData,
+                    employeeCode: empCode,
+                });
                 setTimeout(() => {
                     window.print();
                 }, 500);
@@ -121,6 +132,9 @@ export default function AppointmentLetterTemplate({ candidateId }: { candidateId
                         <div>
                             <p style={{ ...body, marginBottom: 1 }}><span style={bold}>To,</span></p>
                             <p style={{ ...body, marginBottom: 1 }}><span style={bold}>{data.candidateName}</span></p>
+                            {(data.employeeCode || data.uniqueId || data.candidateCode) && (
+                                <p style={{ ...body, marginBottom: 1 }}><span style={bold}>Emp ID: {formatEmployeeId(data.employeeCode || data.uniqueId || data.candidateCode)}</span></p>
+                            )}
                         </div>
                         <div>
                             <p style={{ ...body }}><span style={bold}>Date: {formattedDate}</span></p>

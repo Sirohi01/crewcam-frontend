@@ -419,26 +419,9 @@ export default function EvaluationPage() {
                       </div>
 
                       <div>
-                        <p className="text-[10px] font-medium text-slate-500">Department</p>
-<<<<<<< HEAD
-                        <div className="mt-0.5 text-xs font-semibold text-slate-900">
-                          {loadingScreening ? (
-                            <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-indigo-500" /></div>
-                          ) : displayData?.summary ? (
-                            <p className="text-[10.5px] leading-relaxed text-slate-700">
-                              {displayData.summary}
-                            </p>
-                          ) : (
-                            <p className="mt-0.5 text-xs font-semibold text-slate-900">
-                              {candidate.department || candidate.employmentType}
-                            </p>
-                          )}
-                        </div>
-=======
                         <p className="mt-0.5 text-xs font-semibold text-slate-900">
-                          {(candidate as any).departmentName || candidate.department}
+                          {(candidate as any).departmentName || candidate.department || '-'}
                         </p>
->>>>>>> 7851ce0e735311be5718e4055267c415b5c74ce5
                       </div>
 
                       <div>

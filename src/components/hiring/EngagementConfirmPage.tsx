@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import api from '@/lib/axios';
 import { HiringStepLayout } from '@/components/hiring/HiringStepLayout';
+import { formatEmployeeId } from '@/lib/utils';
 
 const PLATFORMS = ['FB', 'IG', 'LinkedIn', 'X', 'YT'];
 
@@ -83,6 +84,7 @@ export default function EngagementConfirmPage({ candidateId }: { candidateId: st
     defaultValues: {
       candidateName: '',
       uniqueId: '',
+      employeeCode: '',
       department: '',
       designation: '',
       joiningDate: '',
@@ -102,9 +104,12 @@ export default function EngagementConfirmPage({ candidateId }: { candidateId: st
 
     if (records && records.length > 0) {
       const latest = records[records.length - 1];
+      const empCode = formatEmployeeId(latest.employeeCode || latest.empCode || latest.uniqueId || latest.candidateCode || candidate?.employeeCode || candidate?.uniqueId || candidate?.candidateCode || '');
       reset({
         ...latest,
         candidateName: latest.employeeName || latest.candidateName || '',
+        uniqueId: empCode,
+        employeeCode: empCode,
         engagementData: latest.engagementData || []
       });
     } else {
@@ -121,6 +126,9 @@ export default function EngagementConfirmPage({ candidateId }: { candidateId: st
         defaultData.officialMobileNo = candidate.phone || '';
         defaultData.department = candidate.departmentId?.name || candidate.departmentId?.departmentName || defaultData.department;
         defaultData.designation = candidate.jobRole || defaultData.designation;
+        const empCode = formatEmployeeId(candidate.employeeCode || candidate.uniqueId || candidate.candidateCode || '');
+        defaultData.uniqueId = empCode;
+        defaultData.employeeCode = empCode;
       }
 
       if (pipeline && pipeline.joiningDate) {
@@ -140,7 +148,15 @@ export default function EngagementConfirmPage({ candidateId }: { candidateId: st
 
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
-      const payload = { ...data, candidateId, employeeName: data.candidateName };
+      const empCode = formatEmployeeId(data.uniqueId || data.employeeCode || candidate?.employeeCode || candidate?.uniqueId || candidate?.candidateCode || '');
+      const payload = {
+        ...data,
+        candidateId,
+        employeeName: data.candidateName,
+        employeeCode: empCode,
+        uniqueId: empCode,
+        candidateCode: empCode
+      };
       if (records && records.length > 0 && records[0]._id) {
         return api.put(`/hiring/engagement-confirm/${records[0]._id}`, payload);
       }
@@ -190,8 +206,8 @@ export default function EngagementConfirmPage({ candidateId }: { candidateId: st
                 <FormField label="Employee Name:" required>
                   <FormInput {...register('candidateName')} readOnly />
                 </FormField>
-                <FormField label="Unique ID:">
-                  <FormInput {...register('uniqueId')} />
+                <FormField label="Employee ID / Unique ID:">
+                  <FormInput {...register('uniqueId')} className="font-mono bg-slate-50 font-semibold" placeholder="e.g. NAM/HQ/26/0011" />
                 </FormField>
                 <FormField label="Department:" required>
                   <FormSelect {...register('department')}>

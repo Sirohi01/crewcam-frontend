@@ -8,6 +8,7 @@ import { Edit2, Filter, Laptop, MonitorSmartphone, Package, Plus, Search, Trash2
 import api from '@/lib/axios';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { MultiSearchableDropdown } from '@/components/ui/MultiSearchableDropdown';
+import { formatEmployeeId } from '@/lib/utils';
 
 const emptyForm = {
   firstName: '',
@@ -411,7 +412,7 @@ export default function EmployeesPage() {
                         href={`/dashboard/employees/${emp._id}`}
                         className="text-xs font-md text-zinc-900 dark:text-zinc-100 truncate hover:text-indigo-600 hover:underline block"
                       >
-                        {emp.employeeCode ? <span className="text-indigo-600 font-semibold mr-1">[{emp.employeeCode}]</span> : ''}
+                        {emp.employeeCode ? <span className="text-indigo-600 font-semibold mr-1">[{formatEmployeeId(emp.employeeCode)}]</span> : ''}
                         {emp.firstName} {emp.lastName}
                       </Link>
                       <div className="text-[10px] text-zinc-500 truncate">{emp.email} {emp.mobileNumber ? `• ${emp.mobileNumber}` : ''}</div>
@@ -539,7 +540,7 @@ export default function EmployeesPage() {
             {employeeTab === 'organization' && (
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
-                  <Field label="Employee Code" value={formData.employeeCode} onChange={(value) => setFormData({ ...formData, employeeCode: value })} placeholder="e.g. EMP-1001" />
+                  <Field label="Employee Code" value={formData.employeeCode} onChange={(value) => setFormData({ ...formData, employeeCode: value })} placeholder="e.g. NAM/HQ/26/0011" />
                   <Field label="Date of Joining" type="date" value={formData.dateOfJoining} onChange={(value) => setFormData({ ...formData, dateOfJoining: value })} />
                   <Select label="Branch" value={formData.branchId} options={branches} onChange={(value) => setFormData({ ...formData, branchId: value })} />
                   <Select label="Department" value={formData.departmentId} options={departments} onChange={(value) => setFormData({ ...formData, departmentId: value })} />
