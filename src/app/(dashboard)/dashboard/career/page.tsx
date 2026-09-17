@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import {
   Download, Plus, Search, ChevronDown, Check, Eye, Trash2,
@@ -9,9 +10,146 @@ import {
   FileText, ShieldCheck, Clock, RefreshCw, X, ChevronLeft, ChevronRight,
   Filter, CheckCircle2, FileCheck, Phone, Mail, Award, Calendar,
   Key, Code2, Server, EyeOff, Radio, Terminal, Activity, Zap, Lock, Database,
-  Cpu, Layers, CheckCircle
+  Cpu, Layers, CheckCircle, ArrowRight, UserPlus
 } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
+
+// Platform SVG Icons for Hiring Channels & Social Media
+function LinkedInIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.64a1.64 1.64 0 1 0 0 3.28 1.64 1.64 0 0 0 0-3.28z" />
+    </svg>
+  );
+}
+
+function NaukriIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2h11A2.5 2.5 0 0 1 20 4.5v15a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 19.5v-15zm3.5 13h2.4v-6.2l4.8 6.2h2.3V6.5h-2.4v6.2L9.8 6.5H7.5v11z" />
+    </svg>
+  );
+}
+
+function ApnaIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M4.5 3C3.67 3 3 3.67 3 4.5v15c0 .83.67 1.5 1.5 1.5h15c.83 0 1.5-.67 1.5-1.5v-15c0-.83-.67-1.5-1.5-1.5h-15zm7.5 4c2.76 0 5 2.24 5 5v5h-2.3v-5c0-1.49-1.21-2.7-2.7-2.7s-2.7 1.21-2.7 2.7 1.21 2.7 2.7 2.7c.68 0 1.31-.26 1.78-.68l1.45 1.59C14.45 17.5 13.28 18 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6z" />
+    </svg>
+  );
+}
+
+function IndeedIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12.98 6.06c-1.3 0-2.28.98-2.28 2.3 0 1.33.98 2.32 2.28 2.32 1.32 0 2.3-.99 2.3-2.32 0-1.32-.98-2.3-2.3-2.3zm-1.65 5.56h3.3V19h-3.3v-7.38zM20 4.1C18.05 2.25 15.4 1.2 12.55 1.2 6.7 1.2 1.9 6 1.9 11.9c0 3.86 2.02 7.27 5.14 9.2l1.56-2.39C6.22 17.2 4.8 14.7 4.8 11.9c0-4.28 3.48-7.76 7.75-7.76 2.02 0 3.95.74 5.33 2.12l2.12-2.16z" />
+    </svg>
+  );
+}
+
+function FacebookIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+    </svg>
+  );
+}
+
+function InstagramIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+    </svg>
+  );
+}
+
+function TelegramIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.196 1.006.128.832.942z" />
+    </svg>
+  );
+}
+
+function WebsiteIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="2" y1="12" x2="22" y2="12" />
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    </svg>
+  );
+}
+
+// Reusable Source Badge Renderer
+const renderSourceBadge = (source?: string) => {
+  switch (source) {
+    case 'LinkedIn':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#0A66C2]/10 text-[#0A66C2] border border-[#0A66C2]/25">
+          <LinkedInIcon className="w-3 h-3 shrink-0" />
+          LinkedIn
+        </span>
+      );
+    case 'Naukri.com':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#004c8f]/10 text-[#004c8f] border border-[#004c8f]/25">
+          <NaukriIcon className="w-3 h-3 shrink-0" />
+          Naukri.com
+        </span>
+      );
+    case 'Apna':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#00A66E]/10 text-[#00A66E] border border-[#00A66E]/25">
+          <ApnaIcon className="w-3 h-3 shrink-0" />
+          Apna
+        </span>
+      );
+    case 'Indeed':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#2164f4]/10 text-[#2164f4] border border-[#2164f4]/25">
+          <IndeedIcon className="w-3 h-3 shrink-0" />
+          Indeed
+        </span>
+      );
+    case 'Facebook':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#1877F2]/10 text-[#1877F2] border border-[#1877F2]/25">
+          <FacebookIcon className="w-3 h-3 shrink-0" />
+          Facebook
+        </span>
+      );
+    case 'Instagram':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#E1306C]/10 text-[#E1306C] border border-[#E1306C]/25">
+          <InstagramIcon className="w-3 h-3 shrink-0" />
+          Instagram
+        </span>
+      );
+    case 'Telegram':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#0088cc]/10 text-[#0088cc] border border-[#0088cc]/25">
+          <TelegramIcon className="w-3 h-3 shrink-0" />
+          Telegram
+        </span>
+      );
+    case 'Career Website':
+    case 'Website':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+          <WebsiteIcon className="w-3 h-3 shrink-0 text-purple-600" />
+          Career Website
+        </span>
+      );
+    default:
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+          <Globe className="w-3 h-3 shrink-0 text-purple-600" />
+          {source || 'Career Site'}
+        </span>
+      );
+  }
+};
 
 // Initial realistic candidate submissions matching the approved UI mockup
 const INITIAL_CANDIDATES = [
@@ -30,6 +168,7 @@ const INITIAL_CANDIDATES = [
     cvSize: '1.4MB',
     appliedDate: '15 Sep 2026, 10:45 AM',
     status: 'New',
+    source: 'LinkedIn',
     summary: 'Experienced MERN stack developer with 4.5 years of experience in React, Node.js, Next.js and high-scale enterprise systems.',
     skills: ['React.js', 'Next.js', 'Node.js', 'TypeScript', 'MongoDB', 'AWS', 'Docker'],
   },
@@ -48,6 +187,7 @@ const INITIAL_CANDIDATES = [
     cvSize: '2.1MB',
     appliedDate: '15 Sep 2026, 09:30 AM',
     status: 'Shortlisted',
+    source: 'Naukri.com',
     summary: 'Product designer specialized in SaaS design systems, user journeys, Figma prototypes, and micro-interactions.',
     skills: ['Figma', 'Design Systems', 'UX Research', 'Prototyping', 'Design Tokens'],
   },
@@ -66,6 +206,7 @@ const INITIAL_CANDIDATES = [
     cvSize: '1.1MB',
     appliedDate: '14 Sep 2026, 04:15 PM',
     status: 'Shortlisted',
+    source: 'Apna',
     summary: 'Human Resources specialist handling end-to-end recruitment lifecycle, employee onboarding, and HRMS records.',
     skills: ['HR Operations', 'Talent Acquisition', 'Payroll Assist', 'Onboarding', 'Compliance'],
   },
@@ -84,6 +225,7 @@ const INITIAL_CANDIDATES = [
     cvSize: '1.6MB',
     appliedDate: '14 Sep 2026, 02:00 PM',
     status: 'Under Review',
+    source: 'Indeed',
     summary: 'Chartered accountant with 6 years experience managing corporate audits, GST compliance, balance sheets and forecasting.',
     skills: ['Corporate Finance', 'GST / TDS', 'Tally Prime', 'Budgeting', 'Auditing'],
   },
@@ -102,6 +244,7 @@ const INITIAL_CANDIDATES = [
     cvSize: '1.5MB',
     appliedDate: '14 Sep 2026, 11:20 AM',
     status: 'Shortlisted',
+    source: 'LinkedIn',
     summary: 'Operations lead managing branch logistics, staff coordination, performance KPI tracking and resource allocation.',
     skills: ['Branch Management', 'Process Optimization', 'Team Leadership', 'Vendor Management'],
   },
@@ -120,6 +263,7 @@ const INITIAL_CANDIDATES = [
     cvSize: '950KB',
     appliedDate: '13 Sep 2026, 03:10 PM',
     status: 'New',
+    source: 'Naukri.com',
     summary: 'Junior frontend developer building responsive web applications using React, TailwindCSS and REST APIs.',
     skills: ['React.js', 'JavaScript ES6', 'TailwindCSS', 'Git', 'HTML5/CSS3'],
   },
@@ -138,8 +282,85 @@ const INITIAL_CANDIDATES = [
     cvSize: '1.2MB',
     appliedDate: '13 Sep 2026, 11:05 AM',
     status: 'Under Review',
+    source: 'Apna',
     summary: 'Content strategist managing SEO copy, LinkedIn campaigns, digital marketing, and employer branding.',
     skills: ['Content Writing', 'SEO', 'Brand Strategy', 'LinkedIn Ads', 'Copywriting'],
+  },
+  {
+    id: 'cand-008',
+    name: 'Tanya Khurana',
+    email: 'tanya.k@gmail.com',
+    phone: '+91 9871122334',
+    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
+    position: 'Social Media & Community Manager',
+    department: 'Marketing',
+    branch: 'Noida Branch',
+    experience: '2.5 Yrs',
+    noticePeriod: '15d Notice',
+    cvName: 'Tanya_Khurana_Portfolio.pdf',
+    cvSize: '2.4MB',
+    appliedDate: '15 Sep 2026, 01:15 PM',
+    status: 'New',
+    source: 'Instagram',
+    summary: 'Creative social media lead driving influencer campaigns, viral Reels, community moderation, and employer storytelling.',
+    skills: ['Instagram Growth', 'Short-form Video', 'Community Management', 'Canva Pro', 'Copywriting'],
+  },
+  {
+    id: 'cand-009',
+    name: 'Rajesh Kumar',
+    email: 'rajesh.devops@outlook.com',
+    phone: '+91 9845012345',
+    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+    position: 'DevOps & Cloud Engineer',
+    department: 'Engineering / IT',
+    branch: 'Delhi HQ',
+    experience: '4.8 Yrs',
+    noticePeriod: 'Immediate',
+    cvName: 'Rajesh_Kumar_DevOps_CV.pdf',
+    cvSize: '1.8MB',
+    appliedDate: '14 Sep 2026, 06:40 PM',
+    status: 'Shortlisted',
+    source: 'Telegram',
+    summary: 'Cloud infrastructure engineer specialized in Kubernetes, Docker, Terraform, CI/CD pipelines, and AWS production hosting.',
+    skills: ['AWS', 'Kubernetes', 'Docker', 'Terraform', 'GitHub Actions', 'Linux'],
+  },
+  {
+    id: 'cand-010',
+    name: 'Priya Deshmukh',
+    email: 'priya.deshmukh@gmail.com',
+    phone: '+91 9920145678',
+    avatar: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=150&auto=format&fit=crop&q=80',
+    position: 'Performance Marketing Specialist',
+    department: 'Marketing',
+    branch: 'Gurugram Branch',
+    experience: '3.5 Yrs',
+    noticePeriod: '30d Notice',
+    cvName: 'Priya_Deshmukh_Resume.pdf',
+    cvSize: '1.3MB',
+    appliedDate: '14 Sep 2026, 03:25 PM',
+    status: 'New',
+    source: 'Facebook',
+    summary: 'Performance marketing specialist experienced in Meta Ad Manager, audience segmentation, CPL optimization, and analytics.',
+    skills: ['Meta Ads', 'Lead Generation', 'Google Analytics 4', 'A/B Testing', 'ROAS Optimization'],
+  },
+  {
+    id: 'cand-011',
+    name: 'Aditya Joshi',
+    email: 'aditya.joshi@techcorp.io',
+    phone: '+91 9765432109',
+    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
+    position: 'Senior Backend Engineer (Node/Go)',
+    department: 'Engineering / IT',
+    branch: 'Delhi HQ',
+    experience: '5.0 Yrs',
+    noticePeriod: 'Immediate',
+    cvName: 'Aditya_Joshi_Senior_Backend_CV.pdf',
+    cvSize: '1.7MB',
+    appliedDate: '15 Sep 2026, 11:50 AM',
+    status: 'Shortlisted',
+    source: 'Career Website',
+    summary: 'High-concurrency backend developer with 5 years building microservices, Redis caching, Kafka message queues and PostgreSQL.',
+    skills: ['Node.js', 'Go', 'PostgreSQL', 'Redis', 'Kafka', 'System Architecture'],
   }
 ];
 
@@ -157,11 +378,13 @@ const BRANCHES = [
 ];
 
 export default function CareerPage() {
+  const router = useRouter();
   const [candidates, setCandidates] = useState(INITIAL_CANDIDATES);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [branchFilter, setBranchFilter] = useState('All Branches');
   const [positionFilter, setPositionFilter] = useState('All Positions');
+  const [sourceFilter, setSourceFilter] = useState('All Sources');
 
   const [selectedCompany, setSelectedCompany] = useState(COMPANIES[0]);
   const [selectedBranch, setSelectedBranch] = useState(BRANCHES[0]);
@@ -172,6 +395,10 @@ export default function CareerPage() {
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const [isBranchFilterOpen, setIsBranchFilterOpen] = useState(false);
   const [isPosFilterOpen, setIsPosFilterOpen] = useState(false);
+  const [isSourceFilterOpen, setIsSourceFilterOpen] = useState(false);
+
+  // Quick card filter selection
+  const [selectedCardFilter, setSelectedCardFilter] = useState<string | null>(null);
 
   // Active filters applied
   const [appliedFilters, setAppliedFilters] = useState({
@@ -179,6 +406,7 @@ export default function CareerPage() {
     status: 'All Status',
     branch: 'All Branches',
     position: 'All Positions',
+    source: 'All Sources',
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -339,6 +567,7 @@ export default function CareerPage() {
         setIsStatusOpen(false);
         setIsBranchFilterOpen(false);
         setIsPosFilterOpen(false);
+        setIsSourceFilterOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -349,9 +578,20 @@ export default function CareerPage() {
   const statusOptions = ['All Status', 'New', 'Shortlisted', 'Under Review'];
   const branchOptions = ['All Branches', ...Array.from(new Set(candidates.map((c) => c.branch)))];
   const positionOptions = ['All Positions', ...Array.from(new Set(candidates.map((c) => c.position)))];
+  const sourceOptions = [
+    'All Sources',
+    'Career Website',
+    'LinkedIn',
+    'Naukri.com',
+    'Apna',
+    'Indeed',
+    'Facebook',
+    'Instagram',
+    'Telegram',
+  ];
 
   // Filter application
-  const filteredCandidates = candidates.filter((c) => {
+  const filteredCandidates = candidates.filter((c: any) => {
     if (appliedFilters.search.trim()) {
       const q = appliedFilters.search.toLowerCase();
       const match =
@@ -359,12 +599,20 @@ export default function CareerPage() {
         c.email.toLowerCase().includes(q) ||
         c.phone.includes(q) ||
         c.position.toLowerCase().includes(q) ||
-        c.branch.toLowerCase().includes(q);
+        c.branch.toLowerCase().includes(q) ||
+        (c.source && c.source.toLowerCase().includes(q));
       if (!match) return false;
     }
     if (appliedFilters.status !== 'All Status' && c.status !== appliedFilters.status) return false;
     if (appliedFilters.branch !== 'All Branches' && c.branch !== appliedFilters.branch) return false;
     if (appliedFilters.position !== 'All Positions' && c.position !== appliedFilters.position) return false;
+    if (appliedFilters.source !== 'All Sources') {
+      if (appliedFilters.source === 'Career Website' || appliedFilters.source === 'Website') {
+        if (c.source !== 'Career Website' && c.source !== 'Website') return false;
+      } else if (c.source !== appliedFilters.source) {
+        return false;
+      }
+    }
     return true;
   });
 
@@ -374,6 +622,7 @@ export default function CareerPage() {
       status: statusFilter,
       branch: branchFilter,
       position: positionFilter,
+      source: sourceFilter,
     });
     setCurrentPage(1);
     toast.success('Filters applied');
@@ -384,11 +633,14 @@ export default function CareerPage() {
     setStatusFilter('All Status');
     setBranchFilter('All Branches');
     setPositionFilter('All Positions');
+    setSourceFilter('All Sources');
+    setSelectedCardFilter(null);
     setAppliedFilters({
       search: '',
       status: 'All Status',
       branch: 'All Branches',
       position: 'All Positions',
+      source: 'All Sources',
     });
     setCurrentPage(1);
     toast.success('Filters reset');
@@ -398,6 +650,45 @@ export default function CareerPage() {
     if (!confirm(`Are you sure you want to delete application for ${name}?`)) return;
     setCandidates((prev) => prev.filter((c) => c.id !== id));
     toast.success(`Application for ${name} removed`);
+  };
+
+  const handleForwardToAddCandidate = (c: any) => {
+    try {
+      const candidatePayload = {
+        id: c.id,
+        name: c.name,
+        fullName: c.name,
+        email: c.email,
+        phone: c.phone,
+        mobile: c.phone,
+        avatar: c.avatar,
+        position: c.position,
+        appliedFor: c.position,
+        department: c.department,
+        branch: c.branch,
+        currentLocation: c.branch,
+        experience: c.experience,
+        totalExperience: c.experience,
+        noticePeriod: c.noticePeriod,
+        cvName: c.cvName,
+        cvSize: c.cvSize,
+        skills: c.skills || [],
+        summary: c.summary,
+        source: c.source || 'Website',
+        appliedDate: c.appliedDate,
+        status: c.status,
+      };
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('prefillCandidateData', JSON.stringify(candidatePayload));
+      }
+
+      toast.success(`Redirecting to Add Candidate with details for ${c.name}...`);
+      router.push(`/dashboard/hiring/candidates/new/create?source=career`);
+    } catch (e) {
+      console.error('Failed to forward candidate', e);
+      toast.error('Failed to initiate candidate transfer');
+    }
   };
 
   const handleUpdateStatus = (id: string, newStatus: string) => {
@@ -434,11 +725,12 @@ export default function CareerPage() {
         cvSize: '1.2MB',
         appliedDate: 'Just now',
         status: 'New',
+        source: 'LinkedIn',
         summary: 'Specialized in microservices architecture, RESTful API design, database indexing, and Redis caching.',
         skills: ['Node.js', 'Express', 'MongoDB', 'Redis', 'Docker', 'REST APIs'],
       };
       setCandidates((prev) => [newCand, ...prev]);
-      toast.success('Successfully synchronized! 1 new inbound candidate fetched from Website API.');
+      toast.success('Successfully synchronized! 1 new inbound candidate fetched from LinkedIn Job Apply.');
     }, 1000);
   };
 
@@ -459,11 +751,11 @@ export default function CareerPage() {
   const handleExport = () => {
     const csvContent =
       'data:text/csv;charset=utf-8,' +
-      ['Name,Email,Phone,Position,Branch,Experience,Status,AppliedDate']
+      ['Name,Email,Phone,Position,Source,Branch,Experience,Status,AppliedDate']
         .concat(
           candidates.map(
-            (c) =>
-              `"${c.name}","${c.email}","${c.phone}","${c.position}","${c.branch}","${c.experience}","${c.status}","${c.appliedDate}"`
+            (c: any) =>
+              `"${c.name}","${c.email}","${c.phone}","${c.position}","${c.source || 'Website'}","${c.branch}","${c.experience}","${c.status}","${c.appliedDate}"`
           )
         )
         .join('\n');
@@ -488,46 +780,209 @@ export default function CareerPage() {
     currentPage * rowsPerPage
   );
 
-  // Derived KPI Stats matching manage-branch style
+  // Derived KPI Stats & Multi-Platform Hiring Channels Distribution
   const totalApplications = 1248; // Total tracked across portal
   const newSubmissionsCount = 42;
   const resumesReceivedCount = 1190;
-  const shortlistedCount = 86;
 
-  const topCards = [
+  // Channel Distribution Counts
+  const websiteCount = 512;
+  const linkedinCount = 482;
+  const naukriCount = 395;
+  const apnaCount = 214;
+  const indeedCount = 157;
+  const facebookCount = 126;
+  const instagramCount = 98;
+  const telegramCount = 64;
+
+  const coreCards = [
     {
+      id: 'total',
       title: 'TOTAL APPLICATIONS',
       value: totalApplications.toLocaleString(),
       subtitle: 'All Inbound Submissions',
       icon: Users,
       bg: 'bg-blue-50',
       text: 'text-blue-600',
+      badge: '+14% This Month',
+      badgeClass: 'bg-blue-50 text-blue-700 border border-blue-200/60',
     },
     {
+      id: 'new',
       title: 'NEW SUBMISSIONS',
       value: newSubmissionsCount.toString(),
       subtitle: 'Received Today',
       icon: Briefcase,
       bg: 'bg-emerald-50',
       text: 'text-emerald-600',
+      badge: 'Action Required',
+      badgeClass: 'bg-emerald-50 text-emerald-700 border border-emerald-200/60',
     },
     {
+      id: 'resumes',
       title: 'RESUMES RECEIVED',
       value: resumesReceivedCount.toLocaleString(),
       subtitle: 'Verified Attached CVs',
       icon: FileText,
       bg: 'bg-purple-50',
       text: 'text-purple-600',
-    },
-    {
-      title: 'SHORTLISTED',
-      value: shortlistedCount.toString(),
-      subtitle: 'Interview Scheduled',
-      icon: ShieldCheck,
-      bg: 'bg-orange-50',
-      text: 'text-orange-600',
+      badge: '95.3% Verified',
+      badgeClass: 'bg-purple-50 text-purple-700 border border-purple-200/60',
     },
   ];
+
+  const channelCards = [
+    {
+      id: 'website',
+      title: 'WEBSITE',
+      value: websiteCount.toLocaleString(),
+      subtitle: 'Career Portal Direct',
+      icon: WebsiteIcon,
+      bg: 'bg-purple-50',
+      text: 'text-purple-600',
+      sourceKey: 'Career Website',
+    },
+    {
+      id: 'linkedin',
+      title: 'LINKEDIN',
+      value: linkedinCount.toLocaleString(),
+      subtitle: 'Easy Apply Feed',
+      icon: LinkedInIcon,
+      bg: 'bg-sky-50',
+      text: 'text-[#0A66C2]',
+      sourceKey: 'LinkedIn',
+    },
+    {
+      id: 'naukri',
+      title: 'NAUKRI.COM',
+      value: naukriCount.toLocaleString(),
+      subtitle: 'RMS & FastForward',
+      icon: NaukriIcon,
+      bg: 'bg-blue-50',
+      text: 'text-[#004c8f]',
+      sourceKey: 'Naukri.com',
+    },
+    {
+      id: 'apna',
+      title: 'APNA',
+      value: apnaCount.toLocaleString(),
+      subtitle: 'Direct Job Leads',
+      icon: ApnaIcon,
+      bg: 'bg-emerald-50',
+      text: 'text-[#00A66E]',
+      sourceKey: 'Apna',
+    },
+    {
+      id: 'indeed',
+      title: 'INDEED',
+      value: indeedCount.toLocaleString(),
+      subtitle: 'Indeed Apply Feed',
+      icon: IndeedIcon,
+      bg: 'bg-indigo-50',
+      text: 'text-[#2164f4]',
+      sourceKey: 'Indeed',
+    },
+    {
+      id: 'facebook',
+      title: 'FACEBOOK',
+      value: facebookCount.toLocaleString(),
+      subtitle: 'Meta Ads & Page',
+      icon: FacebookIcon,
+      bg: 'bg-blue-50',
+      text: 'text-[#1877F2]',
+      sourceKey: 'Facebook',
+    },
+    {
+      id: 'instagram',
+      title: 'INSTAGRAM',
+      value: instagramCount.toLocaleString(),
+      subtitle: 'Bio Link & Stories',
+      icon: InstagramIcon,
+      bg: 'bg-pink-50',
+      text: 'text-[#E1306C]',
+      sourceKey: 'Instagram',
+    },
+    {
+      id: 'telegram',
+      title: 'TELEGRAM',
+      value: telegramCount.toLocaleString(),
+      subtitle: 'Bot & Channels',
+      icon: TelegramIcon,
+      bg: 'bg-sky-50',
+      text: 'text-[#0088cc]',
+      sourceKey: 'Telegram',
+    },
+  ];
+
+  const handleCardClick = (cardId: string) => {
+    if (selectedCardFilter === cardId) {
+      setSelectedCardFilter(null);
+      setAppliedFilters((prev) => ({
+        ...prev,
+        status: 'All Status',
+        source: 'All Sources',
+      }));
+      setStatusFilter('All Status');
+      setSourceFilter('All Sources');
+      setCurrentPage(1);
+      toast.success('Quick filter reset');
+      return;
+    }
+
+    setSelectedCardFilter(cardId);
+    setCurrentPage(1);
+
+    if (cardId === 'total') {
+      setSelectedCardFilter(null);
+      setAppliedFilters((prev) => ({ ...prev, status: 'All Status', source: 'All Sources' }));
+      setStatusFilter('All Status');
+      setSourceFilter('All Sources');
+      toast.success('Showing all applications');
+    } else if (cardId === 'new') {
+      setAppliedFilters((prev) => ({ ...prev, status: 'New', source: 'All Sources' }));
+      setStatusFilter('New');
+      setSourceFilter('All Sources');
+      toast.success('Filtered by: New Submissions');
+    } else if (cardId === 'resumes') {
+      setSelectedCardFilter(null);
+      setAppliedFilters((prev) => ({ ...prev, status: 'All Status', source: 'All Sources' }));
+      setStatusFilter('All Status');
+      setSourceFilter('All Sources');
+      toast.success('Showing all verified CVs');
+    } else if (cardId === 'website') {
+      setAppliedFilters((prev) => ({ ...prev, source: 'Career Website' }));
+      setSourceFilter('Career Website');
+      toast.success('Filtered by: Career Website Applications');
+    } else if (cardId === 'linkedin') {
+      setAppliedFilters((prev) => ({ ...prev, source: 'LinkedIn' }));
+      setSourceFilter('LinkedIn');
+      toast.success('Filtered by: LinkedIn Applications');
+    } else if (cardId === 'naukri') {
+      setAppliedFilters((prev) => ({ ...prev, source: 'Naukri.com' }));
+      setSourceFilter('Naukri.com');
+      toast.success('Filtered by: Naukri.com Applications');
+    } else if (cardId === 'apna') {
+      setAppliedFilters((prev) => ({ ...prev, source: 'Apna' }));
+      setSourceFilter('Apna');
+      toast.success('Filtered by: Apna Applications');
+    } else if (cardId === 'indeed') {
+      setAppliedFilters((prev) => ({ ...prev, source: 'Indeed' }));
+      setSourceFilter('Indeed');
+      toast.success('Filtered by: Indeed Applications');
+    } else if (cardId === 'facebook') {
+      setAppliedFilters((prev) => ({ ...prev, source: 'Facebook' }));
+      setSourceFilter('Facebook');
+      toast.success('Filtered by: Facebook Applications');
+    } else if (cardId === 'instagram') {
+      setAppliedFilters((prev) => ({ ...prev, source: 'Instagram' }));
+      setSourceFilter('Instagram');
+      toast.success('Filtered by: Instagram Applications');
+    } else if (cardId === 'telegram') {
+      setAppliedFilters((prev) => ({ ...prev, source: 'Telegram' }));
+      setSourceFilter('Telegram');
+      toast.success('Filtered by: Telegram Applications');
+    }
+  };
 
   return (
     <div className="flex flex-col gap-2 animate-in fade-in duration-300 p-2 w-full font-sans text-zinc-800 bg-[#f8f9fc] min-h-screen">
@@ -698,6 +1153,7 @@ export default function CareerPage() {
             <button
               onClick={() => {
                 setIsStatusOpen(!isStatusOpen);
+                setIsSourceFilterOpen(false);
                 setIsBranchFilterOpen(false);
                 setIsPosFilterOpen(false);
                 setIsCompanyOpen(false);
@@ -727,12 +1183,48 @@ export default function CareerPage() {
             )}
           </div>
 
+          {/* Source Dropdown Filter */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setIsSourceFilterOpen(!isSourceFilterOpen);
+                setIsStatusOpen(false);
+                setIsBranchFilterOpen(false);
+                setIsPosFilterOpen(false);
+                setIsCompanyOpen(false);
+                setIsBranchOpen(false);
+              }}
+              className="flex items-center justify-between gap-1.5 h-8 px-2.5 w-full md:w-40 border border-zinc-200 rounded-md text-[11px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
+            >
+              <span className="truncate">{sourceFilter}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+            </button>
+            {isSourceFilterOpen && (
+              <div className="absolute left-0 top-full mt-1 w-48 bg-white border border-zinc-200 shadow-lg rounded-md py-1 z-50">
+                {sourceOptions.map((opt) => (
+                  <button
+                    key={opt}
+                    onClick={() => {
+                      setSourceFilter(opt);
+                      setIsSourceFilterOpen(false);
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50 text-left"
+                  >
+                    <span className="truncate">{opt}</span>
+                    {sourceFilter === opt && <Check className="w-3.5 h-3.5 text-indigo-600" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Branch Dropdown Filter */}
           <div className="relative">
             <button
               onClick={() => {
                 setIsBranchFilterOpen(!isBranchFilterOpen);
                 setIsStatusOpen(false);
+                setIsSourceFilterOpen(false);
                 setIsPosFilterOpen(false);
                 setIsCompanyOpen(false);
                 setIsBranchOpen(false);
@@ -767,6 +1259,7 @@ export default function CareerPage() {
               onClick={() => {
                 setIsPosFilterOpen(!isPosFilterOpen);
                 setIsStatusOpen(false);
+                setIsSourceFilterOpen(false);
                 setIsBranchFilterOpen(false);
                 setIsCompanyOpen(false);
                 setIsBranchOpen(false);
@@ -812,23 +1305,91 @@ export default function CareerPage() {
         </div>
       </div>
 
-      {/* STATS CARDS (4 Cards in 1 Row - Manage Branch proportions) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-1">
-        {topCards.map((card, idx) => {
+      {/* SECTION 1: PRIMARY HIRING FUNNEL KPIS (3 LARGE STAT CARDS) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-1">
+        {coreCards.map((card, idx) => {
           const Icon = card.icon;
+          const isSelected = selectedCardFilter === card.id;
           return (
-            <div key={idx} className="p-3 flex items-center gap-3 bg-white border border-zinc-200 shadow-sm rounded-xl">
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${card.bg} ${card.text}`}>
-                <Icon className="w-4 h-4" />
+            <div
+              key={idx}
+              onClick={() => handleCardClick(card.id)}
+              className={`p-3 flex items-center justify-between bg-white border shadow-sm rounded-xl cursor-pointer transition-all duration-150 ${isSelected
+                ? 'ring-2 ring-indigo-600 border-indigo-600 shadow-md bg-indigo-50/20'
+                : 'border-zinc-200 hover:border-zinc-300 hover:shadow-md'
+                }`}
+              title={`Click to filter applications by ${card.title}`}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 ${card.bg} ${card.text} shadow-sm`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <h3 className="text-[10.5px] font-bold text-zinc-500 uppercase tracking-wide truncate">{card.title}</h3>
+                  <span className="text-lg sm:text-xl font-extrabold text-zinc-900 leading-tight">{card.value}</span>
+                  <p className="text-[10px] text-zinc-400 truncate">{card.subtitle}</p>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">{card.title}</h3>
-                <span className="text-lg font-bold text-zinc-900 leading-tight">{card.value}</span>
-                <p className="text-[10px] text-zinc-400">{card.subtitle}</p>
-              </div>
+              {card.badge && (
+                <span className={`text-[9.5px] sm:text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${card.badgeClass}`}>
+                  {card.badge}
+                </span>
+              )}
             </div>
           );
         })}
+      </div>
+
+      {/* SECTION 2: SOURCING CHANNELS & SOCIAL MEDIA INFLOW (8 CHANNELS) */}
+      <div className="bg-white border border-zinc-200 shadow-sm rounded-xl p-2.5 flex flex-col gap-2 mb-1">
+        <div className="flex items-center justify-between flex-wrap gap-2 px-0.5">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <h2 className="text-[11px] font-bold text-zinc-800 uppercase tracking-wider">
+              Sourcing Channels & Social Media Inflow
+            </h2>
+            <span className="text-[10px] text-zinc-400 font-medium hidden sm:inline">
+              (8 Active Job Portals & Inbound Social Feeds)
+            </span>
+          </div>
+          {selectedCardFilter && ['website', 'linkedin', 'naukri', 'apna', 'indeed', 'facebook', 'instagram', 'telegram'].includes(selectedCardFilter) && (
+            <button
+              onClick={() => handleCardClick(selectedCardFilter)}
+              className="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded-md transition-colors flex items-center gap-1"
+            >
+              <X className="w-3 h-3" /> Clear Channel Filter
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+          {channelCards.map((card, idx) => {
+            const Icon = card.icon;
+            const isSelected = selectedCardFilter === card.id;
+            return (
+              <div
+                key={idx}
+                onClick={() => handleCardClick(card.id)}
+                className={`p-2 sm:p-2.5 flex flex-col gap-1.5 rounded-lg border transition-all duration-150 cursor-pointer ${isSelected
+                  ? 'ring-2 ring-indigo-600 border-indigo-600 bg-indigo-50/40 shadow-sm'
+                  : 'bg-zinc-50/60 border-zinc-200/80 hover:bg-white hover:border-zinc-300 hover:shadow-sm'
+                  }`}
+                title={`Filter applications from ${card.title}`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${card.bg} ${card.text}`}>
+                    <Icon className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-zinc-900">{card.value}</span>
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[10px] font-bold text-zinc-700 truncate tracking-tight">{card.title}</span>
+                  <span className="text-[9px] text-zinc-400 truncate">{card.subtitle}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* CANDIDATE SUBMISSIONS TABLE */}
@@ -840,6 +1401,7 @@ export default function CareerPage() {
                 <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide whitespace-nowrap">#</th>
                 <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide whitespace-nowrap">Candidate Name & Contact</th>
                 <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide whitespace-nowrap">Applied Position</th>
+                <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide whitespace-nowrap">Source</th>
                 <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide whitespace-nowrap">Branch</th>
                 <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide whitespace-nowrap">Experience</th>
                 <th className="py-2.5 px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wide whitespace-nowrap">Resume / CV</th>
@@ -851,7 +1413,7 @@ export default function CareerPage() {
             <tbody className="text-[11px]">
               {paginatedCandidates.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-8 text-center text-zinc-500 font-medium">
+                  <td colSpan={10} className="py-8 text-center text-zinc-500 font-medium">
                     No candidate applications match the selected criteria.
                   </td>
                 </tr>
@@ -891,6 +1453,11 @@ export default function CareerPage() {
                         <span className="font-semibold text-zinc-800 text-[11px] whitespace-nowrap">{c.position}</span>
                         <span className="text-[10px] text-zinc-500">{c.department}</span>
                       </div>
+                    </td>
+
+                    {/* Source */}
+                    <td className="py-2.5 px-3 whitespace-nowrap">
+                      {renderSourceBadge(c.source)}
                     </td>
 
                     {/* Branch */}
@@ -962,6 +1529,13 @@ export default function CareerPage() {
                           title="Delete Application"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleForwardToAddCandidate(c)}
+                          className="p-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white border border-indigo-200 hover:border-indigo-600 rounded-md transition-all duration-150 shadow-2xs group flex items-center justify-center"
+                          title="Add to Candidates (Transfer Details Directly)"
+                        >
+                          <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
                         </button>
                       </div>
                     </td>
@@ -1095,7 +1669,9 @@ export default function CareerPage() {
                   <div className="flex items-center gap-1 text-[10px] text-zinc-400 font-bold uppercase tracking-wide">
                     <Globe className="w-3 h-3 text-emerald-500" /> Source
                   </div>
-                  <span className="font-bold text-emerald-700 text-xs mt-1 block truncate">Website API</span>
+                  <div className="mt-1">
+                    {renderSourceBadge(viewingCandidate.source || 'Career Website')}
+                  </div>
                 </div>
               </div>
 
@@ -1157,7 +1733,7 @@ export default function CareerPage() {
                         setCvPreviewCandidate(viewingCandidate);
                         setViewingCandidate(null);
                       }}
-                      className="h-8 px-3 bg-white border border-zinc-200 hover:bg-zinc-100 hover:border-zinc-300 text-zinc-700 rounded-md text-[11px] font-semibold flex items-center gap-1.5 shadow-2xs transition-colors"
+                      className="h-8 px-3 bg-white border border-zinc-200  hover:bg-zinc-100 hover:border-zinc-300 text-zinc-700 rounded-md text-[11px] font-semibold flex items-center gap-1.5 shadow-2xs transition-colors"
                     >
                       <Eye className="w-3.5 h-3.5 text-zinc-500" /> Preview CV
                     </button>
@@ -1174,18 +1750,32 @@ export default function CareerPage() {
 
             {/* Modal Bottom Action Bar with Clean Borders */}
             <div className="border-t border-zinc-200 bg-white px-5 py-3.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shadow-md">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => {
+                    handleForwardToAddCandidate(viewingCandidate);
+                    setViewingCandidate(null);
+                  }}
+                  className="h-8 px-3 bg-indigo-600 hover:bg-indigo-700 text-white border border-indigo-700/50 rounded-md text-[11px] font-semibold transition-colors shadow-2xs flex items-center gap-1.5"
+                  title="Forward directly to Add Candidate form"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  Add to Candidates
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
                 <button
                   onClick={() => handleUpdateStatus(viewingCandidate.id, 'Shortlisted')}
-                  className="h-8 px-3 bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-700/50 rounded-md text-[11px] font-semibold transition-colors shadow-2xs flex items-center gap-1"
+                  className="h-8 px-3 bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-700/50 rounded-md text-[11px] font-semibold transition-colors shadow-2xs flex items-center gap-1.5"
                 >
-                  ✓ Shortlist
+                  <Check className="w-3.5 h-3.5" />
+                  Shortlist
                 </button>
                 <button
                   onClick={() => handleUpdateStatus(viewingCandidate.id, 'Under Review')}
-                  className="h-8 px-3 bg-amber-500 hover:bg-amber-600 text-white border border-amber-600/50 rounded-md text-[11px] font-semibold transition-colors shadow-2xs flex items-center gap-1"
+                  className="h-8 px-3 bg-amber-500 hover:bg-amber-600 text-white border border-amber-600/50 rounded-md text-[11px] font-semibold transition-colors shadow-2xs flex items-center gap-1.5"
                 >
-                  ⏱ Under Review
+                  <Clock className="w-3.5 h-3.5" />
+                  Under Review
                 </button>
               </div>
               <button
@@ -1284,7 +1874,7 @@ export default function CareerPage() {
                     <p className="p-1.5 bg-white border border-zinc-200 rounded"><span className="text-zinc-400">Application Date:</span> <strong className="text-zinc-700 ml-1">{cvPreviewCandidate.appliedDate}</strong></p>
                     <p className="p-1.5 bg-white border border-zinc-200 rounded"><span className="text-zinc-400">Notice Period:</span> <strong className="text-zinc-700 ml-1">{cvPreviewCandidate.noticePeriod}</strong></p>
                     <p className="p-1.5 bg-white border border-zinc-200 rounded"><span className="text-zinc-400">Branch Location:</span> <strong className="text-zinc-700 ml-1">{cvPreviewCandidate.branch}</strong></p>
-                    <p className="p-1.5 bg-white border border-zinc-200 rounded"><span className="text-zinc-400">Inbound Source:</span> <strong className="text-emerald-600 ml-1">Website Career API</strong></p>
+                    <p className="p-1.5 bg-white border border-zinc-200 rounded"><span className="text-zinc-400">Inbound Source:</span> <strong className="text-indigo-600 ml-1">{cvPreviewCandidate.source ? `${cvPreviewCandidate.source} Direct Feed` : 'Website Career API'}</strong></p>
                   </div>
                 </div>
               </div>
@@ -1586,7 +2176,14 @@ export default function CareerPage() {
                       className="h-8 px-3 bg-zinc-900 hover:bg-zinc-800 text-white rounded-md text-[11px] font-semibold flex items-center justify-center gap-1.5 shadow-2xs transition-colors shrink-0 disabled:opacity-60"
                     >
                       <RefreshCw className={`w-3.5 h-3.5 ${isPinging ? 'animate-spin' : ''}`} />
-                      <span>{isPinging ? 'Pinging Gateway...' : '⚡ Test Connection Ping'}</span>
+                      {isPinging ? (
+                        <span>Pinging Gateway...</span>
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          <Zap className="w-3 h-3 text-amber-400" />
+                          Test Connection Ping
+                        </span>
+                      )}
                     </button>
                   </div>
 
