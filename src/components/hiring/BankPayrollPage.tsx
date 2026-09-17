@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
+import { formatEmployeeId } from '@/lib/utils';
 
 export default function BankPayrollPage({ candidateId }: { candidateId: string }) {
     const router = useRouter();
@@ -19,6 +20,10 @@ export default function BankPayrollPage({ candidateId }: { candidateId: string }
     const [isPreFilled, setIsPreFilled] = React.useState(false);
     const [formData, setFormData] = useState({
         _id: '',
+        employeeName: '',
+        empCode: '',
+        designation: '',
+        department: '',
         bankName: '',
         accountHolderName: '',
         accountNumber: '',
@@ -52,10 +57,15 @@ export default function BankPayrollPage({ candidateId }: { candidateId: string }
     const fetchBankPayrollData = async () => {
         try {
             setLoading(true);
-            const candidateRes = await api.get(`/hiring/candidates/${candidateId}`);
-            const cand = candidateRes.data;
+            let cand: any = {};
+            try {
+                const candidateRes = await api.get(`/hiring/candidates/${candidateId}`);
+                cand = candidateRes.data || {};
+            } catch (err) {
+                console.warn('Candidate data could not be loaded, proceeding with existing payroll data if available.');
+            }
 
-            let fetchedEmpCode = cand.employeeCode || '';
+            let fetchedEmpCode = formatEmployeeId(cand.employeeCode || cand.uniqueId || cand.candidateCode || '');
             let fetchedDesignation = cand.jobRole || '';
             let fetchedDepartment = cand.departmentId?.name || cand.department || '';
             let fetchedAadhaar = '';
@@ -68,7 +78,7 @@ export default function BankPayrollPage({ candidateId }: { candidateId: string }
                 const nomList = Array.isArray(nomRes.data) ? nomRes.data : (nomRes.data?.data || []);
                 if (nomList.length > 0) {
                     const nom = nomList[0];
-                    if (nom.empCode) fetchedEmpCode = nom.empCode;
+                    if (nom.empCode) fetchedEmpCode = formatEmployeeId(nom.empCode);
                     if (nom.designation) fetchedDesignation = nom.designation;
                     if (nom.department) fetchedDepartment = nom.department;
                     if (nom.aadhaarNo) fetchedAadhaar = nom.aadhaarNo;
@@ -80,7 +90,7 @@ export default function BankPayrollPage({ candidateId }: { candidateId: string }
                 if (!fetchedEmpCode) {
                     const docRes = await api.get('/hiring/doc-checklist', { params: { candidateId } });
                     const docList = Array.isArray(docRes.data) ? docRes.data : (docRes.data?.data || []);
-                    if (docList.length > 0) fetchedEmpCode = docList[0].empCode || docList[0].employeeCode || fetchedEmpCode;
+                    if (docList.length > 0) fetchedEmpCode = formatEmployeeId(docList[0].empCode || docList[0].employeeCode || fetchedEmpCode);
                 }
             } catch (e) { }
 
@@ -105,7 +115,7 @@ export default function BankPayrollPage({ candidateId }: { candidateId: string }
                     ...row,
                     employeeName: row.employeeName || defaultEmployeeName,
                     accountHolderName: row.accountHolderName || defaultEmployeeName,
-                    empCode: row.empCode || fetchedEmpCode,
+                    empCode: formatEmployeeId(row.empCode || fetchedEmpCode),
                     designation: row.designation || fetchedDesignation,
                     department: row.department || fetchedDepartment,
                     aadhaarNumber: row.aadhaarNumber || fetchedAadhaar,
@@ -118,7 +128,7 @@ export default function BankPayrollPage({ candidateId }: { candidateId: string }
                     ...prev,
                     employeeName: defaultEmployeeName,
                     accountHolderName: defaultEmployeeName,
-                    empCode: fetchedEmpCode,
+                    empCode: formatEmployeeId(fetchedEmpCode),
                     designation: fetchedDesignation,
                     department: fetchedDepartment,
                     aadhaarNumber: fetchedAadhaar,
@@ -148,6 +158,9 @@ export default function BankPayrollPage({ candidateId }: { candidateId: string }
             const payload = {
                 ...submitData,
                 candidateId,
+                employeeCode: formatEmployeeId(submitData.empCode),
+                uniqueId: formatEmployeeId(submitData.empCode),
+                candidateCode: formatEmployeeId(submitData.empCode),
             };
 
             if (_id) {
@@ -201,6 +214,33 @@ export default function BankPayrollPage({ candidateId }: { candidateId: string }
                         </div>
 
                         <div className="p-3 space-y-4">
+                            {/* 0. EMPLOYEE DETAILS */}
+                            <div className="bg-slate-50/50 p-3 rounded border border-slate-200 mb-2">
+                                <h3 className="text-xs font-bold text-slate-900 border-b border-slate-200 pb-1 mb-3 flex items-center gap-2 uppercase tracking-wide">
+                                    <span className="bg-[#0d3c68] text-white w-4 h-4 flex items-center justify-center text-[10px] rounded-full">A</span>
+                                    Employee Information
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    <FormField label="Employee Name:">
+                                        <FormInput value={formData.employeeName} readOnly className="bg-slate-100 font-medium" />
+                                    </FormField>
+                                    <FormField label="Employee Code / ID:">
+                                        <FormInput
+                                            value={formatEmployeeId(formData.empCode)}
+                                            onChange={(e) => handleChange("empCode", e.target.value)}
+                                            placeholder="e.g. NAM/HQ/26/0011"
+                                            className="bg-slate-100 font-bold text-[#0d3c68] font-mono"
+                                        />
+                                    </FormField>
+                                    <FormField label="Designation:">
+                                        <FormInput value={formData.designation} readOnly className="bg-slate-100 font-medium" />
+                                    </FormField>
+                                    <FormField label="Department:">
+                                        <FormInput value={formData.department} readOnly className="bg-slate-100 font-medium" />
+                                    </FormField>
+                                </div>
+                            </div>
+
                             {/* 1. BANK ACCOUNT DETAILS */}
                             <SectionHeader id={1} title="Bank Account Details" />
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

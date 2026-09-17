@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 import { useMasterDataStore } from '@/store/masterDataStore';
+import { formatEmployeeId } from '@/lib/utils';
 
 export default function NDAPage({ candidateId }: { candidateId: string }) {
     const router = useRouter();
@@ -17,6 +18,7 @@ export default function NDAPage({ candidateId }: { candidateId: string }) {
     const [formData, setFormData] = useState({
         _id: '',
         candidateName: '',
+        employeeCode: '',
         fatherName: '',
         age: '',
         department: '',
@@ -39,6 +41,7 @@ export default function NDAPage({ candidateId }: { candidateId: string }) {
 
             // Auto-fetch defaults
             let fetchedCandidateName = '';
+            let fetchedEmpCode = '';
             let fetchedFatherName = '';
             let fetchedDepartment = '';
             let fetchedDesignation = '';
@@ -51,6 +54,7 @@ export default function NDAPage({ candidateId }: { candidateId: string }) {
                 fetchedCandidateName = `${cand.firstName} ${cand.lastName || ''}`.trim();
                 fetchedDepartment = cand.departmentId?.name || cand.department || '';
                 fetchedDesignation = cand.jobRole || '';
+                fetchedEmpCode = formatEmployeeId(cand.employeeCode || cand.uniqueId || cand.candidateCode || '');
             } catch (e) { }
 
             try {
@@ -93,6 +97,7 @@ export default function NDAPage({ candidateId }: { candidateId: string }) {
                     ...prev,
                     _id: record._id,
                     candidateName: record.candidateName || fetchedCandidateName || prev.candidateName,
+                    employeeCode: formatEmployeeId(record.employeeCode || record.empCode || record.uniqueId || record.candidateCode || fetchedEmpCode || prev.employeeCode),
                     fatherName: record.fatherName || fetchedFatherName || prev.fatherName,
                     age: record.age || fetchedAge || prev.age,
                     department: record.department || fetchedDepartment || prev.department,
@@ -111,6 +116,7 @@ export default function NDAPage({ candidateId }: { candidateId: string }) {
                 setFormData(prev => ({
                     ...prev,
                     candidateName: fetchedCandidateName || prev.candidateName,
+                    employeeCode: formatEmployeeId(fetchedEmpCode || prev.employeeCode),
                     fatherName: fetchedFatherName || prev.fatherName,
                     age: fetchedAge || prev.age,
                     department: fetchedDepartment || prev.department,
@@ -144,6 +150,9 @@ export default function NDAPage({ candidateId }: { candidateId: string }) {
 
             const payload = {
                 ...submitData,
+                employeeCode: formatEmployeeId(submitData.employeeCode) || '',
+                uniqueId: formatEmployeeId(submitData.employeeCode) || '',
+                candidateCode: formatEmployeeId(submitData.employeeCode) || '',
                 candidateId,
             };
 
@@ -205,12 +214,20 @@ export default function NDAPage({ candidateId }: { candidateId: string }) {
                                 <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1">
                                     Party Details (The Employee)
                                 </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
+                                <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
                                     <FormField label="Candidate Name">
                                         <FormInput
                                             value={formData.candidateName}
                                             onChange={(e) => handleChange('candidateName', e.target.value)}
                                             placeholder="Full Name"
+                                        />
+                                    </FormField>
+                                    <FormField label="Employee ID / Code">
+                                        <FormInput
+                                            value={formatEmployeeId(formData.employeeCode)}
+                                            onChange={(e) => handleChange('employeeCode', e.target.value)}
+                                            placeholder="e.g. NAM/HQ/26/0011"
+                                            className="font-mono bg-slate-50 font-semibold"
                                         />
                                     </FormField>
                                     <FormField label="Father's Name">

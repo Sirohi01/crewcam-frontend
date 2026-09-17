@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { formatEmployeeId } from '@/lib/utils';
 
 const empty = () => ({
   subject: 'Official Joining Confirmation',
@@ -85,13 +86,13 @@ export default function JoiningConfirmationForm({ candidateId }: { candidateId: 
       };
 
       const candName = saved.candidateName || `${candidate?.firstName || ''} ${candidate?.lastName || ''}`.trim();
-      
+
       // If we are missing reportingTo or reportingLocation, fetch from Selection Approval
       if (!saved.reportingTo || !saved.reportingLocation) {
         api.get('/hiring/selection-approval', { params: { candidateId } }).then(approvalRes => {
           const approvals = Array.isArray(approvalRes.data?.data) ? approvalRes.data.data : (Array.isArray(approvalRes.data) ? approvalRes.data : [approvalRes.data]);
           const approval = approvals?.find((a: any) => a && (a.candidateId === candidateId || a.candidateId?._id === candidateId));
-          
+
           setForm(current => ({
             ...current,
             candidateName: candName || current.candidateName,
@@ -141,7 +142,7 @@ export default function JoiningConfirmationForm({ candidateId }: { candidateId: 
     // Pre-fill from LOI or Selection Approval or Candidate
     const loi = lois?.[0];
     const candName = `${candidate?.firstName || ''} ${candidate?.lastName || ''}`.trim();
-    
+
     // We can also fetch Selection Approval for better fallback if LOI is missing or incomplete
     api.get('/hiring/selection-approval', { params: { candidateId } }).then(approvalRes => {
       const approvals = Array.isArray(approvalRes.data?.data) ? approvalRes.data.data : (Array.isArray(approvalRes.data) ? approvalRes.data : [approvalRes.data]);
@@ -150,7 +151,7 @@ export default function JoiningConfirmationForm({ candidateId }: { candidateId: 
       const designation = loi?.designation || loi?.position || candidate?.jobRole || '';
       const department = loi?.department || approval?.department || candidate?.departmentId?.name || candidate?.departmentId?.departmentName || '';
       const joiningDate = loi?.joiningDate || approval?.joiningDate || '';
-      
+
       setForm(current => ({
         ...current,
         candidateName: candName || current.candidateName,
@@ -201,8 +202,12 @@ export default function JoiningConfirmationForm({ candidateId }: { candidateId: 
         return `${hour12}:${minutes} ${ampm}`;
       };
 
+      const candidateUniqueId = candidate?.uniqueId || candidate?.candidateCode || records?.[0]?.candidateCode || records?.[0]?.uniqueId;
+
       const payload = {
         candidateId,
+        candidateCode: candidateUniqueId,
+        uniqueId: candidateUniqueId,
         candidateName: form.candidateName,
         subject: form.subject,
         department: form.department,
@@ -223,6 +228,7 @@ export default function JoiningConfirmationForm({ candidateId }: { candidateId: 
       return (await api.post('/hiring/joining-confirmation', payload)).data;
     },
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['candidate', candidateId] });
       qc.invalidateQueries({ queryKey: ['candidate-pipeline', candidateId] });
       qc.invalidateQueries({ queryKey: ['joining-confirmation', candidateId] });
       toast.success('Joining Confirmation details saved successfully!');
@@ -232,6 +238,8 @@ export default function JoiningConfirmationForm({ candidateId }: { candidateId: 
       toast.error(error?.response?.data?.message || error?.response?.data?.error || 'Joining Confirmation details could not be saved.');
     }
   });
+
+  const candidateUniqueId = formatEmployeeId(candidate?.uniqueId || candidate?.candidateCode || records?.[0]?.candidateCode || records?.[0]?.uniqueId);
 
   return (
     <div className="mx-auto max-w-[1500px] pb-10">
@@ -246,75 +254,81 @@ export default function JoiningConfirmationForm({ candidateId }: { candidateId: 
             <Mail className="h-4 w-4 text-[#0d3c68]" />
             {records?.[0] ? 'EDIT JOINING CONFIRMATION' : 'NEW JOINING CONFIRMATION ENTRY'}
           </h2>
+          {candidateUniqueId && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-200 rounded text-[#0d3c68]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Candidate ID:</span>
+              <span className="text-[12px] font-mono font-extrabold text-[#0d3c68]">{candidateUniqueId}</span>
+            </div>
+          )}
         </div>
 
         <div className="p-2">
           <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-2">
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                <Field title="Candidate Name" required className="md:col-span-1">
-                  <input className={inputClass} value={form.candidateName} onChange={(e) => set({ candidateName: e.target.value })} required />
-                </Field>
-                <Field title="Position/Designation" required>
-                  <input className={inputClass} value={form.designation} onChange={(e) => set({ designation: e.target.value })} required />
-                </Field>
-                <Field title="Department">
-                  <input className={inputClass} value={form.department} onChange={(e) => set({ department: e.target.value })} />
-                </Field>
-                <Field title="Joining Date" required>
-                  <input type="date" className={inputClass} value={form.joiningDate} onChange={(e) => {
-                    set({ joiningDate: e.target.value });
-                    if (!form.failureToReportDate || form.failureToReportDate === form.joiningDate) {
-                      set({ failureToReportDate: e.target.value });
-                    }
-                  }} required />
-                </Field>
-                <Field title="Reporting Time">
-                  <input type="time" className={inputClass} value={form.reportingTime} onChange={(e) => set({ reportingTime: e.target.value })} />
-                </Field>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+              <Field title="Candidate Name" required className="md:col-span-1">
+                <input className={inputClass} value={form.candidateName} onChange={(e) => set({ candidateName: e.target.value })} required />
+              </Field>
+              <Field title="Position/Designation" required>
+                <input className={inputClass} value={form.designation} onChange={(e) => set({ designation: e.target.value })} required />
+              </Field>
+              <Field title="Department">
+                <input className={inputClass} value={form.department} onChange={(e) => set({ department: e.target.value })} />
+              </Field>
+              <Field title="Joining Date" required>
+                <input type="date" className={inputClass} value={form.joiningDate} onChange={(e) => {
+                  set({ joiningDate: e.target.value });
+                  if (!form.failureToReportDate || form.failureToReportDate === form.joiningDate) {
+                    set({ failureToReportDate: e.target.value });
+                  }
+                }} required />
+              </Field>
+              <Field title="Reporting Time">
+                <input type="time" className={inputClass} value={form.reportingTime} onChange={(e) => set({ reportingTime: e.target.value })} />
+              </Field>
+            </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                <Field title="Reporting Location" className="md:col-span-2">
-                  <input className={inputClass} value={form.reportingLocation} onChange={(e) => set({ reportingLocation: e.target.value })} />
-                </Field>
-                <Field title="Reporting To">
-                  <input className={inputClass} value={form.reportingTo} onChange={(e) => set({ reportingTo: e.target.value })} />
-                </Field>
-                <Field title="Failure to Report Date">
-                  <input type="date" className={inputClass} value={form.failureToReportDate} onChange={(e) => set({ failureToReportDate: e.target.value })} />
-                </Field>
-                <Field title="Subject">
-                  <input className={inputClass} value={form.subject} onChange={(e) => set({ subject: e.target.value })} />
-                </Field>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+              <Field title="Reporting Location" className="md:col-span-2">
+                <input className={inputClass} value={form.reportingLocation} onChange={(e) => set({ reportingLocation: e.target.value })} />
+              </Field>
+              <Field title="Reporting To">
+                <input className={inputClass} value={form.reportingTo} onChange={(e) => set({ reportingTo: e.target.value })} />
+              </Field>
+              <Field title="Failure to Report Date">
+                <input type="date" className={inputClass} value={form.failureToReportDate} onChange={(e) => set({ failureToReportDate: e.target.value })} />
+              </Field>
+              <Field title="Subject">
+                <input className={inputClass} value={form.subject} onChange={(e) => set({ subject: e.target.value })} />
+              </Field>
+            </div>
 
-              <div className="flex justify-end items-center gap-3 pt-4 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setForm(empty())}
-                  className="group flex items-center gap-2 px-5 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 transition-all rounded-[2px]"
-                >
-                  <RotateCcw className="h-3.5 w-3.5 transition-transform group-hover:-rotate-45" />
-                  CANCEL
-                </button>
-                <button
-                  type="submit"
-                  disabled={save.isPending}
-                  className="flex items-center gap-2 px-8 py-2 text-xs font-bold bg-[#0d3c68] text-white hover:bg-[#0a2e50] shadow-md hover:shadow-lg transition-all rounded-[2px] tracking-wide"
-                >
-                  <Save className="h-4 w-4" />
-                  {save.isPending ? 'SAVING...' : (records?.[0] ? 'UPDATE ENTRY' : 'SAVE ENTRY')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => window.open(`/dashboard/hiring/${candidateId}/print/joining-confirmation`, '_blank')}
-                  className="flex items-center gap-2 px-8 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-all rounded-[2px] tracking-wide"
-                >
-                  PRINT
-                </button>
-              </div>
-            </form>
-          </div>
+            <div className="flex justify-end items-center gap-3 pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setForm(empty())}
+                className="group flex items-center gap-2 px-5 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 transition-all rounded-[2px]"
+              >
+                <RotateCcw className="h-3.5 w-3.5 transition-transform group-hover:-rotate-45" />
+                CANCEL
+              </button>
+              <button
+                type="submit"
+                disabled={save.isPending}
+                className="flex items-center gap-2 px-8 py-2 text-xs font-bold bg-[#0d3c68] text-white hover:bg-[#0a2e50] shadow-md hover:shadow-lg transition-all rounded-[2px] tracking-wide"
+              >
+                <Save className="h-4 w-4" />
+                {save.isPending ? 'SAVING...' : (records?.[0] ? 'UPDATE ENTRY' : 'SAVE ENTRY')}
+              </button>
+              <button
+                type="button"
+                onClick={() => window.open(`/dashboard/hiring/${candidateId}/print/joining-confirmation`, '_blank')}
+                className="flex items-center gap-2 px-8 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-all rounded-[2px] tracking-wide"
+              >
+                PRINT
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

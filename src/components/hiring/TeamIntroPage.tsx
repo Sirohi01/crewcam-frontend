@@ -7,7 +7,7 @@ import { Users, Save, Printer, ArrowLeft, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import api from '@/lib/axios';
-// import PageHeader from '@/components/common/PageHeader';
+import { formatEmployeeId } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,6 +30,8 @@ export default function TeamIntroPage({ candidateId }: TeamIntroPageProps) {
 
   const [formData, setFormData] = useState<any>({
     candidateName: '',
+    uniqueId: '',
+    employeeCode: '',
     department: '',
     position: '',
     reportingTo: '',
@@ -65,8 +67,11 @@ export default function TeamIntroPage({ candidateId }: TeamIntroPageProps) {
     if (editId && records.length > 0) {
       const recordToEdit = records.find((r: any) => r._id === editId);
       if (recordToEdit) {
+        const empCode = formatEmployeeId(recordToEdit.employeeCode || recordToEdit.empCode || recordToEdit.uniqueId || recordToEdit.candidateCode || '');
         setFormData({
           candidateName: recordToEdit.candidateName || '',
+          uniqueId: empCode,
+          employeeCode: empCode,
           department: recordToEdit.department || '',
           position: recordToEdit.position || '',
           reportingTo: recordToEdit.reportingTo || '',
@@ -76,20 +81,30 @@ export default function TeamIntroPage({ candidateId }: TeamIntroPageProps) {
       }
     } else if (records.length > 0 && !editId) {
       // Intentionally leave blank for a new entry if no edit ID
-    } else if (candidateData?.data) {
-      const candidate = candidateData.data;
+    } else if (candidateData) {
+      const candidate = candidateData?.data || candidateData;
+      const empCode = formatEmployeeId(candidate.employeeCode || candidate.uniqueId || candidate.candidateCode || '');
       setFormData((prev: any) => ({
         ...prev,
-        candidateName: candidate.fullName || '',
-        department: candidate.department || '',
-        position: candidate.designation || candidate.position || '',
+        candidateName: candidate.fullName || `${candidate.firstName || ''} ${candidate.lastName || ''}`.trim() || '',
+        uniqueId: empCode,
+        employeeCode: empCode,
+        department: candidate.departmentId?.name || candidate.department || '',
+        position: candidate.designation || candidate.position || candidate.jobRole || '',
       }));
     }
   }, [editId, records, candidateData]);
 
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
-      const payload = { ...data, candidateId };
+      const empCode = formatEmployeeId(data.uniqueId || data.employeeCode || '');
+      const payload = {
+        ...data,
+        candidateId,
+        employeeCode: empCode,
+        uniqueId: empCode,
+        candidateCode: empCode
+      };
       if (editId) {
         return await api.put(`/hiring/team-intro/${editId}`, payload);
       } else if (records && records.length > 0 && records[0]._id) {
@@ -184,6 +199,16 @@ export default function TeamIntroPage({ candidateId }: TeamIntroPageProps) {
                     value={formData.candidateName}
                     onChange={(e) => setFormData({ ...formData, candidateName: e.target.value })}
                     placeholder="Mr. / Ms. Full Name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-700">Employee ID / Unique ID</label>
+                  <Input
+                    value={formatEmployeeId(formData.uniqueId)}
+                    onChange={(e) => setFormData({ ...formData, uniqueId: e.target.value, employeeCode: e.target.value })}
+                    placeholder="e.g. NAM/HQ/26/0011"
+                    className="font-mono bg-slate-50 font-semibold"
                   />
                 </div>
 

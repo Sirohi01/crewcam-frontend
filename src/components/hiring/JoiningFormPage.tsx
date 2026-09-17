@@ -16,7 +16,7 @@ import { ArrowLeft } from 'lucide-react';
 import api from '@/lib/axios';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { cn } from '@/lib/utils';
+import { cn, formatEmployeeId } from '@/lib/utils';
 import { useMasterDataStore } from '@/store/masterDataStore';
 import { useAuthStore } from '@/store/authStore';
 import { WebcamCapture } from '@/components/common/WebcamCapture';
@@ -228,7 +228,7 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
         workLocation: preFill.workLocation || prev.workLocation,
         reportingManager: preFill.reportingTo || prev.reportingManager,
         currentAddress: preFill.currentAddress || prev.currentAddress,
-        empCode: preFill.empCode || preFill.employeeCode || prev.empCode,
+        empCode: formatEmployeeId(preFill.empCode || preFill.employeeCode || prev.empCode),
       }));
 
       setIsPreFilled(true);
@@ -240,21 +240,21 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
   useEffect(() => {
     if (!showForm && candidate && dataList.length === 0 && !editId) {
       console.log('Step9: Prefilling from candidate data');
-      
+
       Promise.all([
         api.get('/hiring/selection-approval', { params: { candidateId } }).catch(() => ({ data: { data: [] } })),
         api.get('/hiring/joining-confirmation', { params: { candidateId } }).catch(() => ({ data: { data: [] } }))
       ]).then(([approvalRes, confirmationRes]) => {
         const approvals = Array.isArray(approvalRes.data?.data) ? approvalRes.data.data : (Array.isArray(approvalRes.data) ? approvalRes.data : [approvalRes.data]);
         const approval = approvals?.find((a: any) => a && (a.candidateId === candidateId || a.candidateId?._id === candidateId));
-        
+
         const confirmations = Array.isArray(confirmationRes.data?.data) ? confirmationRes.data.data : (Array.isArray(confirmationRes.data) ? confirmationRes.data : [confirmationRes.data]);
         const confirmation = confirmations?.find((c: any) => c && (c.candidateId === candidateId || c.candidateId?._id === candidateId));
-        
+
         const confirmedDOJ = confirmation?.confirmedJoiningDate || confirmation?.joiningDate;
         const approvalDOJ = approval?.joiningDate;
         const finalDOJ = (confirmedDOJ && confirmedDOJ !== 'N/A') ? confirmedDOJ : ((approvalDOJ && approvalDOJ !== 'N/A') ? approvalDOJ : null);
-        
+
         setFormData(prev => ({
           ...prev,
           fullName: `${candidate.firstName || ''} ${candidate.lastName || ''}`.trim() || prev.fullName,
@@ -268,7 +268,7 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
           gender: candidate.gender || prev.gender,
           dob: candidate.dob ? candidate.dob.split('T')[0] : prev.dob,
           currentAddress: candidate.address || prev.currentAddress,
-          empCode: candidate.candidateCode || prev.empCode,
+          empCode: formatEmployeeId(candidate.employeeCode || candidate.uniqueId || candidate.candidateCode || confirmation?.candidateCode || confirmation?.uniqueId || confirmation?.employeeCode || prev.empCode),
         }));
         setIsPreFilled(true);
         setShowForm(true);
@@ -312,7 +312,7 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
         reportingManager: existingRecord.positionDetails?.reportingManager || prev.reportingManager,
         workLocation: existingRecord.positionDetails?.workLocation || prev.workLocation,
         employeeCategory: existingRecord.positionDetails?.employeeCategory || prev.employeeCategory,
-        empCode: existingRecord.positionDetails?.empCode || prev.empCode,
+        empCode: formatEmployeeId(existingRecord.positionDetails?.empCode || existingRecord.employeeCode || existingRecord.uniqueId || existingRecord.candidateCode || candidate?.employeeCode || candidate?.uniqueId || candidate?.candidateCode || prev.empCode),
 
         aadhaarNumber: existingRecord.identificationDetails?.aadhaarNumber || prev.aadhaarNumber,
         panNumber: existingRecord.identificationDetails?.panNumber || prev.panNumber,
@@ -385,20 +385,28 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
         // Fetch Employee Code from Document Checklist API if missing
         if (!formData.empCode) {
           const checklistData = await documentChecklistApi.getAll();
-          const checklistList = Array.isArray(checklistData) ? checklistData : (checklistData?.data || []);
+          let checklistList = [];
+          if (Array.isArray(checklistData)) checklistList = checklistData;
+          else if (Array.isArray(checklistData?.data)) checklistList = checklistData.data;
+          else if (Array.isArray(checklistData?.data?.data)) checklistList = checklistData.data.data;
+
           const match = checklistList.find((r: any) =>
             (identifierCode && r.empCode === identifierCode) ||
             (identifierName && r.candidateName?.toLowerCase() === identifierName)
           );
           if (match && match.empCode) {
-            setFormData(prev => ({ ...prev, empCode: match.empCode }));
+            setFormData(prev => ({ ...prev, empCode: formatEmployeeId(match.empCode) }));
           }
         }
 
         // Fetch DOJ from Selection Approval API if missing
         if (!formData.joiningDate) {
           const selectionData = await selectionApi.getAll();
-          const selectionList = Array.isArray(selectionData) ? selectionData : (selectionData?.data || []);
+          let selectionList = [];
+          if (Array.isArray(selectionData)) selectionList = selectionData;
+          else if (Array.isArray(selectionData?.data)) selectionList = selectionData.data;
+          else if (Array.isArray(selectionData?.data?.data)) selectionList = selectionData.data.data;
+
           const match = selectionList.find((r: any) =>
             (identifierCode && r.empCode === identifierCode) ||
             (identifierName && r.candidateName?.toLowerCase() === identifierName)
@@ -455,8 +463,8 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
         workLocation: row.positionDetails?.workLocation || '',
         reportingTo: row.positionDetails?.reportingManager || '',
         reportingManager: row.positionDetails?.reportingManager || '',
-        empCode: row.positionDetails?.empCode || '',
-        employeeCode: row.positionDetails?.empCode || '',
+        empCode: formatEmployeeId(row.positionDetails?.empCode || ''),
+        employeeCode: formatEmployeeId(row.positionDetails?.empCode || ''),
         employeeCategory: row.positionDetails?.employeeCategory || '',
 
         // Identification Details
@@ -506,8 +514,8 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
         workLocation: formData.workLocation,
         reportingTo: formData.reportingManager,
         reportingManager: formData.reportingManager,
-        empCode: formData.empCode,
-        employeeCode: formData.empCode,
+        empCode: formatEmployeeId(formData.empCode),
+        employeeCode: formatEmployeeId(formData.empCode),
         employeeCategory: formData.employeeCategory,
 
         // Identification Details
@@ -741,7 +749,7 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
           reportingManager: formData.reportingManager,
           workLocation: formData.workLocation,
           employeeCategory: formData.employeeCategory,
-          empCode: formData.empCode,
+          empCode: formatEmployeeId(formData.empCode),
         },
         identificationDetails: {
           aadhaarNumber: formData.aadhaarNumber.replace(/[\s-]/g, ''),
@@ -971,8 +979,9 @@ export default function JoiningFormPage({ candidateId }: { candidateId: string }
                 </FormField>
                 <FormField label="17. Employee Code:">
                   <FormInput
-                    value={formData.empCode} placeholder="e.g. EMP001"
-                    onChange={(e) => handleChange('empCode', e.target.value)} />
+                    value={formatEmployeeId(formData.empCode)} placeholder="e.g. NAM/HQ/26/0011"
+                    onChange={(e) => handleChange('empCode', e.target.value)}
+                    className="font-mono" />
                 </FormField>
 
                 <FormField label="18. Employee Category:" required className="md:col-span-3">

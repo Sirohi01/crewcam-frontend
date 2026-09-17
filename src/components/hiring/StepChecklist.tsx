@@ -23,22 +23,24 @@ export default function StepChecklist({ items = [] }: StepChecklistProps) {
     ];
 
   return (
-    <div className="rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="mb-2 text-xs font-md uppercase text-zinc-500">Step Checklist</div>
-      <div className="space-y-2">
+    <div className="rounded-[2px] border border-slate-200 shadow-sm bg-white overflow-hidden">
+      <div className="pb-2 pt-3 px-3.5 border-b border-slate-100">
+        <h4 className="text-xs font-bold text-[#0d3c68] uppercase tracking-tight">Step Checklist</h4>
+      </div>
+      <div className="p-3 space-y-2.5">
         {visibleItems.map((item) => (
-          <div key={item.item} className="flex items-center justify-between gap-3 text-sm">
+          <div key={item.item} className="flex items-center justify-between gap-2.5 text-xs">
             <div className="flex min-w-0 items-center gap-2">
               {item.done ? (
-                <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
+                <CheckCircle2 size={15} className="shrink-0 text-emerald-600" />
               ) : (
-                <Circle size={16} className="shrink-0 text-zinc-300" />
+                <Circle size={15} className="shrink-0 text-slate-300" />
               )}
-              <span className={item.done ? 'text-zinc-800 dark:text-zinc-100' : 'text-zinc-500'}>
+              <span className={`text-[11px] font-medium leading-tight ${item.done ? 'text-slate-800' : 'text-slate-400'}`}>
                 {item.item}
               </span>
             </div>
-            {item.doneAt && <span className="shrink-0 text-[11px] text-zinc-400">{new Date(item.doneAt).toLocaleDateString()}</span>}
+            {item.doneAt && <span className="shrink-0 text-[10px] text-slate-400 font-mono">{new Date(item.doneAt).toLocaleDateString('en-GB')}</span>}
           </div>
         ))}
       </div>

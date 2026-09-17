@@ -419,9 +419,8 @@ export default function EvaluationPage() {
                       </div>
 
                       <div>
-                        <p className="text-[10px] font-medium text-slate-500">Department</p>
                         <p className="mt-0.5 text-xs font-semibold text-slate-900">
-                          {(candidate as any).departmentName || candidate.department}
+                          {(candidate as any).departmentName || candidate.department || '-'}
                         </p>
                       </div>
 

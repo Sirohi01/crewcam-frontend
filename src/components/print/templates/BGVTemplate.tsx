@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
 import PrintHiringHeader from '@/components/print/PrintHiringHeader';
+import { formatEmployeeId } from '@/lib/utils';
 
 const formatDate = (dateStr?: string) => {
     if (!dateStr) return '';
@@ -246,7 +247,7 @@ export default function BGVTemplate({ candidateId }: { candidateId: string }) {
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '9px 40px' }}>
                                     <DetailField label="Candidate Name" value={data.reportCandidateName} labelWidth={160} />
                                     <DetailField label="Position" value={data.reportPosition} labelWidth={100} />
-                                    <DetailField label="Employee Code" value={data.reportEmpCode} labelWidth={160} />
+                                    <DetailField label="Employee Code" value={formatEmployeeId(data.reportEmpCode || data.empCode || data.employeeCode || data.uniqueId)} labelWidth={160} />
                                     <DetailField label="Department" value={data.reportDepartment} labelWidth={100} />
                                     <DetailField label="Date of Joining" value={formatDate(data.reportDOJ)} labelWidth={160} />
                                 </div>

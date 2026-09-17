@@ -133,6 +133,19 @@ export default function DynamicSidebar() {
       merged = [...merged, ...STATIC_RECRUITMENT_ITEMS];
     }
 
+    // Ensure Career portal is in Hiring Process
+    const hasCareer = merged.some(item => item.href === '/dashboard/career');
+    if (!hasCareer) {
+      merged.push({
+        _id: 'career-portal',
+        section: 'Hiring Process',
+        label: 'Career',
+        href: '/dashboard/career',
+        icon: 'Briefcase',
+        order: -2,
+      });
+    }
+
     return merged.sort((a: SidebarItem, b: SidebarItem) => a.order - b.order);
   }, [items, isLoading, roleScope]);
 
@@ -208,6 +221,9 @@ export default function DynamicSidebar() {
         title = `${matchedItem.parent} / ${matchedItem.subParent} / ${matchedItem.label}`;
       } else if (matchedItem.parent) {
         title = `${matchedItem.parent} / ${matchedItem.label}`;
+      }
+      if (matchedItem.href === '/dashboard/career') {
+        title = 'Career Applications';
       }
       setPageTitle(title);
     } else {

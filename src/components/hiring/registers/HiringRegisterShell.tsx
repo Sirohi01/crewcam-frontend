@@ -8,6 +8,8 @@ import api from '@/lib/axios';
 import { getHiringStepById, HIRING_STEPS } from '@/lib/hiringSteps';
 import { openFileUrl } from '@/lib/fileUrls';
 import { Button } from '@/components/ui/button';
+import toast from 'react-hot-toast';
+import { formatEmployeeId } from '@/lib/utils';
 
 const idOf = (value: any) => typeof value === 'object' && value ? String(value._id || '') : String(value || '');
 const nameOf = (value: any) => value && typeof value === 'object' && value.firstName ? `${value.firstName} ${value.lastName || ''}`.trim() : '';
@@ -22,13 +24,20 @@ const displayValue = (value: any): string => {
   return String(value);
 };
 const nestedValue = (row: Record<string, any>, path: string): any => path.split('.').reduce((value, key) => value?.[key], row);
-const detailRows = (value: any, prefix = ''): { label: string; value: string }[] => {
+const detailRows = (value: any, prefix = '', canonicalId = ''): { label: string; value: string }[] => {
   if (value === undefined || value === null || value === '') return [];
-  if (Array.isArray(value)) return value.flatMap((item, index) => detailRows(item, `${prefix || 'Item'} ${index + 1}`));
+  if (Array.isArray(value)) return value.flatMap((item, index) => detailRows(item, `${prefix || 'Item'} ${index + 1}`, canonicalId));
   if (typeof value === 'object' && !(value instanceof Date)) return Object.entries(value)
     .filter(([key]) => !['_id', '__v', 'tenantId', 'passwordHash'].includes(key))
-    .flatMap(([key, item]) => detailRows(item, prefix ? `${prefix} · ${prettyKey(key)}` : prettyKey(key)));
-  const masked = /aadhaar|pan|account number/i.test(prefix) ? `••••${String(value).slice(-4)}` : displayValue(value);
+    .flatMap(([key, item]) => detailRows(item, prefix ? `${prefix} · ${prettyKey(key)}` : prettyKey(key), canonicalId));
+  let masked = /aadhaar|pan|account number/i.test(prefix) ? `••••${String(value).slice(-4)}` : displayValue(value);
+  if (/unique id|employee code|emp code|candidate code/i.test(prefix)) {
+    if (canonicalId && (String(value).startsWith('EMP-') || !value)) {
+      masked = formatEmployeeId(canonicalId);
+    } else if (value) {
+      masked = formatEmployeeId(String(value));
+    }
+  }
   return [{ label: prefix || 'Value', value: masked }];
 };
 
@@ -93,8 +102,12 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => (await api.delete(`${step!.apiPath}/${id}`)).data,
     onSuccess: () => {
+      toast.success('Record deleted successfully');
       queryClient.invalidateQueries({ queryKey: ['hiring-register', step?.apiPath] });
     },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to delete record. Deletion might not be supported for this step.');
+    }
   });
 
   const pdfMutation = useMutation({
@@ -126,7 +139,50 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
 
   if (!step) return <div className="p-8 text-center text-sm text-zinc-500">Unknown register step.</div>;
 
-  const dynamicColumns = step.listColumns || step.fields.slice(0, 3).map((f) => ({ key: f.name, label: f.label }));
+  const dynamicColumns = step.listColumns || step.fields.slice(0, 3).map((f: any) => ({ key: f.name, label: f.label }));
+
+  const getRecordCanonicalId = (record: any) => {
+    if (!record) return '';
+    let resolved = '';
+    const candId = idOf(record.candidateId) || record.rawCandidateId;
+    if (candId) {
+      const cand = candidateDirectory.find((c: any) => String(c._id) === candId);
+      if (cand?.candidateCode || cand?.uniqueId || cand?.employeeCode) {
+        resolved = cand.candidateCode || cand.uniqueId || cand.employeeCode;
+      }
+    }
+    if (!resolved) {
+      const empId = idOf(record.employeeId);
+      if (empId) {
+        const emp = employeeDirectory.find((e: any) => String(e._id) === empId);
+        if (emp) {
+          const candByEmp = candidateDirectory.find(
+            (c: any) => (c.email && emp.email && c.email.toLowerCase() === emp.email.toLowerCase()) ||
+                        (c.employeeCode && c.employeeCode === emp.employeeCode)
+          );
+          if (candByEmp?.candidateCode || candByEmp?.uniqueId || candByEmp?.employeeCode) {
+            resolved = candByEmp.candidateCode || candByEmp.uniqueId || candByEmp.employeeCode;
+          }
+          if (!resolved && emp.employeeCode && !emp.employeeCode.startsWith('EMP-')) {
+            resolved = emp.employeeCode;
+          }
+        }
+      }
+    }
+    if (!resolved && (record.candidateName || record.employeeName)) {
+      const name = String(record.candidateName || record.employeeName).toLowerCase().trim();
+      const candByName = candidateDirectory.find((c: any) => `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().trim() === name);
+      if (candByName?.candidateCode || candByName?.uniqueId || candByName?.employeeCode) {
+        resolved = candByName.candidateCode || candByName.uniqueId || candByName.employeeCode;
+      }
+    }
+    if (!resolved) {
+      const raw = record.employeeCode || record.uniqueId || record.candidateCode || record.empCode;
+      resolved = raw && !raw.startsWith('EMP-') ? raw : (raw || '');
+    }
+    return formatEmployeeId(resolved);
+  };
+
   const subjectName = (row: any) => {
     const linked = step.entityField === 'employeeId' ? row.employeeId : row.candidateId;
     const direct = nameOf(linked);
@@ -161,12 +217,12 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
 
   const sortedData = sortKey
     ? [...filteredData].sort((a, b) => {
-        const aVal = String(nestedValue(a, sortKey) ?? '').toLowerCase();
-        const bVal = String(nestedValue(b, sortKey) ?? '').toLowerCase();
-        if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
-        if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
-        return 0;
-      })
+      const aVal = String(nestedValue(a, sortKey) ?? '').toLowerCase();
+      const bVal = String(nestedValue(b, sortKey) ?? '').toLowerCase();
+      if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    })
     : filteredData;
 
   const handleSort = (key: string) => {
@@ -282,127 +338,155 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
               ) : paginatedData.length === 0 ? (
                 <tr><td colSpan={dynamicColumns.length + 3} className="p-4 text-center text-slate-500">No records found.</td></tr>
               ) : (
-                paginatedData.map((row, index) => (
-                  <tr key={row._id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-3 py-2 border-r border-slate-100 text-center">
-                      <input type="checkbox" className="rounded" checked={selectedRowIds.has(row._id)} onChange={(e) => toggleSelectRow(row._id, e.target.checked)} />
-                    </td>
-                    <td className="px-3 py-2 border-r border-slate-100 text-center font-medium text-slate-500">
-                      {(page - 1) * pageSize + index + 1}
-                    </td>
-                    {dynamicColumns.map((col) => {
-                      let val: any = nestedValue(row, col.key);
-                      // Fallback to linked candidate or employee directory data if field is missing on the row
-                      if (!val || val === '—') {
-                        if (row.employeeId) {
-                          const emp = employeeDirectory.find((e: any) => String(e._id) === idOf(row.employeeId));
-                          if (emp) {
-                            if (col.key === 'employeeName' || col.key === 'candidateName' || col.key === 'employeename') {
-                              val = `${emp.firstName} ${emp.lastName || ''}`.trim();
-                            } else if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId') {
-                              val = emp.employeeCode || val;
-                            } else if (col.key === 'designation' || col.key === 'position') {
-                              val = emp.designation || emp.jobRole || val;
-                            } else if (col.key === 'department') {
-                              val = emp.department || val;
-                            } else if (col.key === 'joiningDate') {
-                              val = emp.dateOfJoining || emp.expectedJoiningDate || val;
-                            }
+                paginatedData.map((row, index) => {
+                  const rowKey = row._id || `row-${index}`;
+                  return (
+                    <tr key={rowKey} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-3 py-2 border-r border-slate-100 text-center">
+                        <input type="checkbox" className="rounded" checked={selectedRowIds.has(rowKey)} onChange={(e) => toggleSelectRow(rowKey, e.target.checked)} />
+                      </td>
+                      <td className="px-3 py-2 border-r border-slate-100 text-center font-medium text-slate-500">
+                        {(page - 1) * pageSize + index + 1}
+                      </td>
+                      {dynamicColumns.map((col) => {
+                        let val: any = nestedValue(row, col.key);
+                        if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId' || col.key === 'candidateCode') {
+                          const canonical = getRecordCanonicalId(row);
+                          if (canonical && (!val || val === '—' || String(val).startsWith('EMP-'))) {
+                            val = canonical;
+                          } else if (val && val !== '—') {
+                            val = formatEmployeeId(String(val));
                           }
-                        } else if (row.candidateId) {
-                          const cand = candidateDirectory.find((c: any) => String(c._id) === idOf(row.candidateId));
-                          if (cand) {
-                            if (col.key === 'employeeName' || col.key === 'candidateName' || col.key === 'employeename') {
-                              val = `${cand.firstName} ${cand.lastName || ''}`.trim();
-                            } else if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId') {
-                              val = cand.employeeCode || val;
-                            } else if (col.key === 'designation' || col.key === 'position') {
-                              val = cand.jobRole || val;
-                            } else if (col.key === 'department') {
-                              val = cand.department || val;
-                            } else if (col.key === 'joiningDate') {
-                              val = cand.expectedJoiningDate || cand.dateOfJoining || val;
+                        }
+                        if (!val || val === '—') {
+                          if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId') {
+                            val = row.employeeCode || row.empCode || row.uniqueId || row.candidateCode || val;
+                          }
+                        }
+                        // Fallback to linked candidate or employee directory data if field is missing on the row
+                        if (!val || val === '—') {
+                          if (row.employeeId) {
+                            const emp = employeeDirectory.find((e: any) => String(e._id) === idOf(row.employeeId));
+                            if (emp) {
+                              if (col.key === 'employeeName' || col.key === 'candidateName' || col.key === 'employeename') {
+                                val = `${emp.firstName} ${emp.lastName || ''}`.trim();
+                              } else if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId') {
+                                val = emp.employeeCode || val;
+                              } else if (col.key === 'designation' || col.key === 'position') {
+                                val = emp.designation || emp.jobRole || val;
+                              } else if (col.key === 'department') {
+                                val = emp.department || val;
+                              } else if (col.key === 'joiningDate') {
+                                val = emp.dateOfJoining || emp.expectedJoiningDate || val;
+                              }
+                            }
+                          } else if (row.candidateId) {
+                            const cand = candidateDirectory.find((c: any) => String(c._id) === idOf(row.candidateId));
+                            if (cand) {
+                              if (col.key === 'employeeName' || col.key === 'candidateName' || col.key === 'employeename') {
+                                val = `${cand.firstName} ${cand.lastName || ''}`.trim();
+                              } else if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId') {
+                                val = cand.employeeCode || cand.uniqueId || cand.candidateCode || val;
+                              } else if (col.key === 'designation' || col.key === 'position') {
+                                val = cand.jobRole || val;
+                              } else if (col.key === 'department') {
+                                val = cand.department || val;
+                              } else if (col.key === 'joiningDate') {
+                                val = cand.expectedJoiningDate || cand.dateOfJoining || val;
+                              }
                             }
                           }
                         }
-                      }
-                      
-                      if ((!val || val === '—') && col.key === 'lastUpdate') {
-                        val = row.updatedAt || row.createdAt || val;
-                      }
 
-                      if ((!val || val === '—') && col.key === 'status') {
-                        val = row.status || row.finalStatus || row.overallStatus || row.signedStatus || 'Saved';
-                      }
-                      
-                      return (
-                        <td key={col.key} className="px-3 py-2 border-r border-slate-100 text-slate-700">
-                          {displayValue(val)}
-                        </td>
-                      );
-                    })}
-                    <td className="px-3 py-2 text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <button onClick={() => setSelectedRecord(row)} className="p-1.5 text-slate-700 hover:bg-slate-100 rounded transition-colors" title="View complete details">
-                          <Eye size={13} />
-                        </button>
-                        <button onClick={() => openRecordForm(row)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
-                          <Edit2 size={13} />
-                        </button>
-                        <button onClick={() => { if (confirm('Are you sure you want to delete this record?')) deleteMutation.mutate(row._id); }} className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete">
-                          <Trash2 size={13} />
-                        </button>
-                        {(step.hasPdf || (step as any).hasPrint) && (
-                          <button onClick={async () => {
-                            let candId = idOf(row.candidateId) || row.rawCandidateId;
-                            if (!candId && step.entityField === 'employeeId') {
-                              const empId = idOf(row.employeeId);
-                              if (empId) {
-                                const response = await api.get(`/hiring/employees/${empId}/candidate`);
-                                candId = response.data.candidateId;
+                        // Fallback for nominees if the backend returns them in an array instead of root level
+                        if ((!val || val === '—') && col.key === 'nominee1FullName' && Array.isArray(row.nominees) && row.nominees.length > 0) {
+                          val = row.nominees[0].name;
+                        }
+                        if ((!val || val === '—') && col.key === 'nominee2FullName' && Array.isArray(row.nominees) && row.nominees.length > 1) {
+                          val = row.nominees[1].name;
+                        }
+
+                        if ((!val || val === '—') && col.key === 'lastUpdate') {
+                          val = row.updatedAt || row.createdAt || val;
+                        }
+
+                        if ((!val || val === '—') && col.key === 'status') {
+                          val = row.status || row.finalStatus || row.overallStatus || row.signedStatus || 'Saved';
+                        }
+
+                        if ((!val || val === '—') && col.key === 'medicalInfo.bloodGroup') {
+                          val = row.bloodGroup || val;
+                        }
+
+                        return (
+                          <td key={col.key} className="px-3 py-2 border-r border-slate-100 text-slate-700">
+                            {displayValue(val)}
+                          </td>
+                        );
+                      })}
+                      <td className="px-3 py-2 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <button onClick={() => setSelectedRecord(row)} className="p-1.5 text-slate-700 hover:bg-slate-100 rounded transition-colors" title="View complete details">
+                            <Eye size={13} />
+                          </button>
+                          <button onClick={() => openRecordForm(row)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
+                            <Edit2 size={13} />
+                          </button>
+                          <button onClick={() => { if (confirm('Are you sure you want to delete this record?')) deleteMutation.mutate(row._id); }} className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete">
+                            <Trash2 size={13} />
+                          </button>
+                          {(step.hasPdf || (step as any).hasPrint) && (
+                            <button onClick={async () => {
+                              let candId = idOf(row.candidateId) || row.rawCandidateId;
+                              if (!candId && step.entityField === 'employeeId') {
+                                const empId = idOf(row.employeeId);
+                                if (empId) {
+                                  const response = await api.get(`/hiring/employees/${empId}/candidate`);
+                                  candId = response.data.candidateId;
+                                }
                               }
-                            }
-                            if (candId) {
-                              window.open(`/dashboard/hiring/${candId}/print/${step.id}`, '_blank');
-                            } else {
-                              window.alert('Candidate ID not found');
-                            }
-                          }} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition-colors flex items-center gap-1" title="Print/Generate PDF">
-                            <FileText size={13} />
-                          </button>
-                        )}
-                        {(step.postCreateActions || [])
-                          .filter((action) => {
-                            if (step.id === 'selection-approval' && row.finalStatus && row.finalStatus !== 'Pending') return false;
-                            if (step.id === 'induction' && action.label === 'Complete First Module') {
-                              if (!row.modules || row.modules.length === 0 || row.modules[0].completed) return false;
-                            }
-                            return true;
-                          })
-                          .map((action) => {
-                          const lower = action.label.toLowerCase();
-                          const isApprove = lower.includes('approve') || lower.includes('accept') || lower.includes('confirm') || lower.includes('verify') || lower.includes('issue');
-                          const isReject = lower.includes('reject') || lower.includes('decline') || lower.includes('terminate');
-                          return (
-                            <button
-                              key={action.label}
-                              onClick={() => actionMutation.mutate({ recordId: row._id, action })}
-                              className={`p-1.5 rounded transition-colors flex items-center gap-1 ${isApprove ? 'text-emerald-600 hover:bg-emerald-50' : isReject ? 'text-red-600 hover:bg-red-50' : 'text-indigo-600 hover:bg-indigo-50'}`}
-                              title={action.label}
-                            >
-                              {isApprove ? <CheckCircle size={13} /> : isReject ? <XCircle size={13} /> : <ShieldCheck size={13} />}
+                              if (candId) {
+                                window.open(`/dashboard/hiring/${candId}/print/${step.id}`, '_blank');
+                              } else {
+                                window.alert('Candidate ID not found');
+                              }
+                            }} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition-colors flex items-center gap-1" title="Print/Generate PDF">
+                              <FileText size={13} />
                             </button>
-                          );
-                        })}
-                        {nextStep && (
-                          <button onClick={() => proceedToNextStep(row)} className="p-1.5 text-zinc-600 hover:bg-zinc-100 rounded transition-colors flex items-center gap-1" title="Proceed to Next Step">
-                            <ArrowRight size={13} />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                          )}
+                          {(step.postCreateActions || [])
+                            .filter((action) => {
+                              if (step.id === 'selection-approval' && row.finalStatus && row.finalStatus !== 'Pending') return false;
+                              if (step.id === 'induction' && action.label === 'Complete First Module') {
+                                if (!row.modules || row.modules.length === 0 || row.modules[0].completed) return false;
+                              }
+                              return true;
+                            })
+                            .map((action) => {
+                              const lower = action.label.toLowerCase();
+                              const isApprove = lower.includes('approve') || lower.includes('accept') || lower.includes('confirm') || lower.includes('verify') || lower.includes('issue');
+                              const isReject = lower.includes('reject') || lower.includes('decline') || lower.includes('terminate');
+                              return (
+                                <button
+                                  key={action.label}
+                                  onClick={() => actionMutation.mutate({ recordId: row._id, action })}
+                                  className={`p-1.5 rounded transition-colors flex items-center gap-1 ${isApprove ? 'text-emerald-600 hover:bg-emerald-50' : isReject ? 'text-red-600 hover:bg-red-50' : 'text-indigo-600 hover:bg-indigo-50'}`}
+                                  title={action.label}
+                                >
+                                  {isApprove ? <CheckCircle size={13} /> : isReject ? <XCircle size={13} /> : <ShieldCheck size={13} />}
+                                </button>
+                              );
+                            })}
+                          {nextStep && (
+                            <button onClick={() => proceedToNextStep(row)} className="p-1.5 text-zinc-600 hover:bg-zinc-100 rounded transition-colors flex items-center gap-1" title="Proceed to Next Step">
+                              <ArrowRight size={13} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
             <tfoot className="bg-slate-50">
@@ -512,11 +596,21 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
           <div className="flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-              <div><h3 className="text-base font-semibold text-slate-900">{step.title} Details</h3><p className="text-xs text-slate-500">{subjectName(selectedRecord)}</p></div>
+              <div>
+                <h3 className="text-base font-semibold text-slate-900">{step.title} Details</h3>
+                <div className="flex items-center gap-3 mt-0.5">
+                  <p className="text-xs text-slate-500">{subjectName(selectedRecord)}</p>
+                  {(getRecordCanonicalId(selectedRecord) || selectedRecord.employeeCode || selectedRecord.uniqueId || selectedRecord.candidateCode || selectedRecord.empCode) && (
+                    <span className="text-xs font-mono font-bold text-[#0d3c68] bg-slate-100 px-2 py-0.5 rounded">
+                      ID: {getRecordCanonicalId(selectedRecord) || formatEmployeeId(selectedRecord.employeeCode || selectedRecord.uniqueId || selectedRecord.candidateCode || selectedRecord.empCode)}
+                    </span>
+                  )}
+                </div>
+              </div>
               <button onClick={() => setSelectedRecord(null)} className="rounded p-1.5 text-slate-500 hover:bg-slate-100"><X size={18} /></button>
             </div>
             <div className="grid flex-1 gap-x-6 gap-y-3 overflow-y-auto p-5 md:grid-cols-2">
-              {detailRows(selectedRecord).map((entry, index) => <div key={`${entry.label}-${index}`} className="border-b border-slate-100 pb-2"><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{entry.label}</p><p className="mt-1 break-words text-sm text-slate-800">{entry.value}</p></div>)}
+              {detailRows(selectedRecord, '', getRecordCanonicalId(selectedRecord)).map((entry, index) => <div key={`${entry.label}-${index}`} className="border-b border-slate-100 pb-2"><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{entry.label}</p><p className="mt-1 break-words text-sm text-slate-800">{entry.value}</p></div>)}
             </div>
           </div>
         </div>

@@ -199,6 +199,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     apiPath: '/hiring/joining-confirmation', entityField: 'candidateId', hasPdf: true,
     listColumns: [
       { key: 'candidateName', label: 'Candidate Name' },
+      { key: 'uniqueId', label: 'Employee ID' },
       { key: 'position', label: 'Position' },
       { key: 'joiningDate', label: 'Joining Date' },
       { key: 'reportingTime', label: 'Reporting Time' },
@@ -225,6 +226,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     apiPath: '/hiring/doc-checklist', entityField: 'candidateId', hasPdf: true,
     listColumns: [
       { key: 'candidateName', label: 'Candidate Name' },
+      { key: 'employeeCode', label: 'Employee ID' },
       { key: 'position', label: 'Position' },
       { key: 'documentsSubmitted', label: 'Docs Submitted' },
       { key: 'bgvStatus', label: 'BGV Status' },
@@ -237,7 +239,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
       { name: 'department', label: 'Department', type: 'text', placeholder: 'e.g., Value' },
       { name: 'dateOfJoining', label: 'Date Of Joining', type: 'text', placeholder: 'e.g., Value' },
       { name: 'workLocation', label: 'Work Location', type: 'text', placeholder: 'e.g., Value' },
-      { name: 'employeeCode', label: 'Employee Code', type: 'text', placeholder: 'e.g., Value' },
+      { name: 'employeeCode', label: 'Employee Code', type: 'text', placeholder: 'e.g., NAM/HQ/26/0011' },
       { name: 'employeeSignatureDate', label: 'Employee Signature Date', type: 'text', placeholder: 'e.g., Value' },
       { name: 'hrName', label: 'Hr Name', type: 'text', placeholder: 'e.g., Value' },
       { name: 'hrSignatureDate', label: 'Hr Signature Date', type: 'text', placeholder: 'e.g., Value' },
@@ -257,6 +259,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     apiPath: '/hiring/bgv', entityField: 'candidateId', hasPdf: true,
     listColumns: [
       { key: 'candidateName', label: 'Candidate Name' },
+      { key: 'empCode', label: 'Employee ID' },
       { key: 'position', label: 'Position' },
       { key: 'phoneNumber', label: 'Phone Number' },
       { key: 'email', label: 'Email' },
@@ -300,6 +303,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     apiPath: '/hiring/joining-form', entityField: 'candidateId', hasPdf: true,
     listColumns: [
       { key: 'personalDetails.fullName', label: 'Employee Name' },
+      { key: 'positionDetails.empCode', label: 'Employee ID' },
       { key: 'positionDetails.designation', label: 'Position' },
       { key: 'contactDetails.mobileNumber', label: 'Phone Number' },
       { key: 'personalEmailId', label: 'Email' },
@@ -395,7 +399,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     ],
     fields: [
       { name: 'employeeName', label: 'Employee Name', type: 'text', placeholder: 'e.g., Value' },
-      { name: 'empCode', label: 'Emp Code', type: 'text', placeholder: 'e.g., Value' },
+      { name: 'empCode', label: 'Emp Code', type: 'text', placeholder: 'e.g., NAM/HQ/26/0011' },
       { name: 'designation', label: 'Designation', type: 'text', placeholder: 'e.g., Value' },
       { name: 'department', label: 'Department', type: 'text', placeholder: 'e.g., Value' },
       { name: 'fatherHusbandSpouse', label: 'Father Husband Spouse', type: 'text', placeholder: 'e.g., Value' },
@@ -464,7 +468,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     ],
     fields: [
       { name: 'employeeName', label: 'Employee Name', type: 'text', placeholder: 'e.g., Value' },
-      { name: 'empCode', label: 'Emp Code', type: 'text', placeholder: 'e.g., Value' },
+      { name: 'empCode', label: 'Emp Code', type: 'text', placeholder: 'e.g., NAM/HQ/26/0011' },
       { name: 'designation', label: 'Designation', type: 'text', placeholder: 'e.g., Value' },
       { name: 'department', label: 'Department', type: 'text', placeholder: 'e.g., Value' },
       { name: 'dateOfJoining', label: 'Date Of Joining', type: 'text', placeholder: 'e.g., Value' },
@@ -517,7 +521,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     ],
     fields: [
       { name: 'employeeName', label: 'Employee Name', type: 'text', placeholder: 'e.g., Value' },
-      { name: 'empCode', label: 'Emp Code', type: 'text', placeholder: 'e.g., Value' },
+      { name: 'empCode', label: 'Emp Code', type: 'text', placeholder: 'e.g., NAM/HQ/26/0011' },
       { name: 'designation', label: 'Designation', type: 'text', placeholder: 'e.g., Value' },
       { name: 'department', label: 'Department', type: 'text', placeholder: 'e.g., Value' },
       { name: 'dateOfJoining', label: 'Date Of Joining', type: 'text', placeholder: 'e.g., Value' },
@@ -572,6 +576,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     apiPath: '/hiring/offer-letter', entityField: 'candidateId', hasPdf: true,
     listColumns: [
       { key: 'candidateName', label: 'Candidate Name' },
+      { key: 'employeeCode', label: 'Employee ID' },
       { key: 'designation', label: 'Designation' },
       { key: 'monthlyCTC', label: 'Monthly CTC' },
       { key: 'joiningDate', label: 'Joining Date' },
@@ -605,6 +610,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     apiPath: '/hiring/nda', entityField: 'candidateId', hasPdf: true,
     listColumns: [
       { key: 'candidateName', label: 'Candidate Name' },
+      { key: 'employeeCode', label: 'Employee ID' },
       { key: 'designation', label: 'Designation' },
       { key: 'signedStatus', label: 'Status' },
       { key: 'updatedAt', label: 'Last Update' },
@@ -632,6 +638,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     apiPath: '/hiring/it-policy-accept', entityField: 'candidateId', hasPdf: true,
     listColumns: [
       { key: 'employeeName', label: 'Employee Name' },
+      { key: 'employeeCode', label: 'Employee ID' },
       { key: 'designation', label: 'Position' },
       { key: 'signerName', label: 'Signer Name' },
       { key: 'acceptedAt', label: 'Accepted On' },
@@ -639,7 +646,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     ],
     fields: [
       { name: 'candidateName', label: 'Candidate Name', type: 'text', placeholder: 'e.g., Value' },
-      { name: 'employeeCode', label: 'Employee Code', type: 'text', placeholder: 'e.g., Value' },
+      { name: 'employeeCode', label: 'Employee Code', type: 'text', placeholder: 'e.g., NAM/HQ/26/0011' },
       { name: 'designation', label: 'Designation', type: 'text', placeholder: 'e.g., Value' },
       { name: 'department', label: 'Department', type: 'text', placeholder: 'e.g., Value' },
       { name: 'dateOfJoining', label: 'Date Of Joining', type: 'text', placeholder: 'e.g., Value' },
@@ -656,6 +663,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     apiPath: '/hiring/code-of-conduct-accept', entityField: 'candidateId', hasPdf: true,
     listColumns: [
       { key: 'employeeName', label: 'Employee Name' },
+      { key: 'employeeCode', label: 'Employee ID' },
       { key: 'designation', label: 'Position' },
       { key: 'signerName', label: 'Signer Name' },
       { key: 'acceptedAt', label: 'Accepted On' },
@@ -663,7 +671,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     ],
     fields: [
       { name: 'candidateName', label: 'Candidate Name', type: 'text', placeholder: 'e.g., Value' },
-      { name: 'employeeCode', label: 'Employee Code', type: 'text', placeholder: 'e.g., Value' },
+      { name: 'employeeCode', label: 'Employee Code', type: 'text', placeholder: 'e.g., NAM/HQ/26/0011' },
       { name: 'designation', label: 'Designation', type: 'text', placeholder: 'e.g., Value' },
       { name: 'department', label: 'Department', type: 'text', placeholder: 'e.g., Value' },
       { name: 'dateOfJoining', label: 'Date Of Joining', type: 'text', placeholder: 'e.g., Value' },
@@ -681,6 +689,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     apiPath: '/hiring/appointment-letter', entityField: 'candidateId', hasPdf: true,
     listColumns: [
       { key: 'candidateName', label: 'Candidate Name' },
+      { key: 'employeeCode', label: 'Employee ID' },
       { key: 'designation', label: 'Position' },
       { key: 'ctc', label: 'Annual CTC' },
       { key: 'status', label: 'Status' },
@@ -721,7 +730,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     apiPath: '/hiring/asset-access', entityField: 'candidateId', hasPdf: true,
     listColumns: [
       { key: 'candidateName', label: 'Employee Name' },
-      { key: 'uniqueId', label: 'Unique ID' },
+      { key: 'uniqueId', label: 'Employee ID' },
       { key: 'officialEmail', label: 'Official Email' },
       { key: 'mobileNumber', label: 'Mobile Number' },
       { key: 'status', label: 'Status' },
@@ -731,7 +740,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
       { name: 'candidateName', label: 'Candidate Name', type: 'text', placeholder: 'e.g., Value' },
       { name: 'department', label: 'Department', type: 'text', placeholder: 'e.g., Value' },
       { name: 'designation', label: 'Designation', type: 'text', placeholder: 'e.g., Value' },
-      { name: 'uniqueId', label: 'Unique Id', type: 'text', placeholder: 'e.g., Value' },
+      { name: 'uniqueId', label: 'Employee ID', type: 'text', placeholder: 'e.g., NAM/HQ/26/0011' },
       { name: 'personalEmail', label: 'Personal Email', type: 'text', placeholder: 'e.g., Value' },
       { name: 'officialEmail', label: 'Official Email', type: 'text', placeholder: 'e.g., Value' },
       { name: 'mobileNumber', label: 'Mobile Number', type: 'text', placeholder: 'e.g., Value' },
@@ -772,7 +781,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     apiPath: '/hiring/engagement-confirm', entityField: 'candidateId', hasPdf: true,
     listColumns: [
       { key: 'employeeName', label: 'Employee Name' },
-      { key: 'uniqueId', label: 'Unique ID' },
+      { key: 'uniqueId', label: 'Employee ID' },
       { key: 'department', label: 'Department' },
       { key: 'designation', label: 'Designaton' },
       { key: 'reportingTo', label: 'Reporting To' },
@@ -783,7 +792,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     ],
     fields: [
       { name: 'employeeName', label: 'Employee Name', type: 'text', placeholder: 'e.g., Value' },
-      { name: 'uniqueId', label: 'Unique Id', type: 'text', placeholder: 'e.g., Value' },
+      { name: 'uniqueId', label: 'Employee ID', type: 'text', placeholder: 'e.g., NAM/HQ/26/0011' },
       { name: 'department', label: 'Department', type: 'text', placeholder: 'e.g., Value' },
       { name: 'designation', label: 'Designation', type: 'text', placeholder: 'e.g., Value' },
       { name: 'joiningDate', label: 'Joining Date', type: 'date' },
@@ -808,7 +817,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     ],
     fields: [
       { name: 'employeeName', label: 'Employee Name', type: 'text', placeholder: 'e.g., Value' },
-      { name: 'uniqueId', label: 'Unique Id', type: 'text', placeholder: 'e.g., Value' },
+      { name: 'uniqueId', label: 'Employee ID', type: 'text', placeholder: 'e.g., NAM/HQ/26/0011' },
       { name: 'designation', label: 'Designation', type: 'text', placeholder: 'e.g., Value' },
       { name: 'department', label: 'Department', type: 'text', placeholder: 'e.g., Value' },
       { name: 'joiningDate', label: 'Joining Date', type: 'date' },
@@ -828,6 +837,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     apiPath: '/hiring/team-intro', entityField: 'candidateId', hasPdf: true,
     listColumns: [
       { key: 'candidateName', label: 'Candidate Name' },
+      { key: 'uniqueId', label: 'Employee ID' },
       { key: 'position', label: 'Position' },
       { key: 'department', label: 'Department' },
       { key: 'joiningDate', label: 'Joining Date' },
@@ -868,7 +878,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     ],
     fields: [
       { name: 'candidateName', label: 'Candidate Name', type: 'text', placeholder: 'e.g., Value' },
-      { name: 'uniqueId', label: 'Unique Id', type: 'text', placeholder: 'e.g., Value' },
+      { name: 'uniqueId', label: 'Employee ID', type: 'text', placeholder: 'e.g., NAM/HQ/26/0011' },
       { name: 'department', label: 'Department', type: 'text', placeholder: 'e.g., Value' },
       { name: 'designation', label: 'Designation', type: 'text', placeholder: 'e.g., Value' },
       { name: 'joiningDate', label: 'Joining Date', type: 'date' },
@@ -901,6 +911,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     apiPath: '/hiring/perf-eval', entityField: 'employeeId', hasPdf: true,
     listColumns: [
       { key: 'employeeName', label: 'Employee Name' },
+      { key: 'uniqueId', label: 'Employee ID' },
       { key: 'department', label: 'Department' },
       { key: 'designation', label: 'Designation' },
       { key: 'reviewPeriod', label: 'Review Period' },
@@ -910,7 +921,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
     ],
     fields: [
       { name: 'employeeName', label: 'Employee Name', type: 'text', placeholder: 'e.g., Value' },
-      { name: 'uniqueId', label: 'Employee Id', type: 'text', placeholder: 'e.g., Value' },
+      { name: 'uniqueId', label: 'Employee ID', type: 'text', placeholder: 'e.g., NAM/HQ/26/0011' },
       { name: 'department', label: 'Department', type: 'text', placeholder: 'e.g., Value' },
       { name: 'designation', label: 'Designation', type: 'text', placeholder: 'e.g., Value' },
       { name: 'joiningDate', label: 'Joining Date', type: 'date' },
@@ -949,7 +960,7 @@ export const HIRING_STEPS: HiringStepConfig[] = [
       { name: 'mobileNumber', label: 'Mobile Number', type: 'text', placeholder: 'e.g., Value' },
       { name: 'department', label: 'Department', type: 'text', placeholder: 'e.g., Value' },
       { name: 'cardType', label: 'Card Type', type: 'select', options: ['ID Card', 'Visiting Card'] },
-      { name: 'employeeCode', label: 'Employee Code', type: 'text', placeholder: 'e.g., EMP123' },
+      { name: 'employeeCode', label: 'Employee Code', type: 'text', placeholder: 'e.g., NAM/HQ/26/0011' },
       { name: 'designation', label: 'Designation', type: 'text', placeholder: 'e.g., Developer' },
       { name: 'bloodGroup', label: 'Blood Group', type: 'text', placeholder: 'e.g., O+' },
       { name: 'cardTheme', label: 'Card Theme Hex Colour', type: 'text', placeholder: 'e.g., #0d3c68' },

@@ -9,11 +9,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
-import { cn } from '@/lib/utils';
+import { cn, formatEmployeeId } from '@/lib/utils';
+import { useMasterDataStore } from '@/store/masterDataStore';
 
 export default function EmergencyContactPage({ candidateId }: { candidateId: string }) {
     const router = useRouter();
     const { user } = useAuthStore();
+    const { departments, designations, fetchMasterData } = useMasterDataStore();
+    
+    const departmentOptions = [{ value: '', label: 'Select Department' }, ...departments.map((d: any) => ({ value: d.name || '', label: d.name || '' }))];
+    const designationOptions = [{ value: '', label: 'Select Designation' }, ...designations.map((d: any) => ({ value: d.title || d.name || '', label: d.title || d.name || '' }))];
+
     const currentUsername = `${(user as any)?.firstName || ''} ${(user as any)?.lastName || ''}`.trim() || 'Admin';
 
     const [loading, setLoading] = useState(true);
@@ -68,7 +74,7 @@ export default function EmergencyContactPage({ candidateId }: { candidateId: str
             setLoading(true);
             const candidateRes = await api.get(`/hiring/candidates/${candidateId}`);
             const cand = candidateRes.data;
-            let fetchedEmpCode = cand.employeeCode || '';
+            let fetchedEmpCode = formatEmployeeId(cand.employeeCode || cand.uniqueId || cand.candidateCode || '');
             let fetchedDoj = '';
             let fetchedWorkLocation = cand.workLocation || '';
             let fetchedReportingTo = cand.reportingTo || '';
@@ -82,7 +88,7 @@ export default function EmergencyContactPage({ candidateId }: { candidateId: str
                 const nomList = Array.isArray(nomRes.data) ? nomRes.data : (nomRes.data?.data || []);
                 if (nomList.length > 0) {
                     const nom = nomList[0];
-                    if (nom.empCode) fetchedEmpCode = nom.empCode;
+                    if (nom.empCode) fetchedEmpCode = formatEmployeeId(nom.empCode);
                     if (nom.dateOfJoining) fetchedDoj = new Date(nom.dateOfJoining).toISOString().split('T')[0];
                     if (nom.workLocation) fetchedWorkLocation = nom.workLocation;
                     if (nom.reportingTo) fetchedReportingTo = nom.reportingTo;
@@ -96,7 +102,7 @@ export default function EmergencyContactPage({ candidateId }: { candidateId: str
                 if (!fetchedEmpCode) {
                     const docRes = await api.get('/hiring/doc-checklist', { params: { candidateId } });
                     const docList = Array.isArray(docRes.data) ? docRes.data : (docRes.data?.data || []);
-                    if (docList.length > 0) fetchedEmpCode = docList[0].empCode || docList[0].employeeCode || fetchedEmpCode;
+                    if (docList.length > 0) fetchedEmpCode = formatEmployeeId(docList[0].empCode || docList[0].employeeCode || fetchedEmpCode);
                 }
             } catch (e) { console.log("Could not fetch document checklist"); }
 
@@ -145,7 +151,7 @@ export default function EmergencyContactPage({ candidateId }: { candidateId: str
                     },
                     bloodGroup: row.medicalInfo?.bloodGroup || row.bloodGroup || fetchedBloodGroup || '',
                     employeeName: row.employeeName || defaultEmployeeName,
-                    empCode: row.empCode || fetchedEmpCode,
+                    empCode: formatEmployeeId(row.empCode || row.employeeCode || row.uniqueId || fetchedEmpCode || cand.employeeCode || cand.uniqueId || cand.candidateCode || ''),
                     designation: row.designation || defaultDesignation,
                     department: row.department || defaultDepartment,
                     dateOfJoining: row.dateOfJoining ? row.dateOfJoining.split('T')[0] : fetchedDoj,
@@ -160,7 +166,7 @@ export default function EmergencyContactPage({ candidateId }: { candidateId: str
                     ...prev,
                     bloodGroup: fetchedBloodGroup || '',
                     employeeName: defaultEmployeeName,
-                    empCode: fetchedEmpCode,
+                    empCode: formatEmployeeId(fetchedEmpCode),
                     designation: defaultDesignation,
                     department: defaultDepartment,
                     dateOfJoining: fetchedDoj,
@@ -180,6 +186,7 @@ export default function EmergencyContactPage({ candidateId }: { candidateId: str
         if (candidateId) {
             fetchEmergencyData();
         }
+        fetchMasterData();
     }, [candidateId]);
 
     const handleChange = (field: string, value: any) => {
@@ -263,18 +270,22 @@ export default function EmergencyContactPage({ candidateId }: { candidateId: str
                                     </FormField>
                                     <FormField label="Employee Code (HR):">
                                         <FormInput
-                                            value={formData.empCode}
+                                            value={formatEmployeeId(formData.empCode)}
                                             onChange={(e) => handleChange('empCode', e.target.value)}
+                                            placeholder="e.g. NAM/HQ/26/0011"
+                                            className="font-mono"
                                         />
                                     </FormField>
                                     <FormField label="2. Designation:">
-                                        <FormInput
+                                        <FormSelect
+                                            options={designationOptions}
                                             value={formData.designation}
                                             onChange={(e) => handleChange('designation', e.target.value)}
                                         />
                                     </FormField>
                                     <FormField label="Department:">
-                                        <FormInput
+                                        <FormSelect
+                                            options={departmentOptions}
                                             value={formData.department}
                                             onChange={(e) => handleChange('department', e.target.value)}
                                         />

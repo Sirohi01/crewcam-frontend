@@ -9,6 +9,7 @@ import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 import { useMasterDataStore } from '@/store/masterDataStore';
 import { useAuthStore } from '@/store/authStore';
+import { formatEmployeeId } from '@/lib/utils';
 
 export default function NominationFormPage({ candidateId }: { candidateId: string }) {
     const router = useRouter();
@@ -89,10 +90,15 @@ export default function NominationFormPage({ candidateId }: { candidateId: strin
     const fetchNominationData = async () => {
         try {
             setLoading(true);
-            const candidateRes = await api.get(`/hiring/candidates/${candidateId}`);
-            const cand = candidateRes.data;
+            let cand: any = {};
+            try {
+                const candidateRes = await api.get(`/hiring/candidates/${candidateId}`);
+                cand = candidateRes.data || {};
+            } catch (err) {
+                console.warn('Candidate data could not be loaded, proceeding with existing nomination data if available.');
+            }
 
-            let fetchedEmpCode = cand.employeeCode || '';
+            let fetchedEmpCode = formatEmployeeId(cand.employeeCode || cand.uniqueId || cand.candidateCode || '');
             let fetchedDoj = '';
             let fetchedDob = '';
             let fetchedGender = '';
@@ -104,7 +110,7 @@ export default function NominationFormPage({ candidateId }: { candidateId: strin
             try {
                 const docRes = await api.get('/hiring/doc-checklist', { params: { candidateId } });
                 const docList = Array.isArray(docRes.data) ? docRes.data : (docRes.data?.data || []);
-                if (docList.length > 0) fetchedEmpCode = docList[0].empCode || docList[0].employeeCode || fetchedEmpCode;
+                if (docList.length > 0) fetchedEmpCode = formatEmployeeId(docList[0].employeeCode || docList[0].empCode || docList[0].uniqueId || fetchedEmpCode);
             } catch (e) { }
 
             try {
@@ -148,7 +154,7 @@ export default function NominationFormPage({ candidateId }: { candidateId: strin
                     ...row,
                     docs: row.docs || formData.docs,
                     employeeName: row.employeeName || defaultEmployeeName,
-                    empCode: row.empCode || fetchedEmpCode,
+                    empCode: formatEmployeeId(row.empCode || row.employeeCode || row.uniqueId || fetchedEmpCode || cand.employeeCode || cand.uniqueId || cand.candidateCode || ''),
                     designation: row.designation || defaultDesignation,
                     department: row.department || defaultDepartment,
                     emailId: row.emailId || cand.email || '',
@@ -173,7 +179,7 @@ export default function NominationFormPage({ candidateId }: { candidateId: strin
                 setFormData(prev => ({
                     ...prev,
                     employeeName: defaultEmployeeName,
-                    empCode: fetchedEmpCode,
+                    empCode: formatEmployeeId(fetchedEmpCode),
                     designation: defaultDesignation,
                     department: defaultDepartment,
                     emailId: cand.email || '',
@@ -290,7 +296,7 @@ export default function NominationFormPage({ candidateId }: { candidateId: strin
                                     <FormInput placeholder="Enter Employee Name" value={formData.employeeName} onChange={(e) => handleChange("employeeName", e.target.value)} required readOnly={isPreFilled} />
                                 </FormField>
                                 <FormField label="EMP Code (HR):">
-                                    <FormInput placeholder="Enter EMP Code" value={formData.empCode} onChange={(e) => handleChange("empCode", e.target.value)} />
+                                    <FormInput placeholder="e.g. NAM/HQ/26/0011" value={formatEmployeeId(formData.empCode)} onChange={(e) => handleChange("empCode", e.target.value)} className="font-mono" />
                                 </FormField>
                                 <FormField label="2. Designation:" required>
                                     <FormSelect options={designationOptions} value={formData.designation} onChange={(e) => handleChange("designation", e.target.value)} required placeholder="Select Designation" />
