@@ -53,6 +53,12 @@ export default function CandidateRegister({
   }, [query]);
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && sessionStorage.getItem('prefillCandidateData')) {
+      router.push('/dashboard/hiring/candidates/new/create?source=career');
+    }
+  }, [router]);
+
+  useEffect(() => {
     setPage(1);
   }, [debouncedQuery, statusFilter, pageSize]);
 
