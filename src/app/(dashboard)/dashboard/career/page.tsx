@@ -397,9 +397,6 @@ export default function CareerPage() {
   const [isPosFilterOpen, setIsPosFilterOpen] = useState(false);
   const [isSourceFilterOpen, setIsSourceFilterOpen] = useState(false);
 
-  // Quick card filter selection
-  const [selectedCardFilter, setSelectedCardFilter] = useState<string | null>(null);
-
   // Active filters applied
   const [appliedFilters, setAppliedFilters] = useState({
     search: '',
@@ -634,7 +631,6 @@ export default function CareerPage() {
     setBranchFilter('All Branches');
     setPositionFilter('All Positions');
     setSourceFilter('All Sources');
-    setSelectedCardFilter(null);
     setAppliedFilters({
       search: '',
       status: 'All Status',
@@ -913,76 +909,6 @@ export default function CareerPage() {
       sourceKey: 'Telegram',
     },
   ];
-
-  const handleCardClick = (cardId: string) => {
-    if (selectedCardFilter === cardId) {
-      setSelectedCardFilter(null);
-      setAppliedFilters((prev) => ({
-        ...prev,
-        status: 'All Status',
-        source: 'All Sources',
-      }));
-      setStatusFilter('All Status');
-      setSourceFilter('All Sources');
-      setCurrentPage(1);
-      toast.success('Quick filter reset');
-      return;
-    }
-
-    setSelectedCardFilter(cardId);
-    setCurrentPage(1);
-
-    if (cardId === 'total') {
-      setSelectedCardFilter(null);
-      setAppliedFilters((prev) => ({ ...prev, status: 'All Status', source: 'All Sources' }));
-      setStatusFilter('All Status');
-      setSourceFilter('All Sources');
-      toast.success('Showing all applications');
-    } else if (cardId === 'new') {
-      setAppliedFilters((prev) => ({ ...prev, status: 'New', source: 'All Sources' }));
-      setStatusFilter('New');
-      setSourceFilter('All Sources');
-      toast.success('Filtered by: New Submissions');
-    } else if (cardId === 'resumes') {
-      setSelectedCardFilter(null);
-      setAppliedFilters((prev) => ({ ...prev, status: 'All Status', source: 'All Sources' }));
-      setStatusFilter('All Status');
-      setSourceFilter('All Sources');
-      toast.success('Showing all verified CVs');
-    } else if (cardId === 'website') {
-      setAppliedFilters((prev) => ({ ...prev, source: 'Career Website' }));
-      setSourceFilter('Career Website');
-      toast.success('Filtered by: Career Website Applications');
-    } else if (cardId === 'linkedin') {
-      setAppliedFilters((prev) => ({ ...prev, source: 'LinkedIn' }));
-      setSourceFilter('LinkedIn');
-      toast.success('Filtered by: LinkedIn Applications');
-    } else if (cardId === 'naukri') {
-      setAppliedFilters((prev) => ({ ...prev, source: 'Naukri.com' }));
-      setSourceFilter('Naukri.com');
-      toast.success('Filtered by: Naukri.com Applications');
-    } else if (cardId === 'apna') {
-      setAppliedFilters((prev) => ({ ...prev, source: 'Apna' }));
-      setSourceFilter('Apna');
-      toast.success('Filtered by: Apna Applications');
-    } else if (cardId === 'indeed') {
-      setAppliedFilters((prev) => ({ ...prev, source: 'Indeed' }));
-      setSourceFilter('Indeed');
-      toast.success('Filtered by: Indeed Applications');
-    } else if (cardId === 'facebook') {
-      setAppliedFilters((prev) => ({ ...prev, source: 'Facebook' }));
-      setSourceFilter('Facebook');
-      toast.success('Filtered by: Facebook Applications');
-    } else if (cardId === 'instagram') {
-      setAppliedFilters((prev) => ({ ...prev, source: 'Instagram' }));
-      setSourceFilter('Instagram');
-      toast.success('Filtered by: Instagram Applications');
-    } else if (cardId === 'telegram') {
-      setAppliedFilters((prev) => ({ ...prev, source: 'Telegram' }));
-      setSourceFilter('Telegram');
-      toast.success('Filtered by: Telegram Applications');
-    }
-  };
 
   return (
     <div className="flex flex-col gap-2 animate-in fade-in duration-300 p-2 w-full font-sans text-zinc-800 bg-[#f8f9fc] min-h-screen">
@@ -1309,16 +1235,10 @@ export default function CareerPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-1">
         {coreCards.map((card, idx) => {
           const Icon = card.icon;
-          const isSelected = selectedCardFilter === card.id;
           return (
             <div
               key={idx}
-              onClick={() => handleCardClick(card.id)}
-              className={`p-3 flex items-center justify-between bg-white border shadow-sm rounded-xl cursor-pointer transition-all duration-150 ${isSelected
-                ? 'ring-2 ring-indigo-600 border-indigo-600 shadow-md bg-indigo-50/20'
-                : 'border-zinc-200 hover:border-zinc-300 hover:shadow-md'
-                }`}
-              title={`Click to filter applications by ${card.title}`}
+              className="p-3 flex items-center justify-between bg-white border border-zinc-200 shadow-sm rounded-xl"
             >
               <div className="flex items-center gap-3">
                 <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 ${card.bg} ${card.text} shadow-sm`}>
@@ -1352,29 +1272,15 @@ export default function CareerPage() {
               (8 Active Job Portals & Inbound Social Feeds)
             </span>
           </div>
-          {selectedCardFilter && ['website', 'linkedin', 'naukri', 'apna', 'indeed', 'facebook', 'instagram', 'telegram'].includes(selectedCardFilter) && (
-            <button
-              onClick={() => handleCardClick(selectedCardFilter)}
-              className="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded-md transition-colors flex items-center gap-1"
-            >
-              <X className="w-3 h-3" /> Clear Channel Filter
-            </button>
-          )}
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
           {channelCards.map((card, idx) => {
             const Icon = card.icon;
-            const isSelected = selectedCardFilter === card.id;
             return (
               <div
                 key={idx}
-                onClick={() => handleCardClick(card.id)}
-                className={`p-2 sm:p-2.5 flex flex-col gap-1.5 rounded-lg border transition-all duration-150 cursor-pointer ${isSelected
-                  ? 'ring-2 ring-indigo-600 border-indigo-600 bg-indigo-50/40 shadow-sm'
-                  : 'bg-zinc-50/60 border-zinc-200/80 hover:bg-white hover:border-zinc-300 hover:shadow-sm'
-                  }`}
-                title={`Filter applications from ${card.title}`}
+                className="p-2 sm:p-2.5 flex flex-col gap-1.5 rounded-lg border bg-zinc-50/60 border-zinc-200/80 hover:bg-white hover:border-zinc-300 hover:shadow-xs transition-all duration-150"
               >
                 <div className="flex items-center justify-between">
                   <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${card.bg} ${card.text}`}>
