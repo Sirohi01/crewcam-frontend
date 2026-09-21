@@ -478,22 +478,22 @@ export default function EmployeesPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <Field label="First Name" value={formData.firstName} onChange={(value) => setFormData({ ...formData, firstName: value })} required />
-                  <Field label="Last Name" value={formData.lastName} onChange={(value) => setFormData({ ...formData, lastName: value })} required />
-                  <Field label="Email Address" type="email" value={formData.email} onChange={(value) => setFormData({ ...formData, email: value })} required />
-                  <Field label="Mobile Number" value={formData.mobileNumber} onChange={(value) => setFormData({ ...formData, mobileNumber: value })} />
+                  <Field label="First Name" value={formData.firstName} onChange={(value) => setFormData({ ...formData, firstName: value })} required placeholder="e.g. John" />
+                  <Field label="Last Name" value={formData.lastName} onChange={(value) => setFormData({ ...formData, lastName: value })} required placeholder="e.g. Doe" />
+                  <Field label="Email Address" type="email" value={formData.email} onChange={(value) => setFormData({ ...formData, email: value })} required placeholder="e.g. john.doe@example.com" />
+                  <Field label="Mobile Number" value={formData.mobileNumber} onChange={(value) => setFormData({ ...formData, mobileNumber: value.replace(/\D/g, '').slice(0, 10) })} placeholder="e.g. 9876543210" />
                   <Field label="Date of Birth" type="date" value={formData.dateOfBirth} onChange={(value) => setFormData({ ...formData, dateOfBirth: value })} />
                   <Select label="Gender" value={formData.gender} options={[{ _id: 'male', name: 'Male' }, { _id: 'female', name: 'Female' }, { _id: 'other', name: 'Other' }]} onChange={(value) => setFormData({ ...formData, gender: value })} />
-                  <Field label="Blood Group" value={formData.bloodGroup} onChange={(value) => setFormData({ ...formData, bloodGroup: value })} />
+                  <Field label="Blood Group" value={formData.bloodGroup} onChange={(value) => setFormData({ ...formData, bloodGroup: value })} placeholder="e.g. O+" />
                   <Select label="Marital Status" value={formData.maritalStatus} options={[{ _id: 'single', name: 'Single' }, { _id: 'married', name: 'Married' }, { _id: 'divorced', name: 'Divorced' }, { _id: 'widowed', name: 'Widowed' }]} onChange={(value) => setFormData({ ...formData, maritalStatus: value })} />
                 </div>
 
                 <div className="space-y-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
                   <h3 className="text-xs font-semibold text-zinc-900">Emergency Contact</h3>
                   <div className="grid grid-cols-3 gap-3">
-                    <Field label="Name" value={formData.emergencyContactName} onChange={(value) => setFormData({ ...formData, emergencyContactName: value })} />
-                    <Field label="Relation" value={formData.emergencyContactRelation} onChange={(value) => setFormData({ ...formData, emergencyContactRelation: value })} />
-                    <Field label="Phone" value={formData.emergencyContactNumber} onChange={(value) => setFormData({ ...formData, emergencyContactNumber: value })} />
+                    <Field label="Name" value={formData.emergencyContactName} onChange={(value) => setFormData({ ...formData, emergencyContactName: value })} placeholder="e.g. Jane Doe" />
+                    <Field label="Relation" value={formData.emergencyContactRelation} onChange={(value) => setFormData({ ...formData, emergencyContactRelation: value })} placeholder="e.g. Spouse" />
+                    <Field label="Phone" value={formData.emergencyContactNumber} onChange={(value) => setFormData({ ...formData, emergencyContactNumber: value.replace(/\D/g, '').slice(0, 10) })} placeholder="e.g. 9876543210" />
                   </div>
                 </div>
               </div>
@@ -508,9 +508,9 @@ export default function EmployeesPage() {
                   }} placeholder="House No, Building, Street" />
                   <div className="grid grid-cols-4 gap-3">
                     <Field label="Pincode" value={formData.currentPincode} onChange={(val) => handlePincodeChange(val, 'current')} placeholder="e.g. 110001" maxLength={6} />
-                    <Field label="City / District" value={formData.currentCity} onChange={(val) => setFormData(p => ({ ...p, currentCity: val, ...(p.sameAsCurrent ? { permanentCity: val } : {}) }))} />
-                    <Field label="State" value={formData.currentState} onChange={(val) => setFormData(p => ({ ...p, currentState: val, ...(p.sameAsCurrent ? { permanentState: val } : {}) }))} />
-                    <Field label="Country" value={formData.currentCountry} onChange={(val) => setFormData(p => ({ ...p, currentCountry: val, ...(p.sameAsCurrent ? { permanentCountry: val } : {}) }))} />
+                    <Field label="City / District" value={formData.currentCity} onChange={(val) => setFormData(p => ({ ...p, currentCity: val, ...(p.sameAsCurrent ? { permanentCity: val } : {}) }))} placeholder="e.g. New Delhi" />
+                    <Field label="State" value={formData.currentState} onChange={(val) => setFormData(p => ({ ...p, currentState: val, ...(p.sameAsCurrent ? { permanentState: val } : {}) }))} placeholder="e.g. Delhi" />
+                    <Field label="Country" value={formData.currentCountry} onChange={(val) => setFormData(p => ({ ...p, currentCountry: val, ...(p.sameAsCurrent ? { permanentCountry: val } : {}) }))} placeholder="e.g. India" />
                   </div>
                 </div>
 
@@ -527,9 +527,9 @@ export default function EmployeesPage() {
                       <Field label="Address Line 1" value={formData.permanentAddress} onChange={(val) => setFormData({ ...formData, permanentAddress: val })} placeholder="House No, Building, Street" />
                       <div className="grid grid-cols-4 gap-3">
                         <Field label="Pincode" value={formData.permanentPincode} onChange={(val) => handlePincodeChange(val, 'permanent')} placeholder="e.g. 110001" maxLength={6} />
-                        <Field label="City / District" value={formData.permanentCity} onChange={(val) => setFormData({ ...formData, permanentCity: val })} />
-                        <Field label="State" value={formData.permanentState} onChange={(val) => setFormData({ ...formData, permanentState: val })} />
-                        <Field label="Country" value={formData.permanentCountry} onChange={(val) => setFormData({ ...formData, permanentCountry: val })} />
+                        <Field label="City / District" value={formData.permanentCity} onChange={(val) => setFormData({ ...formData, permanentCity: val })} placeholder="e.g. New Delhi" />
+                        <Field label="State" value={formData.permanentState} onChange={(val) => setFormData({ ...formData, permanentState: val })} placeholder="e.g. Delhi" />
+                        <Field label="Country" value={formData.permanentCountry} onChange={(val) => setFormData({ ...formData, permanentCountry: val })} placeholder="e.g. India" />
                       </div>
                     </>
                   )}
@@ -588,9 +588,9 @@ export default function EmployeesPage() {
                 <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 space-y-2">
                   <h3 className="text-xs font-semibold text-zinc-900">Compliance & Identity (PAN/Aadhaar)</h3>
                   <div className="grid grid-cols-3 gap-3">
-                    <Field label="PAN Number" value={formData.panNumber} onChange={(value) => setFormData({ ...formData, panNumber: value })} />
-                    <Field label="Aadhaar Number" value={formData.aadhaarNumber} onChange={(value) => setFormData({ ...formData, aadhaarNumber: value })} />
-                    <Field label="UAN (PF Number)" value={formData.uanNumber} onChange={(value) => setFormData({ ...formData, uanNumber: value })} />
+                    <Field label="PAN Number" value={formData.panNumber} onChange={(value) => setFormData({ ...formData, panNumber: value })} placeholder="e.g. ABCDE1234F" />
+                    <Field label="Aadhaar Number" value={formData.aadhaarNumber} onChange={(value) => setFormData({ ...formData, aadhaarNumber: value })} placeholder="e.g. 1234 5678 9012" />
+                    <Field label="UAN (PF Number)" value={formData.uanNumber} onChange={(value) => setFormData({ ...formData, uanNumber: value })} placeholder="e.g. 100123456789" />
                   </div>
                 </div>
               </div>

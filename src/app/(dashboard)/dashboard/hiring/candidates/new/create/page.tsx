@@ -136,6 +136,12 @@ export default function CreateCandidatePage() {
         .split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
+    } else if (field === 'mobile') {
+      formattedValue = value.replace(/\D/g, '').slice(0, 10);
+    } else if (field === 'totalExperience' || field === 'relevantExperience') {
+      formattedValue = value.replace(/[^0-9.]/g, '');
+    } else if (field === 'yearOfPassing') {
+      formattedValue = value.replace(/\D/g, '').slice(0, 4);
     }
     setCandidate(prev => ({ ...prev, [field]: formattedValue }));
   };
@@ -744,8 +750,8 @@ export default function CreateCandidatePage() {
                 <p className="mb-1.5 text-[11px] font-bold text-zinc-700">Personal Information</p>
                 <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-4">
                   <Field title="Full Name" required><FormInput variant="compact" value={candidate.fullName} onChange={(e) => handleInputChange('fullName', e.target.value)} placeholder="e.g. Amit Kumar Verma" /></Field>
-                  <Field title="Email Address" required><FormInput variant="compact" value={candidate.email} onChange={(e) => handleInputChange('email', e.target.value)} placeholder="e.g. amit.verma@email.com" /></Field>
-                  <Field title="Mobile Number" required><FormInput variant="compact" value={candidate.mobile} onChange={(e) => handleInputChange('mobile', e.target.value)} placeholder="e.g. +91 98765 43210" /></Field>
+                  <Field title="Email Address" required><FormInput variant="compact" type="email" value={candidate.email} onChange={(e) => handleInputChange('email', e.target.value)} placeholder="e.g. amit.verma@email.com" /></Field>
+                  <Field title="Mobile Number" required><FormInput variant="compact" type="tel" maxLength={10} value={candidate.mobile} onChange={(e) => handleInputChange('mobile', e.target.value)} placeholder="e.g. 9876543210" /></Field>
 
                   <Field title="Current Location" required><FormInput variant="compact" value={candidate.currentLocation} onChange={(e) => handleInputChange('currentLocation', e.target.value)} placeholder="e.g. Noida, Uttar Pradesh" /></Field>
                   <SelectField title="Preferred Location" options={['Noida, Delhi NCR', 'Mumbai', 'Bangalore']} value={candidate.preferredLocation} onChange={(e) => handleInputChange('preferredLocation', e.target.value)} />

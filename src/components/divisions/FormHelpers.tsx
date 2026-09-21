@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChevronDown } from 'lucide-react';
 
-export const inputCls = 'mt-1 h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-[12px] text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500';
+export const inputCls = 'mt-1 h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-[12px] text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]';
 export const selectCls = `${inputCls} appearance-none`;
 export const labelCls = 'text-[11px] font-semibold text-zinc-700';
 export const helpTextCls = 'text-[10px] text-zinc-400 mt-1 leading-tight';
@@ -23,7 +23,7 @@ export function SelectField({ title, required, options, helpText, value, onChang
     return (
         <Field title={title} required={required} helpText={helpText}>
             <div className="relative">
-                <select className={selectCls} value={value} onChange={onChange}>
+                <select className={selectCls} value={value !== undefined ? value : ''} onChange={onChange || (() => {})}>
                     <option value="" disabled>Select {title.split(' (')[0]}</option>
                     {options.map((o) => <option key={o} value={o}>{o}</option>)}
                 </select>

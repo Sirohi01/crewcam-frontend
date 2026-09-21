@@ -271,12 +271,12 @@ export default function MasterDataCategoryPage() {
             <span className="font-md block mb-0.5">Tip:</span> Add values like: <span className="font-medium">{active.example}</span>
           </div>
           <div className="space-y-4">
-            <Input label="Name" value={formData.name} onChange={(e: any) => setFormData({ ...formData, name: e.target.value })} required />
-            {active.fields.includes('code') && <Input label="Code / Abbreviation" value={formData.code} onChange={(e: any) => setFormData({ ...formData, code: e.target.value })} />}
-            {active.fields.includes('level') && <Input label="Level / Tier" value={formData.level} onChange={(e: any) => setFormData({ ...formData, level: e.target.value })} />}
-            {active.fields.includes('category') && <Input label="Category" value={formData.category} onChange={(e: any) => setFormData({ ...formData, category: e.target.value })} />}
-            {active.fields.includes('defaultDays') && <Input label="Default Days per Year" type="number" min={0} value={formData.defaultDays} onChange={(e: any) => setFormData({ ...formData, defaultDays: e.target.value })} required />}
-            {active.fields.includes('description') && <Textarea label="Description / Notes" value={formData.description} onChange={(e: any) => setFormData({ ...formData, description: e.target.value })} />}
+            <Input label="Name" value={formData.name} onChange={(e: any) => setFormData({ ...formData, name: e.target.value })} placeholder={`e.g., ${active.example.split(',')[0].trim()}`} required />
+            {active.fields.includes('code') && <Input label="Code / Abbreviation" value={formData.code} onChange={(e: any) => setFormData({ ...formData, code: e.target.value })} placeholder="e.g., SHORTCODE" />}
+            {active.fields.includes('level') && <Input label="Level / Tier" value={formData.level} onChange={(e: any) => setFormData({ ...formData, level: e.target.value })} placeholder="e.g., L1, High, Tier-1" />}
+            {active.fields.includes('category') && <Input label="Category" value={formData.category} onChange={(e: any) => setFormData({ ...formData, category: e.target.value })} placeholder="e.g., General, IT" />}
+            {active.fields.includes('defaultDays') && <Input label="Default Days per Year" type="number" min={0} value={formData.defaultDays} onChange={(e: any) => setFormData({ ...formData, defaultDays: e.target.value })} placeholder="e.g., 12" required />}
+            {active.fields.includes('description') && <Textarea label="Description / Notes" value={formData.description} onChange={(e: any) => setFormData({ ...formData, description: e.target.value })} placeholder="Enter additional details, notes or description here..." />}
           </div>
         </Modal>
       )}

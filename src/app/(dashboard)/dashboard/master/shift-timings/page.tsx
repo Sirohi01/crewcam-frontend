@@ -224,11 +224,11 @@ export default function ShiftTimingsPage() {
               <form id="shift-form" onSubmit={handleSave} className="grid grid-cols-2 gap-4">
                 <div className="space-y-1 col-span-2 md:col-span-1">
                   <label className="text-xs font-medium text-zinc-700">Shift Name *</label>
-                  <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
+                  <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g., General Shift" className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
                 </div>
                 <div className="space-y-1 col-span-2 md:col-span-1">
                   <label className="text-xs font-medium text-zinc-700">Shift Code</label>
-                  <input value={formData.code} onChange={(e) => setFormData({...formData, code: e.target.value})} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
+                  <input value={formData.code} onChange={(e) => setFormData({...formData, code: e.target.value})} placeholder="e.g., GS" className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
                 </div>
                 
                 <div className="space-y-1 col-span-2 md:col-span-1">
@@ -287,7 +287,7 @@ export default function ShiftTimingsPage() {
 
                 <div className="space-y-1 col-span-2">
                   <label className="text-xs font-medium text-zinc-700">Description</label>
-                  <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full rounded-md border border-zinc-200 p-3 text-sm min-h-[60px]" />
+                  <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} placeholder="Enter additional details or rules..." className="w-full rounded-md border border-zinc-200 p-3 text-sm min-h-[60px]" />
                 </div>
               </form>
             </div>
