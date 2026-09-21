@@ -11,6 +11,8 @@ import {
     HelpCircle, Eye, MapPin, Building, Briefcase, UserCheck, ChevronDown,
     X, Save, ArrowRight
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 
 const steps = [
     { num: 1, label: 'Basic Information', status: 'active' },
@@ -40,7 +42,7 @@ function SelectField({ title, required, options, helpText, value, onChange }: { 
     return (
         <Field title={title} required={required} helpText={helpText}>
             <div className="relative">
-                <select className={selectCls} value={value} onChange={onChange}>
+                <select className={selectCls} value={value} onChange={onChange || (() => {})}>
                     <option value="" disabled>Select {title}</option>
                     {options.map((o) => <option key={o} value={o}>{o}</option>)}
                 </select>
@@ -68,6 +70,16 @@ function Card({
 
 export default function BasicInformation() {
     const { formData, updateFormData } = useDepartmentForm();
+    const router = useRouter();
+
+    const handleNext = (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (!formData.name || !formData.code || !formData.departmentType || !formData.businessUnit) {
+            toast.error('Please fill in all required fields to proceed.');
+            return;
+        }
+        router.push('/dashboard/departments/add-department/department-head');
+    };
 
     useEffect(() => {
         if (formData.name && !formData.code) {
@@ -381,9 +393,9 @@ export default function BasicInformation() {
                     <button type="button" className="flex items-center justify-center gap-2 h-8 px-4 rounded-lg text-[12px] font-bold text-indigo-700 border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100 shadow-sm transition-colors">
                         <Save size={14} /> Save Draft
                     </button>
-                    <Link href="/dashboard/departments/add-department/department-head" className="flex items-center justify-center gap-2 h-8 px-5 rounded-lg text-[12px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_2px_10px_rgba(79,70,229,0.2)] transition-colors">
+                    <button type="button" onClick={handleNext} className="flex items-center justify-center gap-2 h-8 px-5 rounded-lg text-[12px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_2px_10px_rgba(79,70,229,0.2)] transition-colors">
                         Next: Department Head <ArrowRight size={14} />
-                    </Link>
+                    </button>
                 </div>
             </div>
         </div>

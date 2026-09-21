@@ -11,6 +11,7 @@ import {
     ShieldCheck, Map, Lightbulb
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 
 const steps = [
     { num: 1, label: 'Basic Information', status: 'completed', link: '/dashboard/departments/add-department/basic-info' },
@@ -40,7 +41,7 @@ function SelectField({ title, required, options, helpText, value, onChange }: { 
     return (
         <Field title={title} required={required} helpText={helpText}>
             <div className="relative">
-                <select className={selectCls} value={value} onChange={onChange}>
+                <select className={selectCls} value={value} onChange={onChange || (() => {})}>
                     <option value="" disabled>Select {title}</option>
                     {options.map((o) => <option key={o} value={o}>{o}</option>)}
                 </select>
@@ -69,6 +70,17 @@ function Card({
 export default function AddDepartmentHead() {
     const navigate = useRouter();
     const { formData, updateFormData } = useDepartmentForm();
+
+    const handleNext = (e: React.MouseEvent) => {
+        e.preventDefault();
+        // Just checking effectiveDate and businessUnit as they are required fields mapped to formData.
+        // Also checking hodEmployeeId and reportingToId if they are treated as required.
+        if (!formData.effectiveDate || !formData.businessUnit) {
+            toast.error('Please fill in all required fields to proceed.');
+            return;
+        }
+        navigate.push('/dashboard/departments/add-department/description-settings');
+    };
 
     return (
         <div className="w-full bg-[#f8f9fc] flex flex-col font-sans min-h-screen">
@@ -203,9 +215,9 @@ export default function AddDepartmentHead() {
                                 <button type="button" className="flex items-center justify-center gap-2 h-8 px-4 rounded-lg text-[12px] font-bold text-indigo-700 border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100 shadow-sm transition-colors">
                                     <Save size={14} /> Save Draft
                                 </button>
-                                <Link href="/dashboard/departments/add-department/description-settings" className="flex items-center justify-center gap-2 h-8 px-5 rounded-lg text-[12px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_2px_10px_rgba(79,70,229,0.2)] transition-colors">
+                                <button type="button" onClick={handleNext} className="flex items-center justify-center gap-2 h-8 px-5 rounded-lg text-[12px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_2px_10px_rgba(79,70,229,0.2)] transition-colors">
                                     Next: Description & Settings <ArrowRight size={14} />
-                                </Link>
+                                </button>
                             </div>
                         </div>
 

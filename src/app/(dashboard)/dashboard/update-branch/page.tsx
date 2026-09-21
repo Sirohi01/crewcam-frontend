@@ -216,6 +216,10 @@ export default function UpdateBranch() {
       toast.error("Branch Name and Branch Code are required.");
       return;
     }
+    if (form.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
     setSaving(true);
     try {
       const payload = {
@@ -401,9 +405,10 @@ export default function UpdateBranch() {
                       <Phone className="h-4 w-4 text-zinc-400" />
                       <FormInput
                         value={form.contactPhone}
-                        onChange={(e) => set("contactPhone", e.target.value)}
+                        onChange={(e) => set("contactPhone", e.target.value.replace(/\D/g, '').slice(0, 10))}
                         placeholder="Enter phone number"
                         className="border-0 bg-transparent px-0 focus:ring-0"
+                        maxLength={10}
                       />
                     </div>
                   </FormField>
@@ -418,6 +423,8 @@ export default function UpdateBranch() {
                           onChange={(e) => set("contactEmail", e.target.value)}
                           placeholder="Enter email address"
                           className="border-0 bg-transparent px-0 focus:ring-0"
+                          pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+                          title="Please enter a valid email address"
                         />
                       </div>
                     </FormField>

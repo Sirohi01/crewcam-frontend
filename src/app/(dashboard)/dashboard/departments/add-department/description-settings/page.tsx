@@ -1,14 +1,16 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/ui/page-header';
 import { useDepartmentForm } from '@/context/DepartmentFormContext';
 import {
     Building2, User, Calendar, Users, CheckCircle2,
     Eye, MapPin, Building, Briefcase, UserCheck, ChevronDown,
-    Save, ArrowRight, ArrowLeft, Settings, FileText, CloudUpload
+    Save, ArrowRight, ArrowLeft, Settings, FileText, CloudUpload, X
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 
 const steps = [
     { num: 1, label: 'Basic Information', status: 'completed' },
@@ -38,7 +40,7 @@ function SelectField({ title, required, options, helpText, value, onChange }: { 
     return (
         <Field title={title} required={required} helpText={helpText}>
             <div className="relative">
-                <select className={selectCls} value={value} onChange={onChange}>
+                <select className={selectCls} value={value} onChange={onChange || (() => {})}>
                     <option value="" disabled>Select {title}</option>
                     {options.map((o) => <option key={o} value={o}>{o}</option>)}
                 </select>
@@ -65,7 +67,32 @@ function Card({
 }
 
 export default function AddDepartmentDescriptionSettings() {
+    const navigate = useRouter();
     const { formData, updateFormData } = useDepartmentForm();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const newFiles = Array.from(e.target.files);
+            updateFormData({ documents: [...(formData.documents || []), ...newFiles] });
+        }
+    };
+
+    const removeFile = (index: number) => {
+        const newDocs = [...(formData.documents || [])];
+        newDocs.splice(index, 1);
+        updateFormData({ documents: newDocs });
+    };
+
+    const handleNext = (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (!formData.description || !formData.keyResponsibilities || !formData.employeeCapacity) {
+            toast.error('Please fill in all required fields to proceed.');
+            return;
+        }
+        navigate.push('/dashboard/departments/add-department/review-department-details');
+    };
+
     return (
         <div className="w-full bg-[#f8f9fc] flex flex-col font-sans min-h-screen">
             <div className="w-full mx-auto p-2 sm:p-2 md:p-2 lg:p-2">
@@ -163,11 +190,27 @@ export default function AddDepartmentDescriptionSettings() {
                         {/* Section: Documents (Optional) */}
                         <Card title={<><FileText size={14} className="text-indigo-600 mr-1" /> Documents (Optional)</>}>
                             <p className="text-[11px] text-zinc-500 mb-3 mt-0.5">Upload department related documents (SOPs, Guidelines, Structure, etc.)</p>
-                            <div className="border border-dashed border-indigo-200 rounded-lg p-[18px] flex flex-col items-center justify-center text-center hover:bg-indigo-50/20 transition-colors cursor-pointer bg-white">
+                            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple accept=".pdf,.doc,.docx,.xls,.xlsx" />
+                            <div onClick={() => fileInputRef.current?.click()} className="border border-dashed border-indigo-200 rounded-lg p-[18px] flex flex-col items-center justify-center text-center hover:bg-indigo-50/20 transition-colors cursor-pointer bg-white">
                                 <CloudUpload size={24} className="text-indigo-500 mb-2" strokeWidth={1.5} />
                                 <p className="text-[12px] font-semibold text-zinc-700">Drag & drop files here or <span className="text-indigo-600 hover:underline">click to upload</span></p>
                                 <p className="text-[10px] text-zinc-500 mt-1">PDF, DOC, DOCX, XLS, XLSX (Max. 10MB each)</p>
                             </div>
+                            {formData.documents && formData.documents.length > 0 && (
+                                <div className="mt-3 space-y-2">
+                                    {formData.documents.map((file, idx) => (
+                                        <div key={idx} className="flex items-center justify-between p-2 border border-zinc-100 bg-zinc-50 rounded-md text-[11px]">
+                                            <div className="flex items-center gap-2 overflow-hidden">
+                                                <FileText size={14} className="text-indigo-500 shrink-0" />
+                                                <span className="truncate font-medium text-zinc-700">{file.name}</span>
+                                            </div>
+                                            <button type="button" onClick={() => removeFile(idx)} className="text-zinc-400 hover:text-rose-500 p-0.5 ml-2 shrink-0">
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </Card>
 
                     </div>
@@ -306,9 +349,9 @@ export default function AddDepartmentDescriptionSettings() {
                     <button type="button" className="flex items-center justify-center gap-2 h-8 px-4 rounded-lg text-[12px] font-bold text-indigo-700 border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100 shadow-sm transition-colors">
                         <Save size={14} /> Save Draft
                     </button>
-                    <Link href="/dashboard/departments/add-department/review-department-details" className="flex items-center justify-center gap-2 h-8 px-5 rounded-lg text-[12px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_2px_10px_rgba(79,70,229,0.2)] transition-colors">
+                    <button type="button" onClick={handleNext} className="flex items-center justify-center gap-2 h-8 px-5 rounded-lg text-[12px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_2px_10px_rgba(79,70,229,0.2)] transition-colors">
                         Next: Review & Create <ArrowRight size={14} />
-                    </Link>
+                    </button>
                 </div>
             </div>
         </div>

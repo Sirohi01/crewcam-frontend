@@ -500,8 +500,8 @@ export default function DocumentChecklistForm({ candidateId }: { candidateId: st
                 </h3>
                 <div className="space-y-2">
                   <p className="text-[11px] text-slate-500 italic pb-2 border-b border-slate-100">"I declare that the information and documents submitted by me are true, correct and complete."</p>
-                  <Field title="Submission Date">
-                    <input type="date" className={inputClass} value={form.employeeSignatureDate} onChange={(e) => set({ employeeSignatureDate: e.target.value })} />
+                  <Field title="Submission Date" required>
+                    <input type="date" className={inputClass} value={form.employeeSignatureDate} onChange={(e) => set({ employeeSignatureDate: e.target.value })} required />
                   </Field>
                 </div>
               </div>
@@ -512,15 +512,15 @@ export default function DocumentChecklistForm({ candidateId }: { candidateId: st
                 </h3>
                 <div className="space-y-2">
                   <div className="grid grid-cols-2 gap-4">
-                    <Field title="Verified By HR">
-                      <input className={inputClass} value={form.hrName} onChange={(e) => set({ hrName: e.target.value })} placeholder="Enter HR Name" />
+                    <Field title="Verified By HR" required>
+                      <input className={inputClass} value={form.hrName} onChange={(e) => set({ hrName: e.target.value })} placeholder="Enter HR Name" required />
                     </Field>
-                    <Field title="Verification Date">
-                      <input type="date" className={inputClass} value={form.hrSignatureDate} onChange={(e) => set({ hrSignatureDate: e.target.value })} />
+                    <Field title="Verification Date" required>
+                      <input type="date" className={inputClass} value={form.hrSignatureDate} onChange={(e) => set({ hrSignatureDate: e.target.value })} required />
                     </Field>
                   </div>
-                  <Field title="General HR Remarks">
-                    <input className={inputClass} value={form.hrRemarks} onChange={(e) => set({ hrRemarks: e.target.value })} placeholder="Overall verification status remarks..." />
+                  <Field title="General HR Remarks" required>
+                    <input className={inputClass} value={form.hrRemarks} onChange={(e) => set({ hrRemarks: e.target.value })} placeholder="Overall verification status remarks..." required />
                   </Field>
                   <Field title="Overall Checklist Status (Manual Override)">
                     <select className={inputClass} value={form.overallStatus} onChange={(e) => set({ overallStatus: e.target.value })}>
