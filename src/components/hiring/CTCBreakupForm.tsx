@@ -191,16 +191,16 @@ export default function CTCBreakupForm({ candidateId }: { candidateId: string })
                 <input className={inputClass} value={form.dear} onChange={(e) => set({ dear: e.target.value })} placeholder="Salutation name" required />
               </Field>
               <Field title="Department" required>
-                <input className={inputClass} value={form.department} onChange={(e) => set({ department: e.target.value })} required />
+                <input className={inputClass} value={form.department} onChange={(e) => set({ department: e.target.value })} placeholder="e.g. Engineering" required />
               </Field>
               <Field title="Position" required>
-                <input className={inputClass} value={form.position} onChange={(e) => set({ position: e.target.value })} required />
+                <input className={inputClass} value={form.position} onChange={(e) => set({ position: e.target.value })} placeholder="e.g. Software Engineer" required />
               </Field>
               <Field title="Work Location" required>
-                <input className={inputClass} value={form.workLocation} onChange={(e) => set({ workLocation: e.target.value })} required />
+                <input className={inputClass} value={form.workLocation} onChange={(e) => set({ workLocation: e.target.value })} placeholder="e.g. Mumbai HQ" required />
               </Field>
               <Field title="Reporting To" required>
-                <input className={inputClass} value={form.reportingTo} onChange={(e) => set({ reportingTo: e.target.value })} required />
+                <input className={inputClass} value={form.reportingTo} onChange={(e) => set({ reportingTo: e.target.value })} placeholder="e.g. Jane Smith" required />
               </Field>
               <Field title="Effective Date" required>
                 <input type="date" className={inputClass} value={form.effectiveDate} onChange={(e) => set({ effectiveDate: e.target.value })} required />
@@ -214,7 +214,8 @@ export default function CTCBreakupForm({ candidateId }: { candidateId: string })
                     type="number"
                     value={form.monthlyGross}
                     onChange={(e) => set({ monthlyGross: e.target.value })}
-                    className="mt-1 h-10 w-full rounded-[2px] border border-slate-300 bg-white px-3 text-lg font-bold text-[#0d3c68] focus:border-[#0d3c68] focus:outline-none focus:ring-1 focus:ring-[#0d3c68]"
+                    className="mt-1 h-10 w-full rounded-[2px] border border-slate-300 bg-white px-3 text-lg font-bold text-[#0d3c68] focus:border-[#0d3c68] focus:outline-none focus:ring-1 focus:ring-[#0d3c68] placeholder:font-normal placeholder:text-slate-400"
+                    placeholder="e.g. 50000"
                     required
                   />
                 </Field>

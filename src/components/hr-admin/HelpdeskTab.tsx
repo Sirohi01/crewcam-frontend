@@ -134,7 +134,7 @@ export default function HelpdeskTab({ employees, selectedEmployeeId }: { employe
               <div className="grid grid-cols-2 gap-4 pt-2 border-t border-zinc-100 dark:border-zinc-800">
                 <div>
                   <label className="text-xs font-md text-zinc-700 mb-1 block">Update Status</label>
-                  <select value={modal.status} onChange={(e) => setModal({ ...modal, status: e.target.value })} className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm">
+                  <select value={modal.status} onChange={(e) => setModal({ ...modal, status: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 px-3 text-sm">
                     <option value="Open">Open</option>
                     <option value="In_Progress">In Progress</option>
                     <option value="Resolved">Resolved</option>
