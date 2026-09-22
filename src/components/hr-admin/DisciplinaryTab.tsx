@@ -105,7 +105,7 @@ export default function DisciplinaryTab({ employees, selectedEmployeeId }: { emp
               <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">Employee</label>
-                  <select required value={form.employeeId} onChange={e => setForm({ ...form, employeeId: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900">
+                  <select required value={form.employeeId} onChange={e => setForm({ ...form, employeeId: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900">
                     <option value="">Select Employee</option>
                     {employees?.map((emp: any) => (
                       <option key={emp._id} value={emp._id}>{emp.firstName} {emp.lastName}</option>
@@ -114,7 +114,7 @@ export default function DisciplinaryTab({ employees, selectedEmployeeId }: { emp
                 </div>
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">Action Type</label>
-                  <select required value={form.issueType} onChange={e => setForm({ ...form, issueType: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900">
+                  <select required value={form.issueType} onChange={e => setForm({ ...form, issueType: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900">
                     <option value="Warning">Formal Warning</option>
                     <option value="Suspension">Suspension</option>
                     <option value="Termination">Termination</option>
@@ -123,7 +123,7 @@ export default function DisciplinaryTab({ employees, selectedEmployeeId }: { emp
                 </div>
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">Date of Action</label>
-                  <input required type="date" value={form.actionDate} onChange={e => setForm({ ...form, actionDate: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900" />
+                  <input required type="date" value={form.actionDate} onChange={e => setForm({ ...form, actionDate: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">Reason / Details</label>
@@ -131,7 +131,7 @@ export default function DisciplinaryTab({ employees, selectedEmployeeId }: { emp
                 </div>
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">Specific Action Taken</label>
-                  <input required type="text" value={form.actionTaken} onChange={e => setForm({ ...form, actionTaken: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900" placeholder="e.g. Issued written warning letter" />
+                  <input required type="text" value={form.actionTaken} onChange={e => setForm({ ...form, actionTaken: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900" placeholder="e.g. Issued written warning letter" />
                 </div>
               </form>
             </div>

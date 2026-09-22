@@ -153,7 +153,7 @@ export default function AssetsTab({ employees, selectedEmployeeId }: { employees
               <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">Employee</label>
-                  <select required value={form.employeeId} onChange={e => setForm({ ...form, employeeId: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900">
+                  <select required value={form.employeeId} onChange={e => setForm({ ...form, employeeId: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900">
                     <option value="">Select Employee</option>
                     {employees?.map((emp: any) => (
                       <option key={emp._id} value={emp._id}>{emp.firstName} {emp.lastName}</option>
@@ -162,7 +162,7 @@ export default function AssetsTab({ employees, selectedEmployeeId }: { employees
                 </div>
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">IT Inventory Item (Master Data)</label>
-                  <select required value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900">
+                  <select required value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900">
                     <option value="">Select Asset Type</option>
                     {itInventories?.map((inv: any) => (
                       <option key={inv._id} value={inv.code}>{inv.code} - {inv.category}</option>
@@ -171,11 +171,11 @@ export default function AssetsTab({ employees, selectedEmployeeId }: { employees
                 </div>
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">Serial Number / Asset Tag</label>
-                  <input required type="text" value={form.serialNumber} onChange={e => setForm({ ...form, serialNumber: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900" placeholder="e.g. LPT-2024-001" />
+                  <input required type="text" value={form.serialNumber} onChange={e => setForm({ ...form, serialNumber: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900" placeholder="e.g. LPT-2024-001" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">Initial Condition</label>
-                  <input required type="text" value={form.condition} onChange={e => setForm({ ...form, condition: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900" placeholder="New, Good, Minor Scratches..." />
+                  <input required type="text" value={form.condition} onChange={e => setForm({ ...form, condition: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900" placeholder="New, Good, Minor Scratches..." />
                 </div>
               </form>
             </div>

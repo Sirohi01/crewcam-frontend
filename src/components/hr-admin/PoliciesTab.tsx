@@ -109,7 +109,7 @@ export default function PoliciesTab({ employees, selectedEmployeeId }: { employe
               <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">Employee</label>
-                  <select required value={form.employeeId} onChange={e => setForm({ ...form, employeeId: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900">
+                  <select required value={form.employeeId} onChange={e => setForm({ ...form, employeeId: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900">
                     <option value="">Select Employee</option>
                     {employees?.map((emp: any) => (
                       <option key={emp._id} value={emp._id}>{emp.firstName} {emp.lastName}</option>
@@ -118,7 +118,7 @@ export default function PoliciesTab({ employees, selectedEmployeeId }: { employe
                 </div>
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">Policy Document (Master Data)</label>
-                  <select required value={form.policyId} onChange={e => setForm({ ...form, policyId: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900">
+                  <select required value={form.policyId} onChange={e => setForm({ ...form, policyId: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900">
                     <option value="">Select Policy</option>
                     {policies?.map((pol: any) => (
                       <option key={pol._id} value={pol._id}>{pol.name} (v{pol.version})</option>

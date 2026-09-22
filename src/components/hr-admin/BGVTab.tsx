@@ -136,7 +136,7 @@ export default function BGVTab({ employees, selectedEmployeeId }: { employees: a
               <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">Employee (or Candidate)</label>
-                  <select required value={form.employeeId} onChange={e => setForm({ ...form, employeeId: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900">
+                  <select required value={form.employeeId} onChange={e => setForm({ ...form, employeeId: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900">
                     <option value="">Select Employee</option>
                     {employees?.map((emp: any) => (
                       <option key={emp._id} value={emp._id}>{emp.firstName} {emp.lastName}</option>
@@ -145,7 +145,7 @@ export default function BGVTab({ employees, selectedEmployeeId }: { employees: a
                 </div>
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">Verification Vendor</label>
-                  <input required type="text" value={form.vendor} onChange={e => setForm({ ...form, vendor: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900" placeholder="e.g. AuthBridge, HireRight" />
+                  <input required type="text" value={form.vendor} onChange={e => setForm({ ...form, vendor: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900" placeholder="e.g. AuthBridge, HireRight" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">Checks Requested (comma separated)</label>
@@ -175,7 +175,7 @@ export default function BGVTab({ employees, selectedEmployeeId }: { employees: a
             <div className="p-6 space-y-4">
               <div>
                 <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1 block">Process Status</label>
-                <select value={modal.status} onChange={(e) => setModal({ ...modal, status: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900">
+                <select value={modal.status} onChange={(e) => setModal({ ...modal, status: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900">
                   <option value="Initiated">Initiated</option>
                   <option value="InProgress">In Progress</option>
                   <option value="Completed">Completed</option>
@@ -185,7 +185,7 @@ export default function BGVTab({ employees, selectedEmployeeId }: { employees: a
               {modal.status === 'Completed' && (
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1 block">Overall Result</label>
-                  <select value={modal.overallResult || 'Clear'} onChange={(e) => setModal({ ...modal, overallResult: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900">
+                  <select value={modal.overallResult || 'Clear'} onChange={(e) => setModal({ ...modal, overallResult: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900">
                     <option value="Clear">Clear (Green)</option>
                     <option value="Discrepancy">Discrepancy / Red Flag</option>
                   </select>
