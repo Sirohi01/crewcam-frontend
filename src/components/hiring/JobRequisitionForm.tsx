@@ -306,10 +306,10 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
                   </div>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <Field title="Job Description Summary" required hint="0 / 1500" error={errors.jobDescriptionSummary}>
-                      <textarea className={`${textAreaCls} h-20`} {...register('jobDescriptionSummary', { required: true })} />
+                      <textarea className={`${textAreaCls} h-20`} placeholder="e.g. Briefly describe the role and its primary objectives..." {...register('jobDescriptionSummary', { required: true })} />
                     </Field>
                     <Field title="Detailed Justification" hint="0 / 1500" error={errors.detailedJustification}>
-                      <textarea className={`${textAreaCls} h-20`} {...register('detailedJustification')} />
+                      <textarea className={`${textAreaCls} h-20`} placeholder="e.g. This role is needed to handle the increased workload in..." {...register('detailedJustification')} />
                     </Field>
                   </div>
                 </div>
@@ -365,9 +365,9 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
 
             <SectionCard number={4} title="Compensation Details">
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-5">
-                <Field title="Minimum Salary (CTC)" required error={errors.salaryCtcMin}><input type="number" className={inputCls} {...register('salaryCtcMin', { required: true, valueAsNumber: true })} /></Field>
-                <Field title="Maximum Salary (CTC)" required error={errors.salaryCtcMax}><input type="number" className={inputCls} {...register('salaryCtcMax', { required: true, valueAsNumber: true })} /></Field>
-                <Field title="Budget CTC" error={errors.budgetCTC}><input type="number" className={inputCls} {...register('budgetCTC', { valueAsNumber: true })} /></Field>
+                <Field title="Minimum Salary (CTC)" required error={errors.salaryCtcMin}><input type="number" placeholder="e.g. 500000" className={`${inputCls} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`} {...register('salaryCtcMin', { required: true, valueAsNumber: true })} /></Field>
+                <Field title="Maximum Salary (CTC)" required error={errors.salaryCtcMax}><input type="number" placeholder="e.g. 800000" className={`${inputCls} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`} {...register('salaryCtcMax', { required: true, valueAsNumber: true })} /></Field>
+                <Field title="Budget CTC" error={errors.budgetCTC}><input type="number" placeholder="e.g. 600000" className={`${inputCls} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`} {...register('budgetCTC', { valueAsNumber: true })} /></Field>
                 <Field title="Currency" required error={errors.currency}>
                   <div className="relative">
                     <select className={selectCls} {...register('currency')}>

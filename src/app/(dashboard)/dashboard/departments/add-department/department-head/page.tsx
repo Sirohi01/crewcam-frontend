@@ -151,10 +151,7 @@ export default function AddDepartmentHead() {
                                 <SelectField title="Assistant / Co-Head (Optional)" options={['Select assistant or co-head']} helpText="Select if applicable" />
 
                                 <Field title="Effective Date" required helpText="From when this department will be active">
-                                    <div className="relative">
-                                        <input type="date" value={formData.effectiveDate} onChange={e => updateFormData({ effectiveDate: e.target.value })} className={`${inputCls} pr-8`} />
-                                        <Calendar size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
-                                    </div>
+                                    <input type="date" value={formData.effectiveDate} onChange={e => updateFormData({ effectiveDate: e.target.value })} className={inputCls} />
                                 </Field>
 
                                 <Field title="Probation Period (Months)" helpText="For new employees in this department">

@@ -117,6 +117,7 @@ export default function AddDepartmentDescriptionSettings() {
                                         <textarea
                                             value={formData.description} onChange={e => updateFormData({ description: e.target.value })}
                                             className={`${inputCls} h-[70px] py-2 leading-relaxed resize-none`}
+                                            placeholder="e.g. Oversees all operations related to design and branding"
                                         />
                                         <div className="absolute bottom-1.5 right-2.5 text-[9px] text-zinc-400 font-medium">{formData.description.length} / 300</div>
                                     </div>
@@ -127,6 +128,7 @@ export default function AddDepartmentDescriptionSettings() {
                                         <textarea
                                             value={formData.keyResponsibilities} onChange={e => updateFormData({ keyResponsibilities: e.target.value })}
                                             className={`${inputCls} h-[70px] py-2 leading-relaxed resize-none`}
+                                            placeholder="e.g. UI/UX Design, Branding, User Research"
                                         />
                                         <div className="absolute bottom-1.5 right-2.5 text-[9px] text-zinc-400 font-medium">{formData.keyResponsibilities.length} / 500</div>
                                     </div>
@@ -134,13 +136,13 @@ export default function AddDepartmentDescriptionSettings() {
 
                                 <Field title="Employee Capacity" required helpText="Maximum number of employees">
                                     <div className="relative w-full">
-                                        <input type="text" value={formData.employeeCapacity} onChange={e => updateFormData({ employeeCapacity: e.target.value })} className={`${inputCls} pr-8`} />
+                                        <input type="text" value={formData.employeeCapacity} onChange={e => updateFormData({ employeeCapacity: e.target.value })} className={`${inputCls} pr-8`} placeholder="e.g. 50" />
                                         <Users size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
                                     </div>
                                 </Field>
 
                                 <Field title="Department Keywords (Optional)" helpText="Helps in search and analytics">
-                                    <input type="text" defaultValue="Design, Creative, Interior, 3D, Visualization" className={inputCls} />
+                                    <input type="text" placeholder="Design, Creative, Interior, 3D, Visualization" className={inputCls} />
                                 </Field>
                             </div>
                         </Card>

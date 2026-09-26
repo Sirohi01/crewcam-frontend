@@ -179,7 +179,7 @@ export default function HelpdeskPage() {
             <form onSubmit={handleCreateTicket} className="p-4 space-y-4">
               <div>
                 <label className="block text-xs font-medium mb-1">Department</label>
-                <select required value={formData.department} onChange={e => setFormData({ ...formData, department: e.target.value })} className="w-full px-3 py-2 border rounded-lg text-sm bg-transparent dark:border-zinc-800">
+                <select required value={formData.department} onChange={e => setFormData({ ...formData, department: e.target.value })} className="w-full h-10 px-3 border rounded-lg text-sm bg-transparent dark:border-zinc-800">
                   <option>IT</option>
                   <option>HR</option>
                   <option>Finance</option>
@@ -189,7 +189,7 @@ export default function HelpdeskPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Priority</label>
-                <select required value={formData.priority} onChange={e => setFormData({ ...formData, priority: e.target.value })} className="w-full px-3 py-2 border rounded-lg text-sm bg-transparent dark:border-zinc-800">
+                <select required value={formData.priority} onChange={e => setFormData({ ...formData, priority: e.target.value })} className="w-full h-10 px-3 border rounded-lg text-sm bg-transparent dark:border-zinc-800">
                   <option>Low</option>
                   <option>Medium</option>
                   <option>High</option>
@@ -198,7 +198,7 @@ export default function HelpdeskPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Subject</label>
-                <input required type="text" value={formData.subject} onChange={e => setFormData({ ...formData, subject: e.target.value })} className="w-full px-3 py-2 border rounded-lg text-sm bg-transparent dark:border-zinc-800" placeholder="Brief summary of the issue..." />
+                <input required type="text" value={formData.subject} onChange={e => setFormData({ ...formData, subject: e.target.value })} className="w-full h-10 px-3 border rounded-lg text-sm bg-transparent dark:border-zinc-800" placeholder="Brief summary of the issue..." />
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Description</label>

@@ -137,7 +137,7 @@ export default function BasicInformation() {
                                     <input type="text" value={formData.name} onChange={e => updateFormData({ name: e.target.value })} className={inputCls} placeholder="e.g. Design Studio" />
                                 </Field>
                                 <Field title="Department Code" required helpText="Auto generated">
-                                    <input type="text" value={formData.code} onChange={e => updateFormData({ code: e.target.value })} className={inputCls} />
+                                    <input type="text" value={formData.code} onChange={e => updateFormData({ code: e.target.value })} className={inputCls} placeholder="e.g. DSGN" />
                                 </Field>
 
                                 <SelectField title="Parent Department" value={formData.branchId} onChange={e => updateFormData({ branchId: e.target.value })} options={['Business Operations', 'IT', 'HR']} helpText="Select parent department (if any)" />
@@ -215,10 +215,7 @@ export default function BasicInformation() {
                                 </Field>
 
                                 <Field title="Effective Date" required helpText="From when this department will be active">
-                                    <div className="relative">
-                                        <input type="date" value={formData.effectiveDate} onChange={e => updateFormData({ effectiveDate: e.target.value })} className={`${inputCls} pr-8`} />
-                                        <Calendar size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
-                                    </div>
+                                    <input type="date" value={formData.effectiveDate} onChange={e => updateFormData({ effectiveDate: e.target.value })} className={inputCls} />
                                 </Field>
                             </div>
                         </Card>
@@ -231,6 +228,7 @@ export default function BasicInformation() {
                                         <textarea
                                             value={formData.description} onChange={e => updateFormData({ description: e.target.value })}
                                             className={`${inputCls} h-[70px] py-2 leading-relaxed`}
+                                            placeholder="e.g. Oversees all operations related to design and branding"
                                         />
                                         <div className="absolute bottom-1.5 left-2.5 text-[9px] text-zinc-400 font-medium">{formData.description.length} / 300</div>
                                     </div>
@@ -241,6 +239,7 @@ export default function BasicInformation() {
                                         <textarea
                                             value={formData.keyResponsibilities} onChange={e => updateFormData({ keyResponsibilities: e.target.value })}
                                             className={`${inputCls} h-[70px] py-2 leading-relaxed`}
+                                            placeholder="e.g. UI/UX Design, Branding, User Research"
                                         />
                                         <div className="absolute bottom-1.5 left-2.5 text-[9px] text-zinc-400 font-medium">{formData.keyResponsibilities.length} / 300</div>
                                     </div>
@@ -248,7 +247,7 @@ export default function BasicInformation() {
 
                                 <Field title="Employee Capacity" helpText="Maximum number of employees">
                                     <div className="relative w-full sm:w-1/2">
-                                        <input type="text" value={formData.employeeCapacity} onChange={e => updateFormData({ employeeCapacity: e.target.value })} className={`${inputCls} pr-8`} />
+                                        <input type="text" value={formData.employeeCapacity} onChange={e => updateFormData({ employeeCapacity: e.target.value })} className={`${inputCls} pr-8`} placeholder="e.g. 50" />
                                         <Users size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
                                     </div>
                                 </Field>

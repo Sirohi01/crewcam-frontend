@@ -133,14 +133,14 @@ export default function JdLibraryPage() {
 
       {modal && (
         <Modal title={`${modalItem ? 'Edit' : 'Create'} JD Template`} onClose={() => setModal(false)} onSubmit={submit} busy={saving}>
-          <Input label="Title" value={form.title} onChange={(e: any) => setForm({ ...form, title: e.target.value })} required />
-          <Input label="Designation" value={form.designation} onChange={(e: any) => setForm({ ...form, designation: e.target.value })} />
-          <TextArea label="Job Description Summary" value={form.jobDescriptionSummary} onChange={(e: any) => setForm({ ...form, jobDescriptionSummary: e.target.value })} required />
-          <TextArea label="Key Responsibilities — one per line" value={form.keyResponsibilitiesText} onChange={(e: any) => setForm({ ...form, keyResponsibilitiesText: e.target.value })} />
-          <TextArea label="Qualification Requirement" value={form.qualificationReq} onChange={(e: any) => setForm({ ...form, qualificationReq: e.target.value })} />
-          <TextArea label="Experience Requirement" value={form.experienceReq} onChange={(e: any) => setForm({ ...form, experienceReq: e.target.value })} />
-          <TextArea label="Technical Skills" value={form.technicalSkills} onChange={(e: any) => setForm({ ...form, technicalSkills: e.target.value })} />
-          <TextArea label="Soft Skills" value={form.softSkills} onChange={(e: any) => setForm({ ...form, softSkills: e.target.value })} />
+          <Input label="Title" placeholder="e.g. Frontend Developer Template" value={form.title} onChange={(e: any) => setForm({ ...form, title: e.target.value })} required />
+          <Input label="Designation" placeholder="e.g. Senior Software Engineer" value={form.designation} onChange={(e: any) => setForm({ ...form, designation: e.target.value })} />
+          <TextArea label="Job Description Summary" placeholder="e.g. Looking for an experienced frontend developer to build responsive web applications..." value={form.jobDescriptionSummary} onChange={(e: any) => setForm({ ...form, jobDescriptionSummary: e.target.value })} required />
+          <TextArea label="Key Responsibilities — one per line" placeholder="e.g. Develop and maintain UI components&#10;Collaborate with cross-functional teams" value={form.keyResponsibilitiesText} onChange={(e: any) => setForm({ ...form, keyResponsibilitiesText: e.target.value })} />
+          <TextArea label="Qualification Requirement" placeholder="e.g. Bachelor's degree in Computer Science or equivalent" value={form.qualificationReq} onChange={(e: any) => setForm({ ...form, qualificationReq: e.target.value })} />
+          <TextArea label="Experience Requirement" placeholder="e.g. 3-5 years of experience in React.js" value={form.experienceReq} onChange={(e: any) => setForm({ ...form, experienceReq: e.target.value })} />
+          <TextArea label="Technical Skills" placeholder="e.g. React, TypeScript, Tailwind CSS, Next.js" value={form.technicalSkills} onChange={(e: any) => setForm({ ...form, technicalSkills: e.target.value })} />
+          <TextArea label="Soft Skills" placeholder="e.g. Excellent communication, Problem solving, Team player" value={form.softSkills} onChange={(e: any) => setForm({ ...form, softSkills: e.target.value })} />
         </Modal>
       )}
     </div>

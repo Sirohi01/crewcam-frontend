@@ -388,9 +388,13 @@ export default function AddNewBranch() {
                       <Phone className="h-4 w-4 text-zinc-400" />
                       <FormInput
                         value={form.contactPhone}
-                        onChange={(e) => set("contactPhone", e.target.value)}
-                        placeholder="Enter phone number"
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '');
+                          if (val.length <= 10) set("contactPhone", val);
+                        }}
+                        placeholder="Enter 10-digit phone number"
                         className="border-0 bg-transparent px-0 focus:ring-0"
+                        maxLength={10}
                       />
                     </div>
                   </FormField>
@@ -405,6 +409,8 @@ export default function AddNewBranch() {
                           onChange={(e) => set("contactEmail", e.target.value)}
                           placeholder="Enter email address"
                           className="border-0 bg-transparent px-0 focus:ring-0"
+                          pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+                          title="Please enter a valid email format (e.g. user@gmail.com)"
                         />
                       </div>
                     </FormField>

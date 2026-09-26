@@ -23,7 +23,7 @@ export function SelectField({ title, required, options, helpText, value, onChang
     return (
         <Field title={title} required={required} helpText={helpText}>
             <div className="relative">
-                <select className={selectCls} value={value} onChange={onChange}>
+                <select className={selectCls} value={value} onChange={onChange || (() => {})}>
                     <option value="" disabled>Select {title.split(' (')[0]}</option>
                     {options.map((o) => <option key={o} value={o}>{o}</option>)}
                 </select>

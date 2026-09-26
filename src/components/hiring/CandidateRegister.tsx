@@ -9,7 +9,6 @@ import {
   Users, CheckCircle, XCircle, Video, Eye, Link as LinkIcon,
   Trash
 } from 'lucide-react';
-import { Plus, Search, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/lib/axios';
@@ -191,8 +190,8 @@ export default function CandidateRegister() {
                       )}
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
-                      <select value={status} onChange={(event) => setStatus(event.target.value)} className="border border-slate-300 rounded px-2 py-1 text-xs outline-none focus:border-[#0d3c68]">
-                        <option>All</option><option>Applied</option><option>Screening</option><option>Interviewing</option><option>Offered</option><option>Hired</option><option>Rejected</option>
+                      <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="border border-slate-300 rounded px-2 py-1 text-xs outline-none focus:border-[#0d3c68]">
+                        <option>All Status</option><option>Applied</option><option>Screening</option><option>Interviewing</option><option>Offered</option><option>Hired</option><option>Rejected</option>
                       </select>
 
                       <div className="relative">
@@ -415,5 +414,6 @@ export default function CandidateRegister() {
           </CardContent>
         </Card>
       </div>
-      );
+    </div>
+  );
 }

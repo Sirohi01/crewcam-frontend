@@ -464,7 +464,7 @@ export default function CompanyProfilePage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs font-md">Company Type</Label>
-                    <select name="companyType" value={formData.companyType || ''} onChange={handleChange} className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-zinc-950">
+                    <select name="companyType" value={formData.companyType || ''} onChange={handleChange} className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-zinc-950">
                       <option value="">Select Type</option>
                       <option value="Private Limited">Private Limited</option>
                       <option value="Public Limited">Public Limited</option>
@@ -520,7 +520,7 @@ export default function CompanyProfilePage() {
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs font-md">Country</Label>
-                        <select name="country" value={formData.country || 'India'} onChange={handleChange} className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-zinc-950">
+                        <select name="country" value={formData.country || 'India'} onChange={handleChange} className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-zinc-950">
                           <option value="India">India</option>
                           <option value="United States">United States</option>
                           <option value="United Kingdom">United Kingdom</option>
@@ -534,20 +534,20 @@ export default function CompanyProfilePage() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <div className="space-y-1.5">
                         <Label className="text-xs font-md">Base Currency</Label>
-                        <select name="baseCurrency" value={formData.baseCurrency || 'INR'} onChange={handleChange} className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-zinc-950">
+                        <select name="baseCurrency" value={formData.baseCurrency || 'INR'} onChange={handleChange} className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-zinc-950">
                           <option value="INR">INR (₹)</option>
                           <option value="USD">USD ($)</option>
                         </select>
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs font-md">Timezone</Label>
-                        <select name="timezone" value={formData.timezone || 'Asia/Kolkata'} onChange={handleChange} className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-zinc-950">
+                        <select name="timezone" value={formData.timezone || 'Asia/Kolkata'} onChange={handleChange} className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-zinc-950">
                           <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
                         </select>
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs font-md">FY Start Month</Label>
-                        <select name="financialYearStartMonth" value={formData.financialYearStartMonth || 4} onChange={handleChange} className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-zinc-950">
+                        <select name="financialYearStartMonth" value={formData.financialYearStartMonth || 4} onChange={handleChange} className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-zinc-950">
                           <option value={1}>January</option>
                           <option value={4}>April</option>
                         </select>

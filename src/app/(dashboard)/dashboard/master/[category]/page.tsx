@@ -271,12 +271,12 @@ export default function MasterDataCategoryPage() {
             <span className="font-md block mb-0.5">Tip:</span> Add values like: <span className="font-medium">{active.example}</span>
           </div>
           <div className="space-y-4">
-            <Input label="Name" value={formData.name} onChange={(e: any) => setFormData({ ...formData, name: e.target.value })} required />
-            {active.fields.includes('code') && <Input label="Code / Abbreviation" value={formData.code} onChange={(e: any) => setFormData({ ...formData, code: e.target.value })} />}
-            {active.fields.includes('level') && <Input label="Level / Tier" value={formData.level} onChange={(e: any) => setFormData({ ...formData, level: e.target.value })} />}
-            {active.fields.includes('category') && <Input label="Category" value={formData.category} onChange={(e: any) => setFormData({ ...formData, category: e.target.value })} />}
-            {active.fields.includes('defaultDays') && <Input label="Default Days per Year" type="number" min={0} value={formData.defaultDays} onChange={(e: any) => setFormData({ ...formData, defaultDays: e.target.value })} required />}
-            {active.fields.includes('description') && <Textarea label="Description / Notes" value={formData.description} onChange={(e: any) => setFormData({ ...formData, description: e.target.value })} />}
+            <Input label="Name" placeholder={active.example ? `e.g. ${active.example.split(',')[0].trim()}` : "Enter name"} value={formData.name} onChange={(e: any) => setFormData({ ...formData, name: e.target.value })} required />
+            {active.fields.includes('code') && <Input label="Code / Abbreviation" placeholder="Enter short code" value={formData.code} onChange={(e: any) => setFormData({ ...formData, code: e.target.value })} />}
+            {active.fields.includes('level') && <Input label="Level / Tier" placeholder="e.g. 1, 2, Entry" value={formData.level} onChange={(e: any) => setFormData({ ...formData, level: e.target.value })} />}
+            {active.fields.includes('category') && <Input label="Category" placeholder="e.g. General, Special" value={formData.category} onChange={(e: any) => setFormData({ ...formData, category: e.target.value })} />}
+            {active.fields.includes('defaultDays') && <Input label="Default Days per Year" placeholder="e.g. 12" type="number" min={0} value={formData.defaultDays} onChange={(e: any) => setFormData({ ...formData, defaultDays: e.target.value })} required />}
+            {active.fields.includes('description') && <Textarea label="Description / Notes" placeholder="Enter details..." value={formData.description} onChange={(e: any) => setFormData({ ...formData, description: e.target.value })} />}
           </div>
         </Modal>
       )}
@@ -341,11 +341,11 @@ function ConfirmModal({ title, children, onCancel, onConfirm, busy }: any) {
   );
 }
 
-function Input({ label, ...props }: any) {
+function Input({ label, className = "", ...props }: any) {
   return (
     <div className="space-y-1.5">
       <label className="block text-xs font-md text-zinc-700 dark:text-zinc-300">{label}</label>
-      <input className="w-full border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white dark:bg-zinc-900 shadow-sm transition-all" {...props} />
+      <input className={`w-full border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white dark:bg-zinc-900 shadow-sm transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${className}`} {...props} />
     </div>
   );
 }
