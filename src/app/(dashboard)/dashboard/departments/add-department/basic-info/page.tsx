@@ -6,11 +6,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { useDepartmentForm } from '@/context/DepartmentFormContext';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
-import {
-    Building2, ChevronRight, User, Calendar, Users, CheckCircle2,
-    HelpCircle, Eye, MapPin, Building, Briefcase, UserCheck, ChevronDown,
-    X, Save, ArrowRight
-} from 'lucide-react';
+import { Building2, User, Calendar, Users, CheckCircle2, HelpCircle, Eye, MapPin, Building, Briefcase, UserCheck, ChevronDown, Save, ArrowRight } from 'lucide-react';
 
 const steps = [
     { num: 1, label: 'Basic Information', status: 'active' },
@@ -149,9 +145,9 @@ export default function BasicInformation() {
 
                                 <Field title="Business Unit" required helpText="Select business unit">
                                     <div className="relative">
-                                        <select 
-                                            value={formData.businessUnit || ''} 
-                                            onChange={e => updateFormData({ businessUnit: e.target.value })} 
+                                        <select
+                                            value={formData.businessUnit || ''}
+                                            onChange={e => updateFormData({ businessUnit: e.target.value })}
                                             className={selectCls}
                                         >
                                             <option value="" disabled>Select Business Unit</option>
@@ -183,9 +179,9 @@ export default function BasicInformation() {
                             <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-3 mt-0.5">
                                 <Field title="Department Head (HOD)">
                                     <div className="relative">
-                                        <select 
-                                            value={formData.hodEmployeeId || ''} 
-                                            onChange={e => updateFormData({ hodEmployeeId: e.target.value })} 
+                                        <select
+                                            value={formData.hodEmployeeId || ''}
+                                            onChange={e => updateFormData({ hodEmployeeId: e.target.value })}
                                             className={selectCls}
                                         >
                                             <option value="" disabled>Select Department Head</option>
@@ -201,9 +197,9 @@ export default function BasicInformation() {
 
                                 <Field title="Reporting To" helpText="Select reporting manager">
                                     <div className="relative">
-                                        <select 
-                                            value={formData.reportingToId || ''} 
-                                            onChange={e => updateFormData({ reportingToId: e.target.value })} 
+                                        <select
+                                            value={formData.reportingToId || ''}
+                                            onChange={e => updateFormData({ reportingToId: e.target.value })}
                                             className={selectCls}
                                         >
                                             <option value="" disabled>Select Reporting To</option>
@@ -267,7 +263,7 @@ export default function BasicInformation() {
                         {/* Preview Card */}
                         <Card title={<><Eye size={14} className="text-indigo-600 mr-2" /> Department Preview</>}>
                             <div className="flex items-start gap-3 mt-1 mb-4">
-                                <div className="w-12 h-12 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-lg font-bold shrink-0 shadow-md shadow-indigo-600/20">
+                                <div className="min-w-10 w-auto px-1 h-10 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-lg font-semibold shrink-0 shadow-sm shadow-indigo-600/20">
                                     {formData.code || 'DS'}
                                 </div>
                                 <div>

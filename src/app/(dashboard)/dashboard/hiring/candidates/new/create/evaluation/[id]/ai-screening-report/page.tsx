@@ -22,9 +22,9 @@ export default function AIScreeningReportTab() {
           <p className="text-[12px] font-medium text-zinc-500 mt-1">Detailed breakdown of the candidate's AI evaluation.</p>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
             {/* Top Section: Circle (Left) & Stats (Right) */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 pr-0 lg:pr-4">
               {/* Left: Circle */}
               <div className="flex flex-col items-center justify-center shrink-0 bg-zinc-50 p-6 rounded-2xl border border-zinc-100">
                 <CircularProgress percentage={87} colorClass="text-emerald-500" textClass="text-emerald-600" />

@@ -203,18 +203,8 @@ export default function DesignationsTable() {
                   </td>
                   <td className="py-2.5 px-2">
                     <div className="flex items-center gap-2.5">
-                      {d.iconUrl && d.iconUrl.startsWith('data:image') ? (
-                        <img src={d.iconUrl} alt={d.name} className="w-8 h-8 rounded-md object-cover shrink-0 border border-zinc-200 bg-white" />
-                      ) : (
-                        <div className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${d.bg} ${d.color}`}>
-                          {(() => {
-                            const LibIcon = d.iconUrl ? getLibraryIcon(d.iconUrl) : null;
-                            return LibIcon ? <LibIcon size={16} /> : <d.icon size={16} />;
-                          })()}
-                        </div>
-                      )}
                       <div>
-                        <p className="text-[12.5px] font-bold text-blue-600 group-hover:underline cursor-pointer">{d.name}</p>
+                        <p className="text-[12.5px] font-normal text-zinc-800 group-hover:underline cursor-pointer whitespace-nowrap">{d.name}</p>
                         <p className="text-[10.5px] text-zinc-500 truncate max-w-[200px]">{d.subtitle}</p>
                       </div>
                     </div>

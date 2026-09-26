@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   Briefcase, Send, UsersRound, Eye as EyeIcon, Clock, Search, SlidersHorizontal,
   ChevronDown, Pencil, MoreHorizontal, Download, Globe2, Plus,
-  ChevronLeft, ChevronRight, Columns3,
+  ChevronLeft, ChevronRight, Columns3, Trash2,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -43,13 +43,13 @@ const OPENINGS: Opening[] = [
   { id: 'JOB-2026-047', jobTitle: 'Accounts Executive', initials: 'AE', avatarBg: 'bg-emerald-100', avatarColor: 'text-emerald-600', department: 'Finance & Accounts', location: 'Ghaziabad, UP', positions: 2, openPositions: 1, experience: '2 - 4 Years', jobType: 'Full Time', status: 'Active', applications: 11, postedOn: '10 Jun 2026', postedAgo: '7 days ago', tab: 'active' },
 ];
 
-const TABS: { key: TabKey; label: string; count: number }[] = [
-  { key: 'active', label: 'Active Openings', count: 17 },
-  { key: 'draft', label: 'Draft', count: 3 },
-  { key: 'onhold', label: 'On Hold', count: 2 },
-  { key: 'closed', label: 'Closed', count: 23 },
-  { key: 'filled', label: 'Filled', count: 45 },
-  { key: 'cancelled', label: 'Cancelled', count: 6 },
+const TABS: { key: TabKey; label: string }[] = [
+  { key: 'active', label: 'Active Openings' },
+  { key: 'draft', label: 'Draft' },
+  { key: 'onhold', label: 'On Hold' },
+  { key: 'closed', label: 'Closed' },
+  { key: 'filled', label: 'Filled' },
+  { key: 'cancelled', label: 'Cancelled' },
 ];
 
 const SUMMARY = [
@@ -172,7 +172,7 @@ function FiltersBar({
 }
 
 // ─── Tabs ───────────────────────────────────────────────────────────────────
-function TabsBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) => void; }) {
+function TabsBar({ active, onChange, counts }: { active: TabKey; onChange: (t: TabKey) => void; counts: Record<TabKey, number>; }) {
   return (
     <div className="flex flex-wrap items-center gap-1 border-b border-zinc-100 px-1">
       {TABS.map((tab) => (
@@ -183,7 +183,7 @@ function TabsBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) =
             active === tab.key ? 'text-violet-700' : 'text-zinc-500 hover:text-zinc-700'
           }`}
         >
-          {tab.label} <span className={active === tab.key ? 'text-violet-400' : 'text-zinc-400'}>({tab.count})</span>
+          {tab.label} <span className={active === tab.key ? 'text-violet-400' : 'text-zinc-400'}>({counts[tab.key]})</span>
           {active === tab.key && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-indigo-700 rounded-full" />}
         </button>
       ))}
@@ -192,12 +192,25 @@ function TabsBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) =
 }
 
 // ─── Table ──────────────────────────────────────────────────────────────────
-function OpeningsTable({ rows }: { rows: Opening[] }) {
+function OpeningsTable({
+  rows,
+  selectedIds,
+  onToggle,
+  onToggleAll,
+}: {
+  rows: Opening[];
+  selectedIds: Set<string>;
+  onToggle: (id: string) => void;
+  onToggleAll: (checked: boolean) => void;
+}) {
+  const allChecked = rows.length > 0 && rows.every((r) => selectedIds.has(r.id));
+  const someChecked = rows.some((r) => selectedIds.has(r.id)) && !allChecked;
+
   return (
     <div className="w-full overflow-hidden">
       <table className="w-full table-fixed border-collapse">
         <colgroup>
-          <col className="w-[19%]" />
+          <col className="w-[22%]" />
           <col className="hidden md:table-column md:w-[13%]" />
           <col className="hidden lg:table-column lg:w-[12%]" />
           <col className="w-[9%]" />
@@ -210,7 +223,18 @@ function OpeningsTable({ rows }: { rows: Opening[] }) {
         </colgroup>
         <thead>
           <tr className="border-b border-zinc-100 text-left text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
-            <th className="py-2.5 pr-3">Job Title</th>
+            <th className="py-2.5 pr-3">
+              <div className="flex items-center gap-2.5">
+                <input
+                  type="checkbox"
+                  checked={allChecked}
+                  ref={(el) => { if (el) el.indeterminate = someChecked; }}
+                  onChange={(e) => onToggleAll(e.target.checked)}
+                  className="h-3.5 w-3.5 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
+                />
+                <span>Job Title</span>
+              </div>
+            </th>
             <th className="hidden md:table-cell py-2.5 pr-3">Department</th>
             <th className="hidden lg:table-cell py-2.5 pr-3">Location</th>
             <th className="py-2.5 pr-3">Positions</th>
@@ -223,57 +247,68 @@ function OpeningsTable({ rows }: { rows: Opening[] }) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((o) => (
-            <tr key={o.id} className="border-b border-zinc-50 hover:bg-zinc-50/70 transition-colors">
-              <td className="py-2.5 pr-3">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-[11px] font-bold ${o.avatarBg} ${o.avatarColor}`}>
-                    {o.initials}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-[12.5px] font-semibold text-zinc-800 leading-tight truncate">{o.jobTitle}</p>
-                    <p className="text-[10px] text-zinc-400 leading-tight truncate">{o.id}</p>
+          {rows.map((o) => {
+            const isSelected = selectedIds.has(o.id);
+            return (
+              <tr
+                key={o.id}
+                className={`border-b border-zinc-50 transition-colors ${
+                  isSelected ? 'bg-indigo-50/60' : 'hover:bg-zinc-50/70'
+                }`}
+              >
+                <td className="py-2.5 pr-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => onToggle(o.id)}
+                      className="h-3.5 w-3.5 shrink-0 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-[12.5px] font-semibold text-zinc-800 leading-tight truncate">{o.jobTitle}</p>
+                      <p className="text-[10px] text-zinc-400 leading-tight truncate">{o.id}</p>
+                    </div>
                   </div>
-                </div>
-              </td>
-              <td className="hidden md:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 truncate">{o.department}</td>
-              <td className="hidden lg:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 truncate">{o.location}</td>
-              <td className="py-2.5 pr-3">
-                <p className="text-[12.5px] font-bold text-zinc-900 leading-tight">{o.positions}</p>
-                <p className="text-[10px] text-emerald-600 font-medium leading-tight">{o.openPositions} Open</p>
-              </td>
-              <td className="hidden sm:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 whitespace-nowrap">{o.experience}</td>
-              <td className="hidden md:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 truncate">{o.jobType}</td>
-              <td className="py-2.5 pr-3"><StatusBadge status={o.status} /></td>
-              <td className="py-2.5 pr-3">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[12.5px] font-semibold text-zinc-800">{o.applications}</span>
-                  {o.isNew && (
-                    <span className="inline-flex items-center rounded-full bg-rose-50 text-rose-600 border border-rose-100 px-1.5 py-0.5 text-[9px] font-bold">
-                      New
-                    </span>
-                  )}
-                </div>
-              </td>
-              <td className="hidden sm:table-cell py-2.5 pr-3">
-                <p className="text-[12px] text-zinc-700 leading-tight whitespace-nowrap">{o.postedOn}</p>
-                <p className="text-[10px] text-zinc-400 leading-tight">{o.postedAgo}</p>
-              </td>
-              <td className="py-2.5 pr-1">
-                <div className="flex items-center justify-end gap-1">
-                  <Link href={`/dashboard/hiring/openings/${o.id}`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
-                    <EyeIcon size={13} />
-                  </Link>
-                  <Link href={`/dashboard/hiring/openings/${o.id}/edit`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
-                    <Pencil size={13} />
-                  </Link>
-                  <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
-                    <MoreHorizontal size={13} />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
+                </td>
+                <td className="hidden md:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 truncate">{o.department}</td>
+                <td className="hidden lg:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 truncate">{o.location}</td>
+                <td className="py-2.5 pr-3">
+                  <p className="text-[12.5px] font-bold text-zinc-900 leading-tight">{o.positions}</p>
+                  <p className="text-[10px] text-emerald-600 font-medium leading-tight">{o.openPositions} Open</p>
+                </td>
+                <td className="hidden sm:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 whitespace-nowrap">{o.experience}</td>
+                <td className="hidden md:table-cell py-2.5 pr-3 text-[12px] text-zinc-600 truncate">{o.jobType}</td>
+                <td className="py-2.5 pr-3"><StatusBadge status={o.status} /></td>
+                <td className="py-2.5 pr-3">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[12.5px] font-semibold text-zinc-800">{o.applications}</span>
+                    {o.isNew && (
+                      <span className="inline-flex items-center rounded-full bg-rose-50 text-rose-600 border border-rose-100 px-1.5 py-0.5 text-[9px] font-bold">
+                        New
+                      </span>
+                    )}
+                  </div>
+                </td>
+                <td className="hidden sm:table-cell py-2.5 pr-3">
+                  <p className="text-[12px] text-zinc-700 leading-tight whitespace-nowrap">{o.postedOn}</p>
+                  <p className="text-[10px] text-zinc-400 leading-tight">{o.postedAgo}</p>
+                </td>
+                <td className="py-2.5 pr-1">
+                  <div className="flex items-center justify-end gap-1">
+                    <Link href={`/dashboard/hiring/openings/${o.id}`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
+                      <EyeIcon size={13} />
+                    </Link>
+                    <Link href={`/dashboard/hiring/openings/${o.id}/edit`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
+                      <Pencil size={13} />
+                    </Link>
+                    <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
+                      <MoreHorizontal size={13} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -373,10 +408,43 @@ export default function JobOpeningsPage() {
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
 
-  const tabCount = TABS.find((t) => t.key === activeTab)?.count ?? 0;
+  // ── Bulk selection ──
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // local data state so we can delete rows
+  const [openings, setOpenings] = useState<Opening[]>(OPENINGS);
+
+  const handleToggle = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const handleToggleAll = (checked: boolean, visibleIds: string[]) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      visibleIds.forEach((id) => (checked ? next.add(id) : next.delete(id)));
+      return next;
+    });
+  };
+
+  const handleDeleteSelected = () => {
+    setOpenings((prev) => prev.filter((o) => !selectedIds.has(o.id)));
+    setSelectedIds(new Set());
+  };
+
+  // Compute per-tab counts from actual data
+  const tabCounts = useMemo(() => {
+    const counts = {} as Record<TabKey, number>;
+    for (const tab of TABS) counts[tab.key] = 0;
+    for (const o of openings) counts[o.tab] = (counts[o.tab] ?? 0) + 1;
+    return counts;
+  }, [openings]);
 
   const filtered = useMemo(() => {
-    return OPENINGS.filter((o) => {
+    return openings.filter((o) => {
       if (o.tab !== activeTab) return false;
       const matchesSearch = search.trim() === '' ||
         [o.jobTitle, o.department, o.location].some((f) => f.toLowerCase().includes(search.toLowerCase()));
@@ -387,7 +455,7 @@ export default function JobOpeningsPage() {
       const matchesStatus = status === 'All Status' || o.status === status;
       return matchesSearch && matchesDept && matchesLocation && matchesJobType && matchesExperience && matchesStatus;
     });
-  }, [activeTab, search, department, location, jobType, experience, status]);
+  }, [openings, activeTab, search, department, location, jobType, experience, status]);
 
   return (
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
@@ -405,14 +473,30 @@ export default function JobOpeningsPage() {
 
       <Card className="border-zinc-200/80 shadow-sm">
         <CardContent className="p-0">
-          <TabsBar active={activeTab} onChange={(t) => { setActiveTab(t); setPage(1); }} />
+          <TabsBar active={activeTab} onChange={(t) => { setActiveTab(t); setPage(1); }} counts={tabCounts} />
 
           <div className="p-3.5">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-              <h3 className="text-[13px] font-semibold text-zinc-900">
-                {TABS.find((t) => t.key === activeTab)?.label} ({tabCount})
-              </h3>
               <div className="flex items-center gap-2">
+                <h3 className="text-[13px] font-semibold text-zinc-900">
+                  {TABS.find((t) => t.key === activeTab)?.label} ({filtered.length})
+                </h3>
+                {selectedIds.size > 0 && (
+                  <span className="text-[11px] text-zinc-500 font-medium">
+                    · {selectedIds.size} selected
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {selectedIds.size > 0 && (
+                  <button
+                    onClick={handleDeleteSelected}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-[11px] font-semibold text-rose-600 shadow-sm hover:bg-rose-100 hover:border-rose-300 transition-colors"
+                  >
+                    <Trash2 size={12} />
+                    Delete Selected ({selectedIds.size})
+                  </button>
+                )}
                 <button className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm hover:border-indigo-200 transition-colors">
                   <Columns3 size={13} />
                   Columns
@@ -432,7 +516,17 @@ export default function JobOpeningsPage() {
               </div>
             </div>
 
-            <OpeningsTable rows={filtered.slice((page - 1) * pageSize, page * pageSize)} />
+            <OpeningsTable
+              rows={filtered.slice((page - 1) * pageSize, page * pageSize)}
+              selectedIds={selectedIds}
+              onToggle={handleToggle}
+              onToggleAll={(checked) =>
+                handleToggleAll(
+                  checked,
+                  filtered.slice((page - 1) * pageSize, page * pageSize).map((r) => r.id)
+                )
+              }
+            />
 
             <TableFooter
               pageSize={pageSize} setPageSize={setPageSize}

@@ -1,9 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import {
-  BookOpen, Bell, Shield, Plus, Flame, ShieldAlert, Phone, MessageSquare, Pencil,
-  MapPin, HeartPulse, DoorOpen, CheckCircle2, AlertTriangle, PlusCircle, FileText,
-} from 'lucide-react';
+import { BookOpen, Bell, Shield, Plus, Flame, ShieldAlert, Phone, MessageSquare, Pencil, MapPin, HeartPulse, DoorOpen, CheckCircle2, AlertTriangle, PlusCircle, FileText, } from 'lucide-react';
 
 // Dummy data matching the screenshot — no backend endpoint for this yet.
 const helplines = [

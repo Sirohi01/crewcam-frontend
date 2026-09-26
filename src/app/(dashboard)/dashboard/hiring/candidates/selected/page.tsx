@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import {
-  Users, Clock3, FileText, CheckCircle2, UserCheck, XCircle, Search, ChevronDown,
-  Filter, Table2, LayoutGrid, Star, Eye, MoreVertical, ChevronLeft, ChevronRight,
-  Download, Phone, MapPin, Mail,
-} from 'lucide-react';
+import {Users, Clock3, FileText, CheckCircle2, UserCheck, XCircle, Search, ChevronDown, Filter, Table2, LayoutGrid, Star, Eye, MoreVertical, ChevronLeft, ChevronRight, Download, Phone, MapPin, Mail,} from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/axios';
+import { Loader2 } from 'lucide-react';
 
 // Dummy data / static mockup — matches the approved design 1:1.
 
@@ -20,28 +19,18 @@ const KPIS = [
   { label: 'Offer Declined', value: '3', sub: '5.77%', icon: XCircle, accent: 'bg-rose-50 text-rose-600' },
 ];
 
-const tabs = [
-  { label: 'All Selected', count: 52 },
-  { label: 'Ready for Offer', count: 18 },
-  { label: 'Offer Released', count: 12 },
-  { label: 'Offer Accepted', count: 9 },
-  { label: 'Joined', count: 6 },
-  { label: 'Offer Declined', count: 3 },
-  { label: 'On Hold', count: 4 },
+// Tab definitions — counts computed dynamically from live API data
+const TAB_DEFS = [
+  { key: 'All Selected', statusMatch: null },
+  { key: 'Ready for Offer', statusMatch: 'Ready for Offer' },
+  { key: 'Offer Released', statusMatch: 'Offer Released' },
+  { key: 'Offer Accepted', statusMatch: 'Offer Accepted' },
+  { key: 'Joined', statusMatch: 'Joined' },
+  { key: 'Offer Declined', statusMatch: 'Offer Declined' },
+  { key: 'On Hold', statusMatch: 'On Hold' },
 ];
 
-const candidates = [
-  { name: 'Amit Kumar Verma', email: 'amit.verma@email.com', phone: '+91 98765 43210', title: 'Sales Manager', code: 'SE-024', dept: 'Sales & Marketing', stage: 'Final Interview', score: 92, ctc: '₹ 8.50 LPA', status: 'Ready for Offer', selected: true },
-  { name: 'Priya Singh', email: 'priya.singh@email.com', phone: '+91 91234 56789', title: 'HR Executive', code: 'HR-015', dept: 'Human Resources', stage: 'Assessment', score: 88, ctc: '₹ 4.20 LPA', status: 'Ready for Offer' },
-  { name: 'Rahul Sharma', email: 'rahul.sharma@email.com', phone: '+91 99876 54321', title: 'Web Developer', code: 'IT-031', dept: 'Information Technology', stage: 'Final Interview', score: 90, ctc: '₹ 7.00 LPA', status: 'Offer Released' },
-  { name: 'Neha Gupta', email: 'neha.gupta@email.com', phone: '+91 88776 65544', title: 'Graphic Designer', code: 'MK-012', dept: 'Marketing', stage: 'Final Interview', score: 85, ctc: '₹ 5.50 LPA', status: 'Offer Released' },
-  { name: 'Deepak Yadav', email: 'deepak.yadav@email.com', phone: '+91 90011 22334', title: 'Accounts Executive', code: 'AC-018', dept: 'Finance', stage: 'Assessment', score: 82, ctc: '₹ 3.60 LPA', status: 'Offer Accepted' },
-  { name: 'Anjali Mehta', email: 'anjali.mehta@email.com', phone: '+91 93456 77890', title: 'Sales Executive', code: 'SE-030', dept: 'Sales & Marketing', stage: 'HR Interview', score: 80, ctc: '₹ 3.20 LPA', status: 'Offer Accepted' },
-  { name: 'Mohit Jain', email: 'mohit.jain@email.com', phone: '+91 94567 88901', title: 'Business Analyst', code: 'IT-026', dept: 'Information Technology', stage: 'Final Interview', score: 91, ctc: '₹ 9.00 LPA', status: 'Joined' },
-  { name: 'Kavya Nair', email: 'kavya.nair@email.com', phone: '+91 87654 32109', title: 'Content Writer', code: 'MK-022', dept: 'Marketing', stage: 'Assessment', score: 78, ctc: '₹ 3.00 LPA', status: 'On Hold' },
-  { name: 'Vikash Singh', email: 'vikash.singh@email.com', phone: '+91 99123 45678', title: 'Operations Executive', code: 'OP-017', dept: 'Operations', stage: 'HR Interview', score: 75, ctc: '₹ 3.80 LPA', status: 'On Hold' },
-  { name: 'Sneha Patel', email: 'sneha.patel@email.com', phone: '+91 96321 78945', title: 'Customer Support Exec.', code: 'CS-008', dept: 'Customer Success', stage: 'Assessment', score: 76, ctc: '₹ 2.80 LPA', status: 'Offer Declined' },
-];
+// Data fetched dynamically
 
 const stageStyle: Record<string, string> = {
   'Final Interview': 'bg-blue-50 text-blue-600',
@@ -104,6 +93,67 @@ function SelectBox({ placeholder, options }: { placeholder: string; options?: st
 export default function SelectedCandidatesPage() {
   const [tab, setTab] = useState('All Selected');
   const [view, setView] = useState<'table' | 'kanban'>('table');
+  const [department, setDepartment] = useState('All Departments');
+
+  const { data: candidatesResponse, isLoading } = useQuery({
+    queryKey: ['selected-candidates'],
+    queryFn: async () => {
+      const res = await api.get('/hiring/candidates');
+      return res.data;
+    }
+  });
+
+  const { data: departmentsRes } = useQuery({
+    queryKey: ['departments'],
+    queryFn: async () => {
+      const res = await api.get('/companies/departments');
+      return res.data;
+    }
+  });
+
+  const departmentsList = React.useMemo(() => {
+    return Array.isArray(departmentsRes?.data) ? departmentsRes.data : [];
+  }, [departmentsRes]);
+
+  const candidates = React.useMemo(() => {
+    const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
+    return rawCandidates
+      .filter((c: any) => c.status === 'Hired' || c.status === 'Offered' || c.status === 'Hold') // Mock statuses include hold
+      .filter((c: any) => department === 'All Departments' || c.department?.name === department)
+      .map((c: any) => ({
+        id: c._id || c.id,
+        name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
+        email: c.email || 'N/A',
+        phone: c.phone || 'N/A',
+        title: c.jobRole || 'N/A',
+        code: 'NA',
+        dept: c.department?.name || 'N/A',
+        stage: 'Final Interview',
+        score: c.rating ? c.rating * 20 : 80, // rough conversion to 100 scale
+        ctc: 'N/A',
+        status: c.status === 'Hired' ? 'Joined' : c.status === 'Offered' ? 'Offer Released' : c.status === 'Hold' ? 'On Hold' : 'Ready for Offer',
+        selected: false
+      }));
+  }, [candidatesResponse, department]);
+
+  // ── Dynamic tab counts from real data ──
+  const tabCounts = useMemo(() => ({
+    'All Selected': candidates.length,
+    'Ready for Offer': candidates.filter((c: any) => c.status === 'Ready for Offer').length,
+    'Offer Released': candidates.filter((c: any) => c.status === 'Offer Released').length,
+    'Offer Accepted': candidates.filter((c: any) => c.status === 'Offer Accepted').length,
+    'Joined': candidates.filter((c: any) => c.status === 'Joined').length,
+    'Offer Declined': candidates.filter((c: any) => c.status === 'Offer Declined').length,
+    'On Hold': candidates.filter((c: any) => c.status === 'On Hold').length,
+  }), [candidates]);
+
+  // ── Rows filtered by active tab ──
+  const filteredCandidates = useMemo(() => {
+    const tabDef = TAB_DEFS.find((t) => t.key === tab);
+    if (!tabDef || tabDef.statusMatch === null) return candidates;
+    return candidates.filter((c: any) => c.status === tabDef.statusMatch);
+  }, [candidates, tab]);
+
   const active = candidates[0];
 
   return (
@@ -114,13 +164,12 @@ export default function SelectedCandidatesPage() {
           <div>
             <h1 className="text-xl font-bold text-zinc-900">Selected Candidates</h1>
             <Breadcrumb
-  items={[
-    { label: "Recruitment", href: "" },
-    { label: "Candidates", href: "/dashboard/hiring/candidates" },
-    { label: "Selected Candidates" },
-  ]}
-/>
-
+              items={[
+                { label: "Recruitment", href: "" },
+                { label: "Candidates", href: "/dashboard/hiring/candidates" },
+                { label: "Selected Candidates" },
+              ]}
+            />
 
           </div>
           <div className="flex gap-2">
@@ -155,14 +204,17 @@ export default function SelectedCandidatesPage() {
 
             {/* Tabs */}
             <div className="flex items-center gap-4 overflow-x-auto rounded-[2px] border border-zinc-200 bg-white px-3 py-1.5">
-              {tabs.map((t) => (
+              {TAB_DEFS.map((t) => (
                 <button
-                  key={t.label}
+                  key={t.key}
                   type="button"
-                  onClick={() => setTab(t.label)}
-                  className={`whitespace-nowrap border-b-2 py-1 text-[11.5px] font-semibold ${tab === t.label ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}
-                >
-                  {t.label} ({t.count})
+                  onClick={() => setTab(t.key)}
+                  className={`whitespace-nowrap border-b-2 py-1 text-[11.5px] font-semibold ${tab === t.key ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'
+                    }`}>
+                  {t.key}{' '}
+                  <span className={tab === t.key ? 'text-indigo-400' : 'text-zinc-400'}>
+                    ({tabCounts[t.key as keyof typeof tabCounts] ?? 0})
+                  </span>
                 </button>
               ))}
             </div>
@@ -174,7 +226,18 @@ export default function SelectedCandidatesPage() {
                 <input className={`${inputCls} pl-7`} placeholder="Search by name, job title, email or mobile..." />
               </div>
               <div className="w-36"><SelectBox placeholder="Select Job Opening" /></div>
-              <div className="w-36"><SelectBox placeholder="Select Department" /></div>
+              <div className="w-36 relative">
+                <select
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  className="h-8 w-full rounded-[2px] border border-zinc-200 bg-white px-2.5 text-[11.5px] text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 appearance-none">
+                  <option value="All Departments">Select Department</option>
+                  {departmentsList.map((dept: any) => (
+                    <option key={dept._id || dept.id} value={dept.name}>{dept.name}</option>
+                  ))}
+                </select>
+                <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+              </div>
               <div className="w-32"><SelectBox placeholder="Select Status" /></div>
               <button type="button" className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
                 <Filter size={12} /> More Filters
@@ -182,9 +245,8 @@ export default function SelectedCandidatesPage() {
               <button type="button" className="h-8 rounded-[2px] px-2.5 text-[11px] font-semibold text-zinc-500 hover:bg-zinc-50">Clear</button>
             </div>
 
-            {/* Table toolbar */}
             <div className="flex items-center justify-between px-1">
-              <p className="text-[10.5px] text-zinc-500">Showing 1 to 10 of 52 candidates</p>
+              <p className="text-[10.5px] text-zinc-500">Showing {filteredCandidates.length} candidates</p>
               <div className="flex overflow-hidden rounded-[2px] border border-zinc-200">
                 <button
                   type="button"
@@ -196,8 +258,7 @@ export default function SelectedCandidatesPage() {
                 <button
                   type="button"
                   onClick={() => setView('kanban')}
-                  className={`flex items-center gap-1.5 border-l border-zinc-200 px-2.5 py-1 text-[10.5px] font-semibold ${view === 'kanban' ? 'bg-indigo-50 text-indigo-600' : 'bg-white text-zinc-500'}`}
-                >
+                  className={`flex items-center gap-1.5 border-l border-zinc-200 px-2.5 py-1 text-[10.5px] font-semibold ${view === 'kanban' ? 'bg-indigo-50 text-indigo-600' : 'bg-white text-zinc-500'}`}>
                   <LayoutGrid size={12} /> Kanban View
                 </button>
               </div>
@@ -220,13 +281,17 @@ export default function SelectedCandidatesPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-50">
-                  {candidates.map((c) => (
+                  {isLoading ? (
+                    <tr><td colSpan={9} className="py-10 text-center"><Loader2 className="inline animate-spin text-indigo-600" /></td></tr>
+                  ) : filteredCandidates.length === 0 ? (
+                    <tr><td colSpan={9} className="py-10 text-center text-[12px] text-zinc-500">No candidates found</td></tr>
+                  ) : filteredCandidates.map((c: any) => (
                     <tr key={c.email} className={c.selected ? 'bg-indigo-50/40' : 'hover:bg-zinc-50/60'}>
                       <td className="py-0.5 pl-3"><input type="checkbox" defaultChecked={c.selected} className="h-3.5 w-3.5 rounded-[2px] accent-indigo-600" /></td>
                       <td className="py-0.5 pr-2">
                         <div className="flex items-center gap-2">
                           <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[2px] bg-zinc-100 text-[10px] font-bold text-zinc-500">
-                            {c.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+                            {c.name.split(' ').map((n: any) => n[0]).slice(0, 2).join('')}
                           </span>
                           <div className="min-w-0">
                             <Link href={`/dashboard/hiring/candidates/${c.email.split('@')[0]}`} className="block truncate text-[11px] font-semibold text-indigo-600 hover:underline">{c.name}</Link>
@@ -283,8 +348,7 @@ export default function SelectedCandidatesPage() {
                   <button
                     key={p}
                     type="button"
-                    className={`grid h-7 w-7 place-items-center rounded-[2px] text-[11px] font-semibold ${p === 1 ? 'bg-indigo-600 text-white' : 'text-zinc-600 hover:bg-zinc-50'}`}
-                  >
+                    className={`grid h-7 w-7 place-items-center rounded-[2px] text-[11px] font-semibold ${p === 1 ? 'bg-indigo-600 text-white' : 'text-zinc-600 hover:bg-zinc-50'}`}>
                     {p}
                   </button>
                 ))}
@@ -297,11 +361,21 @@ export default function SelectedCandidatesPage() {
           <div className="space-y-2">
             <Card
               title="Advanced Filters"
-              action={<button type="button" className="text-[10px] font-semibold text-indigo-600 hover:text-indigo-700">Clear All</button>}
-            >
+              action={<button type="button" className="text-[10px] font-semibold text-indigo-600 hover:text-indigo-700">Clear All</button>}>
               <div className="space-y-0.5">
                 <label className="block"><span className={labelCls}>Job Opening</span><div><SelectBox placeholder="Select Job" /></div></label>
-                <label className="block"><span className={labelCls}>Department</span><div><SelectBox placeholder="Select Department" /></div></label>
+                <label className="block"><span className={labelCls}>Department</span><div className="relative">
+                  <select
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    className="h-8 w-full rounded-[2px] border border-zinc-200 bg-white px-2.5 text-[11.5px] text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 appearance-none">
+                    <option value="All Departments">Select Department</option>
+                    {departmentsList.map((dept: any) => (
+                      <option key={dept._id || dept.id} value={dept.name}>{dept.name}</option>
+                    ))}
+                  </select>
+                  <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                </div></label>
                 <label className="block"><span className={labelCls}>Current Stage</span><div><SelectBox placeholder="Select Stage" /></div></label>
                 <label className="block"><span className={labelCls}>Status</span><div><SelectBox placeholder="Select Status" /></div></label>
                 <label className="block">
@@ -322,41 +396,49 @@ export default function SelectedCandidatesPage() {
             </Card>
 
             <Card title="Candidate Details">
-              <div className="flex items-center gap-2">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[2px] bg-zinc-100 text-[11px] font-bold text-zinc-500">
-                  {active.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-[12px] font-bold text-zinc-900">{active.name}</p>
-                  <p className="truncate text-[10.5px] text-zinc-500">{active.title}</p>
-                  <span className={`mt-0.5 inline-block whitespace-nowrap rounded-[2px] px-2 py-0.5 text-[9px] font-semibold ${statusStyle[active.status]}`}>{active.status}</span>
+              {active ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[2px] bg-zinc-100 text-[11px] font-bold text-zinc-500">
+                      {active.name.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-[12px] font-bold text-zinc-900">{active.name}</p>
+                      <p className="truncate text-[10.5px] text-zinc-500">{active.title}</p>
+                      <span className={`mt-0.5 inline-block whitespace-nowrap rounded-[2px] px-2 py-0.5 text-[9px] font-semibold ${statusStyle[active.status]}`}>{active.status}</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-1.5 space-y-1 border-t border-zinc-100 pt-1.5">
+                    <p className="flex items-center gap-1.5 text-[10.5px] text-zinc-600"><Mail size={12} className="text-zinc-400" /> {active.email}</p>
+                    <p className="flex items-center gap-1.5 text-[10.5px] text-zinc-600"><Phone size={12} className="text-zinc-400" /> {active.phone}</p>
+                    <p className="flex items-center gap-1.5 text-[10.5px] text-zinc-600"><MapPin size={12} className="text-zinc-400" /> Noida, Uttar Pradesh</p>
+                  </div>
+
+                  <div className="mt-1.5 border-t border-zinc-100 pt-1.5">
+                    <p className={labelCls}>Resume</p>
+                    <div className="mt-0.5 flex items-center justify-between rounded-[2px] border border-zinc-200 px-2 py-1">
+                      <span className="truncate text-[10.5px] text-zinc-600">Resume.pdf</span>
+                      <Download size={13} className="shrink-0 text-zinc-400" />
+                    </div>
+                  </div>
+
+                  <div className="mt-1.5 grid grid-cols-2 gap-1.5 border-t border-zinc-100 pt-1.5 text-[10.5px]">
+                    <div><p className="text-zinc-400">Current Company</p><p className="font-semibold text-zinc-800">ABC Pvt. Ltd.</p></div>
+                    <div><p className="text-zinc-400">Notice Period</p><p className="font-semibold text-zinc-800">30 Days</p></div>
+                    <div><p className="text-zinc-400">Total Experience</p><p className="font-semibold text-zinc-800">5 Years</p></div>
+                    <div><p className="text-zinc-400">Expected CTC</p><p className="font-semibold text-zinc-800">{active.ctc}</p></div>
+                  </div>
+
+                  <button type="button" className="mt-1.5 flex w-full items-center justify-center gap-1.5 rounded-[2px] bg-indigo-600 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-700">
+                    Move to Next Stage <ChevronDown size={13} />
+                  </button>
+                </>
+              ) : (
+                <div className="py-10 text-center text-[11px] text-zinc-500">
+                  No candidate selected
                 </div>
-              </div>
-
-              <div className="mt-1.5 space-y-1 border-t border-zinc-100 pt-1.5">
-                <p className="flex items-center gap-1.5 text-[10.5px] text-zinc-600"><Mail size={12} className="text-zinc-400" /> {active.email}</p>
-                <p className="flex items-center gap-1.5 text-[10.5px] text-zinc-600"><Phone size={12} className="text-zinc-400" /> {active.phone}</p>
-                <p className="flex items-center gap-1.5 text-[10.5px] text-zinc-600"><MapPin size={12} className="text-zinc-400" /> Noida, Uttar Pradesh</p>
-              </div>
-
-              <div className="mt-1.5 border-t border-zinc-100 pt-1.5">
-                <p className={labelCls}>Resume</p>
-                <div className="mt-0.5 flex items-center justify-between rounded-[2px] border border-zinc-200 px-2 py-1">
-                  <span className="truncate text-[10.5px] text-zinc-600">Amit_Verma_Resume.pdf</span>
-                  <Download size={13} className="shrink-0 text-zinc-400" />
-                </div>
-              </div>
-
-              <div className="mt-1.5 grid grid-cols-2 gap-1.5 border-t border-zinc-100 pt-1.5 text-[10.5px]">
-                <div><p className="text-zinc-400">Current Company</p><p className="font-semibold text-zinc-800">ABC Pvt. Ltd.</p></div>
-                <div><p className="text-zinc-400">Notice Period</p><p className="font-semibold text-zinc-800">30 Days</p></div>
-                <div><p className="text-zinc-400">Total Experience</p><p className="font-semibold text-zinc-800">5 Years</p></div>
-                <div><p className="text-zinc-400">Expected CTC</p><p className="font-semibold text-zinc-800">{active.ctc}</p></div>
-              </div>
-
-              <button type="button" className="mt-1.5 flex w-full items-center justify-center gap-1.5 rounded-[2px] bg-indigo-600 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-700">
-                Move to Next Stage <ChevronDown size={13} />
-              </button>
+              )}
             </Card>
           </div>
         </div>

@@ -1,24 +1,8 @@
 "use client"
-import React, { useState } from 'react';
-import { 
-  ArrowLeftRight, 
-  CheckCircle2, 
-  Clock, 
-  FileText, 
-  Search, 
-  SlidersHorizontal, 
-  RotateCcw, 
-  Download, 
-  Mail, 
-  UserPlus, 
-  Eye, 
-  MoreHorizontal, 
-  ChevronLeft, 
-  ChevronRight,
-  UserX,
-  FileSearch,
-  Filter
-} from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ArrowLeftRight, Clock, FileText, Search, SlidersHorizontal, RotateCcw, Download, Mail, UserPlus, Eye, MoreHorizontal, ChevronLeft, ChevronRight, UserX, FileSearch, Filter, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/axios';
 
 // --- TypeScript Types ---
 interface StatCardProps {
@@ -48,128 +32,6 @@ interface Candidate {
 }
 
 // --- Mock Data ---
-const initialCandidates: Candidate[] = [
-  {
-    id: '1',
-    name: 'Aarti Verma',
-    email: 'aarti.verma@email.com',
-    phone: '+91 98765 43210',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-    jobOpening: 'Marketing Executive',
-    jobCode: 'JOB-2026-048',
-    department: 'Marketing',
-    experience: '2 Years',
-    rejectedStage: 'After Interview',
-    rejectionReason: 'Lacked required leadership skills.',
-    rejectedOn: '14 Jun 2026',
-    rejectedTime: '03:45 PM'
-  },
-  {
-    id: '2',
-    name: 'Rahul Singh',
-    email: 'rahul.singh@email.com',
-    phone: '+91 91234 56789',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-    jobOpening: 'Software Developer',
-    jobCode: 'JOB-2026-049',
-    department: 'IT Department',
-    experience: '3 Years',
-    rejectedStage: 'After Assessment',
-    rejectionReason: 'Technical skills not up to the mark.',
-    rejectedOn: '14 Jun 2026',
-    rejectedTime: '12:20 PM'
-  },
-  {
-    id: '3',
-    name: 'Neha Gupta',
-    email: 'neha.gupta@email.com',
-    phone: '+91 90123 45678',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
-    jobOpening: 'HR Executive',
-    jobCode: 'JOB-2026-050',
-    department: 'Human Resources',
-    experience: '4 Years',
-    rejectedStage: 'Screening Rejected',
-    rejectionReason: 'Resume does not match job profile.',
-    rejectedOn: '13 Jun 2026',
-    rejectedTime: '11:10 AM'
-  },
-  {
-    id: '4',
-    name: 'Vikram Mehta',
-    email: 'vikram.mehta@email.com',
-    phone: '+91 98712 34567',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-    jobOpening: 'UI/UX Designer',
-    jobCode: 'JOB-2026-046',
-    department: 'IT Department',
-    experience: '3 Years',
-    rejectedStage: 'After Interview',
-    rejectionReason: 'Not a cultural fit.',
-    rejectedOn: '12 Jun 2026',
-    rejectedTime: '04:30 PM'
-  },
-  {
-    id: '5',
-    name: 'Pooja Sharma',
-    email: 'pooja.sharma@email.com',
-    phone: '+91 99887 66554',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
-    jobOpening: 'Business Analyst',
-    jobCode: 'JOB-2026-045',
-    department: 'IT Department',
-    experience: '2.5 Years',
-    rejectedStage: 'After Assessment',
-    rejectionReason: 'Lacks domain knowledge.',
-    rejectedOn: '12 Jun 2026',
-    rejectedTime: '02:15 PM'
-  },
-  {
-    id: '6',
-    name: 'Amit Patel',
-    email: 'amit.patel@email.com',
-    phone: '+91 99876 66554',
-    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150',
-    jobOpening: 'Sales Manager',
-    jobCode: 'JOB-2026-051',
-    department: 'Sales & Marketing',
-    experience: '5 Years',
-    rejectedStage: 'After Interview',
-    rejectionReason: 'Salary expectation not aligned.',
-    rejectedOn: '11 Jun 2026',
-    rejectedTime: '05:05 PM'
-  },
-  {
-    id: '7',
-    name: 'Ritika Agarwal',
-    email: 'ritika.agarwal@email.com',
-    phone: '+91 90012 34567',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-    jobOpening: 'Accountant',
-    jobCode: 'JOB-2026-043',
-    department: 'Finance & Accounts',
-    experience: '2 Years',
-    rejectedStage: 'Screening Rejected',
-    rejectionReason: 'Insufficient experience.',
-    rejectedOn: '11 Jun 2026',
-    rejectedTime: '10:30 AM'
-  },
-  {
-    id: '8',
-    name: 'Saurabh Kumar',
-    email: 'saurabh.k@email.com',
-    phone: '+91 91234 87654',
-    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150',
-    jobOpening: 'Data Analyst',
-    jobCode: 'JOB-2026-044',
-    department: 'IT Department',
-    experience: '3 Years',
-    rejectedStage: 'After Assessment',
-    rejectionReason: 'Could not clear SQL test.',
-    rejectedOn: '10 Jun 2026',
-    rejectedTime: '03:20 PM'
-  }
-];
 
 export default function RejectedCandidatesPage() {
   // --- States ---
@@ -180,6 +42,63 @@ export default function RejectedCandidatesPage() {
   const [selectedReason, setSelectedReason] = useState('All Reasons');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  const { data: candidatesResponse, isLoading } = useQuery({
+    queryKey: ['rejected-candidates'],
+    queryFn: async () => {
+      const res = await api.get('/hiring/candidates', { params: { status: 'Rejected' } });
+      return res.data;
+    }
+  });
+
+  const initialCandidates: Candidate[] = React.useMemo(() => {
+    const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
+    return rawCandidates.map((c: any) => ({
+      id: c._id || c.id,
+      name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
+      email: c.email || 'N/A',
+      phone: c.phone || 'N/A',
+      avatar: '',
+      jobOpening: c.jobRole || 'N/A',
+      jobCode: 'N/A',
+      department: c.department?.name || 'N/A',
+      experience: c.applicationDetails?.totalExperience || 'N/A',
+      rejectedStage: 'Screening Rejected', // Mock stage
+      rejectionReason: c.comments || 'Not a good fit',
+      rejectedOn: new Date(c.updatedAt || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      rejectedTime: new Date(c.updatedAt || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    }));
+  }, [candidatesResponse]);
+
+  // ── Dynamic tab counts from real API data ──
+  const tabCounts = useMemo(() => ({
+    all: initialCandidates.length,
+    screening: initialCandidates.filter((c) => c.rejectedStage === 'Screening Rejected').length,
+    assessment: initialCandidates.filter((c) => c.rejectedStage === 'After Assessment').length,
+    interview: initialCandidates.filter((c) => c.rejectedStage === 'After Interview').length,
+    offerDeclined: initialCandidates.filter((c) => c.rejectedStage === 'Offer Declined' as any).length,
+  }), [initialCandidates]);
+
+  // ── Filtered rows based on active tab + search + filters ──
+  const filteredCandidates = useMemo(() => {
+    return initialCandidates.filter((c) => {
+      // Tab filter
+      if (activeTab === 'Screening Rejected' && c.rejectedStage !== 'Screening Rejected') return false;
+      if (activeTab === 'After Assessment' && c.rejectedStage !== 'After Assessment') return false;
+      if (activeTab === 'After Interview' && c.rejectedStage !== 'After Interview') return false;
+      if (activeTab === 'Offer Declined' && (c.rejectedStage as any) !== 'Offer Declined') return false;
+      // Search filter
+      if (searchTerm.trim()) {
+        const q = searchTerm.toLowerCase();
+        if (![c.name, c.email, c.phone, c.jobOpening, c.department].some((f) => f.toLowerCase().includes(q))) return false;
+      }
+      // Department filter
+      if (selectedDept !== 'All Departments' && c.department !== selectedDept) return false;
+      // Reason filter
+      if (selectedReason !== 'All Reasons' && c.rejectionReason !== selectedReason) return false;
+      return true;
+    });
+  }, [initialCandidates, activeTab, searchTerm, selectedDept, selectedReason]);
 
   // --- Handlers ---
   const clearFilters = () => {
@@ -209,8 +128,7 @@ export default function RejectedCandidatesPage() {
   };
 
   return (
-     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
-      
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       {/* HEADER SECTION */}
       <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-200/80 shadow-sm h-[10%]">
         <div>
@@ -247,15 +165,14 @@ export default function RejectedCandidatesPage() {
       <div className="bg-white p-2 rounded-lg border border-slate-200/80 shadow-sm flex flex-col gap-1.5 justify-center h-[18%]">
         <div className="relative w-full">
           <Search className="absolute left-2.5 top-2.5 text-slate-400" size={14} />
-          <input 
-            type="text" 
-            placeholder="Search by name, email, phone, job title or skills..." 
+          <input
+            type="text"
+            placeholder="Search by name, email, phone, job title or skills..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 pl-8 pr-3 py-1.5 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white"
-          />
+            className="w-full bg-slate-50 border border-slate-200 pl-8 pr-3 py-1.5 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white" />
         </div>
-        
+
         <div className="grid grid-cols-6 gap-2 items-center">
           <div>
             <label className="block text-[10px] font-bold text-slate-700 mb-0.5">Job Opening</label>
@@ -304,7 +221,7 @@ export default function RejectedCandidatesPage() {
           </div>
           <div className="flex gap-1.5 h-full items-end">
             <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
-              <Filter size={12}/> Filters <span className="bg-indigo-600 text-white text-[9px] px-1 rounded-full">0</span>
+              <Filter size={12} /> Filters <span className="bg-indigo-600 text-white text-[9px] px-1 rounded-full">0</span>
             </button>
             <button onClick={clearFilters} className="border border-slate-200 hover:bg-slate-50 text-slate-600 p-1.5 rounded text-xs font-semibold flex items-center justify-center h-[28px]" title="Clear All">
               <RotateCcw size={12} />
@@ -315,20 +232,26 @@ export default function RejectedCandidatesPage() {
 
       {/* DATA TABLE TABS & VIEWS */}
       <div className="bg-white rounded-lg border border-slate-200/80 shadow-sm flex flex-col flex-1 overflow-hidden h-[50%]">
-        
+
         {/* Sub-navigation Menu */}
         <div className="flex justify-between items-center border-b border-slate-100 px-2 bg-slate-50/50">
           <div className="flex gap-4">
-            {['All Rejected (86)', 'Screening Rejected (26)', 'After Assessment (28)', 'After Interview (32)', 'Offer Declined (6)'].map((tab) => {
-              const tabName = tab.split(' (')[0];
-              const isActive = activeTab === tabName;
+            {[
+              { key: 'All Rejected', label: 'All Rejected', count: tabCounts.all },
+              { key: 'Screening Rejected', label: 'Screening Rejected', count: tabCounts.screening },
+              { key: 'After Assessment', label: 'After Assessment', count: tabCounts.assessment },
+              { key: 'After Interview', label: 'After Interview', count: tabCounts.interview },
+              { key: 'Offer Declined', label: 'Offer Declined', count: tabCounts.offerDeclined },
+            ].map(({ key, label, count }) => {
+              const isActive = activeTab === key;
               return (
-                <button 
-                  key={tab}
-                  onClick={() => setActiveTab(tabName)}
-                  className={`py-2 text-xs font-bold border-b-2 transition relative top-[1px] ${isActive ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-600 hover:text-indigo-600'}`}
+                <button
+                  key={key}
+                  onClick={() => setActiveTab(key)}
+                  className={`py-2 text-xs font-bold border-b-2 transition relative top-[1px] whitespace-nowrap ${isActive ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-600 hover:text-indigo-600'
+                    }`}
                 >
-                  {tab}
+                  {label} <span className={isActive ? 'text-indigo-400' : 'text-slate-400'}>({count})</span>
                 </button>
               );
             })}
@@ -361,12 +284,18 @@ export default function RejectedCandidatesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {initialCandidates.map((cand) => (
+              {isLoading ? (
+                <tr><td colSpan={9} className="py-10 text-center"><Loader2 className="inline animate-spin text-indigo-600" /></td></tr>
+              ) : filteredCandidates.length === 0 ? (
+                <tr><td colSpan={9} className="py-10 text-center text-xs text-slate-500">No candidates found</td></tr>
+              ) : filteredCandidates.map((cand) => (
                 <tr key={cand.id} className="hover:bg-slate-50/80 transition-colors">
                   <td className="p-2"><input type="checkbox" className="rounded text-indigo-600" /></td>
                   <td className="p-2">
                     <div className="flex items-center gap-2">
-                      <img src={cand.avatar} alt={cand.name} className="w-6 h-6 rounded-full object-cover border border-slate-200" />
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-zinc-100 text-[10px] font-bold text-zinc-500 border border-slate-200">
+                        {cand.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+                      </span>
                       <div>
                         <p className="font-bold text-slate-900 leading-tight">{cand.name}</p>
                         <p className="text-[10px] text-slate-500">{cand.email}</p>
@@ -411,16 +340,15 @@ export default function RejectedCandidatesPage() {
         {/* COMPACT PAGINATION FOOTER */}
         <div className="border-t border-slate-200 p-2 flex justify-between items-center bg-slate-50 text-[11px] font-semibold text-slate-700 h-[40px]">
           <div>
-            Showing <span className="font-bold text-slate-900">1 to 8</span> of <span className="font-bold text-slate-900">86</span> entries
+            Showing <span className="font-bold text-slate-900">{filteredCandidates.length > 0 ? 1 : 0} to {Math.min(pageSize, filteredCandidates.length)}</span> of <span className="font-bold text-slate-900">{filteredCandidates.length}</span> entries
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1">
               <span>Show</span>
-              <select 
-                value={pageSize} 
+              <select
+                value={pageSize}
                 onChange={(e) => setPageSize(Number(e.target.value))}
-                className="bg-white border border-slate-200 px-1 py-0.5 rounded focus:outline-none"
-              >
+                className="bg-white border border-slate-200 px-1 py-0.5 rounded focus:outline-none">
                 <option value={10}>10</option>
                 <option value={25}>25</option>
                 <option value={50}>50</option>
@@ -442,7 +370,6 @@ export default function RejectedCandidatesPage() {
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );

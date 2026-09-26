@@ -1,12 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import {
-  Search, ChevronDown, MoreVertical, Eye as EyeIcon, Pencil,
-  Laptop, Smartphone, Headphones, Backpack, CreditCard, BatteryCharging,
-  ShoppingBag, CheckCircle, Wrench, Clock, Info, ShieldCheck, LifeBuoy,
-  CheckCircle2, Calendar
-} from 'lucide-react';
+import { Search, ChevronDown, MoreVertical, Eye as EyeIcon, Pencil, ShoppingBag, CheckCircle, Wrench, Clock, Info, ShieldCheck, LifeBuoy, CheckCircle2, Calendar } from 'lucide-react';
 
 import laptop from '../../../../../../public/assets/laptop.jpg';
 import iphone from '../../../../../../public/assets/iphone.jpg';

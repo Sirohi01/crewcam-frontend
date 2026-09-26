@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
 
-const APPLICATION_STATUSES = ['Applied', 'Screening', 'Interviewing', 'Offered', 'Hired', 'Rejected'];
+const APPLICATION_STATUSES = ['Applied', 'Screening', 'Interviewing', 'Offered', 'Hired', 'Rejected', 'Hold'];
 
 const STATUS_DOT: Record<string, string> = {
   Applied: 'bg-blue-500 text-blue-700 bg-blue-50',
@@ -20,6 +20,7 @@ const STATUS_DOT: Record<string, string> = {
   Offered: 'bg-violet-500 text-violet-700 bg-violet-50',
   Hired: 'bg-emerald-500 text-emerald-700 bg-emerald-50',
   Rejected: 'bg-rose-500 text-rose-700 bg-rose-50',
+  Hold: 'bg-amber-500 text-amber-700 bg-amber-50',
 };
 
 const scoreColor = (score: number) =>

@@ -190,7 +190,7 @@ function PageHeader({ candidateId }: { candidateId: string }) {
 }
 
 // ─── Candidate info card ────────────────────────────────────────────────────
-function CandidateInfoCard() {
+function CandidateInfoCard({ candidate }: { candidate: any }) {
   return (
     <Card className="border-zinc-200/80 shadow-sm h-full bg-white">
       <CardContent className="p-4 h-full flex flex-col">
@@ -198,23 +198,23 @@ function CandidateInfoCard() {
           {/* Column 1: photo, name, title, contact */}
           <div className="flex items-start gap-4 min-w-0">
             <img
-              src="https://i.pravatar.cc/150?u=amitverma"
-              alt="Amit Kumar Verma"
+              src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
+              alt="Candidate"
               className="w-16 h-16 rounded-xl object-cover border border-zinc-100 shadow-sm shrink-0"
             />
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-[15px] font-bold text-zinc-900">Amit Kumar Verma</h2>
+                <h2 className="text-[15px] font-bold text-zinc-900">{candidate.fullName}</h2>
                 <span className="inline-flex items-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap">
                   Round 5 In Progress
                 </span>
               </div>
-              <p className="text-[12.5px] text-zinc-500 mt-0.5">Sales Manager</p>
+              <p className="text-[12.5px] text-zinc-500 mt-0.5">{candidate.appliedFor}</p>
               <div className="mt-2 space-y-1">
-                <p className="flex items-center gap-1.5 text-[12px] text-zinc-600"><Phone size={12} className="text-zinc-400" /> +91 98765 43210</p>
-                <p className="flex items-center gap-1.5 text-[12px] text-zinc-600"><Mail size={12} className="text-zinc-400" /> amit.verma@email.com</p>
-                <p className="flex items-center gap-1.5 text-[12px] text-zinc-600"><MapPin size={12} className="text-zinc-400" /> Noida, Uttar Pradesh</p>
-                <p className="flex items-center gap-1.5 text-[12px] text-indigo-700"><Link2 size={12} /> linkedin.com/in/amitverma</p>
+                <p className="flex items-center gap-1.5 text-[12px] text-zinc-600"><Phone size={12} className="text-zinc-400" /> {candidate.mobile}</p>
+                <p className="flex items-center gap-1.5 text-[12px] text-zinc-600"><Mail size={12} className="text-zinc-400" /> {candidate.email}</p>
+                <p className="flex items-center gap-1.5 text-[12px] text-zinc-600"><MapPin size={12} className="text-zinc-400" /> {candidate.currentLocation}</p>
+                <p className="flex items-center gap-1.5 text-[12px] text-indigo-700 hover:underline cursor-pointer" onClick={() => window.open(candidate.linkedin, '_blank')}><Link2 size={12} /> {candidate.linkedin}</p>
               </div>
             </div>
           </div>
@@ -222,11 +222,11 @@ function CandidateInfoCard() {
           {/* Column 2: Applied For / Department / Experience */}
           <div className="min-w-0">
             <p className="text-[10.5px] font-semibold uppercase tracking-wide text-zinc-400">Applied For</p>
-            <p className="text-[13px] font-semibold text-zinc-800 mt-1">Sales Manager</p>
+            <p className="text-[13px] font-semibold text-zinc-800 mt-1">{candidate.appliedFor}</p>
             <p className="text-[10.5px] font-semibold uppercase tracking-wide text-zinc-400 mt-2.5">Department</p>
-            <p className="text-[13px] font-semibold text-zinc-800 mt-1">Sales & Marketing</p>
+            <p className="text-[13px] font-semibold text-zinc-800 mt-1">{candidate.department}</p>
             <p className="text-[10.5px] font-semibold uppercase tracking-wide text-zinc-400 mt-2.5">Experience</p>
-            <p className="text-[13px] font-semibold text-zinc-800 mt-1">7 Years</p>
+            <p className="text-[13px] font-semibold text-zinc-800 mt-1">{candidate.totalExperience} Years</p>
           </div>
 
           {/* Column 3: Current Round / Interviewer / View Candidate Profile button */}
@@ -253,9 +253,9 @@ function CandidateInfoCard() {
 }
 
 // ─── Application summary card ──────────────────────────────────────────────
-function ApplicationSummaryCard() {
+function ApplicationSummaryCard({ candidateId }: { candidateId: string }) {
   const rows = [
-    { icon: <CreditCard size={13} />, label: 'Application ID', value: 'APP-2026-000124' },
+    { icon: <CreditCard size={13} />, label: 'Application ID', value: `APP-${candidateId?.slice(-6).toUpperCase() || '100124'}` },
     { icon: <CalendarClock size={13} />, label: 'Applied On', value: '15 June 2026, 11:32 AM' },
     { icon: <ClipboardList size={13} />, label: 'Current Stage', value: 'Interview – Round 5' },
     { icon: <Gauge size={13} />, label: 'AI Screening Score', value: '87%' },
@@ -632,11 +632,56 @@ function BottomActionBar() {
 export default function InterviewRoundPage() {
   const params = useParams();
   const candidateId = params.id as string;
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabKey>('Interview');
   const [questionIndex, setQuestionIndex] = useState(1);
   const [answers, setAnswers] = useState<string[]>(['', '']);
   const totalSeconds = 25 * 60;
   const [remainingSeconds, setRemainingSeconds] = useState(22 * 60 + 35);
+  const [candidate, setCandidate] = useState<any>(null);
+
+  useEffect(() => {
+    if (candidateId) {
+      const fetchCandidate = async () => {
+        try {
+          let cId = candidateId;
+          if (!/^[0-9a-fA-F]{24}$/.test(candidateId)) {
+            const res = await api.get(`/hiring/candidates?limit=1000`);
+            const candidates = res.data?.data || res.data || [];
+            const match = candidates.find((c: any) => {
+              const nameSlug = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+              return nameSlug === candidateId;
+            });
+            if (match) cId = match._id;
+            else throw new Error("Candidate not found");
+          }
+          
+          const res = await api.get(`/hiring/candidates/${cId}`);
+          const data = res.data;
+          const appDetails = data.applicationDetails || {};
+          
+          setCandidate({
+            fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
+            email: data.email || '',
+            mobile: data.phone || '',
+            currentLocation: appDetails.currentLocation || '',
+            linkedin: appDetails.linkedin || '',
+            appliedFor: data.jobRole || '',
+            department: data.departmentId?.name || data.departmentId || '',
+            employmentType: appDetails.employmentType || 'Full Time',
+            totalExperience: appDetails.totalExperience || '',
+            expectedCTC: appDetails.expectedCTC || '',
+            noticePeriod: appDetails.noticePeriod || '',
+            resumeUrl: data.resumeUrl
+          });
+        } catch (err) {
+          console.error(err);
+          toast.error('Failed to load candidate details');
+        }
+      };
+      fetchCandidate();
+    }
+  }, [candidateId]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -655,14 +700,16 @@ export default function InterviewRoundPage() {
     });
   };
 
+  if (!candidate) return <div className="p-8 text-center text-zinc-500 font-medium">Loading candidate details...</div>;
+
   return (
     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       <PageHeader candidateId={candidateId} />
 
       {/* Row 1: Candidate Info + Application Summary — same height */}
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-3 items-stretch">
-        <CandidateInfoCard />
-        <ApplicationSummaryCard />
+        <CandidateInfoCard candidate={candidate} />
+        <ApplicationSummaryCard candidateId={candidateId} />
       </div>
 
       {/* Row 2 onward: main tabbed card on the left, Rounds Overview + Guidelines

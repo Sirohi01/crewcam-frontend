@@ -368,9 +368,9 @@ export default function ManageBranchPage() {
         isRegisteredOffice: !!b.isRegisteredOffice,
         code: b.code || '-',
         businessUnit: (b.businessUnit && typeof b.businessUnit === 'object' ? b.businessUnit.name : typeof b.businessUnit === 'string' ? b.businessUnit : null) || b.businessUnitName || '-',
-        headName: (b.head && b.head.firstName) ? `${b.head.firstName} ${b.head.lastName}` : 
+        headName: (b.head && b.head.firstName) ? `${b.head.firstName} ${b.head.lastName}` :
                   (b.branchHead && b.branchHead.firstName) ? `${b.branchHead.firstName} ${b.branchHead.lastName}` :
-                  (b.headName && typeof b.headName === 'object') ? `${b.headName.firstName || ''} ${b.headName.lastName || ''}`.trim() : 
+                  (b.headName && typeof b.headName === 'object') ? `${b.headName.firstName || ''} ${b.headName.lastName || ''}`.trim() :
                   (typeof b.headName === 'string' ? b.headName : 'Unassigned'),
         headRole: (b.head?.designation) || (b.branchHead?.designation) || (b.headName?.designation) || (typeof b.headRole === 'string' ? b.headRole : 'Branch Manager'),
         headAvatar: (b.head?.avatarUrl) || (b.branchHead?.avatarUrl) || (b.headName?.avatarUrl) || `https://i.pravatar.cc/150?u=${b._id}`,

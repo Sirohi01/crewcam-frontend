@@ -9,7 +9,10 @@ import {
     ClipboardCheck,
   Clock3,
   Timer,
+  Loader2
 } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import api from '@/lib/axios'
 
 // ---------- TYPES & INTERFACES ----------
 
@@ -166,6 +169,36 @@ const initialRows: AssessmentRow[] = [
 ]
 
 const AssessmentsPage: React.FC = () => {
+  const { data: candidatesResponse, isLoading } = useQuery({
+    queryKey: ['assessments-candidates'],
+    queryFn: async () => {
+      const res = await api.get('/hiring/candidates')
+      return res.data
+    }
+  })
+
+  const rows = React.useMemo(() => {
+    const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || [])
+    return rawCandidates.map((c: any) => ({
+      id: c._id || c.id,
+      candidate: { 
+        name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown', 
+        email: c.email || 'N/A', 
+        phone: c.phone || 'N/A' 
+      },
+      jobTitle: c.jobRole || 'N/A',
+      jobCode: c.jobId || 'JOB-000',
+      assessmentName: 'General Assessment',
+      type: 'Aptitude',
+      duration: '45 min',
+      status: c.status === 'Hired' ? 'Completed' : 'Pending',
+      score: c.rating ? `${Math.floor(c.rating * 10)}/50` : '--',
+      percentile: c.rating ? `${Math.floor(c.rating * 20)}%` : null,
+      percentileLabel: c.rating > 4.5 ? 'Outstanding' : c.rating > 4 ? 'Very Good' : 'Good',
+      completedOn: c.status === 'Hired' ? new Date(c.updatedAt || Date.now()).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : undefined
+    }))
+  }, [candidatesResponse])
+
   const [search, setSearch] = useState<string>('')
   const [activeTab, setActiveTab] = useState<string>('all')
   const [selectedOpening, setSelectedOpening] = useState<string>('All Openings')
@@ -354,7 +387,15 @@ const AssessmentsPage: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 text-[11px] font-medium text-slate-900">
-            {initialRows.map((row) => (
+            {isLoading ? (
+              <tr>
+                <td colSpan={11} className="py-10 text-center"><Loader2 className="inline animate-spin text-indigo-600" /></td>
+              </tr>
+            ) : rows.length === 0 ? (
+              <tr>
+                <td colSpan={11} className="py-10 text-center text-[12px] text-zinc-500">No assessments found</td>
+              </tr>
+            ) : rows.map((row: any) => (
               <tr key={row.id} className="hover:bg-slate-50 transition-colors">
                 {/* Checkbox */}
                 <td className="p-2"><input type="checkbox" className="rounded border-slate-300 text-indigo-600" /></td>
@@ -363,7 +404,7 @@ const AssessmentsPage: React.FC = () => {
                 <td className="p-2">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center font-semibold text-indigo-700 text-[9px] uppercase shrink-0">
-                      {row.candidate.name.split(' ').map(n => n[0]).join('')}
+                      {row.candidate.name.split(' ').map((n: string) => n[0]).join('')}
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="font-semibold text-slate-950 truncate">{row.candidate.name}</span>
@@ -483,7 +524,7 @@ const AssessmentsPage: React.FC = () => {
       {/* ---------- FOOTER PAGINATION BAR ---------- */}
       <div className="w-full flex items-center justify-between border border-slate-300 bg-white rounded-lg p-1.5 shrink-0 h-[6%] text-[11px] font-semibold text-slate-800">
         <div>
-          Showing <span className="text-slate-950 font-extrabold">1</span> to <span className="text-slate-950 font-extrabold">10</span> of <span className="text-slate-950 font-extrabold">56</span> entries
+          Showing <span className="text-slate-950 font-extrabold">{rows.length > 0 ? 1 : 0}</span> to <span className="text-slate-950 font-extrabold">{Math.min(10, rows.length)}</span> of <span className="text-slate-950 font-extrabold">{rows.length}</span> entries
         </div>
         
         <div className="flex items-center gap-3">

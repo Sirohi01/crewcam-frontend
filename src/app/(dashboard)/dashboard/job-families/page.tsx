@@ -374,7 +374,7 @@ export default function JobFamiliesPage() {
         <SummaryCard
           icon={<Users size={18} />}
           title="Total Employees"
-          value={apiEmployees.length.toString()}
+          value={apiEmployees?.length?.toString()}
           subtitle="Mapped to Families"
           iconBg="bg-[#fff4df]"
           iconColor="text-[#ec8a13]"

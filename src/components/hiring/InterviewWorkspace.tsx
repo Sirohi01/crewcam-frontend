@@ -189,7 +189,7 @@ export default function InterviewWorkspace({ view }: { view: View }) {
   const clearFilters = () => { setQuery(''); setStatus('All'); setRound(meta.rounds?.[0] || 'All'); setPage(1); };
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-10">
+    <div className="w-full space-y-2 mb-10">
 
       {/* Header */}
       <div className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden">
@@ -209,7 +209,7 @@ export default function InterviewWorkspace({ view }: { view: View }) {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-2 sm:grid-cols-4 mx-2">
+      <div className="grid gap-2 sm:grid-cols-4">
         {cards.map((c) => (
           <div key={c.label} className="bg-white rounded-[4px] shadow-sm border border-slate-200 p-3 flex items-center gap-2.5">
             <div className={`h-8 w-8 rounded-[4px] flex items-center justify-center shrink-0 ${c.cls}`}><c.icon size={15} /></div>
@@ -222,7 +222,7 @@ export default function InterviewWorkspace({ view }: { view: View }) {
         ))}
       </div>
 
-        <section className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden mx-2 mt-4">
+        <section className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden mt-4">
 
           {/* Filter Bar */}
           <div className="bg-slate-50 px-3 py-3 border-b border-slate-200 flex flex-wrap items-center gap-2">
