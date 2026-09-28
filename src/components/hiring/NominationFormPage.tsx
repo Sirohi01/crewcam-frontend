@@ -9,6 +9,7 @@ import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 import { useMasterDataStore } from '@/store/masterDataStore';
 import { useAuthStore } from '@/store/authStore';
+import { formatEmployeeId } from '@/lib/utils';
 
 export default function NominationFormPage({ candidateId }: { candidateId: string }) {
     const router = useRouter();
@@ -89,8 +90,60 @@ export default function NominationFormPage({ candidateId }: { candidateId: strin
     const fetchNominationData = async () => {
         try {
             setLoading(true);
-            const candidateRes = await api.get(`/hiring/candidates/${candidateId}`);
-            const cand = candidateRes.data;
+            let cand: any = {};
+            try {
+                const candidateRes = await api.get(`/hiring/candidates/${candidateId}`);
+                cand = candidateRes.data || {};
+            } catch (err) {
+                console.warn('Candidate data could not be loaded, proceeding with existing nomination data if available.');
+            }
+
+            let fetchedEmpCode = formatEmployeeId(cand.employeeCode || cand.uniqueId || cand.candidateCode || '');
+            let fetchedDoj = '';
+            let fetchedDob = '';
+            let fetchedGender = '';
+            let fetchedFather = '';
+            let fetchedAddress = '';
+            let fetchedAadhaar = '';
+            let fetchedPan = '';
+
+            try {
+                const docRes = await api.get('/hiring/doc-checklist', { params: { candidateId } });
+                const docList = Array.isArray(docRes.data) ? docRes.data : (docRes.data?.data || []);
+                if (docList.length > 0) fetchedEmpCode = formatEmployeeId(docList[0].employeeCode || docList[0].empCode || docList[0].uniqueId || fetchedEmpCode);
+            } catch (e) { }
+
+            try {
+                const selRes = await api.get('/hiring/selection-approval', { params: { candidateId } });
+                const selList = Array.isArray(selRes.data) ? selRes.data : (selRes.data?.data || []);
+                if (selList.length > 0) {
+                    const sel = selList[0];
+                    const dateRaw = sel.dateOfJoining || sel.joiningDate;
+                    if (dateRaw) fetchedDoj = new Date(dateRaw).toISOString().split('T')[0];
+                }
+            } catch (e) { }
+
+            try {
+                const joinRes = await api.get('/hiring/joining-form', { params: { candidateId } });
+                const joinList = Array.isArray(joinRes.data) ? joinRes.data : (joinRes.data?.data || []);
+                if (joinList.length > 0) {
+                    const jf = joinList[0];
+                    if (jf.dob) fetchedDob = new Date(jf.dob).toISOString().split('T')[0];
+                    fetchedGender = jf.gender || '';
+                    fetchedFather = jf.fatherName || jf.fatherHusbandSpouse || jf.fatherMotherName || '';
+                    fetchedAddress = jf.currentAddress || jf.permanentAddress || '';
+                    fetchedAadhaar = jf.aadhaarNumber || '';
+                    fetchedPan = jf.panNumber || '';
+                }
+            } catch (e) { }
+
+            const appDetails = cand.applicationDetails || {};
+            if (!fetchedDob && appDetails.dateOfBirth) fetchedDob = new Date(appDetails.dateOfBirth).toISOString().split('T')[0];
+            if (!fetchedGender && appDetails.gender) fetchedGender = appDetails.gender;
+            
+            const defaultDesignation = cand.jobRole || appDetails.title || '';
+            const defaultDepartment = cand.departmentId?.name || cand.department || '';
+            const defaultEmployeeName = cand.firstName + ' ' + (cand.lastName || '');
 
             const nomRes = await api.get('/hiring/nomination', { params: { candidateId } });
             const list = Array.isArray(nomRes.data) ? nomRes.data : (nomRes.data?.data || []);
@@ -100,8 +153,21 @@ export default function NominationFormPage({ candidateId }: { candidateId: strin
                 setFormData({
                     ...row,
                     docs: row.docs || formData.docs,
-                    dob: row.dob ? new Date(row.dob).toISOString().split('T')[0] : '',
-                    dateOfJoining: row.dateOfJoining ? new Date(row.dateOfJoining).toISOString().split('T')[0] : '',
+                    employeeName: row.employeeName || defaultEmployeeName,
+                    empCode: formatEmployeeId(row.empCode || row.employeeCode || row.uniqueId || fetchedEmpCode || cand.employeeCode || cand.uniqueId || cand.candidateCode || ''),
+                    designation: row.designation || defaultDesignation,
+                    department: row.department || defaultDepartment,
+                    emailId: row.emailId || cand.email || '',
+                    mobileNumber: row.mobileNumber || cand.phone || '',
+                    dob: row.dob ? new Date(row.dob).toISOString().split('T')[0] : fetchedDob,
+                    dateOfJoining: row.dateOfJoining ? new Date(row.dateOfJoining).toISOString().split('T')[0] : fetchedDoj,
+                    gender: row.gender || fetchedGender,
+                    fatherName: row.fatherName || fetchedFather,
+                    maritalStatus: row.maritalStatus || '',
+                    presentAddress: row.presentAddress || fetchedAddress,
+                    permanentAddress: row.permanentAddress || fetchedAddress,
+                    aadhaarNo: row.aadhaarNo || fetchedAadhaar,
+                    panNo: row.panNo || fetchedPan,
                     nominee1Dob: row.nominee1Dob ? new Date(row.nominee1Dob).toISOString().split('T')[0] : '',
                     nominee2Dob: row.nominee2Dob ? new Date(row.nominee2Dob).toISOString().split('T')[0] : '',
                     employeeSignatureDate: row.employeeSignatureDate ? new Date(row.employeeSignatureDate).toISOString().split('T')[0] : '',
@@ -112,11 +178,20 @@ export default function NominationFormPage({ candidateId }: { candidateId: strin
             } else {
                 setFormData(prev => ({
                     ...prev,
-                    employeeName: cand.firstName + ' ' + (cand.lastName || ''),
-                    designation: cand.jobRole || '',
-                    department: cand.department || '',
+                    employeeName: defaultEmployeeName,
+                    empCode: formatEmployeeId(fetchedEmpCode),
+                    designation: defaultDesignation,
+                    department: defaultDepartment,
                     emailId: cand.email || '',
                     mobileNumber: cand.phone || '',
+                    dob: fetchedDob,
+                    dateOfJoining: fetchedDoj,
+                    gender: fetchedGender,
+                    fatherName: fetchedFather,
+                    presentAddress: fetchedAddress,
+                    permanentAddress: fetchedAddress,
+                    aadhaarNo: fetchedAadhaar,
+                    panNo: fetchedPan,
                 }));
             }
         } catch (error: any) {
@@ -221,7 +296,7 @@ export default function NominationFormPage({ candidateId }: { candidateId: strin
                                     <FormInput placeholder="Enter Employee Name" value={formData.employeeName} onChange={(e) => handleChange("employeeName", e.target.value)} required readOnly={isPreFilled} />
                                 </FormField>
                                 <FormField label="EMP Code (HR):">
-                                    <FormInput placeholder="Enter EMP Code" value={formData.empCode} onChange={(e) => handleChange("empCode", e.target.value)} />
+                                    <FormInput placeholder="e.g. NAM/HQ/26/0011" value={formatEmployeeId(formData.empCode)} onChange={(e) => handleChange("empCode", e.target.value)} className="font-mono" />
                                 </FormField>
                                 <FormField label="2. Designation:" required>
                                     <FormSelect options={designationOptions} value={formData.designation} onChange={(e) => handleChange("designation", e.target.value)} required placeholder="Select Designation" />

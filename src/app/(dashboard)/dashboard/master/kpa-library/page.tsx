@@ -127,10 +127,10 @@ export default function KpaLibraryPage() {
 
       {modal && (
         <Modal title={`${modalItem ? 'Edit' : 'Create'} KPA Template`} onClose={() => setModal(false)} onSubmit={submit} busy={saving}>
-          <Input label="Title" value={form.title} onChange={(e: any) => setForm({ ...form, title: e.target.value })} required />
-          <Input label="Designation" value={form.designation} onChange={(e: any) => setForm({ ...form, designation: e.target.value })} />
-          <TextArea label="KRA Report" value={form.kraReport} onChange={(e: any) => setForm({ ...form, kraReport: e.target.value })} required />
-          <TextArea label="KPIs — one per line" value={form.kpisText} onChange={(e: any) => setForm({ ...form, kpisText: e.target.value })} />
+          <Input label="Title" value={form.title} onChange={(e: any) => setForm({ ...form, title: e.target.value })} placeholder="e.g., Frontend Developer KRA" required />
+          <Input label="Designation" value={form.designation} onChange={(e: any) => setForm({ ...form, designation: e.target.value })} placeholder="e.g., Frontend Developer, SDE I" />
+          <TextArea label="KRA Report" value={form.kraReport} onChange={(e: any) => setForm({ ...form, kraReport: e.target.value })} placeholder="e.g., Deliver high-quality UI components and ensure seamless user experience." required />
+          <TextArea label="KPIs — one per line" value={form.kpisText} onChange={(e: any) => setForm({ ...form, kpisText: e.target.value })} placeholder={"e.g.,\n- 95% on-time feature delivery\n- Maintain < 2 bugs per release\n- 90% code coverage"} />
         </Modal>
       )}
     </div>

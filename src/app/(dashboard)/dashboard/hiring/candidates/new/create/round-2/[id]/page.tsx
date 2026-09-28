@@ -5,11 +5,12 @@ import {
   ArrowLeft, Square, Phone, Mail, MapPin, Link2, ExternalLink,
   CheckCircle2, Clock, Check, Info, FileText, Share2, HelpCircle,
   FileQuestion, Bold, Italic, Underline, List, ListOrdered, Code,
-  ThumbsUp, Flag, StopCircle, User, Sparkles, X
+  ThumbsUp, Flag, StopCircle, User, Sparkles, X, Loader2, AlertTriangle
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
+import { useAuthStore } from '@/store/authStore';
 
 const DUMMY_QUESTIONS = [
   { category: 'Time Management', text: 'How do you prioritize multiple tasks when working under tight deadlines?', insight: 'This evaluates your ability to manage stress and organize tasks efficiently.' },
@@ -25,23 +26,199 @@ const DUMMY_QUESTIONS = [
 ];
 
 export default function InterviewUI() {
+  const user = useAuthStore(state => state.user);
   const [candidate, setCandidate] = React.useState<any>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(2);
-  const [answers, setAnswers] = React.useState<string[]>(() => {
-    const arr = Array(DUMMY_QUESTIONS.length).fill('');
-    arr[1] = 'I analyzed customer purchase patterns and identified a drop in repeat orders. Based on the insights, we improved the follow-up strategy which increased repeat orders by 18% in the next quarter.';
-    return arr;
-  });
+  const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(0);
+  const [answers, setAnswers] = React.useState<string[]>(() => Array(DUMMY_QUESTIONS.length).fill(''));
   const totalSeconds = 40 * 60;
-  const [timeLeft, setTimeLeft] = React.useState(32 * 60 + 45); // 32:45
+  
+  const [isAiConnected, setIsAiConnected] = React.useState(false);
+  const [isConnecting, setIsConnecting] = React.useState(false);
+  const [isOffline, setIsOffline] = React.useState(false);
+  const [timeElapsed, setTimeElapsed] = React.useState(0);
+  const [activeQuestions, setActiveQuestions] = React.useState(DUMMY_QUESTIONS);
+
+  const [activeTab, setActiveTab] = React.useState('Interview');
+  const [isCompleted, setIsCompleted] = React.useState(false);
+  const [hasStarted, setHasStarted] = React.useState(false);
+  const [interviewId, setInterviewId] = React.useState<string | null>(null);
+
+  const [timeLeft, setTimeLeft] = React.useState(totalSeconds);
+  const [warnings, setWarnings] = React.useState(0);
+  const [isForceExited, setIsForceExited] = React.useState(false);
+  const [flaggedQuestions, setFlaggedQuestions] = React.useState<number[]>([]);
+
+  const toggleFlag = () => {
+    setFlaggedQuestions(prev => 
+      prev.includes(currentQuestionIndex) 
+        ? prev.filter(q => q !== currentQuestionIndex) 
+        : [...prev, currentQuestionIndex]
+    );
+  };
+
+  const handleBulkSave = async () => {
+    if (!interviewId) return;
+    try {
+      setIsSaving(true);
+      const dbQuestions = activeQuestions.map((q: any, idx: number) => ({
+        question: q.text,
+        transcript: answers[idx] || '',
+        answerAnalysis: {
+          verdict: answers[idx]?.length > 50 ? 'adequate' : 'weak',
+          reasoning: q.insight
+        }
+      }));
+      await api.put(`/hiring/interviews/${interviewId}/questions`, { questions: dbQuestions });
+    } catch (error) {
+      console.error('Failed to bulk save answers', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   React.useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => Math.max(0, prev - 1));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    let timer: NodeJS.Timeout;
+    if (hasStarted && !isCompleted && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            handleEndExam(true); // timeout auto-submit
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [hasStarted, isCompleted, timeLeft]);
+
+  React.useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && hasStarted && !isCompleted && !isForceExited) {
+        setWarnings(w => w + 1);
+        toast.error('Warning: Tab switching is not allowed during the exam!', { duration: 5000 });
+      }
+    };
+
+    const handleFullscreenChange = async () => {
+      if (!document.fullscreenElement && hasStarted && !isCompleted && !isForceExited) {
+        setWarnings(w => w + 1);
+        toast.error('Warning: Exiting Fullscreen is not allowed during the exam! Forcing fullscreen...', { duration: 5000 });
+        try {
+          await document.documentElement.requestFullscreen();
+        } catch (err) {
+          console.warn("Could not re-request fullscreen:", err);
+        }
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key.toLowerCase() === 'h') {
+        e.preventDefault();
+        setIsForceExited(true);
+        toast.success('Exam lock bypassed (Secret Shortcut used). You may now exit fullscreen.');
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [hasStarted, isCompleted, isForceExited]);
+
+  const initInterview = async () => {
+    const userId = user?._id || user?.id;
+    if (!candidate || !userId) return;
+    try {
+      setIsConnecting(true);
+      
+      try {
+        await document.documentElement.requestFullscreen();
+      } catch (err) {
+        console.warn("Could not request fullscreen:", err);
+      }
+
+      // Fetch candidate's interviews
+      const { data: interviews } = await api.get(`/hiring/interviews/${candidate._id}`);
+      let activeInterview = interviews.find((i: any) => i.roundType === 'Technical');
+
+      if (!activeInterview) {
+        const res = await api.post('/hiring/interviews', {
+          candidateId: candidate._id,
+          interviewerId: userId,
+          roundType: 'Technical',
+          scheduledDate: new Date().toISOString(),
+        });
+        activeInterview = res.data;
+      }
+
+      setInterviewId(activeInterview._id);
+
+      if (activeInterview.interviewQuestions && activeInterview.interviewQuestions.length > 0) {
+        const mappedQuestions = activeInterview.interviewQuestions.map((q: any) => ({
+          ...q,
+          category: 'Technical',
+          text: q.question,
+          insight: q.answerAnalysis?.reasoning || 'Evaluates candidate response.'
+        }));
+        setActiveQuestions(mappedQuestions);
+        setAnswers(mappedQuestions.map((q: any) => q.transcript || ''));
+      } else {
+        const role = candidate.appliedFor || 'Full Stack Developer';
+        const generatedQuestions = [
+          { category: 'Technical Architecture', text: `Based on your experience as a ${role}, how would you design a scalable architecture to handle high-throughput real-time data?`, insight: `Evaluates your ability to apply past experience to complex new scenarios specific to ${role}.` },
+          { category: 'Problem Solving', text: `Describe a challenging technical issue you faced while working as a ${role}. What steps did you take to debug and resolve it?`, insight: `Assesses analytical skills, debugging methodology, and resilience under pressure.` },
+          { category: 'Best Practices & Security', text: `What are the core security and performance best practices you implement in your day-to-day work as a ${role}?`, insight: `Checks your adherence to industry standards, security-first mindset, and proactive quality assurance.` },
+          { category: 'Cross-functional Collaboration', text: `How do you handle disagreements on technical approaches with other engineers or product managers when delivering ${role} features?`, insight: `Evaluates teamwork, communication skills, and ability to influence without authority.` },
+          { category: 'Continuous Innovation', text: `What recent technological advancements in the field of ${role} are you most excited about, and how have you experimented with them?`, insight: `Checks continuous learning, passion for the domain, and proactive upskilling.` }
+        ];
+
+        const dbQuestions = generatedQuestions.map(q => ({
+          question: q.text,
+          answerAnalysis: { verdict: 'no_answer', reasoning: q.insight }
+        }));
+
+        await api.put(`/hiring/interviews/${activeInterview._id}/questions`, { questions: dbQuestions });
+
+        setActiveQuestions(generatedQuestions);
+        setAnswers(Array(generatedQuestions.length).fill(''));
+      }
+
+      if (activeInterview.status === 'Completed') {
+        setIsCompleted(true);
+        setActiveTab('AI Questions');
+        setIsAiConnected(false);
+        setIsConnecting(false);
+        setHasStarted(true);
+      } else {
+        setIsOffline(false);
+        setIsAiConnected(true);
+        setIsConnecting(false);
+        setHasStarted(true);
+        toast.success('Interview Session Started!');
+      }
+    } catch (error) {
+      setIsOffline(true);
+      setIsAiConnected(true);
+      setIsConnecting(false);
+      setHasStarted(true);
+      setActiveQuestions(DUMMY_QUESTIONS);
+      setAnswers(Array(DUMMY_QUESTIONS.length).fill(''));
+      toast.success('Interview Session Started (Offline Mode)');
+    }
+  };
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -49,7 +226,64 @@ export default function InterviewUI() {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  const currentQuestion = DUMMY_QUESTIONS[currentQuestionIndex];
+  const handleEndExam = async (isAutoSubmit = false) => {
+    try {
+      await handleBulkSave(); // Bulk save all answers before closing
+      
+      if (document.fullscreenElement) {
+        await document.exitFullscreen().catch(err => console.error("Error exiting fullscreen:", err));
+      }
+
+      if (interviewId) {
+        await api.put(`/hiring/interviews/${interviewId}/feedback`, { status: 'Completed', rating: 0, feedback: 'Completed via AI Round 2' });
+      }
+      setIsCompleted(true);
+      setActiveTab('AI Questions');
+      setIsAiConnected(false);
+      setHasStarted(false);
+      
+      let completedRounds = JSON.parse(localStorage.getItem('ai_completed_rounds') || '[]');
+      if (!completedRounds.includes(2)) completedRounds.push(2);
+      localStorage.setItem('ai_completed_rounds', JSON.stringify(completedRounds));
+
+      if (isAutoSubmit) {
+        toast.success('Time is up! Exam auto-submitted.', { duration: 5000 });
+      } else {
+        toast.success('Interview Completed!');
+      }
+    } catch (e) {
+      toast.error('Failed to end interview');
+    }
+  };
+
+  const [isSaving, setIsSaving] = React.useState(false);
+  
+  const handleSaveAnswer = async () => {
+    if (!interviewId) return;
+    const currentAns = answers[currentQuestionIndex];
+    if (!currentAns) return;
+
+    try {
+      setIsSaving(true);
+      const dbQuestions = activeQuestions.map((q: any, idx: number) => ({
+        question: q.text,
+        transcript: answers[idx] || '',
+        answerAnalysis: {
+          verdict: idx === currentQuestionIndex ? (currentAns.length > 50 ? 'adequate' : 'weak') : (q.answerAnalysis?.verdict || 'no_answer'),
+          reasoning: q.insight
+        }
+      }));
+
+      await api.put(`/hiring/interviews/${interviewId}/questions`, { questions: dbQuestions });
+      toast.success('Answer auto-saved');
+    } catch (error) {
+      toast.error('Failed to save answer');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const currentQuestion = activeQuestions[currentQuestionIndex];
   const answeredCount = answers.filter(a => a.trim().length > 0).length;
 
   const params = useParams() as { id: string };
@@ -77,6 +311,7 @@ export default function InterviewUI() {
           const appDetails = data.applicationDetails || {};
           
           setCandidate({
+            _id: data._id,
             fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
             email: data.email || '',
             mobile: data.phone || '',
@@ -100,9 +335,11 @@ export default function InterviewUI() {
   }, [candidateId]);
 
   if (!candidate) return <div className="p-8 text-center text-zinc-500 font-medium">Loading candidate details...</div>;
-  return (
-    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
+  const immersiveClasses = hasStarted && !isCompleted ? "fixed inset-0 z-[100] bg-zinc-50 overflow-y-auto w-full h-full" : "w-full";
 
+  return (
+    <div className={immersiveClasses}>
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
 
       {/* Header & Steps */}
       <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4  pb-2">
@@ -144,9 +381,11 @@ export default function InterviewUI() {
           <button onClick={() => router.push(`/dashboard/hiring/candidates/new/create/interview-process/${candidateId}`)} className="flex items-center justify-center h-8 px-3 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
             <ArrowLeft className="w-3 h-3 mr-1" /> Back to Process
           </button>
-          <button onClick={() => window.open(`/dashboard/hiring/candidates/new/create/round-3/${candidateId}`, '_blank')} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
-            End & Next Round <StopCircle className="w-3 h-3 ml-1" />
-          </button>
+          {!isCompleted && hasStarted && (
+            <button onClick={() => handleEndExam(false)} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
+              End Exam & Next Round <StopCircle className="w-3 h-3 ml-1" />
+            </button>
+          )}
         </div>
       </div>
       <div className="h-[1px] bg-zinc-200 w-full mb-2 shrink-0"></div>
@@ -244,15 +483,26 @@ export default function InterviewUI() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-6 border-b border-zinc-200 px-2">
-        <button className="pb-2 text-[12px] font-bold text-indigo-700 border-b-2 border-indigo-700">Interview</button>
-        <button className="pb-2 text-[12px] font-semibold text-zinc-500 hover:text-zinc-700 border-b-2 border-transparent">AI Questions</button>
-        <button className="pb-2 text-[12px] font-semibold text-zinc-500 hover:text-zinc-700 border-b-2 border-transparent">Notes</button>
-        <button className="pb-2 text-[12px] font-semibold text-zinc-500 hover:text-zinc-700 border-b-2 border-transparent">Attachments</button>
+      <div className="flex items-center gap-6 border-b border-zinc-200 px-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+        {['Interview', 'AI Questions', 'Notes', 'Attachments', 'Score'].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`pb-2 text-[12px] font-bold border-b-2 transition-colors ${
+              activeTab === tab
+                ? 'text-indigo-700 border-indigo-700'
+                : 'text-zinc-500 border-transparent hover:text-zinc-700'
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 mt-2">
+      {activeTab === 'Interview' && (
+        <>
+          {/* Main Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 mt-2">
 
         {/* Left Column (Progress) */}
         <div className="lg:col-span-3 flex flex-col gap-4 h-full">
@@ -260,18 +510,27 @@ export default function InterviewUI() {
             <h3 className="text-[12px] font-bold text-zinc-900 mb-1">Round Progress</h3>
             <p className="text-[10px] text-zinc-500 font-medium mb-6">Round 2 of 5<br />Technical Interview</p>
 
-            <div className="flex items-center justify-center mb-6 relative">
-              <div className="h-28 w-28 rounded-full border-[6px] border-emerald-600 border-t-zinc-100 border-l-zinc-100 flex flex-col items-center justify-center bg-white shadow-sm">
-                <span className="text-[9px] text-zinc-500 font-medium mb-0.5">Time Remaining</span>
-                <span className="text-2xl font-bold text-emerald-600 leading-none mb-1">{formatTime(timeLeft)}</span>
+            <div className="flex items-center justify-center mb-6 relative w-28 h-28 mx-auto">
+              <svg className="absolute inset-0 w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="46" fill="transparent" strokeWidth="8" className="text-zinc-100 stroke-current" />
+                <circle cx="50" cy="50" r="46" fill="transparent" strokeWidth="8"
+                  className={`${timeLeft < 300 ? 'text-rose-500' : 'text-emerald-600'} stroke-current transition-all duration-1000 ease-linear`}
+                  strokeDasharray={2 * Math.PI * 46}
+                  strokeDashoffset={2 * Math.PI * 46 * (1 - timeLeft / totalSeconds)}
+                  strokeLinecap="round" />
+              </svg>
+              <div className="absolute inset-2 flex flex-col items-center justify-center bg-white shadow-[0_0_15px_rgba(0,0,0,0.03)] rounded-full z-10">
+                <span className="text-[9px] text-zinc-500 font-medium mb-0.5">Time Left</span>
+                <span className={`text-2xl font-bold ${timeLeft < 300 ? 'text-rose-500' : 'text-emerald-600'} leading-none mb-1`}>{formatTime(timeLeft)}</span>
                 <span className="text-[9px] text-zinc-400">of 40:00</span>
               </div>
             </div>
 
             <div className="flex flex-col gap-2 border-t border-zinc-100 pt-4 text-[11px]">
-              <div className="flex items-center justify-between"><span className="text-zinc-500">Total Questions</span><span className="font-bold">{DUMMY_QUESTIONS.length}</span></div>
+              <div className="flex items-center justify-between"><span className="text-zinc-500">Total Questions</span><span className="font-bold">{activeQuestions.length}</span></div>
               <div className="flex items-center justify-between"><span className="text-zinc-500">Answered</span><span className="font-bold">{answeredCount}</span></div>
-              <div className="flex items-center justify-between"><span className="text-zinc-500">Remaining</span><span className="font-bold">{DUMMY_QUESTIONS.length - answeredCount}</span></div>
+              <div className="flex items-center justify-between"><span className="text-zinc-500">Remaining</span><span className="font-bold">{activeQuestions.length - answeredCount}</span></div>
+              <div className="flex items-center justify-between"><span className="text-zinc-500">Flagged</span><span className="font-bold text-rose-600">{flaggedQuestions.length}</span></div>
             </div>
 
             <div className="mt-6 bg-indigo-50/50 rounded-lg p-3 border border-indigo-100">
@@ -289,11 +548,16 @@ export default function InterviewUI() {
           <div className="p-5 rounded-xl border border-zinc-100 bg-white shadow-sm flex flex-col h-full">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <h2 className="text-[15px] font-bold text-zinc-900">Question {currentQuestionIndex + 1} of {DUMMY_QUESTIONS.length}</h2>
+                <h2 className="text-[15px] font-bold text-zinc-900">Question {currentQuestionIndex + 1} of {activeQuestions.length}</h2>
                 <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">{currentQuestion.category}</span>
               </div>
-              <button className="flex items-center gap-1.5 text-[10px] font-semibold text-rose-600 bg-white border border-rose-200 px-2 py-1 rounded hover:bg-rose-50 transition-colors shadow-sm">
-                <Flag size={12} /> Flag Question
+              <button onClick={toggleFlag} className={`flex items-center gap-1.5 text-[10px] font-semibold border px-2 py-1 rounded transition-colors shadow-sm ${
+                flaggedQuestions.includes(currentQuestionIndex) 
+                ? 'text-white bg-rose-600 border-rose-600 hover:bg-rose-700'
+                : 'text-rose-600 bg-white border-rose-200 hover:bg-rose-50'
+              }`}>
+                <Flag size={12} className={flaggedQuestions.includes(currentQuestionIndex) ? "fill-current" : ""} /> 
+                {flaggedQuestions.includes(currentQuestionIndex) ? "Flagged" : "Flag Question"}
               </button>
             </div>
 
@@ -325,6 +589,7 @@ export default function InterviewUI() {
                 className="flex-1 w-full resize-none p-3 text-[12px] text-zinc-800 outline-none min-h-[150px]"
                 placeholder="Type your answer here..."
                 value={answers[currentQuestionIndex]}
+                onBlur={handleSaveAnswer}
                 onChange={(e) => {
                   const newAnswers = [...answers];
                   newAnswers[currentQuestionIndex] = e.target.value;
@@ -339,7 +604,9 @@ export default function InterviewUI() {
 
             <div className="flex items-center gap-1.5 text-emerald-600 mt-3 mb-4">
               <CheckCircle2 size={13} />
-              <span className="text-[10px] font-medium">Your answer is auto-saved</span>
+              <span className="text-[10px] font-medium">
+                {isSaving ? 'Saving...' : 'Your answer is auto-saved'}
+              </span>
             </div>
 
             <div className="flex items-center justify-between mt-auto">
@@ -350,8 +617,8 @@ export default function InterviewUI() {
                 <ArrowLeft size={13} /> Previous Question
               </button>
               <button 
-                onClick={() => setCurrentQuestionIndex(prev => Math.min(DUMMY_QUESTIONS.length - 1, prev + 1))}
-                disabled={currentQuestionIndex === DUMMY_QUESTIONS.length - 1}
+                onClick={() => setCurrentQuestionIndex(prev => Math.min(activeQuestions.length - 1, prev + 1))}
+                disabled={currentQuestionIndex === activeQuestions.length - 1}
                 className="flex items-center gap-1.5 text-[11px] font-semibold text-white bg-indigo-700 px-6 py-2 rounded-lg hover:bg-indigo-800 shadow-sm transition-colors disabled:opacity-50">
                 Next Question <ArrowLeft size={13} className="rotate-180" />
               </button>
@@ -369,6 +636,23 @@ export default function InterviewUI() {
               <h3 className="text-[12px] font-bold text-indigo-900">AI Interview Assistant</h3>
               <span className="text-[8px] font-bold bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">BETA</span>
             </div>
+            {!hasStarted && !isCompleted && (
+              <div className="mb-4">
+                <button 
+                  onClick={initInterview}
+                  disabled={isConnecting}
+                  className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold py-2 rounded-lg shadow-sm transition-colors disabled:opacity-70"
+                >
+                  {isConnecting ? <><Loader2 size={13} className="animate-spin" /> Connecting...</> : 'Start Test'}
+                </button>
+              </div>
+            )}
+            {isAiConnected && isOffline && (
+              <div className="mb-4 bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-medium p-2 rounded-lg flex items-center gap-1.5">
+                <AlertTriangle size={12} className="shrink-0" />
+                <span>Operating in Offline Mode. Using fallback questions.</span>
+              </div>
+            )}
             <div className="flex flex-col gap-3">
               {[
                 "Questions are generated in real-time based on your role & experience.",
@@ -471,7 +755,7 @@ export default function InterviewUI() {
               <h3 className="text-[11px] font-bold text-zinc-900 mb-4">Your Previous Answer (Q{currentQuestionIndex})</h3>
               <div className="flex items-start gap-2 mb-3">
                 <div className="h-5 w-5 bg-[#f0f9f4] text-emerald-600 rounded flex items-center justify-center shrink-0 font-bold text-[9px] border border-emerald-100">Q.{currentQuestionIndex}</div>
-                <p className="text-[10px] font-bold text-zinc-900 mt-0.5 leading-relaxed">{DUMMY_QUESTIONS[currentQuestionIndex - 1].text}</p>
+                <p className="text-[10px] font-bold text-zinc-900 mt-0.5 leading-relaxed">{activeQuestions[currentQuestionIndex - 1]?.text}</p>
               </div>
               <div className="bg-[#f4fbf7] rounded p-3 text-[10px] text-zinc-700 border border-emerald-50 mt-3 line-clamp-3 leading-relaxed">
                 {answers[currentQuestionIndex - 1] || "No answer provided."}
@@ -523,6 +807,98 @@ export default function InterviewUI() {
           </button>
         </div>
       </div>
+      </>
+      )}
+
+      {activeTab === 'AI Questions' && (
+        <div className="mt-4 p-5 rounded-xl border border-zinc-100 bg-white shadow-sm">
+          <h3 className="text-[14px] font-bold text-zinc-900 mb-4">AI Interview Questions & Answers</h3>
+          <div className="flex flex-col gap-6">
+            {activeQuestions.length === 0 ? (
+              <p className="text-[12px] text-zinc-500">No questions available yet.</p>
+            ) : (
+              activeQuestions.map((q: any, idx: number) => (
+                <div key={idx} className="flex flex-col gap-2 border-b border-zinc-100 pb-4 last:border-0 last:pb-0">
+                  <div className="flex items-start gap-2">
+                    <span className="h-5 w-5 bg-indigo-50 text-indigo-600 rounded flex items-center justify-center shrink-0 font-bold text-[9px] border border-indigo-100 mt-0.5">
+                      Q.{idx + 1}
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-bold text-indigo-600 mb-0.5">{q.category}</span>
+                      <p className="text-[12px] font-bold text-zinc-900 leading-relaxed">{q.text || q.question}</p>
+                    </div>
+                  </div>
+                  <div className="ml-7 bg-zinc-50 p-3 rounded-lg border border-zinc-200">
+                    <p className="text-[11px] text-zinc-700 whitespace-pre-wrap leading-relaxed mb-3">
+                      {answers[idx] ? answers[idx] : <span className="italic text-zinc-400">No answer provided.</span>}
+                    </p>
+                    <div className="bg-white border border-zinc-200 rounded p-3 flex flex-col gap-2 mt-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-zinc-800">AI Evaluation Result</span>
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
+                          q.answerAnalysis?.verdict === 'adequate' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                          q.answerAnalysis?.verdict === 'weak' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                          'bg-zinc-100 text-zinc-600 border border-zinc-200'
+                        }`}>
+                          {q.answerAnalysis?.verdict?.toUpperCase() || 'NO_ANSWER'}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-zinc-600 leading-relaxed">
+                        {q.answerAnalysis?.reasoning || 'No analysis available.'}
+                      </p>
+                      
+                      <div className="mt-2 pt-2 border-t border-zinc-100 flex items-center justify-between">
+                        <span className="text-[9px] text-zinc-500">Need to override AI score?</span>
+                        <select className="text-[9px] border border-zinc-200 rounded px-2 py-1 bg-zinc-50 focus:outline-none">
+                          <option>Select Manual Rating</option>
+                          <option value="strong">Strongly Meets</option>
+                          <option value="adequate">Meets Requirements</option>
+                          <option value="weak">Below Requirements</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {(activeTab === 'Notes' || activeTab === 'Attachments') && (
+        <div className="mt-4 p-8 rounded-xl border border-dashed border-zinc-200 bg-white shadow-sm flex flex-col items-center justify-center text-center">
+          <FileText className="text-zinc-300 w-8 h-8 mb-2" />
+          <h3 className="text-[13px] font-bold text-zinc-900">{activeTab}</h3>
+          <p className="text-[11px] text-zinc-500 mt-1 max-w-sm">This section is coming soon. You will be able to manage {activeTab.toLowerCase()} here.</p>
+        </div>
+      )}
+
+      {activeTab === 'Score' && (
+        <div className="mt-4 p-8 rounded-xl border border-zinc-200 bg-white shadow-sm flex flex-col items-center justify-center text-center min-h-[400px]">
+          <Sparkles className="text-indigo-600 w-12 h-12 mb-4 bg-indigo-50 p-2 rounded-full" />
+          <h3 className="text-[18px] font-bold text-zinc-900 mb-2">Round 2 Test Score</h3>
+          <p className="text-[12px] text-zinc-500 max-w-md mb-6">
+            The candidate's score is calculated based on the AI Evaluation verdicts and any manual overrides applied.
+          </p>
+          <div className="flex items-center justify-center w-32 h-32 rounded-full border-[8px] border-emerald-500 text-emerald-600 font-bold text-3xl mb-8 shadow-sm">
+            {Math.round((activeQuestions.filter((q: any) => q.answerAnalysis?.verdict === 'adequate' || q.answerAnalysis?.verdict === 'strong').length / Math.max(activeQuestions.length, 1)) * 100)}%
+          </div>
+          <button 
+            onClick={() => {
+              toast.success('Candidate scheduled for Next Round!');
+              try {
+                const storedMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
+                storedMap[candidateId] = Math.max(storedMap[candidateId] || 0, 2);
+                localStorage.setItem('ai_completed_rounds_map', JSON.stringify(storedMap));
+              } catch (e) {}
+              router.push(`/dashboard/hiring/candidates/new/create/round-3/${candidateId}`);
+            }}
+            className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[13px] rounded-lg shadow-md transition-colors"
+          >
+            Schedule Next Round &rarr;
+          </button>
+        </div>
+      )}
 
       {isModalOpen && currentQuestionIndex > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 p-4 backdrop-blur-sm">
@@ -539,7 +915,7 @@ export default function InterviewUI() {
                   Q.{currentQuestionIndex}
                 </div>
                 <p className="text-[13px] font-bold text-zinc-900 mt-0.5 leading-relaxed">
-                  {DUMMY_QUESTIONS[currentQuestionIndex - 1].text}
+                  {activeQuestions[currentQuestionIndex - 1]?.text}
                 </p>
               </div>
               <div className="bg-zinc-50 rounded-lg p-4 text-[12px] text-zinc-700 border border-zinc-200 leading-relaxed whitespace-pre-wrap min-h-[100px]">
@@ -556,7 +932,7 @@ export default function InterviewUI() {
       )}
 
     </div>
-
+    </div>
   );
 }
 

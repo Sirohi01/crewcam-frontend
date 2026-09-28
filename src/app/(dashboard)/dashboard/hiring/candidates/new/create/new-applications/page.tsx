@@ -88,12 +88,12 @@ export default function NewApplicationsPage() {
     const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
     return rawCandidates.map((c: any) => ({
       id: c._id || c.id,
-      name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
+      name: (`${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown').toLowerCase().replace(/\b\w/g, (char: string) => char.toUpperCase()),
       avatar: 'https://i.pravatar.cc/150?u=11', // placeholder
       email: c.email || 'N/A',
       phone: c.phone || 'N/A',
       jobRole: c.jobRole || 'N/A',
-      jobId: 'N/A',
+      jobId: c.candidateCode || 'N/A',
       department: c.department || c.applicationDetails?.department || c.jobRole || 'N/A',
       experience: c.applicationDetails?.totalExperience ? `${c.applicationDetails.totalExperience} Years` : 'N/A',
       source: c.source || 'Direct',

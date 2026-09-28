@@ -18,6 +18,7 @@ export interface DepartmentFormData {
   employeeCapacity: string;
   workingDays: string;
   defaultShift: string;
+  documents?: File[];
 }
 
 const defaultFormData: DepartmentFormData = {
@@ -35,6 +36,7 @@ const defaultFormData: DepartmentFormData = {
   employeeCapacity: '',
   workingDays: 'Monday - Saturday',
   defaultShift: 'General Shift (09:30 AM - 06:30 PM)',
+  documents: [],
 };
 
 interface DepartmentFormContextType {

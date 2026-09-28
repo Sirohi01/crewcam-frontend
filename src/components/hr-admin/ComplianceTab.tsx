@@ -101,7 +101,7 @@ export default function ComplianceTab({ employees, selectedEmployeeId }: { emplo
               <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">Compliance Type</label>
-                  <select required value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900">
+                  <select required value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900">
                     <option value="PF">Provident Fund (PF)</option>
                     <option value="ESI">Employee State Insurance (ESI)</option>
                     <option value="TDS">Tax Deducted at Source (TDS)</option>
@@ -111,7 +111,7 @@ export default function ComplianceTab({ employees, selectedEmployeeId }: { emplo
                 </div>
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">Employee</label>
-                  <select required value={form.employeeId} onChange={e => setForm({ ...form, employeeId: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900">
+                  <select required value={form.employeeId} onChange={e => setForm({ ...form, employeeId: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900">
                     <option value="">Select Employee</option>
                     {employees?.map((emp: any) => (
                       <option key={emp._id} value={emp._id}>{emp.firstName} {emp.lastName}</option>
@@ -120,15 +120,15 @@ export default function ComplianceTab({ employees, selectedEmployeeId }: { emplo
                 </div>
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">Amount Deposited (₹)</label>
-                  <input required type="number" min="0" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900" placeholder="e.g. 1800" />
+                  <input required type="number" min="0" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900" placeholder="e.g. 1800" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">Date of Compliance</label>
-                  <input required type="date" value={form.complianceDate} onChange={e => setForm({ ...form, complianceDate: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900" />
+                  <input required type="date" value={form.complianceDate} onChange={e => setForm({ ...form, complianceDate: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5 block">Remarks / Challan Ref</label>
-                  <input type="text" value={form.remarks} onChange={e => setForm({ ...form, remarks: e.target.value })} className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm dark:bg-zinc-900" placeholder="Optional" />
+                  <input type="text" value={form.remarks} onChange={e => setForm({ ...form, remarks: e.target.value })} className="h-10 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 text-sm dark:bg-zinc-900" placeholder="Optional" />
                 </div>
               </form>
             </div>

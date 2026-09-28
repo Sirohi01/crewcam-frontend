@@ -61,7 +61,7 @@ export default function ResumeScreeningQueue() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [screeningStatus, setScreeningStatus] = useState<'' | 'pending' | 'screened'>('');
-  const [applicationStatus, setApplicationStatus] = useState('Applied');
+  const [applicationStatus, setApplicationStatus] = useState('');
   const [experienceMatch, setExperienceMatch] = useState<'' | 'under' | 'match' | 'over'>('');
   const [minStars, setMinStars] = useState('');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -94,8 +94,8 @@ export default function ResumeScreeningQueue() {
     setOpenMenuId(id);
   };
 
-  const hasActiveFilters = Boolean(search || screeningStatus || applicationStatus !== 'Applied' || experienceMatch || minStars);
-  const clearFilters = () => { setSearch(''); setScreeningStatus(''); setApplicationStatus('Applied'); setExperienceMatch(''); setMinStars(''); setPage(1); };
+  const hasActiveFilters = Boolean(search || screeningStatus || applicationStatus !== '' || experienceMatch || minStars);
+  const clearFilters = () => { setSearch(''); setScreeningStatus(''); setApplicationStatus(''); setExperienceMatch(''); setMinStars(''); setPage(1); };
 
   const { data, isLoading, error } = useQuery<{ data: any[]; meta: { page: number; limit: number; total: number; totalPages: number } }>({
     queryKey: ['resume-screening-queue', page, limit, debouncedSearch, screeningStatus, applicationStatus, experienceMatch, minStars],
@@ -108,6 +108,16 @@ export default function ResumeScreeningQueue() {
 
   const screen = useMutation({
     mutationFn: async (candidateId: string) => (await api.post(`/ai/hiring/resume-screen/${candidateId}`)).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['resume-screening-queue'] }),
+  });
+
+  const approve = useMutation({
+    mutationFn: async (candidateId: string) => (await api.put(`/hiring/candidates/${candidateId}/status`, { status: 'SHORTLISTED' })).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['resume-screening-queue'] }),
+  });
+
+  const reject = useMutation({
+    mutationFn: async (candidateId: string) => (await api.put(`/hiring/candidates/${candidateId}/status`, { status: 'REJECTED' })).data,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['resume-screening-queue'] }),
   });
 
@@ -236,10 +246,10 @@ export default function ResumeScreeningQueue() {
                   <tr key={item._id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-4 py-2 border-r border-slate-100">
                       <div className="flex items-center gap-2.5">
-                        <Avatar name={`${item.firstName} ${item.lastName}`} src={item.profileImageUrl} />
+                        <Avatar name={`${item.firstName} ${item.lastName}`.trim().toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())} src={item.profileImageUrl} />
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <p className="font-semibold text-slate-800 leading-tight">{item.firstName} {item.lastName}</p>
+                            <p className="font-semibold text-slate-800 leading-tight">{`${item.firstName || ''} ${item.lastName || ''}`.trim().toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}</p>
                             <span className={`inline-block rounded-full px-1.5 py-0.5 text-[10px] font-bold ${badge.cls}`}>{badge.text}</span>
                           </div>
                           <p className="text-[11px] text-slate-500 leading-tight">{item.email}</p>
@@ -274,11 +284,17 @@ export default function ResumeScreeningQueue() {
                     <td className="px-4 py-2 text-center">
                       <div className="flex justify-end items-center gap-1.5">
                         <Button variant="outline" size="sm" className="h-7 px-2.5 rounded-[2px] border-slate-300 text-[10px] font-bold uppercase text-slate-700" asChild>
-                          <Link href={`/dashboard/hiring/${item._id}`}><FileText size={12} className="mr-1" />View</Link>
+                          <Link href={`/dashboard/hiring/candidates/${item._id}`}><FileText size={12} className="mr-1" />View</Link>
                         </Button>
                         <Button size="sm" className="h-7 px-2.5 rounded-[2px] text-[10px] font-bold uppercase bg-[#0d3c68] hover:bg-[#0a2e50] text-white" disabled={screen.isPending} onClick={() => screen.mutate(item._id)}>
                           {screen.isPending ? <Loader2 size={11} className="mr-1 animate-spin" /> : <Sparkles size={11} className="mr-1" />}
                           {item.needsScreening ? 'Screen' : 'Re-screen'}
+                        </Button>
+                        <Button variant="outline" size="sm" className="h-7 px-2.5 rounded-[2px] border-emerald-500 text-[10px] font-bold uppercase text-emerald-700 hover:bg-emerald-50" disabled={approve.isPending} onClick={() => approve.mutate(item._id)}>
+                          Approve
+                        </Button>
+                        <Button variant="outline" size="sm" className="h-7 px-2.5 rounded-[2px] border-rose-500 text-[10px] font-bold uppercase text-rose-700 hover:bg-rose-50" disabled={reject.isPending} onClick={() => reject.mutate(item._id)}>
+                          Reject
                         </Button>
                         <button onClick={(e) => toggleMenu(item._id, e)} className="h-7 w-7 flex items-center justify-center rounded-[2px] border border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-100">
                           <MoreVertical size={14} />

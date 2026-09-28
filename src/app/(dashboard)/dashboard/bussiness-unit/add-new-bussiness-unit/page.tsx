@@ -11,7 +11,7 @@ import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
 
 // Reusable Input Field Components
-const inputCls = 'mt-1 h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-[11px] text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:opacity-50';
+const inputCls = 'mt-1 h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-[11px] text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:opacity-50 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]';
 const selectCls = `${inputCls} appearance-none`;
 const labelCls = 'text-[11px] font-semibold text-zinc-700';
 const helpTextCls = 'text-[10px] text-zinc-400 mt-1 leading-tight';

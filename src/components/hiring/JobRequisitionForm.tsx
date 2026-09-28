@@ -38,7 +38,7 @@ const approvalSteps = [
   { title: 'Final Approval', name: 'CEO', status: 'Pending' },
 ];
 
-const inputCls = 'mt-0.5 h-8 w-full rounded-lg border border-zinc-200 bg-white px-2.5 text-[11.5px] text-zinc-800 outline-none transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400';
+const inputCls = 'mt-0.5 h-8 w-full rounded-lg border border-zinc-200 bg-white px-2.5 text-[11.5px] text-zinc-800 outline-none transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none';
 const selectCls = `${inputCls} appearance-none`;
 const textAreaCls = 'mt-0.5 w-full resize-y rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11.5px] text-zinc-800 outline-none transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400';
 const labelCls = 'text-[10.5px] font-semibold text-zinc-600';
@@ -281,7 +281,7 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
                   <Field title="Requisition Justification" required hint="0 / 500" error={errors.justification}>
                     <textarea
                       className={`${textAreaCls} h-16`}
-                      placeholder="Why is this requisition needed?"
+                      placeholder="e.g., To handle the increased workload in the Q3 product roadmap."
                       {...register('justification')}
                     />
                   </Field>
@@ -302,14 +302,14 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
                         <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                       </div>
                     </Field>
-                    <Field title="Work Location"><input className={inputCls} {...register('workLocation')} placeholder="Specific location..." /></Field>
+                    <Field title="Work Location"><input className={inputCls} {...register('workLocation')} placeholder="e.g., Remote, On-site (Building A)" /></Field>
                   </div>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <Field title="Job Description Summary" required hint="0 / 1500" error={errors.jobDescriptionSummary}>
-                      <textarea className={`${textAreaCls} h-20`} placeholder="e.g. Briefly describe the role and its primary objectives..." {...register('jobDescriptionSummary', { required: true })} />
+                      <textarea className={`${textAreaCls} h-20`} placeholder="e.g. Briefly describe the role and its primary objectives..." placeholder="e.g., Lead the design and development of scalable web applications..." {...register('jobDescriptionSummary', { required: true })} />
                     </Field>
                     <Field title="Detailed Justification" hint="0 / 1500" error={errors.detailedJustification}>
-                      <textarea className={`${textAreaCls} h-20`} placeholder="e.g. This role is needed to handle the increased workload in..." {...register('detailedJustification')} />
+                      <textarea className={`${textAreaCls} h-20`} placeholder="e.g. This role is needed to handle the increased workload in..." placeholder="e.g., Due to the upcoming launch of our new product line, we require additional engineering capacity." {...register('detailedJustification')} />
                     </Field>
                   </div>
                 </div>

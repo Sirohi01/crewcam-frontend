@@ -110,17 +110,17 @@ function AdditionalInfoCard({
           <div className="flex items-center gap-1.5">
             <div className="relative flex-1">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-zinc-400">₹</span>
-              <input type="text" placeholder="6,00,000" className={`${inputClass()} pl-6`} />
+              <input type="text" inputMode="numeric" placeholder="6,00,000" className={`${inputClass()} pl-6`} value={formData.ctcRangeMin || ''} onChange={(e) => setFormData({ ...formData, ctcRangeMin: e.target.value.replace(/[^0-9,]/g, '') })} />
             </div>
             <span className="text-[11px] text-zinc-400">-</span>
             <div className="relative flex-1">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-zinc-400">₹</span>
-              <input type="text" placeholder="9,00,000" className={`${inputClass()} pl-6`} />
+              <input type="text" inputMode="numeric" placeholder="9,00,000" className={`${inputClass()} pl-6`} value={formData.ctcRangeMax || ''} onChange={(e) => setFormData({ ...formData, ctcRangeMax: e.target.value.replace(/[^0-9,]/g, '') })} />
             </div>
           </div>
         </Field>
         <Field label="Probation Period (Months)" hint="e.g., 3, 6">
-          <input type="text" placeholder="6" className={inputClass()} />
+          <input type="text" inputMode="numeric" placeholder="6" className={inputClass()} value={formData.probationPeriod || ''} onChange={(e) => setFormData({ ...formData, probationPeriod: e.target.value.replace(/[^0-9\s,]/g, '') })} />
         </Field>
         <Field label="Remarks">
           <div className="relative">
@@ -357,7 +357,7 @@ function AddJobGradeContent() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <Field label="Pay Range (Monthly)" required hint="Enter minimum and maximum monthly pay range">
-                    <input type="text" placeholder="e.g., ₹45,000 - ₹70,000" value={formData.payRange} onChange={(e) => setFormData({ ...formData, payRange: e.target.value })} className={inputClass()} />
+                    <input type="text" placeholder="e.g., ₹45,000 - ₹70,000" value={formData.payRange} onChange={(e) => setFormData({ ...formData, payRange: e.target.value.replace(/[^0-9\s,\-₹]/g, '') })} className={inputClass()} />
                   </Field>
                   <Field label="Job Family" required hint="Choose job family">
                     <select className={inputClass()} value={formData.jobFamily} onChange={(e) => setFormData({ ...formData, jobFamily: e.target.value })}>

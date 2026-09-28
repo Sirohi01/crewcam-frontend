@@ -97,52 +97,63 @@ export default function ReviewPage() {
             if (match) cId = match._id;
             else throw new Error("Candidate not found");
           }
-          
+
           const res = await api.get(`/hiring/candidates/${cId}`);
           const data = res.data;
           const appDetails = data.applicationDetails || {};
-          
+
           setCandidate({
             manpowerRequestId: appDetails.manpowerRequestId || data.manpowerRequestId || '',
             fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
             email: data.email || '',
-          mobile: data.phone || '',
-          currentLocation: appDetails.currentLocation || '',
-          preferredLocation: appDetails.preferredLocation || '',
-          linkedin: appDetails.linkedin || '',
-          appliedFor: data.jobRole || '',
-          department: data.departmentId?._id || data.departmentId || '',
-          employmentType: appDetails.employmentType || 'Full Time',
-          totalExperience: appDetails.totalExperience || '',
-          relevantExperience: appDetails.relevantExperience || '',
-          currentCompany: appDetails.currentCompany || '',
-          currentCTC: appDetails.currentCTC || '',
-          expectedCTC: appDetails.expectedCTC || '',
-          noticePeriod: appDetails.noticePeriod || '',
-          availableFrom: appDetails.availableFrom || '',
-          relocation: appDetails.relocation || '',
-          willingToTravel: appDetails.willingToTravel || '',
-          highestQualification: appDetails.highestQualification || '',
-          university: appDetails.university || '',
-          yearOfPassing: appDetails.yearOfPassing || '',
-          cgpa: appDetails.cgpa || '',
-          skills: appDetails.skills || [],
-          experiences: appDetails.experiences || [],
-          education: appDetails.education || []
-        });
+            mobile: data.phone || '',
+            currentLocation: appDetails.currentLocation || '',
+            preferredLocation: appDetails.preferredLocation || '',
+            linkedin: appDetails.linkedin || '',
+            appliedFor: data.jobRole || '',
+            department: data.departmentId?._id || data.departmentId || '',
 
-        if (appDetails.experiences && appDetails.experiences.length > 0) {
-          setExperiences(appDetails.experiences);
+            departmentName: data.departmentId?.name || '',
+            employmentType: appDetails.employmentType || 'Full Time',
+            totalExperience: appDetails.totalExperience || '',
+            relevantExperience: appDetails.relevantExperience || '',
+            currentCompany: appDetails.currentCompany || '',
+            currentCTC: appDetails.currentCTC || '',
+            expectedCTC: appDetails.expectedCTC || '',
+            noticePeriod: appDetails.noticePeriod || '',
+            availableFrom: appDetails.availableFrom || '',
+            relocation: appDetails.relocation || '',
+            willingToTravel: appDetails.willingToTravel || '',
+            highestQualification: appDetails.highestQualification || '',
+            university: appDetails.university || '',
+            yearOfPassing: appDetails.yearOfPassing || '',
+            cgpa: appDetails.cgpa || '',
+            skills: appDetails.skills || [],
+            experiences: appDetails.experiences || [],
+            education: appDetails.education || []
+          });
+
+          if (appDetails.experiences && appDetails.experiences.length > 0) {
+            const safeExperiences = appDetails.experiences.map((exp: any, i: number) => ({
+              id: exp.id || `exp-${Date.now()}-${i}`,
+              role: exp.role || exp.designation || '',
+              company: exp.company || exp.employer || '',
+              employmentType: exp.employmentType || 'Full Time',
+              startDate: exp.startDate || exp.periodFrom || '',
+              endDate: exp.endDate || exp.periodTo || '',
+              bullets: Array.isArray(exp.bullets) && exp.bullets.length > 0 ? exp.bullets : ['']
+            }));
+            setExperiences(safeExperiences);
+          }
+          if (data.resumeUrl) setResumeUrl(data.resumeUrl);
+        } catch (err) {
+          console.error(err);
+          toast.error('Failed to load candidate details');
         }
-        if (data.resumeUrl) setResumeUrl(data.resumeUrl);
-      } catch (err) {
-        console.error(err);
-        toast.error('Failed to load candidate details');
-      }
-    };
-    fetchCandidate();
-  }
-}, [candidateId]);
+      };
+      fetchCandidate();
+    }
+  }, [candidateId]);
 
   const handleSubmitApplication = async () => {
     try {
@@ -153,7 +164,7 @@ export default function ReviewPage() {
         const match = candidates.find((c: any) => `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') === candidateId);
         if (match) cId = match._id;
       }
-      
+
       await api.put(`/hiring/candidates/${cId}`, {
         manpowerRequestId: candidate.manpowerRequestId,
         firstName: candidate.fullName.split(' ')[0] || '',
@@ -362,93 +373,93 @@ export default function ReviewPage() {
                   </div>
                   <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1 flex-wrap">
-                    <h2 className="font-display font-bold text-sm text-indigo-950 leading-tight">
-                      {candidate.fullName}
-                    </h2>
-                    <span className="bg-emerald-100 text-emerald-800 text-[9px] font-semibold px-1.5 py-0.5 rounded-md flex items-center gap-0.5 border border-emerald-200 whitespace-nowrap">
-                      AI Extracted
-                    </span>
-                  </div>
+                <div className="flex-1 min-w-0 flex justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <h2 className="font-display font-bold text-sm text-indigo-950 leading-tight">
+                        {candidate.fullName}
+                      </h2>
+                      <span className="bg-emerald-100 text-emerald-800 text-[9px] font-semibold px-1.5 py-0.5 rounded-md flex items-center gap-0.5 border border-emerald-200 whitespace-nowrap">
+                        AI Extracted
+                      </span>
+                    </div>
 
-                  <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5 text-[10px] mt-2">
-                    <span className="flex items-center gap-0.5"> {candidate.appliedFor}</span>
-
-
-                  </div>
-                  <div className="flex w-full justify-between gap-2 mt-0.5 text-[10px]">
-                    {/* Left Section */}
-                    <div className="flex-1 min-w-0 flex flex-col gap-1 text-[10px] ">
-                      {/* Email & Mobile */}
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                        <div className="flex items-center gap-1 shrink-0">
-                          <Phone className="w-3 h-3 text-indigo-700 shrink-0" />
-                          <span>{candidate.mobile}</span>
-                        </div>
-                        <div className="flex items-center gap-1 min-w-0">
-                          <Mail className="w-3 h-3 text-indigo-700 shrink-0" />
-                          <span className="truncate">{candidate.email}</span>
-                        </div>
-
-                      </div>
-
-                      {/* Location & LinkedIn */}
-                      <div className="flex flex-col flex-wrap gap-x-4 gap-y-1">
-                        <div className="flex items-center gap-1 min-w-0">
-                          <MapPin className="w-3 h-3 text-indigo-700 shrink-0" />
-                          <span className="truncate">{candidate.currentLocation}</span>
-                        </div>
-
-                        {candidate.linkedin && (
-                          <div className="flex items-center gap-1 min-w-0">
-                            <FaLinkedinIn className="w-3 h-3 text-[#0A66C2] shrink-0" />
-                            <span className="truncate">{candidate.linkedin}</span>
+                    <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5 text-[10px] mt-2">
+                      <span className="flex items-center gap-0.5"> {candidate.appliedFor}</span>
+                    </div>
+                    <div className="flex w-full justify-between gap-2 mt-0.5 text-[10px]">
+                      {/* Left Section */}
+                      <div className="flex-1 min-w-0 flex flex-col gap-1 text-[10px] ">
+                        {/* Email & Mobile */}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                          <div className="flex items-center gap-1 shrink-0">
+                            <Phone className="w-3 h-3 text-indigo-700 shrink-0" />
+                            <span>{candidate.mobile}</span>
                           </div>
-                        )}
+                          <div className="flex items-center gap-1 min-w-0">
+                            <Mail className="w-3 h-3 text-indigo-700 shrink-0" />
+                            <span className="truncate">{candidate.email}</span>
+                          </div>
+
+                        </div>
+
+                        {/* Location & LinkedIn */}
+                        <div className="flex flex-col flex-wrap gap-x-4 gap-y-1">
+                          <div className="flex items-center gap-1 min-w-0">
+                            <MapPin className="w-3 h-3 text-indigo-700 shrink-0" />
+                            <span className="truncate">{candidate.currentLocation}</span>
+                          </div>
+
+                          {candidate.linkedin && (
+                            <div className="flex items-center gap-1 min-w-0">
+                              <FaLinkedinIn className="w-3 h-3 text-[#0A66C2] shrink-0" />
+                              <span className="truncate">{candidate.linkedin}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Section */}
+                  <div className="self-start grid grid-cols-2 gap-x-4 md:gap-x-8 gap-y-2 shrink-0 border-l border-gray-300 px-4 ml-auto">
+                    <div className="">
+                      <div className="text-[8px] uppercase font-semibold text-indigo-900">
+                        Applied For
+                      </div>
+                      <div
+                        className="font-bold text-[9px] truncate"
+                        title={candidate.appliedFor}
+                      >
+                        {candidate.appliedFor}
                       </div>
                     </div>
 
-                    {/* Right Section */}
-                    <div className="self-start flex items-center gap-2 md:gap-6 shrink-0 border-l border-gray-300 p-4 ml-auto">
-                      <div className="">
-                        <div className="text-[8px] uppercase font-semibold text-indigo-900">
-                          Applied For
-                        </div>
-                        <div
-                          className="font-bold text-[9px] truncate"
-                          title={candidate.appliedFor}
-                        >
-                          {candidate.appliedFor}
-                        </div>
+                    <div className="">
+                      <div className="text-[8px] uppercase font-semibold text-indigo-900">
+                        Department
                       </div>
-
-                      <div className="">
-                        <div className="text-[8px] uppercase font-semibold text-indigo-900">
-                          Department
-                        </div>
-                        <div
-                          className="font-bold text-[9px] truncate"
-                          title={candidate.department}
-                        >
-                          {candidate.department}
-                        </div>
+                      <div
+                        className="font-bold text-[9px] truncate"
+                        title={candidate.departmentName || candidate.department}
+                      >
+                        {candidate.departmentName || candidate.department}
                       </div>
-                      <div className="">
-                        <div className="text-[8px] uppercase font-semibold text-indigo-900">
-                          Employement Type
-                        </div>
-                        <div className="font-bold text-[9px]">
-                          {candidate.employmentType}
-                        </div>
+                    </div>
+                    <div className="">
+                      <div className="text-[8px] uppercase font-semibold text-indigo-900">
+                        Employment Type
                       </div>
-                      <div className="">
-                        <div className="text-[8px] uppercase font-semibold text-indigo-900">
-                          Notice Period
-                        </div>
-                        <div className="font-bold text-[9px]">
-                          {candidate.noticePeriod}
-                        </div>
+                      <div className="font-bold text-[9px]">
+                        {candidate.employmentType}
+                      </div>
+                    </div>
+                    <div className="">
+                      <div className="text-[8px] uppercase font-semibold text-indigo-900">
+                        Notice Period
+                      </div>
+                      <div className="font-bold text-[9px]">
+                        {candidate.noticePeriod || '0 Days'}
                       </div>
                     </div>
                   </div>
@@ -922,7 +933,7 @@ export default function ReviewPage() {
                 <div className="flex items-center gap-1">
 
                   <button
-                    onClick={handleSave}
+                    onClick={handleSubmitApplication}
                     className="flex-1 sm:flex-none justify-center px-3 h-8 text-xs bg-indigo-600 text-white rounded font-semibold hover:bg-indigo-700 shadow-xs hover:shadow-md transition-all flex items-center gap-1"
                   >
                     Save Progress

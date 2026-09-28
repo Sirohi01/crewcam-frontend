@@ -30,6 +30,8 @@ export interface CandidateInfo {
   skills?: string[];
   experiences?: any[];
   education?: any[];
+  status?: string;
+  candidateCode?: string;
 }
 
 export interface Note {

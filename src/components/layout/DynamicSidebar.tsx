@@ -133,6 +133,19 @@ export default function DynamicSidebar() {
       merged = [...merged, ...STATIC_RECRUITMENT_ITEMS];
     }
 
+    // Ensure Career portal is in Hiring Process
+    const hasCareer = merged.some(item => item.href === '/dashboard/career');
+    if (!hasCareer) {
+      merged.push({
+        _id: 'career-portal',
+        section: 'Hiring Process',
+        label: 'Career',
+        href: '/dashboard/career',
+        icon: 'Briefcase',
+        order: -2,
+      });
+    }
+
     return merged.sort((a: SidebarItem, b: SidebarItem) => a.order - b.order);
   }, [items, isLoading, roleScope]);
 
@@ -190,14 +203,18 @@ export default function DynamicSidebar() {
     return rankA - rankB;
   });
 
-  React.useEffect(() => {
-    let matchedItem = allItems.find((i: SidebarItem) => pathname === i.href);
-    if (!matchedItem) {
+  const matchedItem = React.useMemo(() => {
+    let matched = allItems.find((i: SidebarItem) => pathname === i.href);
+    if (!matched) {
       const matches = allItems.filter((i: SidebarItem) => i.href !== '/dashboard' && (pathname === i.href || pathname.startsWith(i.href + '/')));
       if (matches.length > 0) {
-        matchedItem = matches.reduce((prev: SidebarItem, current: SidebarItem) => (prev.href.length > current.href.length ? prev : current));
+        matched = matches.reduce((prev: SidebarItem, current: SidebarItem) => (prev.href.length > current.href.length ? prev : current));
       }
     }
+    return matched;
+  }, [pathname, allItems]);
+
+  React.useEffect(() => {
     if (matchedItem) {
       let title = matchedItem.label;
       if (matchedItem.subParent) {
@@ -205,11 +222,14 @@ export default function DynamicSidebar() {
       } else if (matchedItem.parent) {
         title = `${matchedItem.parent} / ${matchedItem.label}`;
       }
+      if (matchedItem.href === '/dashboard/career') {
+        title = 'Career Applications';
+      }
       setPageTitle(title);
     } else {
       setPageTitle('Dashboard');
     }
-  }, [pathname, allItems, setPageTitle]);
+  }, [matchedItem, setPageTitle]);
 
   return (
     <>
@@ -234,7 +254,7 @@ export default function DynamicSidebar() {
         }
       `}</style>
       <aside
-        className={`hidden lg:flex flex-shrink-0 flex-col transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-[232px]' : 'w-[68px]'}`}
+        className={`hidden print:!hidden lg:flex flex-shrink-0 flex-col transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-[232px]' : 'w-[68px]'}`}
         style={{
           background: 'rgba(0, 19, 51)',
           borderRight: '1px solid rgba(99,102,241,0.2)',
@@ -275,7 +295,7 @@ export default function DynamicSidebar() {
                 {group.section !== 'WORKSPACE' && <SectionLabel>{group.section}</SectionLabel>}
                 {group.items.map((item, index) => {
                   if ('isGroup' in item) {
-                    return <NavGroup key={item.label + index} label={item.label} items={item.children} pathname={pathname} level={0} />;
+                    return <NavGroup key={item.label + index} label={item.label} items={item.children} pathname={pathname} level={0} activeItemId={matchedItem?._id} />;
                   }
                   return (
                     <NavItem
@@ -283,7 +303,7 @@ export default function DynamicSidebar() {
                       href={item.href}
                       icon={React.createElement(ICONS[item.icon] || Circle, { size: 14 })}
                       label={item.label}
-                      active={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
+                      active={matchedItem?._id === item._id}
                       disabled={item.href.includes('/coming-soon')}
                     />
                   );
@@ -385,14 +405,15 @@ function NavItem({
   );
 }
 
-function NavGroup({ label, items, pathname, level = 0 }: { label: string; items: GroupedItem[]; pathname: string, level?: number }) {
+function NavGroup({ label, items, pathname, level = 0, activeItemId }: { label: string; items: GroupedItem[]; pathname: string, level?: number, activeItemId?: string }) {
   const isSidebarOpen = useUIStore((s) => s.isSidebarOpen);
   const setSidebarOpen = useUIStore((s) => s.setSidebarOpen);
   const isAnyChildActive = items.some(item => {
-    if ('isGroup' in item) {
-      return item.children.some(child => !('isGroup' in child) && (pathname === child.href || (child.href !== '/dashboard' && pathname.startsWith(child.href + '/'))));
-    }
-    return pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'));
+    const checkActive = (child: GroupedItem): boolean => {
+      if ('isGroup' in child) return child.children.some(checkActive);
+      return child._id === activeItemId;
+    };
+    return checkActive(item);
   });
   const [expanded, setExpanded] = React.useState(isAnyChildActive);
 
@@ -455,10 +476,10 @@ function NavGroup({ label, items, pathname, level = 0 }: { label: string; items:
         >
           {items.map((item, index) => {
             if ('isGroup' in item) {
-              return <NavGroup key={item.label + index} label={item.label} items={item.children} pathname={pathname} level={level + 1} />;
+              return <NavGroup key={item.label + index} label={item.label} items={item.children} pathname={pathname} level={level + 1} activeItemId={activeItemId} />;
             }
 
-            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'));
+            const isActive = item._id === activeItemId;
             return (
               <Link
                 key={`${item._id || 'itm'}-${index}-${item.href}`}

@@ -8,6 +8,8 @@ import api from '@/lib/axios';
 import { getHiringStepById, HIRING_STEPS } from '@/lib/hiringSteps';
 import { openFileUrl } from '@/lib/fileUrls';
 import { Button } from '@/components/ui/button';
+import toast from 'react-hot-toast';
+import { formatEmployeeId } from '@/lib/utils';
 
 const idOf = (value: any) => typeof value === 'object' && value ? String(value._id || '') : String(value || '');
 const nameOf = (value: any) => value && typeof value === 'object' && value.firstName ? `${value.firstName} ${value.lastName || ''}`.trim() : '';
@@ -22,13 +24,20 @@ const displayValue = (value: any): string => {
   return String(value);
 };
 const nestedValue = (row: Record<string, any>, path: string): any => path.split('.').reduce((value, key) => value?.[key], row);
-const detailRows = (value: any, prefix = ''): { label: string; value: string }[] => {
+const detailRows = (value: any, prefix = '', canonicalId = ''): { label: string; value: string }[] => {
   if (value === undefined || value === null || value === '') return [];
-  if (Array.isArray(value)) return value.flatMap((item, index) => detailRows(item, `${prefix || 'Item'} ${index + 1}`));
+  if (Array.isArray(value)) return value.flatMap((item, index) => detailRows(item, `${prefix || 'Item'} ${index + 1}`, canonicalId));
   if (typeof value === 'object' && !(value instanceof Date)) return Object.entries(value)
     .filter(([key]) => !['_id', '__v', 'tenantId', 'passwordHash'].includes(key))
-    .flatMap(([key, item]) => detailRows(item, prefix ? `${prefix} · ${prettyKey(key)}` : prettyKey(key)));
-  const masked = /aadhaar|pan|account number/i.test(prefix) ? `••••${String(value).slice(-4)}` : displayValue(value);
+    .flatMap(([key, item]) => detailRows(item, prefix ? `${prefix} · ${prettyKey(key)}` : prettyKey(key), canonicalId));
+  let masked = /aadhaar|pan|account number/i.test(prefix) ? `••••${String(value).slice(-4)}` : displayValue(value);
+  if (/unique id|employee code|emp code|candidate code/i.test(prefix)) {
+    if (canonicalId && (String(value).startsWith('EMP-') || !value)) {
+      masked = formatEmployeeId(canonicalId);
+    } else if (value) {
+      masked = formatEmployeeId(String(value));
+    }
+  }
   return [{ label: prefix || 'Value', value: masked }];
 };
 
@@ -49,7 +58,7 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
         return;
       }
     }
-    const candidateId = idOf(row.candidateId) || (step?.entityField === 'candidateId' ? idOf(row[step?.entityField]) : null);
+    const candidateId = idOf(row.candidateId) || row.rawCandidateId || (step?.entityField === 'candidateId' ? (idOf(row[step?.entityField]) || row.rawCandidateId) : null);
     if (!candidateId) return;
     router.push(`/dashboard/hiring/${candidateId}/steps/${nextStep.id}`);
   };
@@ -93,8 +102,12 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => (await api.delete(`${step!.apiPath}/${id}`)).data,
     onSuccess: () => {
+      toast.success('Record deleted successfully');
       queryClient.invalidateQueries({ queryKey: ['hiring-register', step?.apiPath] });
     },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to delete record. Deletion might not be supported for this step.');
+    }
   });
 
   const pdfMutation = useMutation({
@@ -126,7 +139,50 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
 
   if (!step) return <div className="p-8 text-center text-sm text-zinc-500">Unknown register step.</div>;
 
-  const dynamicColumns = step.listColumns || step.fields.slice(0, 3).map((f) => ({ key: f.name, label: f.label }));
+  const dynamicColumns = step.listColumns || step.fields.slice(0, 3).map((f: any) => ({ key: f.name, label: f.label }));
+
+  const getRecordCanonicalId = (record: any) => {
+    if (!record) return '';
+    let resolved = '';
+    const candId = idOf(record.candidateId) || record.rawCandidateId;
+    if (candId) {
+      const cand = candidateDirectory.find((c: any) => String(c._id) === candId);
+      if (cand?.candidateCode || cand?.uniqueId || cand?.employeeCode) {
+        resolved = cand.candidateCode || cand.uniqueId || cand.employeeCode;
+      }
+    }
+    if (!resolved) {
+      const empId = idOf(record.employeeId);
+      if (empId) {
+        const emp = employeeDirectory.find((e: any) => String(e._id) === empId);
+        if (emp) {
+          const candByEmp = candidateDirectory.find(
+            (c: any) => (c.email && emp.email && c.email.toLowerCase() === emp.email.toLowerCase()) ||
+              (c.employeeCode && c.employeeCode === emp.employeeCode)
+          );
+          if (candByEmp?.candidateCode || candByEmp?.uniqueId || candByEmp?.employeeCode) {
+            resolved = candByEmp.candidateCode || candByEmp.uniqueId || candByEmp.employeeCode;
+          }
+          if (!resolved && emp.employeeCode && !emp.employeeCode.startsWith('EMP-')) {
+            resolved = emp.employeeCode;
+          }
+        }
+      }
+    }
+    if (!resolved && (record.candidateName || record.employeeName)) {
+      const name = String(record.candidateName || record.employeeName).toLowerCase().trim();
+      const candByName = candidateDirectory.find((c: any) => `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().trim() === name);
+      if (candByName?.candidateCode || candByName?.uniqueId || candByName?.employeeCode) {
+        resolved = candByName.candidateCode || candByName.uniqueId || candByName.employeeCode;
+      }
+    }
+    if (!resolved) {
+      const raw = record.employeeCode || record.uniqueId || record.candidateCode || record.empCode;
+      resolved = raw && !raw.startsWith('EMP-') ? raw : (raw || '');
+    }
+    return formatEmployeeId(resolved);
+  };
+
   const subjectName = (row: any) => {
     const linked = step.entityField === 'employeeId' ? row.employeeId : row.candidateId;
     const direct = nameOf(linked);
@@ -144,7 +200,7 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
       router.push(`/dashboard/hiring/${response.data.candidateId}/steps/${stepId}?edit=${row._id}`);
       return;
     }
-    const candidateId = idOf(row.candidateId);
+    const candidateId = idOf(row.candidateId) || row.rawCandidateId;
     if (!candidateId) return;
     router.push(`/dashboard/hiring/${candidateId}/steps/${stepId}?edit=${row._id}`);
   };
@@ -499,8 +555,18 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
           <div className="flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl border border-slate-200 ring-1 ring-black/5 animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-6 py-5">
               <div>
+
                 <h3 className="text-xl font-bold text-slate-900">{step.title} Details</h3>
-                <p className="text-sm font-medium text-slate-500 mt-1">{subjectName(selectedRecord)}</p>
+
+                <div className="flex items-center gap-3 mt-0.5">
+                  <p className="text-sm font-medium text-slate-500 mt-1">{subjectName(selectedRecord)}</p>
+
+                  {(getRecordCanonicalId(selectedRecord) || selectedRecord.employeeCode || selectedRecord.uniqueId || selectedRecord.candidateCode || selectedRecord.empCode) && (
+                    <span className="text-xs font-mono font-bold text-[#0d3c68] bg-slate-100 px-2 py-0.5 rounded">
+                      ID: {getRecordCanonicalId(selectedRecord) || formatEmployeeId(selectedRecord.employeeCode || selectedRecord.uniqueId || selectedRecord.candidateCode || selectedRecord.empCode)}
+                    </span>
+                  )}
+                </div>
               </div>
               <button onClick={() => setSelectedRecord(null)} className="rounded-full bg-white border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-all shadow-sm">
                 <X size={18} strokeWidth={2.5} />
@@ -508,7 +574,7 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
             </div>
             <div className="flex-1 overflow-y-auto p-6 bg-white">
               <div className="grid gap-4 md:grid-cols-2 rounded-xl border border-slate-200 bg-slate-50 p-5 shadow-[inset_0_1px_4px_rgba(0,0,0,0.02)]">
-                {detailRows(selectedRecord).map((entry, index) => (
+                {detailRows(selectedRecord, '', getRecordCanonicalId(selectedRecord)).map((entry, index) => (
                   <div key={`${entry.label}-${index}`} className="flex flex-col rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-blue-200/80">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-[#0d3c68]/80 mb-2">{entry.label}</p>
                     <p className="break-words text-[13px] font-medium text-slate-800 leading-relaxed">{entry.value}</p>

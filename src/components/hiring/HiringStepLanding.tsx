@@ -4,15 +4,15 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { DataTable } from '@/components/shared/DataTable';
-import { getHiringStepById } from '@/lib/hiringSteps';
+import { getHiringStepById, HIRING_STEPS } from '@/lib/hiringSteps';
 import api from '@/lib/axios';
 
 export default function HiringStepLanding({ stepId }: { stepId: string }) {
   const step = getHiringStepById(stepId);
   const router = useRouter();
   const { data: candidates, isLoading } = useQuery<any[]>({
-    queryKey: ['candidates'],
-    queryFn: async () => (await api.get('/hiring/candidates')).data,
+    queryKey: ['candidates', step?.stepKey],
+    queryFn: async () => (await api.get(`/hiring/candidates?pipelineStep=${step?.stepKey}`)).data,
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -121,7 +121,15 @@ export default function HiringStepLanding({ stepId }: { stepId: string }) {
           onSearchChange={(v) => { setSearchValue(v); setCurrentPage(1); }}
           onRowClick={(c: any) => router.push(`/dashboard/hiring/${c._id}/steps/${step.id}`)}
           onView={(c: any) => router.push(`/dashboard/hiring/${c._id}/steps/${step.id}`)}
-          onNextStep={(c: any) => router.push(`/dashboard/hiring/${c._id}/steps/${step.id}`)}
+          onNextStep={(c: any) => {
+            const currentIndex = HIRING_STEPS.findIndex(s => s.id === step.id);
+            const nextStep = HIRING_STEPS[currentIndex + 1];
+            if (nextStep) {
+              router.push(`/dashboard/hiring/${c._id}/steps/${nextStep.id}`);
+            } else {
+              router.push(`/dashboard/hiring/${c._id}`);
+            }
+          }}
           showActions={true}
           showPrint={false}
           selectable={true}

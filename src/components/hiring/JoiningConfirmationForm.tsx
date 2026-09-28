@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Mail, Save, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import StepGate from './StepGate';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { formatEmployeeId } from '@/lib/utils';
 
 const empty = () => ({
   subject: 'Official Joining Confirmation',
@@ -37,31 +37,39 @@ const inputClass = "w-full h-7 px-2 bg-white border border-[#cbd5e1] hover:borde
 
 export default function JoiningConfirmationForm({ candidateId }: { candidateId: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
   const qc = useQueryClient();
   const [form, setForm] = useState(empty);
   const set = (patch: Partial<ReturnType<typeof empty>>) => setForm(old => ({ ...old, ...patch }));
 
   const { data: candidate } = useQuery<any>({ queryKey: ['candidate', candidateId], queryFn: async () => (await api.get(`/hiring/candidates/${candidateId}`)).data });
   const { data: pipeline } = useQuery<any>({ queryKey: ['candidate-pipeline', candidateId], queryFn: async () => (await api.get(`/hiring/candidates/${candidateId}/pipeline`)).data });
-  
-  const { data: records } = useQuery<any[]>({ 
-    queryKey: ['joining-confirmation', candidateId], 
-    queryFn: async () => { 
-      const response = await api.get('/hiring/joining-confirmation', { params: { candidateId } }); 
-      return Array.isArray(response.data) ? response.data : (response.data.data || []); 
-    } 
+
+  const { data: records } = useQuery<any[]>({
+    queryKey: ['joining-confirmation', candidateId],
+    queryFn: async () => {
+      const response = await api.get('/hiring/joining-confirmation', { params: { candidateId } });
+      return Array.isArray(response.data) ? response.data : (response.data.data || []);
+    }
   });
 
-  const { data: lois } = useQuery<any[]>({ 
-    queryKey: ['loi', candidateId], 
-    queryFn: async () => { 
-      const response = await api.get('/hiring/loi', { params: { candidateId } }); 
-      return Array.isArray(response.data) ? response.data : (response.data.data || []); 
-    } 
+  const { data: lois } = useQuery<any[]>({
+    queryKey: ['loi', candidateId],
+    queryFn: async () => {
+      const response = await api.get('/hiring/loi', { params: { candidateId } });
+      return Array.isArray(response.data) ? response.data : (response.data.data || []);
+    }
   });
+
+  const isInitialized = React.useRef(false);
 
   useEffect(() => {
-    const saved = records?.[0];
+    if (isInitialized.current) return;
+
+    if (records === undefined || lois === undefined || candidate === undefined) return;
+
+    const saved = editId ? records?.find(r => r._id === editId) : records?.[0];
     if (saved) {
       // Convert 12-hour AM/PM to 24-hour time input format if needed
       const convertTo24Hour = (time12: string) => {
@@ -77,45 +85,102 @@ export default function JoiningConfirmationForm({ candidateId }: { candidateId: 
         return `${hour.toString().padStart(2, '0')}:${minutes}`;
       };
 
-      setForm(current => ({
-        ...current,
-        candidateName: saved.candidateName || current.candidateName,
-        subject: saved.subject || current.subject,
-        department: saved.department || current.department,
-        designation: saved.designation || current.designation,
-        joiningDate: saved.confirmedJoiningDate ? new Date(saved.confirmedJoiningDate).toISOString().slice(0, 10) : (saved.joiningDate ? new Date(saved.joiningDate).toISOString().slice(0, 10) : current.joiningDate),
-        reportingTime: convertTo24Hour(saved.reportingTime),
-        reportingLocation: saved.reportingLocation || current.reportingLocation,
-        reportingTo: saved.reportingTo || current.reportingTo,
-        failureToReportDate: saved.failureToReportDate ? new Date(saved.failureToReportDate).toISOString().slice(0, 10) : current.failureToReportDate,
-      }));
+      const candName = saved.candidateName || `${candidate?.firstName || ''} ${candidate?.lastName || ''}`.trim();
+
+      // If we are missing reportingTo or reportingLocation, fetch from Selection Approval
+      if (!saved.reportingTo || !saved.reportingLocation) {
+        api.get('/hiring/selection-approval', { params: { candidateId } }).then(approvalRes => {
+          const approvals = Array.isArray(approvalRes.data?.data) ? approvalRes.data.data : (Array.isArray(approvalRes.data) ? approvalRes.data : [approvalRes.data]);
+          const approval = approvals?.find((a: any) => a && (a.candidateId === candidateId || a.candidateId?._id === candidateId));
+
+          setForm(current => ({
+            ...current,
+            candidateName: candName || current.candidateName,
+            subject: saved.subject || current.subject,
+            department: saved.department || candidate?.departmentId?.name || candidate?.departmentId?.departmentName || current.department,
+            designation: saved.designation || candidate?.jobRole || current.designation,
+            joiningDate: saved.confirmedJoiningDate ? new Date(saved.confirmedJoiningDate).toISOString().slice(0, 10) : (saved.joiningDate ? new Date(saved.joiningDate).toISOString().slice(0, 10) : current.joiningDate),
+            reportingTime: convertTo24Hour(saved.reportingTime),
+            reportingLocation: saved.reportingLocation || approval?.workLocation || current.reportingLocation,
+            reportingTo: saved.reportingTo || approval?.reportingTo || current.reportingTo,
+            failureToReportDate: saved.failureToReportDate ? new Date(saved.failureToReportDate).toISOString().slice(0, 10) : current.failureToReportDate,
+          }));
+        }).catch(() => {
+          // Fallback if it fails
+          setForm(current => ({
+            ...current,
+            candidateName: candName || current.candidateName,
+            subject: saved.subject || current.subject,
+            department: saved.department || candidate?.departmentId?.name || candidate?.departmentId?.departmentName || current.department,
+            designation: saved.designation || candidate?.jobRole || current.designation,
+            joiningDate: saved.confirmedJoiningDate ? new Date(saved.confirmedJoiningDate).toISOString().slice(0, 10) : (saved.joiningDate ? new Date(saved.joiningDate).toISOString().slice(0, 10) : current.joiningDate),
+            reportingTime: convertTo24Hour(saved.reportingTime),
+            reportingLocation: saved.reportingLocation || current.reportingLocation,
+            reportingTo: saved.reportingTo || current.reportingTo,
+            failureToReportDate: saved.failureToReportDate ? new Date(saved.failureToReportDate).toISOString().slice(0, 10) : current.failureToReportDate,
+          }));
+        });
+      } else {
+        setForm(current => ({
+          ...current,
+          candidateName: candName || current.candidateName,
+          subject: saved.subject || current.subject,
+          department: saved.department || candidate?.departmentId?.name || candidate?.departmentId?.departmentName || current.department,
+          designation: saved.designation || candidate?.jobRole || current.designation,
+          joiningDate: saved.confirmedJoiningDate ? new Date(saved.confirmedJoiningDate).toISOString().slice(0, 10) : (saved.joiningDate ? new Date(saved.joiningDate).toISOString().slice(0, 10) : current.joiningDate),
+          reportingTime: convertTo24Hour(saved.reportingTime),
+          reportingLocation: saved.reportingLocation || current.reportingLocation,
+          reportingTo: saved.reportingTo || current.reportingTo,
+          failureToReportDate: saved.failureToReportDate ? new Date(saved.failureToReportDate).toISOString().slice(0, 10) : current.failureToReportDate,
+        }));
+      }
+
+      isInitialized.current = true;
       return;
     }
 
-    // Pre-fill from LOI
+    // Pre-fill from LOI or Selection Approval or Candidate
     const loi = lois?.[0];
     const candName = `${candidate?.firstName || ''} ${candidate?.lastName || ''}`.trim();
-    if (loi) {
-      const designation = loi.designation || loi.position || '';
+
+    // We can also fetch Selection Approval for better fallback if LOI is missing or incomplete
+    api.get('/hiring/selection-approval', { params: { candidateId } }).then(approvalRes => {
+      const approvals = Array.isArray(approvalRes.data?.data) ? approvalRes.data.data : (Array.isArray(approvalRes.data) ? approvalRes.data : [approvalRes.data]);
+      const approval = approvals?.find((a: any) => a && (a.candidateId === candidateId || a.candidateId?._id === candidateId));
+
+      const designation = loi?.designation || loi?.position || candidate?.jobRole || '';
+      const department = loi?.department || approval?.department || candidate?.departmentId?.name || candidate?.departmentId?.departmentName || '';
+      const joiningDate = loi?.joiningDate || approval?.joiningDate || '';
+
       setForm(current => ({
         ...current,
         candidateName: candName || current.candidateName,
-        department: loi.department || current.department,
+        department: department || current.department,
         designation: designation || current.designation,
-        joiningDate: loi.joiningDate ? new Date(loi.joiningDate).toISOString().slice(0, 10) : current.joiningDate,
-        failureToReportDate: loi.joiningDate ? new Date(loi.joiningDate).toISOString().slice(0, 10) : current.failureToReportDate,
-        reportingLocation: loi.reportingLocation || current.reportingLocation,
-        reportingTo: loi.reportingTo || current.reportingTo,
+        joiningDate: joiningDate ? new Date(joiningDate).toISOString().slice(0, 10) : current.joiningDate,
+        failureToReportDate: joiningDate ? new Date(joiningDate).toISOString().slice(0, 10) : current.failureToReportDate,
+        reportingLocation: loi?.reportingLocation || approval?.workLocation || current.reportingLocation,
+        reportingTo: loi?.reportingTo || approval?.reportingTo || current.reportingTo,
         subject: candName && designation ? `Official Joining Confirmation - ${candName} - ${designation}` : current.subject
       }));
-    } else if (candidate) {
+    }).catch(err => {
+      // Fallback if Selection Approval fetch fails
+      const designation = loi?.designation || loi?.position || candidate?.jobRole || '';
       setForm(current => ({
         ...current,
         candidateName: candName || current.candidateName,
-        designation: candidate.jobRole || current.designation
+        department: loi?.department || candidate?.departmentId?.name || candidate?.departmentId?.departmentName || current.department,
+        designation: designation || current.designation,
+        joiningDate: loi?.joiningDate ? new Date(loi.joiningDate).toISOString().slice(0, 10) : current.joiningDate,
+        failureToReportDate: loi?.joiningDate ? new Date(loi.joiningDate).toISOString().slice(0, 10) : current.failureToReportDate,
+        reportingLocation: loi?.reportingLocation || current.reportingLocation,
+        reportingTo: loi?.reportingTo || current.reportingTo,
+        subject: candName && designation ? `Official Joining Confirmation - ${candName} - ${designation}` : current.subject
       }));
-    }
-  }, [records, lois, candidate]);
+    });
+
+    isInitialized.current = true;
+  }, [records, lois, candidate, editId]);
 
   // Update subject automatically when name or designation changes
   useEffect(() => {
@@ -137,8 +202,12 @@ export default function JoiningConfirmationForm({ candidateId }: { candidateId: 
         return `${hour12}:${minutes} ${ampm}`;
       };
 
+      const candidateUniqueId = candidate?.uniqueId || candidate?.candidateCode || records?.[0]?.candidateCode || records?.[0]?.uniqueId;
+
       const payload = {
         candidateId,
+        candidateCode: candidateUniqueId,
+        uniqueId: candidateUniqueId,
         candidateName: form.candidateName,
         subject: form.subject,
         department: form.department,
@@ -149,16 +218,17 @@ export default function JoiningConfirmationForm({ candidateId }: { candidateId: 
         reportingLocation: form.reportingLocation,
         reportingTo: form.reportingTo,
         failureToReportDate: form.failureToReportDate || undefined,
-        status: 'Pending'
+        status: 'Finalized'
       };
-      
-      const existing = records?.[0];
+
+      const existing = editId ? records?.find(r => r._id === editId) : records?.[0];
       if (existing?._id) {
         return (await api.put(`/hiring/joining-confirmation/${existing._id}`, payload)).data;
       }
       return (await api.post('/hiring/joining-confirmation', payload)).data;
     },
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['candidate', candidateId] });
       qc.invalidateQueries({ queryKey: ['candidate-pipeline', candidateId] });
       qc.invalidateQueries({ queryKey: ['joining-confirmation', candidateId] });
       toast.success('Joining Confirmation details saved successfully!');
@@ -168,6 +238,8 @@ export default function JoiningConfirmationForm({ candidateId }: { candidateId: 
       toast.error(error?.response?.data?.message || error?.response?.data?.error || 'Joining Confirmation details could not be saved.');
     }
   });
+
+  const candidateUniqueId = formatEmployeeId(candidate?.uniqueId || candidate?.candidateCode || records?.[0]?.candidateCode || records?.[0]?.uniqueId);
 
   return (
     <div className="mx-auto max-w-[1500px] pb-10">
@@ -182,75 +254,81 @@ export default function JoiningConfirmationForm({ candidateId }: { candidateId: 
             <Mail className="h-4 w-4 text-[#0d3c68]" />
             {records?.[0] ? 'EDIT JOINING CONFIRMATION' : 'NEW JOINING CONFIRMATION ENTRY'}
           </h2>
-          <StepGate unlocked={gate.unlocked} blockedBy={gate.blockedBy || []} />
+          {candidateUniqueId && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-200 rounded text-[#0d3c68]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Candidate ID:</span>
+              <span className="text-[12px] font-mono font-extrabold text-[#0d3c68]">{candidateUniqueId}</span>
+            </div>
+          )}
         </div>
 
-        {!gate.unlocked ? (
-          <div className="p-6">
-            <StepGate unlocked={false} blockedBy={gate.blockedBy || []} />
-          </div>
-        ) : (
-          <div className="p-2">
-            <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-2">
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                <Field title="Candidate Name" required className="md:col-span-1">
-                  <input className={inputClass} value={form.candidateName} onChange={(e) => set({ candidateName: e.target.value })} required />
-                </Field>
-                <Field title="Position/Designation" required>
-                  <input className={inputClass} value={form.designation} onChange={(e) => set({ designation: e.target.value })} required />
-                </Field>
-                <Field title="Department">
-                  <input className={inputClass} value={form.department} onChange={(e) => set({ department: e.target.value })} />
-                </Field>
-                <Field title="Joining Date" required>
-                  <input type="date" className={inputClass} value={form.joiningDate} onChange={(e) => {
-                    set({ joiningDate: e.target.value });
-                    if (!form.failureToReportDate || form.failureToReportDate === form.joiningDate) {
-                        set({ failureToReportDate: e.target.value });
-                    }
-                  }} required />
-                </Field>
-                <Field title="Reporting Time">
-                  <input type="time" className={inputClass} value={form.reportingTime} onChange={(e) => set({ reportingTime: e.target.value })} />
-                </Field>
-              </div>
+        <div className="p-2">
+          <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+              <Field title="Candidate Name" required className="md:col-span-1">
+                <input className={inputClass} value={form.candidateName} onChange={(e) => set({ candidateName: e.target.value })} required />
+              </Field>
+              <Field title="Position/Designation" required>
+                <input className={inputClass} value={form.designation} onChange={(e) => set({ designation: e.target.value })} required />
+              </Field>
+              <Field title="Department">
+                <input className={inputClass} value={form.department} onChange={(e) => set({ department: e.target.value })} />
+              </Field>
+              <Field title="Joining Date" required>
+                <input type="date" className={inputClass} value={form.joiningDate} onChange={(e) => {
+                  set({ joiningDate: e.target.value });
+                  if (!form.failureToReportDate || form.failureToReportDate === form.joiningDate) {
+                    set({ failureToReportDate: e.target.value });
+                  }
+                }} required />
+              </Field>
+              <Field title="Reporting Time">
+                <input type="time" className={inputClass} value={form.reportingTime} onChange={(e) => set({ reportingTime: e.target.value })} />
+              </Field>
+            </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                <Field title="Reporting Location" className="md:col-span-2">
-                  <input className={inputClass} value={form.reportingLocation} onChange={(e) => set({ reportingLocation: e.target.value })} />
-                </Field>
-                <Field title="Reporting To">
-                  <input className={inputClass} value={form.reportingTo} onChange={(e) => set({ reportingTo: e.target.value })} />
-                </Field>
-                <Field title="Failure to Report Date">
-                  <input type="date" className={inputClass} value={form.failureToReportDate} onChange={(e) => set({ failureToReportDate: e.target.value })} />
-                </Field>
-                <Field title="Subject">
-                  <input className={inputClass} value={form.subject} onChange={(e) => set({ subject: e.target.value })} />
-                </Field>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+              <Field title="Reporting Location" className="md:col-span-2">
+                <input className={inputClass} value={form.reportingLocation} onChange={(e) => set({ reportingLocation: e.target.value })} />
+              </Field>
+              <Field title="Reporting To">
+                <input className={inputClass} value={form.reportingTo} onChange={(e) => set({ reportingTo: e.target.value })} />
+              </Field>
+              <Field title="Failure to Report Date">
+                <input type="date" className={inputClass} value={form.failureToReportDate} onChange={(e) => set({ failureToReportDate: e.target.value })} />
+              </Field>
+              <Field title="Subject">
+                <input className={inputClass} value={form.subject} onChange={(e) => set({ subject: e.target.value })} />
+              </Field>
+            </div>
 
-              <div className="flex justify-end items-center gap-3 pt-4 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setForm(empty())}
-                  className="group flex items-center gap-2 px-5 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 transition-all rounded-[2px]"
-                >
-                  <RotateCcw className="h-3.5 w-3.5 transition-transform group-hover:-rotate-45" />
-                  CANCEL
-                </button>
-                <button
-                  type="submit"
-                  disabled={save.isPending}
-                  className="flex items-center gap-2 px-8 py-2 text-xs font-bold bg-[#0d3c68] text-white hover:bg-[#0a2e50] shadow-md hover:shadow-lg transition-all rounded-[2px] tracking-wide"
-                >
-                  <Save className="h-4 w-4" />
-                  {save.isPending ? 'SAVING...' : (records?.[0] ? 'UPDATE ENTRY' : 'SAVE ENTRY')}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+            <div className="flex justify-end items-center gap-3 pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setForm(empty())}
+                className="group flex items-center gap-2 px-5 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 transition-all rounded-[2px]"
+              >
+                <RotateCcw className="h-3.5 w-3.5 transition-transform group-hover:-rotate-45" />
+                CANCEL
+              </button>
+              <button
+                type="submit"
+                disabled={save.isPending}
+                className="flex items-center gap-2 px-8 py-2 text-xs font-bold bg-[#0d3c68] text-white hover:bg-[#0a2e50] shadow-md hover:shadow-lg transition-all rounded-[2px] tracking-wide"
+              >
+                <Save className="h-4 w-4" />
+                {save.isPending ? 'SAVING...' : (records?.[0] ? 'UPDATE ENTRY' : 'SAVE ENTRY')}
+              </button>
+              <button
+                type="button"
+                onClick={() => window.open(`/dashboard/hiring/${candidateId}/print/joining-confirmation`, '_blank')}
+                className="flex items-center gap-2 px-8 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-all rounded-[2px] tracking-wide"
+              >
+                PRINT
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

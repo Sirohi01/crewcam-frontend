@@ -316,7 +316,7 @@ export default function AssetsPage() {
               <Select label="Type" value={formData.type} options={TYPE_OPTIONS} onChange={(v) => setFormData({ ...formData, type: v })} />
               <Select label="Status" value={formData.status} options={STATUS_OPTIONS} onChange={(v) => setFormData({ ...formData, status: v })} />
             </div>
-            <Field label="Serial Number / IMEI" value={formData.serialNumber} onChange={(v) => setFormData({ ...formData, serialNumber: v })} required />
+            <Field label="Serial Number / IMEI" value={formData.serialNumber} onChange={(v) => setFormData({ ...formData, serialNumber: v })} required placeholder="e.g., SN123456789" />
             <Field label="Purchase Date" type="date" value={formData.purchaseDate} onChange={(v) => setFormData({ ...formData, purchaseDate: v })} />
           </div>
         </Modal>

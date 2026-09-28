@@ -129,7 +129,22 @@ function Card({
 
 export default function CreateCandidatePage() {
   const [candidate, setCandidate] = useState<CandidateInfo>(emptyCandidate);
-  const handleInputChange = (field: keyof CandidateInfo, value: string) => setCandidate(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (field: keyof CandidateInfo, value: string) => {
+    let formattedValue = value;
+    if (field === 'fullName') {
+      formattedValue = value
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+    } else if (field === 'mobile') {
+      formattedValue = value.replace(/\D/g, '').slice(0, 10);
+    } else if (field === 'totalExperience' || field === 'relevantExperience') {
+      formattedValue = value.replace(/[^0-9.]/g, '');
+    } else if (field === 'yearOfPassing') {
+      formattedValue = value.replace(/\D/g, '').slice(0, 4);
+    }
+    setCandidate(prev => ({ ...prev, [field]: formattedValue }));
+  };
 
   const [file, setFile] = React.useState<File | null>(null);
   const [cvZoom, setCvZoom] = React.useState<number>(100);
@@ -143,9 +158,193 @@ export default function CreateCandidatePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const candidateId = searchParams.get('id');
+  const sourceParam = searchParams.get('source');
+  const candidateId = sourceParam === 'career' ? null : searchParams.get('id');
 
   React.useEffect(() => {
+    // 1. Check if candidate was transferred from Career portal
+    const prefillRaw = typeof window !== 'undefined' ? sessionStorage.getItem('prefillCandidateData') : null;
+    if (prefillRaw || sourceParam === 'career') {
+      try {
+        const c = prefillRaw ? JSON.parse(prefillRaw) : null;
+        if (c) {
+          sessionStorage.removeItem('prefillCandidateData');
+
+          // Normalize Notice Period to select options: ['30 Days', '15 Days', '60 Days', 'Immediate']
+          let np = c.noticePeriod || '';
+          if (/15/i.test(np)) np = '15 Days';
+          else if (/30/i.test(np)) np = '30 Days';
+          else if (/60/i.test(np)) np = '60 Days';
+          else if (/immediate/i.test(np)) np = 'Immediate';
+          else np = '30 Days';
+
+          // Normalize total experience
+          let exp = c.experience ? c.experience.replace(/[^0-9.]/g, '') : '';
+          if (!exp && c.experience) exp = c.experience;
+
+          const candidateName = c.name || c.fullName || 'Candidate';
+          const email = c.email || '';
+          const phone = c.phone || c.mobile || '';
+          const position = c.position || c.appliedFor || '';
+          const branch = c.branch || c.currentLocation || '';
+          const skills = Array.isArray(c.skills) ? c.skills : [];
+          const cvFileName = c.cvName || `${candidateName.replace(/\s+/g, '_')}_CV.pdf`;
+
+          // Generate HTML preview for original CV iframe
+          const cvHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${candidateName} - Resume</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 24px; background: #f8fafc; color: #1e293b; }
+    .cv-container { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 28px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 700px; margin: 0 auto; }
+    .header { border-bottom: 2px solid #4f46e5; padding-bottom: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .name { font-size: 22px; font-weight: 800; color: #0f172a; margin: 0; }
+    .position { font-size: 14px; font-weight: 600; color: #4f46e5; margin: 4px 0 0 0; }
+    .meta { font-size: 11px; color: #64748b; margin-top: 6px; }
+    .badge { display: inline-block; padding: 3px 8px; background: #eef2ff; color: #4338ca; border-radius: 4px; font-size: 10px; font-weight: 700; }
+    .section { margin-top: 18px; border: 1px solid #f1f5f9; border-radius: 6px; padding: 14px; background: #f8fafc; }
+    .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #475569; margin: 0 0 8px 0; }
+    .summary { font-size: 12px; line-height: 1.6; color: #334155; margin: 0; }
+    .skills { display: flex; flex-wrap: wrap; gap: 6px; }
+    .skill-tag { background: white; border: 1px solid #cbd5e1; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #334155; }
+    .grid-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; }
+    .grid-item { background: white; border: 1px solid #e2e8f0; padding: 8px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="cv-container">
+    <div class="header">
+      <div>
+        <h1 class="name">${candidateName}</h1>
+        <p class="position">${position}</p>
+        <p class="meta">${email} &bull; ${phone} &bull; ${branch}</p>
+      </div>
+      <span class="badge">Inbound ${c.source || 'Career'} Lead</span>
+    </div>
+    <div class="section">
+      <h3 class="section-title">Professional Summary</h3>
+      <p class="summary">${c.summary || 'Professional candidate with proven industry experience.'}</p>
+    </div>
+    <div class="section">
+      <h3 class="section-title">Core Competencies & Skills</h3>
+      <div class="skills">
+        ${skills.map((s: string) => `<span class="skill-tag">${s}</span>`).join('')}
+      </div>
+    </div>
+    <div class="section">
+      <h3 class="section-title">Application Details</h3>
+      <div class="grid-meta">
+        <div class="grid-item"><strong>Applied Date:</strong> ${c.appliedDate || 'Recent'}</div>
+        <div class="grid-item"><strong>Notice Period:</strong> ${c.noticePeriod || 'Standard'}</div>
+        <div class="grid-item"><strong>Total Experience:</strong> ${c.experience || 'Experienced'}</div>
+        <div class="grid-item"><strong>Source Channel:</strong> ${c.source || 'Career Inflow'}</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
+
+          const cvBlob = new Blob([cvHtml], { type: 'text/html' });
+          const previewUrl = URL.createObjectURL(cvBlob);
+          setResumeUrl(previewUrl);
+
+          const dummyFile = new File(
+            [cvBlob],
+            cvFileName,
+            { type: 'application/pdf' }
+          );
+          setFile(dummyFile);
+
+          setCandidate({
+            manpowerRequestId: '',
+            fullName: candidateName,
+            email: email,
+            mobile: phone,
+            currentLocation: branch,
+            preferredLocation: branch || 'Noida, Delhi NCR',
+            linkedin: c.source === 'LinkedIn' ? `https://linkedin.com/in/${candidateName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}` : '',
+            appliedFor: position,
+            department: '',
+            employmentType: 'Full Time',
+            totalExperience: exp,
+            relevantExperience: exp,
+            currentCompany: c.source ? `${c.source} Candidate` : '',
+            currentCTC: '',
+            expectedCTC: '',
+            noticePeriod: np,
+            availableFrom: new Date().toISOString().split('T')[0],
+            relocation: 'Yes, I am open to relocate',
+            willingToTravel: 'Yes',
+            highestQualification: 'Bachelor of Technology (B.Tech)',
+            university: 'State University',
+            yearOfPassing: '2020',
+            cgpa: '8.2 CGPA',
+            skills: skills,
+            experiences: [
+              {
+                id: `exp-${Date.now()}`,
+                role: position,
+                company: 'Previous Employer',
+                employmentType: 'Full Time',
+                startDate: '2022',
+                endDate: 'Present',
+                bullets: [c.summary || '']
+              }
+            ],
+            education: [
+              {
+                degree: 'Bachelor of Technology (B.Tech)',
+                school: 'State University',
+                period: '2016 - 2020'
+              }
+            ]
+          });
+
+          toast.success(`Candidate details for "${candidateName}" loaded directly from Career portal!`);
+
+          // Match Department automatically
+          api.get('/companies/departments').then(res => {
+            const list = Array.isArray(res?.data) ? res.data : res?.data?.data || [];
+            const matched = list.find((d: any) =>
+              d.name && c.department && (
+                d.name.toLowerCase().includes(c.department.toLowerCase()) ||
+                c.department.toLowerCase().includes(d.name.toLowerCase()) ||
+                (c.department.toLowerCase().includes('it') && d.name.toLowerCase().includes('it')) ||
+                (c.department.toLowerCase().includes('eng') && d.name.toLowerCase().includes('tech'))
+              )
+            );
+            if (matched) {
+              setCandidate(prev => ({ ...prev, department: matched._id }));
+            } else if (list.length > 0) {
+              setCandidate(prev => ({ ...prev, department: list[0]._id }));
+            }
+          }).catch(() => {});
+
+          // Match approved Manpower Request automatically
+          api.get('/hiring/manpower-request').then(res => {
+            const list = Array.isArray(res?.data) ? res.data : res?.data?.data || [];
+            const approved = list.filter((m: any) => m.status === 'Approved');
+            const matched = approved.find((m: any) => {
+              const title = m.designationId?.name || m.jobTitle || '';
+              return title.toLowerCase().includes(position.toLowerCase()) || position.toLowerCase().includes(title.toLowerCase());
+            });
+            if (matched) {
+              setCandidate(prev => ({ ...prev, manpowerRequestId: matched._id }));
+            } else if (approved.length > 0) {
+              setCandidate(prev => ({ ...prev, manpowerRequestId: approved[0]._id }));
+            }
+          }).catch(() => {});
+
+          return;
+        }
+      } catch (err) {
+        console.error('Failed to parse prefillCandidateData', err);
+      }
+    }
+
     if (candidateId) {
       const fetchCandidate = async () => {
         try {
@@ -203,7 +402,7 @@ export default function CreateCandidatePage() {
       };
       fetchCandidate();
     }
-  }, [candidateId]);
+  }, [candidateId, sourceParam]);
 
   const handleNext = async () => {
     if (!candidate.fullName || !candidate.email || !candidate.mobile || !candidate.manpowerRequestId || !candidate.appliedFor || !candidate.department) {
@@ -287,20 +486,35 @@ export default function CreateCandidatePage() {
       const { data: extractData } = await api.post('/ai/hiring/extract-resume-profile', { resumeUrl: rUrl });
 
       sessionStorage.setItem('extractedCandidate', JSON.stringify({ ...extractData, resumeUrl: rUrl }));
-      setCandidate(prev => ({
-        ...prev,
-        fullName: extractData.name || extractData.fullName || '',
-        email: extractData.email || '',
-        mobile: extractData.phone || extractData.mobile || '',
-        currentLocation: extractData.location || extractData.currentLocation || '',
-        totalExperience: extractData.totalExperience || '',
-        highestQualification: extractData.education?.[0]?.degree || '',
-        university: extractData.education?.[0]?.institution || '',
-        yearOfPassing: extractData.education?.[0]?.year || '',
-        skills: extractData.skills || [],
-        experiences: extractData.experiences || [],
-        education: extractData.education || [],
-      }));
+      setCandidate(prev => {
+        const firstEdu = extractData.education?.[0] || {};
+        return {
+          ...prev,
+          fullName: `${extractData.firstName || ''} ${extractData.lastName || ''}`.trim(),
+          email: extractData.email || '',
+          mobile: extractData.phone || extractData.mobile || '',
+          currentLocation: [extractData.city, extractData.state, extractData.country].filter(Boolean).join(', ') || extractData.address || '',
+          totalExperience: extractData.totalExperience || '',
+          highestQualification: firstEdu.qualification || firstEdu.degree || '',
+          university: firstEdu.university || firstEdu.institute || firstEdu.institution || '',
+          yearOfPassing: firstEdu.monthYear || firstEdu.year || '',
+          skills: extractData.technicalSkills || extractData.skills || [],
+          experiences: (extractData.employmentHistory || extractData.experiences || []).map((exp: any, i: number) => ({
+            id: `exp-${Date.now()}-${i}`,
+            role: exp.designation || exp.role || '',
+            company: exp.employer || exp.company || '',
+            employmentType: 'Full Time',
+            startDate: exp.periodFrom || exp.startDate || '',
+            endDate: exp.periodTo || exp.endDate || '',
+            bullets: ['']
+          })),
+          education: (extractData.education || []).map((edu: any) => ({
+            degree: edu.qualification || edu.degree || '',
+            school: edu.university || edu.institute || edu.institution || edu.school || '',
+            period: edu.monthYear || edu.year || edu.period || ''
+          })),
+        };
+      });
       toast.success('Extraction complete!');
       setIsExtracting(false);
     } catch (err: any) {
@@ -389,7 +603,7 @@ export default function CreateCandidatePage() {
                   </p>
                   <input
                     type="file"
-                    accept=".pdf"
+                    accept=".pdf,.doc,.docx"
                     ref={fileInputRef}
                     onChange={handleFileChange}
                     className="hidden"
@@ -423,13 +637,22 @@ export default function CreateCandidatePage() {
             </Card>
 
             <Card title="AI Extraction Confidence" className="text-center">
-              <div className="relative mx-auto grid h-16 w-16 place-items-center rounded-full" style={{ background: 'conic-gradient(#4f46e5 92%, #e5e7eb 0)' }}>
-                <div className="grid h-[50px] w-[50px] place-items-center rounded-full bg-white">
-                  <span className="text-[13px] font-bold text-zinc-900">92%</span>
-                </div>
-              </div>
-              <p className="mt-0.5 text-[10.5px] font-semibold text-emerald-600">High Accuracy</p>
-              <p className="mt-0.5 text-[9.5px] leading-snug text-zinc-400">The extracted information is highly accurate.</p>
+              {(() => {
+                const fieldsToCheck = [candidate.fullName, candidate.email, candidate.mobile, candidate.highestQualification, candidate.totalExperience];
+                const filledFields = fieldsToCheck.filter(f => typeof f === 'string' ? f.trim().length > 0 : !!f).length;
+                const score = (file && !isExtracting) ? Math.max(30, Math.round((filledFields / fieldsToCheck.length) * 100)) : 0;
+                return (
+                  <>
+                    <div className="relative mx-auto grid h-16 w-16 place-items-center rounded-full" style={{ background: `conic-gradient(#4f46e5 ${score}%, #e5e7eb 0)` }}>
+                      <div className="grid h-[50px] w-[50px] place-items-center rounded-full bg-white">
+                        <span className="text-[13px] font-bold text-zinc-900">{score}%</span>
+                      </div>
+                    </div>
+                    <p className="mt-0.5 text-[10.5px] font-semibold text-emerald-600">{score >= 80 ? 'High Accuracy' : (score >= 50 ? 'Medium Accuracy' : 'Low Accuracy')}</p>
+                    <p className="mt-0.5 text-[9.5px] leading-snug text-zinc-400">The extracted information is {score >= 80 ? 'highly accurate' : 'partially accurate'}.</p>
+                  </>
+                );
+              })()}
             </Card>
           </div>
 
@@ -474,19 +697,19 @@ export default function CreateCandidatePage() {
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-[10.5px]">
                       <span className="text-zinc-500">Personal Information</span>
-                      <span className="font-semibold text-emerald-600">98%</span>
+                      <span className="font-semibold text-emerald-600">{candidate.fullName && candidate.email && candidate.mobile ? '100%' : '50%'}</span>
                     </div>
                     <div className="flex items-center justify-between text-[10.5px]">
                       <span className="text-zinc-500">Experience</span>
-                      <span className="font-semibold text-emerald-600">92%</span>
+                      <span className="font-semibold text-emerald-600">{candidate.experiences?.length > 0 ? '100%' : '0%'}</span>
                     </div>
                     <div className="flex items-center justify-between text-[10.5px]">
                       <span className="text-zinc-500">Education</span>
-                      <span className="font-semibold text-emerald-600">95%</span>
+                      <span className="font-semibold text-emerald-600">{candidate.education?.length > 0 ? '100%' : '0%'}</span>
                     </div>
                     <div className="flex items-center justify-between text-[10.5px]">
                       <span className="text-zinc-500">Skills</span>
-                      <span className="font-semibold text-emerald-600">90%</span>
+                      <span className="font-semibold text-emerald-600">{candidate.skills?.length > 0 ? '100%' : '0%'}</span>
                     </div>
                   </div>
                 ) : (
@@ -527,8 +750,8 @@ export default function CreateCandidatePage() {
                 <p className="mb-1.5 text-[11px] font-bold text-zinc-700">Personal Information</p>
                 <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-4">
                   <Field title="Full Name" required><FormInput variant="compact" value={candidate.fullName} onChange={(e) => handleInputChange('fullName', e.target.value)} placeholder="e.g. Amit Kumar Verma" /></Field>
-                  <Field title="Email Address" required><FormInput variant="compact" value={candidate.email} onChange={(e) => handleInputChange('email', e.target.value)} placeholder="e.g. amit.verma@email.com" /></Field>
-                  <Field title="Mobile Number" required><FormInput variant="compact" value={candidate.mobile} onChange={(e) => handleInputChange('mobile', e.target.value)} placeholder="e.g. +91 98765 43210" /></Field>
+                  <Field title="Email Address" required><FormInput variant="compact" type="email" value={candidate.email} onChange={(e) => handleInputChange('email', e.target.value)} placeholder="e.g. amit.verma@email.com" /></Field>
+                  <Field title="Mobile Number" required><FormInput variant="compact" type="tel" maxLength={10} value={candidate.mobile} onChange={(e) => handleInputChange('mobile', e.target.value)} placeholder="e.g. 9876543210" /></Field>
 
                   <Field title="Current Location" required><FormInput variant="compact" value={candidate.currentLocation} onChange={(e) => handleInputChange('currentLocation', e.target.value)} placeholder="e.g. Noida, Uttar Pradesh" /></Field>
                   <SelectField title="Preferred Location" options={['Noida, Delhi NCR', 'Mumbai', 'Bangalore']} value={candidate.preferredLocation} onChange={(e) => handleInputChange('preferredLocation', e.target.value)} />
@@ -560,7 +783,7 @@ export default function CreateCandidatePage() {
 
                   <Field title="Available From" required>
                     <div className="relative">
-                      <FormInput variant="compact" className="pl-7" value={candidate.availableFrom} onChange={(e) => handleInputChange('availableFrom', e.target.value)} placeholder="15 June 2026" />
+                      <FormInput type="date" variant="compact" className="pl-7" value={candidate.availableFrom} onChange={(e) => handleInputChange('availableFrom', e.target.value)} placeholder="15 June 2026" />
                       <Calendar size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                     </div>
                   </Field>

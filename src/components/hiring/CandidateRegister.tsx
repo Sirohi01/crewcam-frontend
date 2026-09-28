@@ -7,10 +7,11 @@ import { useRouter } from 'next/navigation';
 import {
   Download, Plus, Search, ChevronDown, Check, ChevronLeft, ChevronRight,
   Users, CheckCircle, XCircle, Video, Eye, Link as LinkIcon,
-  Trash
+  Trash, Zap, Edit
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import toast from 'react-hot-toast';
 import api from '@/lib/axios';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 
@@ -21,15 +22,30 @@ function unwrapList(payload: any) {
   return { rows: payload?.data || [], meta: payload?.meta || { page: 1, totalPages: 1, total: 0 } };
 }
 
-export default function CandidateRegister() {
+interface CandidateRegisterProps {
+  defaultStatusFilter?: string;
+  customViewPath?: (id: string) => string;
+  customEditPath?: (id: string) => string;
+  customTitle?: string;
+  customSubtitle?: string;
+}
+
+export default function CandidateRegister({
+  defaultStatusFilter = 'All Status',
+  customViewPath,
+  customEditPath,
+  customTitle = 'Add Candidates',
+  customSubtitle = 'View, add, edit and manage all candidates in the system.'
+}: CandidateRegisterProps = {}) {
   const router = useRouter();
   const filterRef = useRef<HTMLDivElement>(null);
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All Status');
+  const [statusFilter, setStatusFilter] = useState(defaultStatusFilter);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE);
+  const [isFastTracking, setIsFastTracking] = useState<string | null>(null);
 
   const [isStatusOpen, setIsStatusOpen] = useState(false);
 
@@ -37,6 +53,12 @@ export default function CandidateRegister() {
     const timer = setTimeout(() => setDebouncedQuery(query), 300);
     return () => clearTimeout(timer);
   }, [query]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && sessionStorage.getItem('prefillCandidateData')) {
+      router.push('/dashboard/hiring/candidates/new/create?source=career');
+    }
+  }, [router]);
 
   useEffect(() => {
     setPage(1);
@@ -49,7 +71,7 @@ export default function CandidateRegister() {
     ...(debouncedQuery.trim() ? { search: debouncedQuery.trim() } : {}),
   };
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['candidates', params],
     queryFn: async () => unwrapList((await api.get('/hiring/candidates', { params })).data),
   });
@@ -75,7 +97,31 @@ export default function CandidateRegister() {
     setStatusFilter('All Status');
   };
 
-  const statusOptions = ['All Status', 'Applied', 'Screening', 'Interviewing', 'Offered', 'Hired', 'Rejected', 'Hold'];
+  const handleDelete = async (candidateId: string) => {
+    if (!confirm('Are you sure you want to delete this candidate?')) return;
+    try {
+      await api.delete(`/hiring/candidates/${candidateId}`);
+      toast.success('Candidate deleted successfully');
+      refetch();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to delete candidate');
+    }
+  };
+
+  const handleFastTrack = async (candidateId: string) => {
+    if (!confirm('Are you sure you want to fast-track this candidate to CTC Breakup? This will bypass all interviews and evaluation.')) return;
+    try {
+      setIsFastTracking(candidateId);
+      await api.post(`/hiring/candidates/${candidateId}/fast-track-ctc`);
+      toast.success('Candidate fast-tracked to CTC Breakup!');
+      router.push(`/dashboard/hiring/${candidateId}/steps/ctc-breakup`);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to fast-track candidate');
+      setIsFastTracking(null);
+    }
+  };
+
+  const statusOptions = ['All Status', 'Applied', 'AI_SCREENING', 'HOD_APPROVAL', 'SHORTLISTED', 'INTERVIEW_SCHEDULED', 'Screening', 'Interviewing', 'Offered', 'Hired', 'Rejected', 'Hold'];
 
   const topCards = [
     { title: 'Total Candidates', value: totalEntries.toString(), subtitle: 'All Time', icon: Users, bg: 'bg-blue-50', text: 'text-blue-600' },
@@ -96,8 +142,8 @@ export default function CandidateRegister() {
               { label: 'Candidates Register' },
             ]}
           />
-          <h1 className="text-lg font-bold text-zinc-900 mb-0.5">Add Candidates</h1>
-          <p className="text-[11px] text-zinc-500">View, add, edit and manage all candidates in the system.</p>
+          <h1 className="text-lg font-bold text-zinc-900 mb-0.5">{customTitle}</h1>
+          <p className="text-[11px] text-zinc-500">{customSubtitle}</p>
         </div>
         <div className="flex items-center gap-2">
           <button className="flex items-center gap-1.5 h-8 px-2.5 bg-white border border-zinc-200 rounded-md text-[11px] font-semibold hover:bg-zinc-50 transition-colors shadow-sm text-zinc-700">
@@ -299,51 +345,6 @@ export default function CandidateRegister() {
                                 >
                                   <Trash className="w-3.5 h-3.5" />
                                 </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="overflow-x-auto border border-slate-200 rounded-[2px]">
-                    <table className="w-full min-w-[950px] text-left text-[11px] whitespace-nowrap">
-                      <thead className="bg-[#111] text-white">
-                        <tr>
-                          <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Candidate</th>
-                          <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Contact</th>
-                          <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Role</th>
-                          <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Source</th>
-                          <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333] text-center">Resume</th>
-                          <th className="px-3 py-1.5 font-bold uppercase tracking-wider border-r border-[#333]">Status</th>
-                          <th className="px-3 py-1.5 font-bold uppercase tracking-wider min-w-[100px] text-center">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {isLoading && <tr><td colSpan={7} className="px-4 py-7 text-center text-slate-500 text-sm">Loading candidates...</td></tr>}
-                        {!isLoading && !rows.length && <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500 text-sm">No candidates match the selected filters.</td></tr>}
-                        {!isLoading && rows.map((candidate: any) => (
-                          <tr key={candidate._id} className="hover:bg-slate-50 transition-colors">
-                            <td className="px-3 py-2 border-r border-slate-100">
-                              <Link href={`/dashboard/hiring/candidates/${candidate._id}`} className="font-medium text-indigo-600 hover:text-indigo-800 hover:underline">
-                                {candidate.firstName} {candidate.lastName}
-                              </Link>
-                            </td>
-                            <td className="px-3 py-2 border-r border-slate-100 text-slate-700">
-                              <span className="block">{candidate.email}</span>
-                              <span className="block text-slate-500">{candidate.phone}</span>
-                            </td>
-                            <td className="px-3 py-2 border-r border-slate-100 text-slate-700">{candidate.jobRole}</td>
-                            <td className="px-3 py-2 border-r border-slate-100 text-slate-700">{candidate.source || '-'}</td>
-                            <td className="px-3 py-2 border-r border-slate-100 text-center text-slate-700">{candidate.resumeUrl ? 'Attached' : '-'}</td>
-                            <td className="px-3 py-2 border-r border-slate-100">
-                              <span className="rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-700">{candidate.status}</span>
-                            </td>
-                            <td className="px-3 py-2 text-center">
-                              <div className="flex items-center justify-center">
-                                <Button size="sm" variant="outline" className="h-7 px-3 text-[10px] font-bold uppercase" asChild>
-                                  <Link href={`/dashboard/hiring/${candidate._id}`}>Open Workflow</Link>
-                                </Button>
                               </div>
                             </td>
                           </tr>

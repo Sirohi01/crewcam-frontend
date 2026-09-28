@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 import PrintHiringHeader from '@/components/common/PrintHiringHeader';
+import { formatEmployeeId } from '@/lib/utils';
 
 const EVALUATION_CRITERIA = [
     { id: 1, title: "Job Knowledge & Skills", description: "Understanding of role, processes, and required skills" },
@@ -134,7 +135,7 @@ export default function ProbationReviewPrint({ recordId }: { recordId: string })
                                 <SectionTitle>1. Employee Information</SectionTitle>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '9px 40px' }}>
                                     <InlineField label="Employee Name" labelWidth={190} value={toTitleCase(candidateName)} />
-                                    <InlineField label="Unique ID" labelWidth={140} value={data.uniqueId || data.employeeId} />
+                                    <InlineField label="Unique ID" labelWidth={140} value={formatEmployeeId(data.uniqueId || data.employeeCode || data.employeeId)} />
                                     <InlineField label="Department" labelWidth={190} value={toTitleCase(departmentName)} />
                                     <InlineField label="Designation" labelWidth={140} value={toTitleCase(data.designation || data.jobRole)} />
                                     <InlineField label="Joining Date" labelWidth={190} value={formatDate(data.joiningDate)} />

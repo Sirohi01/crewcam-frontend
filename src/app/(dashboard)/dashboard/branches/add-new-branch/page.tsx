@@ -215,6 +215,10 @@ export default function AddNewBranch() {
       toast.error("Branch Name and Branch Code are required.");
       return;
     }
+    if (form.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
     setSaving(true);
     try {
       await api.post("/companies/branches", {

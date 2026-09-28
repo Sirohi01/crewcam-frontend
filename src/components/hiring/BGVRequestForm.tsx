@@ -8,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PrintButton } from '@/components/common/PrintButton';
 import { PrintHeader } from '@/components/common/PrintHeader';
 import { DataTable } from '@/components/common/DataTable';
-import { cn } from '@/lib/utils';
+import { cn, formatEmployeeId } from '@/lib/utils';
 import api from '@/lib/axios';
+import { useSearchParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useMasterDataStore } from '@/store/masterDataStore';
@@ -25,7 +26,7 @@ const INITIAL_FORM_DATA = {
     mobileNo: '',
     emailId: '',
     empCode: '',
-    status: 'active',
+    status: 'Initiated',
 
     // --- REQUEST FORM DATA ---
     fullName: '',
@@ -109,9 +110,11 @@ const INITIAL_FORM_DATA = {
 
 export default function BGVRequestForm({ candidateId }: { candidateId: string }) {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const editIdParam = searchParams.get('edit');
     const location = { state: null as any };
     const queryClient = useQueryClient();
-    
+
     const { departments, designations, employees, isLoading: masterDataLoading, fetchMasterData } = useMasterDataStore();
     const departmentOptions = departments.map(d => ({ value: d.name || '', label: d.name || '' }));
     const designationOptions = designations.map(d => ({ value: d.title || d.name || '', label: d.title || d.name || '' }));
@@ -126,12 +129,26 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
         }
     };
     const currentUsername = getCurrentUsername();
-    const [showForm, setShowForm] = useState(false);
+
     const [activeTab, setActiveTab] = useState<'request' | 'report'>('request');
+    const [showForm, setShowForm] = useState(false);
+    const [editId, setEditId] = useState<string | null>(null);
+    const [hasInitialLoaded, setHasInitialLoaded] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [currentId, setCurrentId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [records, setRecords] = useState<any[]>([]);
+
+    // Fetch candidate data to prefill form if needed
+    const { data: candidate, isLoading: candidateLoading } = useQuery<any>({
+        queryKey: ['candidate', candidateId],
+        queryFn: async () => {
+            if (!candidateId) return null;
+            const res = await api.get(`/hiring/candidates/${candidateId}`);
+            return res.data?.data || res.data;
+        },
+        enabled: !!candidateId
+    });
 
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -142,9 +159,9 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
     const [formData, setFormData] = useState(INITIAL_FORM_DATA);
 
     const documentChecklistApi = {
-        getAll: () => api.get('/hiring/document-checklists').then(res => res.data),
+        getAll: (cid?: string) => api.get('/hiring/doc-checklist', { params: { candidateId: cid } }).then(res => res.data),
     };
-    
+
     const bgvApi = {
         delete: (id: string) => api.delete(`/hiring/bgv/${id}`).then(res => res.data),
         update: (id: string, data: any) => api.patch(`/hiring/bgv/${id}`, data).then(res => res.data),
@@ -164,59 +181,66 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
     useEffect(() => {
         fetchRecords();
         fetchMasterData();
+    }, []);
 
-        if (location.state?.preFill && !showForm) {
-            const preFill = location.state.preFill;
-            console.log('Step8 received preFill data:', preFill); // Debug log
+    useEffect(() => {
+        if (candidateLoading || loading) return;
+        if (hasInitialLoaded) return;
+
+        // If we are given an edit param, it's handled by another useEffect.
+        // But if no edit param, auto-open form for candidate:
+        if (records && records.length > 0 && !editIdParam) {
+            handleEdit(records[0], candidate);
+            setHasInitialLoaded(true);
+        } else if (candidate && records && records.length === 0 && !editIdParam) {
+            const candCode = formatEmployeeId(candidate.employeeCode || candidate.uniqueId || candidate.candidateCode || '');
+            const preFill = {
+                fullName: (candidate.firstName || '') + ' ' + (candidate.lastName || ''),
+                candidateName: (candidate.firstName || '') + ' ' + (candidate.lastName || ''),
+                emailId: candidate.email || '',
+                phoneNo: candidate.phone || '',
+                mobileNo: candidate.phone || '',
+                position: candidate.jobRole || '',
+                positionFor: candidate.jobRole || '',
+                department: candidate.departmentId?.name || candidate.departmentId?.departmentName || '',
+                workLocation: candidate.location || '',
+                empCode: candCode,
+                reportEmpCode: candCode,
+            };
+
             setPreFillData(preFill);
-
             setFormData(prev => ({
                 ...prev,
-                type: 'request', // Default to request tab for pre-fill
+                type: 'request',
 
-                // Candidate Details (Section A)
-                candidateName: preFill.fullName || preFill.candidateName || prev.candidateName,
-                fullName: preFill.fullName || preFill.candidateName || prev.fullName,
-                joiningDate: preFill.joiningDate ? preFill.joiningDate.split('T')[0] : prev.joiningDate,
+                candidateName: preFill.candidateName || prev.candidateName,
+                fullName: preFill.fullName || prev.fullName,
                 department: preFill.department || prev.department,
-                position: preFill.positionFor || preFill.position || prev.position,
-                positionFor: preFill.positionFor || preFill.position || prev.positionFor,
-
-                // Contact Details
+                position: preFill.position || prev.position,
+                positionFor: preFill.positionFor || prev.positionFor,
                 emailId: preFill.emailId || prev.emailId,
-                mobileNo: preFill.phoneNo || preFill.mobileNo || prev.mobileNo,
+                mobileNo: preFill.mobileNo || prev.mobileNo,
+                workLocation: preFill.workLocation || prev.workLocation,
+                empCode: candCode || prev.empCode,
+                reportEmpCode: candCode || prev.reportEmpCode,
 
-                // Location & Reporting
-                workLocation: preFill.workLocation || preFill.location || prev.workLocation,
-                reportingTo: preFill.reportingTo || prev.reportingTo,
+                requestedBy: currentUsername || prev.requestedBy,
+                requestDate: new Date().toISOString().split('T')[0],
+                requestDesignation: 'HR Manager',
 
-                // Employee Code (from Step7)
-                empCode: preFill.empCode || preFill.employeeCode || prev.empCode,
-                reportEmpCode: preFill.empCode || preFill.employeeCode || prev.reportEmpCode,
-
-                // HR Confirmation Section (Section E)
-                requestedBy: preFill.requestedBy || currentUsername || prev.requestedBy,
-                requestDate: new Date().toISOString().split('T')[0], // Today's date
-                requestDesignation: preFill.requestDesignation || 'HR Manager',
-
-                // Report Tab Fields (for consistency)
-                reportCandidateName: preFill.fullName || preFill.candidateName || prev.reportCandidateName,
-                reportPosition: preFill.positionFor || preFill.position || prev.reportPosition,
+                reportCandidateName: preFill.fullName || prev.reportCandidateName,
+                reportPosition: preFill.position || prev.reportPosition,
                 reportDepartment: preFill.department || prev.reportDepartment,
-                reportDOJ: preFill.joiningDate ? preFill.joiningDate.split('T')[0] : prev.reportDOJ,
                 reportEmailId: preFill.emailId || prev.reportEmailId,
-                reportMobileNo: preFill.phoneNo || preFill.mobileNo || prev.reportMobileNo,
+                reportMobileNo: preFill.mobileNo || prev.reportMobileNo,
             }));
+
             setIsPreFilled(true);
             setActiveTab('request');
             setShowForm(true);
+            setHasInitialLoaded(true);
         }
-
-        setFormData((prev) => ({
-            ...prev,
-            requestedBy: prev.requestedBy || currentUsername
-        }));
-    }, [location.state]);
+    }, [candidate, candidateLoading, loading, records, editIdParam, hasInitialLoaded]);
 
     // Auto-fill HR employee as Requested By
     useEffect(() => {
@@ -241,27 +265,88 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
         }
     }, [employees, formData.requestedBy]);
 
-    // 3.5. Fetch Employee Code and DOJ from specific APIs if missing
+    // 3.5. Fetch Employee Code, DOJ, and Documents from specific APIs if missing
     useEffect(() => {
         const fetchAdditionalInfo = async () => {
-            const identifierName = (location.state?.preFill?.fullName || location.state?.preFill?.candidateName || formData.candidateName || formData.fullName || '').toLowerCase();
-            const identifierCode = location.state?.preFill?.empCode || location.state?.preFill?.employeeCode || formData.empCode || '';
-
-            if (!identifierName && !identifierCode) return;
-            if (formData.empCode && formData.joiningDate) return; // Already have both
+            if (!candidateId) return;
 
             try {
-                // Fetch Employee Code from Document Checklist API if missing
-                if (!formData.empCode) {
-                    const checklistData = await documentChecklistApi.getAll();
-                    const checklistList = Array.isArray(checklistData) ? checklistData : (checklistData?.data || []);
-                    const match = checklistList.find((r: any) => 
-                        (identifierCode && r.empCode === identifierCode) ||
-                        (identifierName && r.candidateName?.toLowerCase() === identifierName)
-                    );
-                    if (match && match.dateOfJoining) {
-                        setFormData(prev => ({ ...prev, joiningDate: match.dateOfJoining.split('T')[0] }));
-                    }
+                // Fetch Employee Code and other details from Document Checklist API
+                const checklistData = await documentChecklistApi.getAll(candidateId);
+                const checklistList = Array.isArray(checklistData) ? checklistData : (checklistData?.data || []);
+                const match = checklistList.find((r: any) => {
+                    const rCandId = r.candidateId?._id || r.candidateId;
+                    return rCandId === candidateId;
+                });
+
+                if (match) {
+                    setFormData(prev => {
+                        const next = { ...prev };
+                        if (match.dateOfJoining) next.joiningDate = match.dateOfJoining.split('T')[0];
+                        if (match.employeeCode && !next.empCode) next.empCode = formatEmployeeId(match.employeeCode);
+                        if (match.workLocation && !next.workLocation) next.workLocation = match.workLocation;
+
+                        if (match.items && Array.isArray(match.items)) {
+                            const hasDoc = (name: string) => {
+                                const doc = match.items.find((i: any) => i.documentName?.toLowerCase().includes(name.toLowerCase()));
+                                return doc && (doc.status === 'Submitted' || doc.status === 'Verified');
+                            };
+                            next.docs = {
+                                ...prev.docs,
+                                aadhaarCard: hasDoc('aadhaar') || hasDoc('aadhar') || prev.docs.aadhaarCard,
+                                panCard: hasDoc('pan') || prev.docs.panCard,
+                                marksheet10: hasDoc('10th') || hasDoc('tenth') || prev.docs.marksheet10,
+                                marksheet12: hasDoc('12th') || hasDoc('twelfth') || prev.docs.marksheet12,
+                                graduationCert: hasDoc('grad') || prev.docs.graduationCert,
+                                pgCert: hasDoc('post grad') || hasDoc('pg') || prev.docs.pgCert,
+                                expCerts: hasDoc('experience') || prev.docs.expCerts,
+                                relievingLetter: hasDoc('relieving') || prev.docs.relievingLetter,
+                                prevApptLetters: hasDoc('appointment') || prev.docs.prevApptLetters,
+                                salarySlips3Months: hasDoc('salary slip') || prev.docs.salarySlips3Months,
+                                bankStatements3Months: hasDoc('bank') || prev.docs.bankStatements3Months,
+                                policeVerif: hasDoc('police') || prev.docs.policeVerif
+                            };
+                        }
+                        return next;
+                    });
+                }
+
+                // Fetch Selection Approval for reportingTo and workLocation
+                const approvalRes = await api.get('/hiring/selection-approval', { params: { candidateId } });
+                const approvalData = approvalRes.data?.data || approvalRes.data;
+                const approvals = Array.isArray(approvalData) ? approvalData : [approvalData];
+                const approvalMatch = approvals.find((a: any) => a && (a.candidateId === candidateId || a.candidateId?._id === candidateId));
+
+                if (approvalMatch) {
+                    setFormData(prev => {
+                        const next = { ...prev };
+                        if (approvalMatch.reportingTo && !next.reportingTo) next.reportingTo = approvalMatch.reportingTo;
+                        if (approvalMatch.workLocation && !next.workLocation) next.workLocation = approvalMatch.workLocation;
+                        if (approvalMatch.joiningDate && !next.joiningDate) {
+                            next.joiningDate = typeof approvalMatch.joiningDate === 'string'
+                                ? approvalMatch.joiningDate.split('T')[0]
+                                : new Date(approvalMatch.joiningDate).toISOString().split('T')[0];
+                        }
+                        return next;
+                    });
+                }
+
+                // Fetch Offer Letter for joiningDate fallback
+                const offerRes = await api.get('/hiring/offer-letter', { params: { candidateId } });
+                const offerData = offerRes.data?.data || offerRes.data;
+                const offers = Array.isArray(offerData) ? offerData : [offerData];
+                const offerMatch = offers.find((o: any) => o && (o.candidateId === candidateId || o.candidateId?._id === candidateId));
+
+                if (offerMatch) {
+                    setFormData(prev => {
+                        const next = { ...prev };
+                        if (offerMatch.joiningDate && !next.joiningDate) {
+                            next.joiningDate = typeof offerMatch.joiningDate === 'string'
+                                ? offerMatch.joiningDate.split('T')[0]
+                                : new Date(offerMatch.joiningDate).toISOString().split('T')[0];
+                        }
+                        return next;
+                    });
                 }
             } catch (error) {
                 console.error('Step8: Error fetching additional pre-fill data:', error);
@@ -271,7 +356,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
         if (showForm) {
             fetchAdditionalInfo();
         }
-    }, [showForm, formData.candidateName, formData.fullName, location.state]);
+    }, [showForm, candidateId]);
 
     const fetchRecords = async () => {
         try {
@@ -288,9 +373,9 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
 
     const getDesignationsByDepartment = (deptName: string) => {
         if (!deptName) return designations;
-        return designations.filter((d: any) => 
-            d.department === deptName || 
-            d.departmentName === deptName || 
+        return designations.filter((d: any) =>
+            d.department === deptName ||
+            d.departmentName === deptName ||
             d.department?.name === deptName
         );
     };
@@ -381,6 +466,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
         e.preventDefault();
         try {
             const { _id: formId, ...restFormData } = formData as any;
+            const resolvedEmpCode = formatEmployeeId(formData.empCode || formData.reportEmpCode);
             const submitData = {
                 ...restFormData,
                 type: activeTab,
@@ -389,7 +475,12 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                 position: activeTab === 'request' ? formData.positionFor : formData.reportPosition,
                 mobileNo: activeTab === 'request' ? formData.mobileNo : (formData as any).reportMobileNo || formData.mobileNo,
                 emailId: activeTab === 'request' ? formData.emailId : (formData as any).reportEmailId || formData.emailId,
-                workLocation: formData.workLocation
+                workLocation: formData.workLocation,
+                empCode: resolvedEmpCode,
+                employeeCode: resolvedEmpCode,
+                uniqueId: resolvedEmpCode,
+                candidateCode: resolvedEmpCode,
+                reportEmpCode: resolvedEmpCode,
             };
 
             // Use formData._id as primary check (survives reset), fall back to currentId
@@ -405,13 +496,15 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
             setShowForm(false);
             handleReset();
             fetchRecords();
-        fetchMasterData();
+            fetchMasterData();
         } catch (error: any) {
             toast.error('Error - ' + error.message || 'Failed to save BGV record');
         }
     };
 
-    const handleEdit = (record: any) => {
+    const handleEdit = (record: any, fallbackCandidate?: any) => {
+        const cData = fallbackCandidate || candidate;
+
         // Handle potential legacy nested data or missing fields
         const unpackedData = {
             ...record,
@@ -419,12 +512,23 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
             ...(record.reportData || {})
         };
 
+        const candCode = formatEmployeeId(unpackedData.employeeCode || unpackedData.empCode || unpackedData.uniqueId || unpackedData.candidateCode || unpackedData.reportEmpCode || cData?.employeeCode || cData?.uniqueId || cData?.candidateCode || '');
+
         const formattedRecord = {
             ...INITIAL_FORM_DATA, // Start with a complete initial state
             ...unpackedData, // Overlay with record data
-            joiningDate: unpackedData.joiningDate ? unpackedData.joiningDate.split('T')[0] : '',
+            empCode: candCode || unpackedData.empCode || '',
+            reportEmpCode: candCode || unpackedData.reportEmpCode || '',
+            joiningDate: unpackedData.joiningDate ? unpackedData.joiningDate.split('T')[0] : (cData?.joiningDate ? cData.joiningDate.split('T')[0] : ''),
             requestDate: unpackedData.requestDate ? unpackedData.requestDate.split('T')[0] : '',
-            reportDOJ: unpackedData.reportDOJ ? unpackedData.reportDOJ.split('T')[0] : '',
+            reportDOJ: unpackedData.reportDOJ ? unpackedData.reportDOJ.split('T')[0] : (cData?.joiningDate ? cData.joiningDate.split('T')[0] : ''),
+            positionFor: unpackedData.positionFor || unpackedData.position || cData?.jobRole || '',
+            department: unpackedData.department || cData?.departmentId?.name || cData?.departmentId?.departmentName || '',
+            reportingTo: unpackedData.reportingTo || '', // candidate object usually doesn't have reportingTo
+            fullName: unpackedData.fullName || unpackedData.candidateName || (cData ? `${cData.firstName || ''} ${cData.lastName || ''}`.trim() : ''),
+            reportCandidateName: unpackedData.reportCandidateName || unpackedData.fullName || unpackedData.candidateName || (cData ? `${cData.firstName || ''} ${cData.lastName || ''}`.trim() : ''),
+            reportPosition: unpackedData.reportPosition || unpackedData.positionFor || unpackedData.position || cData?.jobRole || '',
+            reportDepartment: unpackedData.reportDepartment || unpackedData.department || cData?.departmentId?.name || cData?.departmentId?.departmentName || '',
         };
 
         // Deep merge nested objects to ensure completeness
@@ -479,7 +583,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
         try {
             await api.delete(`/hiring/bgv/${id}`);
             fetchRecords();
-        fetchMasterData();
+            fetchMasterData();
         } catch (error: any) {
             toast.error('Error - ' + error.message || 'Failed to delete record');
         }
@@ -490,7 +594,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
             await Promise.all(rows.map(r => bgvApi.delete(r._id)));
             toast.success('Deleted - ' + `${rows.length} record${rows.length > 1 ? 's' : ''} deleted successfully`);
             fetchRecords();
-        fetchMasterData();
+            fetchMasterData();
         } catch (error: any) {
             toast.error('Error - ' + error.message || 'Failed to delete selected records');
         }
@@ -500,7 +604,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
         try {
             await bgvApi.update(id, { status: newStatus });
             fetchRecords();
-        fetchMasterData();
+            fetchMasterData();
         } catch (error: any) {
             toast.error('Error - ' + 'Failed to update status');
         }
@@ -548,17 +652,28 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
         });
     };
 
-    // Calculate paginated data
-            
-    return (
-        <HiringStepLayout candidateId={candidateId} stepId="bgv">
-            <Card className="rounded-md border-zinc-200/80 shadow-sm dark:border-zinc-800 w-full overflow-hidden">
-                <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                    <CardTitle className="text-base uppercase">STEP 8 - BGV REQUEST & REPORT</CardTitle>
-                </CardHeader>
-                <CardContent className="w-full overflow-hidden">
+    useEffect(() => {
+        if (editIdParam && records.length > 0 && !hasInitialLoaded) {
+            const recordToEdit = records.find((r: any) => r._id === editIdParam);
+            if (recordToEdit) {
+                handleEdit(recordToEdit, candidate);
+                setEditId(editIdParam);
+                setHasInitialLoaded(true);
+            }
+        }
+    }, [editIdParam, records, hasInitialLoaded]);
 
-            <PrintHeader title="Step 8 - BGV Request Form & Report" subtitle="Background Verification Control" />
+    return (
+        <div className="mx-auto max-w-[1500px] pb-10">
+            <div className="border-b-2 border-[#0d3c68] px-1 pb-2 flex items-center justify-between no-print mb-4">
+                <h1 className="text-xl font-bold text-[#0d3c68] uppercase tracking-tight font-poppins px-1">STEP 8 - BGV REQUEST & REPORT</h1>
+                <div className="flex gap-2">
+                    <button onClick={() => window.open(`/dashboard/hiring/${candidateId}/print/bgv`, '_blank')} className="px-4 py-2 border rounded text-sm hover:bg-slate-50 transition-colors">Print Form</button>
+                    <button onClick={() => router.push(`/dashboard/hiring/${candidateId}`)} className="px-4 py-2 border rounded text-sm hover:bg-slate-50 transition-colors">Back to Pipeline</button>
+                </div>
+            </div>
+
+            {/* <PrintHeader title="Step 8 - BGV Request Form & Report" subtitle="Background Verification Control" /> */}
 
             <div className="section-card shadow-sm border-slate-200 overflow-hidden mb-6">
                 {/* TAB NAVIGATION - ALWAYS VISIBLE TO TOGGLE BETWEEN REQUESTS AND REPORTS */}
@@ -613,9 +728,20 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                                             Candidate Details
                                         </h3>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
+                                        <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
                                             <FormField label="Full Name:" required>
                                                 <FormInput value={formData.fullName} onChange={(e) => handleChange('fullName', e.target.value)} required readOnly={isPreFilled} />
+                                            </FormField>
+                                            <FormField label="Employee ID / Code:">
+                                                 <FormInput
+                                                    value={formatEmployeeId(formData.empCode || formData.reportEmpCode)}
+                                                    onChange={(e) => {
+                                                        handleChange('empCode', e.target.value);
+                                                        handleChange('reportEmpCode', e.target.value);
+                                                    }}
+                                                    placeholder="e.g. NAM/HQ/26/0011"
+                                                    className="bg-slate-50 font-medium text-[#0d3c68] font-mono"
+                                                />
                                             </FormField>
                                             <FormField label="Joining Date:" required>
                                                 <FormInput type="date" value={formData.joiningDate} onChange={(e) => handleChange('joiningDate', e.target.value)} required readOnly={isPreFilled} />
@@ -625,7 +751,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                                                     <FormInput value={formData.positionFor} readOnly />
                                                 ) : (
                                                     <FormSelect
-                                                        options={requestDesignationOptions}
+                                                        options={designationOptions}
                                                         value={formData.positionFor}
                                                         onChange={(e) => handleChange('positionFor', e.target.value)}
                                                         required
@@ -634,7 +760,10 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                                                 )}
                                             </FormField>
                                             <FormField label="Home No.:">
-                                                <FormInput value={formData.homeNo} onChange={(e) => handleChange('homeNo', e.target.value)} />
+                                                <FormInput value={formData.homeNo} onChange={(e) => {
+                                                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                    handleChange('homeNo', val);
+                                                }} />
                                             </FormField>
                                             <FormField label="Department:" required>
                                                 {isPreFilled ? (
@@ -650,7 +779,10 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                                                 )}
                                             </FormField>
                                             <FormField label="Alternate No.:">
-                                                <FormInput value={formData.alternateNo} onChange={(e) => handleChange('alternateNo', e.target.value)} />
+                                                <FormInput value={formData.alternateNo} onChange={(e) => {
+                                                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                    handleChange('alternateNo', val);
+                                                }} />
                                             </FormField>
                                             <FormField label="Reporting To:" required>
                                                 <FormInput value={formData.reportingTo} onChange={(e) => handleChange('reportingTo', e.target.value)} required readOnly={isPreFilled} />
@@ -670,7 +802,10 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                                             <FormField label="Mobile No.:" required>
                                                 <FormInput
                                                     value={formData.mobileNo}
-                                                    onChange={(e) => handleChange('mobileNo', e.target.value)}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                        handleChange('mobileNo', val);
+                                                    }}
                                                     required
                                                 />
                                             </FormField>
@@ -688,8 +823,11 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                                                     <FormField label="State:">
                                                         <FormInput value={formData.currentState} onChange={(e) => handleChange('currentState', e.target.value)} />
                                                     </FormField>
-                                                    <FormField label="City & Pin Code:">
-                                                        <FormInput value={formData.currentCityPin} onChange={(e) => handleChange('currentCityPin', e.target.value)} />
+                                                    <FormField label="Pin Code:">
+                                                        <FormInput value={formData.currentCityPin} onChange={(e) => {
+                                                            const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                                                            handleChange('currentCityPin', val);
+                                                        }} />
                                                     </FormField>
                                                     <FormField label="Country:">
                                                         <FormInput value={formData.currentCountry} onChange={(e) => handleChange('currentCountry', e.target.value)} />
@@ -705,8 +843,11 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                                                     <FormField label="State:">
                                                         <FormInput value={formData.permanentState} onChange={(e) => handleChange('permanentState', e.target.value)} />
                                                     </FormField>
-                                                    <FormField label="City & Pin Code:">
-                                                        <FormInput value={formData.permanentCityPin} onChange={(e) => handleChange('permanentCityPin', e.target.value)} />
+                                                    <FormField label="Pin Code:">
+                                                        <FormInput value={formData.permanentCityPin} onChange={(e) => {
+                                                            const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                                                            handleChange('permanentCityPin', val);
+                                                        }} />
                                                     </FormField>
                                                     <FormField label="Country:">
                                                         <FormInput value={formData.permanentCountry} onChange={(e) => handleChange('permanentCountry', e.target.value)} />
@@ -830,14 +971,14 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
 
                                             <FormField label="Designation:" required>
                                                 {isPreFilled ? (
-                                                    <FormInput value={formData.positionFor} readOnly />
+                                                    <FormInput value={formData.requestDesignation} readOnly />
                                                 ) : (
                                                     <FormSelect
-                                                        options={requestDesignationOptions}
-                                                        value={formData.positionFor}
-                                                        onChange={(e) => handleChange('positionFor', e.target.value)}
+                                                        options={designationOptions}
+                                                        value={formData.requestDesignation}
+                                                        onChange={(e) => handleChange('requestDesignation', e.target.value)}
                                                         required
-                                                        placeholder="Select Position"
+                                                        placeholder="Select Designation"
                                                     />
                                                 )}
                                             </FormField>
@@ -864,6 +1005,13 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                                         >
                                             CANCEL
                                         </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => window.open(`/dashboard/hiring/${candidateId}/print/bgv`, '_blank')}
+                                            className="px-6 py-2 text-xs font-bold text-white bg-slate-600 rounded-[2px]"
+                                        >
+                                            PRINT
+                                        </button>
                                         <button type="submit" className="px-8 py-2 text-xs font-bold bg-[#0d3c68] text-white shadow-md rounded-[2px]">SAVE REQUEST</button>
                                     </div>
                                 </div>
@@ -878,7 +1026,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                             <FormField label="Candidate Name:"><FormInput value={formData.reportCandidateName} onChange={(e) => handleChange('reportCandidateName', e.target.value)} /></FormField>
                                             <FormField label="Date of Joining:"><FormInput type="date" value={formData.reportDOJ} onChange={(e) => handleChange('reportDOJ', e.target.value)} /></FormField>
-                                            <FormField label="Employee Code:"><FormInput value={formData.reportEmpCode} onChange={(e) => handleChange('reportEmpCode', e.target.value)} /></FormField>
+                                            <FormField label="Employee Code:"><FormInput value={formatEmployeeId(formData.reportEmpCode)} onChange={(e) => handleChange('reportEmpCode', e.target.value)} placeholder="e.g. NAM/HQ/26/0011" /></FormField>
                                             <FormField label="Department:">
                                                 <FormSelect
                                                     options={departmentOptions}
@@ -1131,6 +1279,13 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                                         >
                                             CANCEL
                                         </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => window.open(`/dashboard/hiring/${candidateId}/print/bgv`, '_blank')}
+                                            className="px-6 py-2 text-xs font-bold text-white bg-slate-600 rounded-[2px]"
+                                        >
+                                            PRINT
+                                        </button>
                                         <button type="submit" className="px-8 py-2 text-xs font-bold bg-[#0d3c68] text-white shadow-md rounded-[2px]">SAVE REPORT</button>
                                     </div>
                                 </div>
@@ -1141,12 +1296,12 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                     /* DATA TABLE VIEW */
                     <div className="p-0">
                         <DataTable
-              currentPage={currentPage}
-              onPageChange={setCurrentPage}
-              pageSize={itemsPerPage}
-              onPageSizeChange={setItemsPerPage}
-              searchValue={searchQuery}
-              onSearchChange={setSearchQuery}
+                            currentPage={currentPage}
+                            onPageChange={setCurrentPage}
+                            pageSize={itemsPerPage}
+                            onPageSizeChange={setItemsPerPage}
+                            searchValue={searchQuery}
+                            onSearchChange={setSearchQuery}
                             columns={[
                                 {
                                     key: 'sno', label: 'S.No', width: '60px', align: 'center',
@@ -1188,7 +1343,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                                         </div>
                                     ),
                                 },
-{
+                                {
                                     key: 'updatedAt',
                                     label: 'Last Update',
                                     width: '160px',
@@ -1209,7 +1364,7 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                             data={filteredRecords}
                             onEdit={handleEdit}
                             onDelete={(row) => handleDelete(row._id)}
-                            onView={(row) => router.push(`/hiring/step-8/view/${row._id}`)}
+                            onView={(row) => handleEdit(row)}
                             onNextStep={handleNextStep}
                             selectable
                             onBulkDelete={handleBulkDelete}
@@ -1232,12 +1387,9 @@ export default function BGVRequestForm({ candidateId }: { candidateId: string })
                                 color: white !important;
                             }
                         `}</style>
-
                     </div>
                 )}
             </div>
-            </CardContent>
-        </Card>
-    </HiringStepLayout>
+        </div>
     );
 }

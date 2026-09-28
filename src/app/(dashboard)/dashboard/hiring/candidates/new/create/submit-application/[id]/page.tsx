@@ -108,11 +108,11 @@ export default function SubmittedPage() {
             if (match) cId = match._id;
             else throw new Error("Candidate not found");
           }
-          
+
           const res = await api.get(`/hiring/candidates/${cId}`);
           const data = res.data;
           const appDetails = data.applicationDetails || {};
-          
+
           setCandidate({
             fullName: data.firstName + (data.lastName ? ' ' + data.lastName : ''),
             email: data.email || '',
@@ -139,7 +139,9 @@ export default function SubmittedPage() {
             manpowerRequestId: data.manpowerRequestId || '',
             skills: appDetails.skills || [],
             experiences: appDetails.experiences || [],
-            education: appDetails.education || []
+            education: appDetails.education || [],
+            status: data.status || 'Applied',
+            candidateCode: data.candidateCode || 'APP-PENDING'
           });
         } catch (err) {
           console.error(err);
@@ -169,16 +171,27 @@ export default function SubmittedPage() {
     link.click();
   };
 
+  const getActiveStepIndex = (status: string) => {
+    if (status === 'Applied') return 0;
+    if (status === 'Screening') return 1;
+    if (status === 'Interviewing') return 2;
+    if (status === 'Offered') return 3;
+    if (status === 'Hired') return 4;
+    return -1;
+  };
+
+  const activeStepIdx = candidate?.status ? getActiveStepIndex(candidate.status) : 0;
+
   const pipelineSteps = [
-    { title: "AI Screening", delay: "1-2 Days", desc: "Our AI will analyze your CV and match it with the job requirements.", icon: Sparkles, active: true, href: `/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}` },
-    { title: "HOD Review", delay: "2-3 Days", desc: "The hiring manager will review your profile and AI screening report.", icon: ClipboardList, active: false, href: `/dashboard/hiring/candidates/new/create/evaluation/${candidateId}` },
-    { title: "Interview", delay: "3-5 Days", desc: "If shortlisted, our team will contact you for interview scheduling.", icon: MessageSquare, active: false, href: `/dashboard/hiring/candidates/new/create/interview-process/${candidateId}` },
-    { title: "Offer", delay: "As per process", desc: "Selected candidates will receive an offer based on the discussion.", icon: Gift, active: false, href: '/dashboard/offers' },
-    { title: "Onboarding", delay: "After Offer", desc: "Welcome aboard! We'll help you through the joining process.", icon: UserCheck, active: false, href: '/dashboard/onboarding' }
+    { title: "AI Screening", delay: "1-2 Days", desc: "Our AI will analyze your CV and match it with the job requirements.", icon: Sparkles, active: activeStepIdx === 0, completed: activeStepIdx > 0, href: `/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}` },
+    { title: "HOD Review", delay: "2-3 Days", desc: "The hiring manager will review your profile and AI screening report.", icon: ClipboardList, active: activeStepIdx === 1, completed: activeStepIdx > 1, href: `/dashboard/hiring/candidates/new/create/evaluation/${candidateId}` },
+    { title: "Interview", delay: "3-5 Days", desc: "If shortlisted, our team will contact you for interview scheduling.", icon: MessageSquare, active: activeStepIdx === 2, completed: activeStepIdx > 2, href: `/dashboard/hiring/candidates/new/create/interview-process/${candidateId}` },
+    { title: "Offer", delay: "As per process", desc: "Selected candidates will receive an offer based on the discussion.", icon: Gift, active: activeStepIdx === 3, completed: activeStepIdx > 3, href: '/dashboard/offers' },
+    { title: "Onboarding", delay: "After Offer", desc: "Welcome aboard! We'll help you through the joining process.", icon: UserCheck, active: activeStepIdx === 4, completed: activeStepIdx > 4, href: '/dashboard/onboarding' }
   ];
 
   const summaryFields = [
-    { icon: Hash, label: "Application ID", value: "APP-2026-000124" },
+    { icon: Hash, label: "Application ID", value: (candidate as any).candidateCode || "APP-PENDING" },
     { icon: Calendar, label: "Applied On", value: "15 June 2026, 11:32 AM" },
     { icon: IndianRupee, label: "Expected CTC", value: `₹ ${candidate.expectedCTC}` },
     { icon: Clock, label: "Notice Period", value: candidate.noticePeriod },
@@ -207,6 +220,7 @@ export default function SubmittedPage() {
             <span className="hidden xs:inline sm:inline">Go to Dashboard</span>
           </button>
           <button
+            // onClick={() => router.push(`/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}`)}
             onClick={() => router.push(`/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}`)}
             className="flex-1 sm:flex-none justify-center px-3 py-2 sm:py-1.5 text-xs bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold flex items-center gap-1.5 transition-colors whitespace-nowrap"
           >
@@ -278,7 +292,7 @@ export default function SubmittedPage() {
                   </p>
                   <div className="flex flex-wrap items-center gap-2 mt-2">
                     <span className="text-[10px] font-mono bg-white text-emerald-800 px-2 py-0.5 rounded border border-emerald-300 font-bold">
-                      Application ID: APP-2026-000124
+                      Application ID: {(candidate as any).candidateCode || 'APP-PENDING'}
                     </span>
                     <span className="text-[10px] text-emerald-800 font-bold bg-white px-2 py-0.5 rounded border border-emerald-300">
                       Status: Awaiting AI Screening
@@ -312,28 +326,31 @@ export default function SubmittedPage() {
                           window.open(step.href, '_blank');
                         }
                       }}
-                      className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:scale-[1.02] flex flex-col ${step.active
-                        ? 'bg-indigo-50 border-indigo-300 shadow-xs'
-                        : 'bg-white border-slate-200 hover:border-slate-300'
+                      className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:scale-[1.02] flex flex-col ${step.active ? 'bg-indigo-50 border-indigo-300 shadow-xs' :
+                          step.completed ? 'bg-emerald-50/30 border-emerald-200 shadow-xs' : 'bg-white border-slate-200 hover:border-slate-300'
                         }`}
                     >
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center mb-1.5 ${step.active ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center mb-1.5 ${step.completed ? 'bg-emerald-100 text-emerald-700' :
+                          step.active ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'
                         }`}>
-                        <Icon className="w-3.5 h-3.5" />
+                        {step.completed ? <Check className="w-3.5 h-3.5" strokeWidth={3} /> : <Icon className="w-3.5 h-3.5" />}
                       </div>
-                      <span className={`text-[10px] font-bold ${step.active ? 'text-indigo-950' : 'text-slate-800'}`}>
+                      <span className={`text-[10px] font-bold ${step.completed ? 'text-emerald-800' :
+                          step.active ? 'text-indigo-950' : 'text-slate-800'
+                        }`}>
                         {step.title}
                       </span>
                       <p className="text-[9px] text-slate-700 leading-tight mt-1 flex-1">
-                        {step.desc}
+                        {step.completed ? 'Completed' : step.desc}
                       </p>
-                      <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded-full mt-1.5 self-start ${step.active ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-800'
+                      <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded-full mt-1.5 self-start ${step.completed ? 'bg-emerald-100 text-emerald-800' :
+                          step.active ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-800'
                         }`}>
-                        {step.delay}
+                        {step.completed ? 'Done' : step.delay}
                       </span>
                       {step.active && (
                         <span className="text-[8px] text-indigo-800 font-bold block mt-1.5 text-right animate-pulse">
-                          Click to View Screening →
+                          Click to View Action →
                         </span>
                       )}
                     </div>
@@ -522,48 +539,57 @@ export default function SubmittedPage() {
 
               <div className="flex-1 overflow-visible lg:overflow-y-auto pr-0.5 space-y-3.5 max-h-[420px] lg:max-h-none">
                 {[
-                  { title: "Application Submitted", date: "15 June 2026, 11:32 AM", active: true, checked: true, desc: "Form details saved and credentials locked." },
-                  { title: "Awaiting AI Screening", date: "15 June 2026, 11:32 AM", active: true, checked: false, desc: "CV matches queued for algorithmic screening.", current: true },
-                  { title: "HOD Review", date: "Pending", active: false, checked: false, desc: "Department heads review candidate scorecard." },
-                  { title: "Interview", date: "Pending", active: false, checked: false, desc: "Interaction panel scheduling with engineer leads." },
-                  { title: "Offer", date: "Pending", active: false, checked: false, desc: "Drafting contract and salary package allocations." },
-                  { title: "Onboarding", date: "Pending", active: false, checked: false, desc: "Provisioning systems and welcoming candidate." }
-                ].map((act, i) => (
-                  <div key={i} className="flex gap-2 text-[10px]">
-                    <div className="flex flex-col items-center shrink-0">
-                      <span className={`w-4 h-4 rounded-full flex items-center justify-center font-bold text-[8px] border ${act.checked
-                        ? 'bg-emerald-100 border-emerald-400 text-emerald-800'
-                        : act.current
-                          ? 'bg-indigo-600 border-indigo-600 text-white animate-pulse'
-                          : 'bg-slate-100 border-slate-300 text-slate-500'
-                        }`}>
-                        {act.checked ? "✓" : act.current ? <Clock className="w-2.5 h-2.5" /> : i + 1}
-                      </span>
-                      {i < 5 && <div className={`w-[2px] flex-1 min-h-[14px] mt-1 ${act.active ? 'bg-indigo-400' : 'bg-slate-200'}`} />}
-                    </div>
-                    <div className="flex-1 min-w-0 pb-1">
-                      <div className="flex flex-wrap items-center justify-between gap-x-2">
-                        <span className={`font-bold ${act.active ? 'text-indigo-950' : 'text-slate-800'}`}>
-                          {act.title}
+                  { title: "Application Submitted", date: "15 June 2026, 11:32 AM", desc: "Form details saved and credentials locked.", route: null },
+                  { title: "Awaiting AI Screening", date: "15 June 2026, 11:32 AM", desc: "CV matches queued for algorithmic screening.", route: `/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}` },
+                  { title: "HOD Review", date: "Pending", desc: "Department heads review candidate scorecard.", route: null },
+                  { title: "Interview", date: "Pending", desc: "Interaction panel scheduling with engineer leads.", route: null },
+                  { title: "Offer", date: "Pending", desc: "Drafting contract and salary package allocations.", route: null },
+                  { title: "Onboarding", date: "Pending", desc: "Provisioning systems and welcoming candidate.", route: null }
+                ].map((act, i) => {
+                  // If we are at index i, it is 'current'
+                  // If we are past index i, it is 'checked'
+                  // activeStepIdx comes from: Applied=0, Screening=1, Interviewing=2, Offered=3, Hired=4
+                  const isChecked = activeStepIdx > i;
+                  const isCurrent = activeStepIdx === i;
+                  const isActive = activeStepIdx >= i;
+
+                  return (
+                    <div key={i} className="flex gap-2 text-[10px]">
+                      <div className="flex flex-col items-center shrink-0">
+                        <span className={`w-4 h-4 rounded-full flex items-center justify-center font-bold text-[8px] border ${isChecked
+                          ? 'bg-emerald-100 border-emerald-400 text-emerald-800'
+                          : isCurrent
+                            ? 'bg-indigo-600 border-indigo-600 text-white animate-pulse'
+                            : 'bg-slate-100 border-slate-300 text-slate-500'
+                          }`}>
+                          {isChecked ? "✓" : isCurrent ? <Clock className="w-2.5 h-2.5" /> : i + 1}
                         </span>
-                        <span className="text-[7.5px] text-slate-600 font-semibold font-mono whitespace-nowrap">
-                          {act.date}
-                        </span>
+                        {i < 5 && <div className={`w-[2px] flex-1 min-h-[14px] mt-1 ${isActive ? 'bg-indigo-400' : 'bg-slate-200'}`} />}
                       </div>
-                      <p className="text-[8.5px] text-slate-700 leading-tight mt-0.5">
-                        {act.desc}
-                      </p>
-                      {act.current && (
-                        <button
-                          onClick={() => router.push(`/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}`)}
-                          className="text-[8px] text-indigo-700 hover:text-indigo-950 font-bold underline mt-1 block text-left"
-                        >
-                          Explore Active Screening Report →
-                        </button>
-                      )}
+                      <div className="flex-1 min-w-0 pb-1">
+                        <div className="flex flex-wrap items-center justify-between gap-x-2">
+                          <span className={`font-bold ${isActive ? 'text-indigo-950' : 'text-slate-800'}`}>
+                            {act.title}
+                          </span>
+                          <span className="text-[7.5px] text-slate-600 font-semibold font-mono whitespace-nowrap">
+                            {isChecked || isCurrent ? act.date : "Pending"}
+                          </span>
+                        </div>
+                        <p className="text-[8.5px] text-slate-700 leading-tight mt-0.5">
+                          {act.desc}
+                        </p>
+                        {isCurrent && act.route && (
+                          <button
+                            onClick={() => router.push(act.route!)}
+                            className="text-[8px] text-indigo-700 hover:text-indigo-950 font-bold underline mt-1 block text-left"
+                          >
+                            Explore Active Screening Report →
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
 

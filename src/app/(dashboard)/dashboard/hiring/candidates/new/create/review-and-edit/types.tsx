@@ -10,6 +10,7 @@ export interface CandidateInfo {
   linkedin: string;
   appliedFor: string;
   department: string;
+  departmentName?: string;
   employmentType: string;
   totalExperience: string; // e.g. "7"
   relevantExperience: string; // e.g. "7"

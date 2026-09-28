@@ -9,11 +9,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
-import { cn } from '@/lib/utils';
+import { cn, formatEmployeeId } from '@/lib/utils';
+import { useMasterDataStore } from '@/store/masterDataStore';
 
 export default function EmergencyContactPage({ candidateId }: { candidateId: string }) {
     const router = useRouter();
     const { user } = useAuthStore();
+    const { departments, designations, fetchMasterData } = useMasterDataStore();
+    
+    const departmentOptions = [{ value: '', label: 'Select Department' }, ...departments.map((d: any) => ({ value: d.name || '', label: d.name || '' }))];
+    const designationOptions = [{ value: '', label: 'Select Designation' }, ...designations.map((d: any) => ({ value: d.title || d.name || '', label: d.title || d.name || '' }))];
+
     const currentUsername = `${(user as any)?.firstName || ''} ${(user as any)?.lastName || ''}`.trim() || 'Admin';
 
     const [loading, setLoading] = useState(true);
@@ -68,6 +74,67 @@ export default function EmergencyContactPage({ candidateId }: { candidateId: str
             setLoading(true);
             const candidateRes = await api.get(`/hiring/candidates/${candidateId}`);
             const cand = candidateRes.data;
+            let fetchedEmpCode = formatEmployeeId(cand.employeeCode || cand.uniqueId || cand.candidateCode || '');
+            let fetchedDoj = '';
+            let fetchedWorkLocation = cand.workLocation || '';
+            let fetchedReportingTo = cand.reportingTo || '';
+            let fetchedDesignation = cand.jobRole || '';
+            let fetchedDepartment = cand.departmentId?.name || cand.department || '';
+            let fetchedBloodGroup = '';
+
+            try {
+                // Auto-fetch from Nomination API (Step 10) which already has most of this
+                const nomRes = await api.get('/hiring/nomination', { params: { candidateId } });
+                const nomList = Array.isArray(nomRes.data) ? nomRes.data : (nomRes.data?.data || []);
+                if (nomList.length > 0) {
+                    const nom = nomList[0];
+                    if (nom.empCode) fetchedEmpCode = formatEmployeeId(nom.empCode);
+                    if (nom.dateOfJoining) fetchedDoj = new Date(nom.dateOfJoining).toISOString().split('T')[0];
+                    if (nom.workLocation) fetchedWorkLocation = nom.workLocation;
+                    if (nom.reportingTo) fetchedReportingTo = nom.reportingTo;
+                    if (nom.designation) fetchedDesignation = nom.designation;
+                    if (nom.department) fetchedDepartment = nom.department;
+                }
+            } catch (e) { console.log("Could not fetch nomination data"); }
+
+            try {
+                // Auto-fetch Employee Code from Document Checklist API if still missing
+                if (!fetchedEmpCode) {
+                    const docRes = await api.get('/hiring/doc-checklist', { params: { candidateId } });
+                    const docList = Array.isArray(docRes.data) ? docRes.data : (docRes.data?.data || []);
+                    if (docList.length > 0) fetchedEmpCode = formatEmployeeId(docList[0].empCode || docList[0].employeeCode || fetchedEmpCode);
+                }
+            } catch (e) { console.log("Could not fetch document checklist"); }
+
+            try {
+                // Auto-fetch from Selection Approval API if still missing
+                if (!fetchedDoj || !fetchedWorkLocation || !fetchedReportingTo) {
+                    const selRes = await api.get('/hiring/selection-approval', { params: { candidateId } });
+                    const selList = Array.isArray(selRes.data) ? selRes.data : (selRes.data?.data || []);
+                    if (selList.length > 0) {
+                        const sel = selList[0];
+                        const dateRaw = sel.dateOfJoining || sel.joiningDate;
+                        if (dateRaw && !fetchedDoj) fetchedDoj = new Date(dateRaw).toISOString().split('T')[0];
+                        if (sel.workLocation && !fetchedWorkLocation) fetchedWorkLocation = sel.workLocation;
+                        if (sel.reportingTo && !fetchedReportingTo) fetchedReportingTo = sel.reportingTo;
+                    }
+                }
+            } catch (e) { console.log("Could not fetch selection approval"); }
+
+            try {
+                // Auto-fetch from Joining Form API for blood group
+                const joinRes = await api.get('/hiring/joining-form', { params: { candidateId } });
+                const joinList = Array.isArray(joinRes.data) ? joinRes.data : (joinRes.data?.data || []);
+                if (joinList.length > 0) {
+                    const jf = joinList[0];
+                    if (jf.bloodGroup) fetchedBloodGroup = jf.bloodGroup;
+                }
+            } catch (e) { console.log("Could not fetch joining form data"); }
+
+            const appDetails = cand.applicationDetails || {};
+            const defaultDesignation = fetchedDesignation || appDetails.title || '';
+            const defaultDepartment = fetchedDepartment || '';
+            const defaultEmployeeName = `${cand.firstName} ${cand.lastName || ''}`.trim();
 
             const res = await api.get('/hiring/emergency-contact', { params: { candidateId } });
             const list = Array.isArray(res.data) ? res.data : (res.data?.data || []);
@@ -82,14 +149,14 @@ export default function EmergencyContactPage({ candidateId }: { candidateId: str
                         aadhaarEmployee: false,
                         other: false
                     },
-                    bloodGroup: row.medicalInfo?.bloodGroup || row.bloodGroup || '',
-                    employeeName: row.employeeName || `${cand.firstName} ${cand.lastName || ''}`.trim(),
-                    empCode: row.empCode || cand.employeeCode || '',
-                    designation: row.designation || cand.jobRole || '',
-                    department: row.department || cand.department || '',
-                    dateOfJoining: row.dateOfJoining ? row.dateOfJoining.split('T')[0] : '',
-                    workLocation: row.workLocation || cand.workLocation || '',
-                    reportingTo: row.reportingTo || cand.reportingTo || '',
+                    bloodGroup: row.medicalInfo?.bloodGroup || row.bloodGroup || fetchedBloodGroup || '',
+                    employeeName: row.employeeName || defaultEmployeeName,
+                    empCode: formatEmployeeId(row.empCode || row.employeeCode || row.uniqueId || fetchedEmpCode || cand.employeeCode || cand.uniqueId || cand.candidateCode || ''),
+                    designation: row.designation || defaultDesignation,
+                    department: row.department || defaultDepartment,
+                    dateOfJoining: row.dateOfJoining ? row.dateOfJoining.split('T')[0] : fetchedDoj,
+                    workLocation: row.workLocation || fetchedWorkLocation,
+                    reportingTo: row.reportingTo || fetchedReportingTo,
                     verificationDate: row.verificationDate ? row.verificationDate.split('T')[0] : '',
                     verifiedBy: row.verifiedBy || currentUsername
                 });
@@ -97,12 +164,14 @@ export default function EmergencyContactPage({ candidateId }: { candidateId: str
             } else {
                 setFormData(prev => ({
                     ...prev,
-                    employeeName: `${cand.firstName} ${cand.lastName || ''}`.trim(),
-                    empCode: cand.employeeCode || '',
-                    designation: cand.jobRole || '',
-                    department: cand.department || '',
-                    workLocation: cand.workLocation || '',
-                    reportingTo: cand.reportingTo || '',
+                    bloodGroup: fetchedBloodGroup || '',
+                    employeeName: defaultEmployeeName,
+                    empCode: formatEmployeeId(fetchedEmpCode),
+                    designation: defaultDesignation,
+                    department: defaultDepartment,
+                    dateOfJoining: fetchedDoj,
+                    workLocation: fetchedWorkLocation,
+                    reportingTo: fetchedReportingTo,
                     verifiedBy: currentUsername,
                 }));
             }
@@ -117,6 +186,7 @@ export default function EmergencyContactPage({ candidateId }: { candidateId: str
         if (candidateId) {
             fetchEmergencyData();
         }
+        fetchMasterData();
     }, [candidateId]);
 
     const handleChange = (field: string, value: any) => {
@@ -200,18 +270,22 @@ export default function EmergencyContactPage({ candidateId }: { candidateId: str
                                     </FormField>
                                     <FormField label="Employee Code (HR):">
                                         <FormInput
-                                            value={formData.empCode}
+                                            value={formatEmployeeId(formData.empCode)}
                                             onChange={(e) => handleChange('empCode', e.target.value)}
+                                            placeholder="e.g. NAM/HQ/26/0011"
+                                            className="font-mono"
                                         />
                                     </FormField>
                                     <FormField label="2. Designation:">
-                                        <FormInput
+                                        <FormSelect
+                                            options={designationOptions}
                                             value={formData.designation}
                                             onChange={(e) => handleChange('designation', e.target.value)}
                                         />
                                     </FormField>
                                     <FormField label="Department:">
-                                        <FormInput
+                                        <FormSelect
+                                            options={departmentOptions}
                                             value={formData.department}
                                             onChange={(e) => handleChange('department', e.target.value)}
                                         />

@@ -52,7 +52,7 @@ const apiConfigs = {
     key: ['manpower-requests'],
     url: '/hiring/manpower-request',
     filter: (m: any) => m.status === 'Approved',
-    label: (m: any) => `${m.jobCode || ''} - ${m.designationId?.name || m.jobTitle}`,
+    label: (m: any) => `${m.jobCode || ''} ${m.designationId?.name || m.jobTitle}`,
     value: (m: any) => m._id,
   },
 };
