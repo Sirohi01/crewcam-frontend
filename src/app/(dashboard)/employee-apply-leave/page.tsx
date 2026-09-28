@@ -13,6 +13,8 @@ import {
   CheckCircle2,
   Users,
   ArrowRight,
+  X,
+  FileText,
 } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -82,6 +84,7 @@ export default function ApplyLeavePage() {
   const [reason, setReason] = useState('');
   const [mobile, setMobile] = useState('');
   const [email, setEmail] = useState('');
+  const [file, setFile] = useState<File | null>(null);
 
   // ─── Validation errors ──────────────────────────────────────────────────────
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -196,7 +199,7 @@ export default function ApplyLeavePage() {
                         value={fromDate}
                         onChange={(e) => setFromDate(e.target.value)}
                         onBlur={handleBlur('fromDate')}
-                        className={ic('fromDate') + ' pr-8'}
+                        className={ic('fromDate') + ' pr-8 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-8 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer'}
                       />
                       <CalendarIcon size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                     </div>
@@ -210,7 +213,7 @@ export default function ApplyLeavePage() {
                         value={toDate}
                         onChange={(e) => setToDate(e.target.value)}
                         onBlur={handleBlur('toDate')}
-                        className={ic('toDate') + ' pr-8'}
+                        className={ic('toDate') + ' pr-8 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-8 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer'}
                       />
                       <CalendarIcon size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                     </div>
@@ -276,7 +279,8 @@ export default function ApplyLeavePage() {
                       <input
                         type="tel"
                         value={mobile}
-                        onChange={(e) => setMobile(e.target.value)}
+                        onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        maxLength={10}
                         onBlur={handleBlur('mobile')}
                         placeholder="e.g. 9876543210"
                         className={ic('mobile')}
@@ -288,7 +292,8 @@ export default function ApplyLeavePage() {
                       <input
                         type="email"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => setEmail(e.target.value.replace(/\s/g, '').toLowerCase())}
+                        maxLength={100}
                         onBlur={handleBlur('email')}
                         placeholder="Enter email address"
                         className={ic('email')}
@@ -304,16 +309,29 @@ export default function ApplyLeavePage() {
                     <StepBadge n={3} /> Upload Document (Optional)
                   </h2>
                   <p className="mb-1 text-[11px] text-zinc-400">Upload supporting document if required (e.g., medical certificate)</p>
-                  <label className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-zinc-200 bg-zinc-50/50 py-3 text-center hover:bg-zinc-50">
-                    <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" />
-                    <div className="flex items-center gap-1.5">
-                      <UploadCloud size={16} className="text-zinc-400" />
-                      <p className="text-[12px] text-zinc-600">
-                        Drag and drop or <span className="font-semibold text-blue-600">click to browse</span>
-                      </p>
+                  {file ? (
+                    <div className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <FileText size={16} className="shrink-0 text-blue-600" />
+                        <span className="truncate text-[12.5px] font-medium text-zinc-700">{file.name}</span>
+                        <span className="shrink-0 text-[11px] text-zinc-400">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                      </div>
+                      <button type="button" onClick={() => setFile(null)} className="rounded p-1 text-zinc-400 hover:bg-zinc-200 hover:text-zinc-700 transition-colors">
+                        <X size={14} />
+                      </button>
                     </div>
-                    <p className="text-[10.5px] text-zinc-400">Supported formats: PDF, JPG, PNG (Max. 5MB)</p>
-                  </label>
+                  ) : (
+                    <label className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-zinc-200 bg-zinc-50/50 py-3 text-center hover:bg-zinc-50">
+                      <input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} className="hidden" accept=".pdf,.jpg,.jpeg,.png" />
+                      <div className="flex items-center gap-1.5">
+                        <UploadCloud size={16} className="text-zinc-400" />
+                        <p className="text-[12px] text-zinc-600">
+                          Drag and drop or <span className="font-semibold text-blue-600">click to browse</span>
+                        </p>
+                      </div>
+                      <p className="text-[10.5px] text-zinc-400">Supported formats: PDF, JPG, PNG (Max. 5MB)</p>
+                    </label>
+                  )}
                 </div>
 
                 {/* Actions */}

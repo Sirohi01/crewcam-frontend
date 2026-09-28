@@ -241,6 +241,20 @@ export default function EmployeesPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.panNumber && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panNumber)) {
+      setError('Invalid PAN Number format (e.g. ABCDE1234F)');
+      return;
+    }
+    if (formData.aadhaarNumber && formData.aadhaarNumber.length !== 12) {
+      setError('Aadhaar Number must be 12 digits');
+      return;
+    }
+    if (formData.uanNumber && formData.uanNumber.length !== 12) {
+      setError('UAN (PF Number) must be 12 digits');
+      return;
+    }
+
     setSaving(true);
     setError('');
     try {
@@ -588,9 +602,9 @@ export default function EmployeesPage() {
                 <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 space-y-2">
                   <h3 className="text-xs font-semibold text-zinc-900">Compliance & Identity (PAN/Aadhaar)</h3>
                   <div className="grid grid-cols-3 gap-3">
-                    <Field label="PAN Number" value={formData.panNumber} onChange={(value) => setFormData({ ...formData, panNumber: value })} placeholder="e.g. ABCDE1234F" />
-                    <Field label="Aadhaar Number" value={formData.aadhaarNumber} onChange={(value) => setFormData({ ...formData, aadhaarNumber: value })} placeholder="e.g. 1234 5678 9012" />
-                    <Field label="UAN (PF Number)" value={formData.uanNumber} onChange={(value) => setFormData({ ...formData, uanNumber: value })} placeholder="e.g. 100123456789" />
+                    <Field label="PAN Number" value={formData.panNumber} onChange={(value) => setFormData({ ...formData, panNumber: value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10) })} placeholder="e.g. ABCDE1234F" />
+                    <Field label="Aadhaar Number" value={formData.aadhaarNumber} onChange={(value) => setFormData({ ...formData, aadhaarNumber: value.replace(/\D/g, '').slice(0, 12) })} placeholder="e.g. 123456789012" />
+                    <Field label="UAN (PF Number)" value={formData.uanNumber} onChange={(value) => setFormData({ ...formData, uanNumber: value.replace(/\D/g, '').slice(0, 12) })} placeholder="e.g. 100123456789" />
                   </div>
                 </div>
               </div>
