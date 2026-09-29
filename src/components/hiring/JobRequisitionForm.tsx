@@ -365,9 +365,9 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
 
             <SectionCard number={4} title="Compensation Details">
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-5">
-                <Field title="Minimum Salary (CTC)" required error={errors.salaryCtcMin}><input type="number" placeholder="e.g., 500000" className={inputCls} {...register('salaryCtcMin', { required: true, valueAsNumber: true })} /></Field>
-                <Field title="Maximum Salary (CTC)" required error={errors.salaryCtcMax}><input type="number" placeholder="e.g., 800000" className={inputCls} {...register('salaryCtcMax', { required: true, valueAsNumber: true })} /></Field>
-                <Field title="Budget CTC" error={errors.budgetCTC}><input type="number" placeholder="e.g., 800000" className={inputCls} {...register('budgetCTC', { valueAsNumber: true })} /></Field>
+                <Field title="Minimum Salary (CTC)" required error={errors.salaryCtcMin}><input type="number" placeholder="e.g. 500000" className={`${inputCls} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`} {...register('salaryCtcMin', { required: true, valueAsNumber: true })} /></Field>
+                <Field title="Maximum Salary (CTC)" required error={errors.salaryCtcMax}><input type="number" placeholder="e.g. 800000" className={`${inputCls} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`} {...register('salaryCtcMax', { required: true, valueAsNumber: true })} /></Field>
+                <Field title="Budget CTC" error={errors.budgetCTC}><input type="number" placeholder="e.g. 600000" className={`${inputCls} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`} {...register('budgetCTC', { valueAsNumber: true })} /></Field>
                 <Field title="Currency" required error={errors.currency}>
                   <div className="relative">
                     <select className={selectCls} {...register('currency')}>

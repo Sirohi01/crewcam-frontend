@@ -8,7 +8,7 @@ export default function PrintStepPage({ params }: { params: { stepId: string; re
     if (stepId === 'selection-approval') {
         return <SelectionApprovalPrint recordId={recordId} />;
     }
-    
+
     if (stepId === 'probation-review') {
         return <ProbationReviewPrint recordId={recordId} />;
     }

@@ -222,12 +222,7 @@ export default function CandidateRegisterUI() {
         if (experience === 'Senior Level') matchExp = exp > 6;
 
         const q = query.trim().toLowerCase();
-        const matchQuery = !q ||
-          c.name.toLowerCase().includes(q) ||
-          c.email.toLowerCase().includes(q) ||
-          c.phone.includes(q) ||
-          (c.skills || []).some((s: string) => s.toLowerCase().includes(q)) ||
-          c.jobAppliedFor.toLowerCase().includes(q);
+        const matchQuery = !q || c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q) || c.phone.includes(q) || (c.skills || []).some((s: string) => s.toLowerCase().includes(q)) || c.jobAppliedFor.toLowerCase().includes(q);
 
         return matchStatus && matchDept && matchExp && matchQuery && matchJobOpening && matchLocation && matchSource;
       });

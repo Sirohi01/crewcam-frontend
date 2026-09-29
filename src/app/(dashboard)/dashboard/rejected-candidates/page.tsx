@@ -1,25 +1,6 @@
 "use client"
-import React, { useState } from 'react';
-import { 
-  ArrowLeftRight, 
-  CheckCircle2, 
-  Clock, 
-  FileText, 
-  Search, 
-  SlidersHorizontal, 
-  RotateCcw, 
-  Download, 
-  Mail, 
-  UserPlus, 
-  Eye, 
-  MoreHorizontal, 
-  ChevronLeft, 
-  ChevronRight,
-  UserX,
-  FileSearch,
-  Filter,
-  Loader2
-} from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ArrowLeftRight, Clock, FileText, Search, SlidersHorizontal, RotateCcw, Download, Mail, UserPlus, Eye, MoreHorizontal, ChevronLeft, ChevronRight, UserX, FileSearch, Filter, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 
@@ -51,7 +32,6 @@ interface Candidate {
 }
 
 // --- Mock Data ---
-// Data fetched dynamically
 
 export default function RejectedCandidatesPage() {
   // --- States ---
@@ -90,6 +70,36 @@ export default function RejectedCandidatesPage() {
     }));
   }, [candidatesResponse]);
 
+  // ── Dynamic tab counts from real API data ──
+  const tabCounts = useMemo(() => ({
+    all: initialCandidates.length,
+    screening: initialCandidates.filter((c) => c.rejectedStage === 'Screening Rejected').length,
+    assessment: initialCandidates.filter((c) => c.rejectedStage === 'After Assessment').length,
+    interview: initialCandidates.filter((c) => c.rejectedStage === 'After Interview').length,
+    offerDeclined: initialCandidates.filter((c) => c.rejectedStage === 'Offer Declined' as any).length,
+  }), [initialCandidates]);
+
+  // ── Filtered rows based on active tab + search + filters ──
+  const filteredCandidates = useMemo(() => {
+    return initialCandidates.filter((c) => {
+      // Tab filter
+      if (activeTab === 'Screening Rejected' && c.rejectedStage !== 'Screening Rejected') return false;
+      if (activeTab === 'After Assessment' && c.rejectedStage !== 'After Assessment') return false;
+      if (activeTab === 'After Interview' && c.rejectedStage !== 'After Interview') return false;
+      if (activeTab === 'Offer Declined' && (c.rejectedStage as any) !== 'Offer Declined') return false;
+      // Search filter
+      if (searchTerm.trim()) {
+        const q = searchTerm.toLowerCase();
+        if (![c.name, c.email, c.phone, c.jobOpening, c.department].some((f) => f.toLowerCase().includes(q))) return false;
+      }
+      // Department filter
+      if (selectedDept !== 'All Departments' && c.department !== selectedDept) return false;
+      // Reason filter
+      if (selectedReason !== 'All Reasons' && c.rejectionReason !== selectedReason) return false;
+      return true;
+    });
+  }, [initialCandidates, activeTab, searchTerm, selectedDept, selectedReason]);
+
   // --- Handlers ---
   const clearFilters = () => {
     setSearchTerm('');
@@ -118,8 +128,7 @@ export default function RejectedCandidatesPage() {
   };
 
   return (
-     <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
-      
+    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       {/* HEADER SECTION */}
       <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-200/80 shadow-sm h-[10%]">
         <div>
@@ -156,15 +165,14 @@ export default function RejectedCandidatesPage() {
       <div className="bg-white p-2 rounded-lg border border-slate-200/80 shadow-sm flex flex-col gap-1.5 justify-center h-[18%]">
         <div className="relative w-full">
           <Search className="absolute left-2.5 top-2.5 text-slate-400" size={14} />
-          <input 
-            type="text" 
-            placeholder="Search by name, email, phone, job title or skills..." 
+          <input
+            type="text"
+            placeholder="Search by name, email, phone, job title or skills..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 pl-8 pr-3 py-1.5 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white"
-          />
+            className="w-full bg-slate-50 border border-slate-200 pl-8 pr-3 py-1.5 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white" />
         </div>
-        
+
         <div className="grid grid-cols-6 gap-2 items-center">
           <div>
             <label className="block text-[10px] font-bold text-slate-700 mb-0.5">Job Opening</label>
@@ -213,7 +221,7 @@ export default function RejectedCandidatesPage() {
           </div>
           <div className="flex gap-1.5 h-full items-end">
             <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-zinc-50 shadow-sm">
-              <Filter size={12}/> Filters <span className="bg-indigo-600 text-white text-[9px] px-1 rounded-full">0</span>
+              <Filter size={12} /> Filters <span className="bg-indigo-600 text-white text-[9px] px-1 rounded-full">0</span>
             </button>
             <button onClick={clearFilters} className="border border-slate-200 hover:bg-slate-50 text-slate-600 p-1.5 rounded text-xs font-semibold flex items-center justify-center h-[28px]" title="Clear All">
               <RotateCcw size={12} />
@@ -224,20 +232,26 @@ export default function RejectedCandidatesPage() {
 
       {/* DATA TABLE TABS & VIEWS */}
       <div className="bg-white rounded-lg border border-slate-200/80 shadow-sm flex flex-col flex-1 overflow-hidden h-[50%]">
-        
+
         {/* Sub-navigation Menu */}
         <div className="flex justify-between items-center border-b border-slate-100 px-2 bg-slate-50/50">
           <div className="flex gap-4">
-            {['All Rejected (86)', 'Screening Rejected (26)', 'After Assessment (28)', 'After Interview (32)', 'Offer Declined (6)'].map((tab) => {
-              const tabName = tab.split(' (')[0];
-              const isActive = activeTab === tabName;
+            {[
+              { key: 'All Rejected', label: 'All Rejected', count: tabCounts.all },
+              { key: 'Screening Rejected', label: 'Screening Rejected', count: tabCounts.screening },
+              { key: 'After Assessment', label: 'After Assessment', count: tabCounts.assessment },
+              { key: 'After Interview', label: 'After Interview', count: tabCounts.interview },
+              { key: 'Offer Declined', label: 'Offer Declined', count: tabCounts.offerDeclined },
+            ].map(({ key, label, count }) => {
+              const isActive = activeTab === key;
               return (
-                <button 
-                  key={tab}
-                  onClick={() => setActiveTab(tabName)}
-                  className={`py-2 text-xs font-bold border-b-2 transition relative top-[1px] ${isActive ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-600 hover:text-indigo-600'}`}
+                <button
+                  key={key}
+                  onClick={() => setActiveTab(key)}
+                  className={`py-2 text-xs font-bold border-b-2 transition relative top-[1px] whitespace-nowrap ${isActive ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-600 hover:text-indigo-600'
+                    }`}
                 >
-                  {tab}
+                  {label} <span className={isActive ? 'text-indigo-400' : 'text-slate-400'}>({count})</span>
                 </button>
               );
             })}
@@ -272,9 +286,9 @@ export default function RejectedCandidatesPage() {
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr><td colSpan={9} className="py-10 text-center"><Loader2 className="inline animate-spin text-indigo-600" /></td></tr>
-              ) : initialCandidates.length === 0 ? (
+              ) : filteredCandidates.length === 0 ? (
                 <tr><td colSpan={9} className="py-10 text-center text-xs text-slate-500">No candidates found</td></tr>
-              ) : initialCandidates.map((cand) => (
+              ) : filteredCandidates.map((cand) => (
                 <tr key={cand.id} className="hover:bg-slate-50/80 transition-colors">
                   <td className="p-2"><input type="checkbox" className="rounded text-indigo-600" /></td>
                   <td className="p-2">
@@ -326,16 +340,15 @@ export default function RejectedCandidatesPage() {
         {/* COMPACT PAGINATION FOOTER */}
         <div className="border-t border-slate-200 p-2 flex justify-between items-center bg-slate-50 text-[11px] font-semibold text-slate-700 h-[40px]">
           <div>
-            Showing <span className="font-bold text-slate-900">{initialCandidates.length > 0 ? 1 : 0} to {Math.min(pageSize, initialCandidates.length)}</span> of <span className="font-bold text-slate-900">{initialCandidates.length}</span> entries
+            Showing <span className="font-bold text-slate-900">{filteredCandidates.length > 0 ? 1 : 0} to {Math.min(pageSize, filteredCandidates.length)}</span> of <span className="font-bold text-slate-900">{filteredCandidates.length}</span> entries
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1">
               <span>Show</span>
-              <select 
-                value={pageSize} 
+              <select
+                value={pageSize}
                 onChange={(e) => setPageSize(Number(e.target.value))}
-                className="bg-white border border-slate-200 px-1 py-0.5 rounded focus:outline-none"
-              >
+                className="bg-white border border-slate-200 px-1 py-0.5 rounded focus:outline-none">
                 <option value={10}>10</option>
                 <option value={25}>25</option>
                 <option value={50}>50</option>
@@ -357,7 +370,6 @@ export default function RejectedCandidatesPage() {
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );

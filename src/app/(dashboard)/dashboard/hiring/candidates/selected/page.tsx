@@ -1,16 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import {
-  Users, Clock3, FileText, CheckCircle2, UserCheck, XCircle, Search, ChevronDown,
-  Filter, Table2, LayoutGrid, Star, Eye, MoreVertical, ChevronLeft, ChevronRight,
-  Download, Phone, MapPin, Mail,
-} from 'lucide-react';
+import { Users, Clock3, FileText, CheckCircle2, UserCheck, XCircle, Search, ChevronDown, Filter, Table2, LayoutGrid, Star, Eye, MoreVertical, ChevronLeft, ChevronRight, Download, Phone, MapPin, Mail, } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import { Loader2 } from 'lucide-react';
+
+// Dummy data / static mockup — matches the approved design 1:1.
+
+const KPIS = [
+  { label: 'Total Selected', value: '52', sub: 'This Month', icon: Users, accent: 'bg-indigo-50 text-indigo-700' },
+  { label: 'Ready for Offer', value: '18', sub: '34.61%', icon: Clock3, accent: 'bg-blue-50 text-blue-600' },
+  { label: 'Offer Released', value: '12', sub: '23.08%', icon: FileText, accent: 'bg-amber-50 text-amber-600' },
+  { label: 'Offer Accepted', value: '9', sub: '17.31%', icon: CheckCircle2, accent: 'bg-emerald-50 text-emerald-600' },
+  { label: 'Joined', value: '6', sub: '11.54%', icon: UserCheck, accent: 'bg-blue-50 text-blue-600' },
+  { label: 'Offer Declined', value: '3', sub: '5.77%', icon: XCircle, accent: 'bg-rose-50 text-rose-600' },
+];
+
+// Tab definitions — counts computed dynamically from live API data
+const TAB_DEFS = [
+  { key: 'All Selected', statusMatch: null },
+  { key: 'Ready for Offer', statusMatch: 'Ready for Offer' },
+  { key: 'Offer Released', statusMatch: 'Offer Released' },
+  { key: 'Offer Accepted', statusMatch: 'Offer Accepted' },
+  { key: 'Joined', statusMatch: 'Joined' },
+  { key: 'Offer Declined', statusMatch: 'Offer Declined' },
+  { key: 'On Hold', statusMatch: 'On Hold' },
+];
+
+// Data fetched dynamically
 
 const stageStyle: Record<string, string> = {
   'Final Interview': 'bg-blue-50 text-blue-600',
@@ -165,6 +185,24 @@ export default function SelectedCandidatesPage() {
 
 
 
+  // ── Dynamic tab counts from real data ──
+  const tabCounts = useMemo(() => ({
+    'All Selected': candidates.length,
+    'Ready for Offer': candidates.filter((c: any) => c.status === 'Ready for Offer').length,
+    'Offer Released': candidates.filter((c: any) => c.status === 'Offer Released').length,
+    'Offer Accepted': candidates.filter((c: any) => c.status === 'Offer Accepted').length,
+    'Joined': candidates.filter((c: any) => c.status === 'Joined').length,
+    'Offer Declined': candidates.filter((c: any) => c.status === 'Offer Declined').length,
+    'On Hold': candidates.filter((c: any) => c.status === 'On Hold').length,
+  }), [candidates]);
+
+  // ── Rows filtered by active tab ──
+  const filteredCandidates = useMemo(() => {
+    const tabDef = TAB_DEFS.find((t) => t.key === tab);
+    if (!tabDef || tabDef.statusMatch === null) return candidates;
+    return candidates.filter((c: any) => c.status === tabDef.statusMatch);
+  }, [candidates, tab]);
+
   const active = React.useMemo(() => candidates.find((c: any) => c.id === activeId) || candidates[0], [candidates, activeId]);
 
   return (
@@ -181,7 +219,6 @@ export default function SelectedCandidatesPage() {
                 { label: "Selected Candidates" },
               ]}
             />
-
 
           </div>
           <div className="flex gap-2">
@@ -216,14 +253,17 @@ export default function SelectedCandidatesPage() {
 
             {/* Tabs */}
             <div className="flex items-center gap-4 overflow-x-auto rounded-[2px] border border-zinc-200 bg-white px-3 py-1.5">
-              {tabs.map((t) => (
+              {TAB_DEFS.map((t) => (
                 <button
-                  key={t.label}
+                  key={t.key}
                   type="button"
-                  onClick={() => setTab(t.label)}
-                  className={`whitespace-nowrap border-b-2 py-1 text-[11.5px] font-semibold ${tab === t.label ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}
-                >
-                  {t.label} ({t.label === 'All Selected' ? allCandidates.length : t.count})
+                  onClick={() => setTab(t.key)}
+                  className={`whitespace-nowrap border-b-2 py-1 text-[11.5px] font-semibold ${tab === t.key ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'
+                    }`}>
+                  {t.key}{' '}
+                  <span className={tab === t.key ? 'text-indigo-400' : 'text-zinc-400'}>
+                    ({tabCounts[t.key as keyof typeof tabCounts] ?? 0})
+                  </span>
                 </button>
               ))}
             </div>
@@ -255,7 +295,7 @@ export default function SelectedCandidatesPage() {
             </div>
 
             <div className="flex items-center justify-between px-1">
-              <p className="text-[10.5px] text-zinc-500">Showing {candidates.length} candidates</p>
+              <p className="text-[10.5px] text-zinc-500">Showing {filteredCandidates.length} candidates</p>
               <div className="flex overflow-hidden rounded-[2px] border border-zinc-200">
                 <button
                   type="button"
@@ -267,8 +307,7 @@ export default function SelectedCandidatesPage() {
                 <button
                   type="button"
                   onClick={() => setView('kanban')}
-                  className={`flex items-center gap-1.5 border-l border-zinc-200 px-2.5 py-1 text-[10.5px] font-semibold ${view === 'kanban' ? 'bg-indigo-50 text-indigo-600' : 'bg-white text-zinc-500'}`}
-                >
+                  className={`flex items-center gap-1.5 border-l border-zinc-200 px-2.5 py-1 text-[10.5px] font-semibold ${view === 'kanban' ? 'bg-indigo-50 text-indigo-600' : 'bg-white text-zinc-500'}`}>
                   <LayoutGrid size={12} /> Kanban View
                 </button>
               </div>
@@ -306,9 +345,9 @@ export default function SelectedCandidatesPage() {
                 <tbody className="divide-y divide-zinc-50">
                   {isLoading ? (
                     <tr><td colSpan={9} className="py-10 text-center"><Loader2 className="inline animate-spin text-indigo-600" /></td></tr>
-                  ) : candidates.length === 0 ? (
+                  ) : filteredCandidates.length === 0 ? (
                     <tr><td colSpan={9} className="py-10 text-center text-[12px] text-zinc-500">No candidates found</td></tr>
-                  ) : candidates.map((c: any) => (
+                  ) : filteredCandidates.map((c: any) => (
                     <tr key={c.id} onClick={() => setActiveId(c.id)} className={`cursor-pointer transition-colors ${c.id === activeId ? 'bg-indigo-50/40' : 'hover:bg-zinc-50/60'}`}>
                       <td className="py-1.5 pl-3">
                         <input
@@ -391,8 +430,7 @@ export default function SelectedCandidatesPage() {
                   <button
                     key={p}
                     type="button"
-                    className={`grid h-7 w-7 place-items-center rounded-[2px] text-[11px] font-semibold ${p === 1 ? 'bg-indigo-600 text-white' : 'text-zinc-600 hover:bg-zinc-50'}`}
-                  >
+                    className={`grid h-7 w-7 place-items-center rounded-[2px] text-[11px] font-semibold ${p === 1 ? 'bg-indigo-600 text-white' : 'text-zinc-600 hover:bg-zinc-50'}`}>
                     {p}
                   </button>
                 ))}
@@ -405,8 +443,7 @@ export default function SelectedCandidatesPage() {
           <div className="space-y-2">
             <Card
               title="Advanced Filters"
-              action={<button type="button" className="text-[10px] font-semibold text-indigo-600 hover:text-indigo-700">Clear All</button>}
-            >
+              action={<button type="button" className="text-[10px] font-semibold text-indigo-600 hover:text-indigo-700">Clear All</button>}>
               <div className="space-y-0.5">
                 <label className="block"><span className={labelCls}>Job Opening</span><div><SelectBox placeholder="Select Job" /></div></label>
                 <label className="block"><span className={labelCls}>Department</span><div className="relative">

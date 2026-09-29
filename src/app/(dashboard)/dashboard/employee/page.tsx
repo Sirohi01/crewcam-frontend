@@ -3,16 +3,9 @@
 
 import React, { useState } from 'react';
 import { Bar, BarChart, Cell, ResponsiveContainer } from 'recharts';
-import {
-  Fingerprint, CalendarClock, Star, Award, Users, ChevronDown, Calendar,
-  Download, ArrowRight, CheckCircle2, Circle, Megaphone, FileCheck2,
-  ShieldCheck, CalendarCheck, Receipt, FileText, ClipboardList, FileEdit,
-  BookOpen, Headset, IdCard, Landmark, GraduationCap, Wallet, Clock3,
-} from 'lucide-react';
+import { Fingerprint, CalendarClock, Star, Award, Users, ChevronDown, Calendar, Download, ArrowRight, CheckCircle2, Circle, Megaphone, FileCheck2, ShieldCheck, CalendarCheck, Receipt, FileText, ClipboardList, FileEdit, BookOpen, Headset, IdCard, Landmark, GraduationCap, Wallet, Clock3, } from 'lucide-react';
 
-// ─────────────────────────────────────────────────────────────────────────
 // Mock data
-// ─────────────────────────────────────────────────────────────────────────
 
 const employee = {
   name: 'Rohan Kumar',
@@ -27,11 +20,11 @@ const employee = {
 
 // day → status, for the 31-day attendance bar chart
 const dayStatus = [
-  'present','late','present','present','late','present','present',
-  'present','late','half','present','present','present','present',
-  'present','present','present','present','absent','present','present',
-  'late','present','present','present','present','present','present',
-  'present','present','present',
+  'present', 'late', 'present', 'present', 'late', 'present', 'present',
+  'present', 'late', 'half', 'present', 'present', 'present', 'present',
+  'present', 'present', 'present', 'present', 'absent', 'present', 'present',
+  'late', 'present', 'present', 'present', 'present', 'present', 'present',
+  'present', 'present', 'present',
 ];
 const STATUS_COLOR: Record<string, string> = {
   present: '#22c55e',
@@ -100,9 +93,7 @@ const requests = [
   { icon: Clock3, label: 'Attendance Regularization', status: 'Pending', style: 'bg-amber-50 text-amber-600' },
 ];
 
-// ─────────────────────────────────────────────────────────────────────────
 // Shared card shell — flex column, footer (if any) always pinned to bottom
-// ─────────────────────────────────────────────────────────────────────────
 
 interface CardProps {
   title?: string;
@@ -144,8 +135,7 @@ function LinkText({ children, colorClass = 'text-blue-600 hover:text-blue-700' }
   );
 }
 
-// Footer used by the top-row stat cards: a hairline divider followed by a
-// theme-tinted link, always pinned to the bottom of the card.
+// Footer used by the top-row stat cards: a hairline divider followed by a theme-tinted link, always pinned to the bottom of the card.
 function CardFooterLink({ children, colorClass, dividerClass = 'border-zinc-100' }: { children: React.ReactNode; colorClass?: string; dividerClass?: string }) {
   return (
     <div className={`mt-2 border-t pt-2 ${dividerClass}`}>
@@ -154,10 +144,7 @@ function CardFooterLink({ children, colorClass, dividerClass = 'border-zinc-100'
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────
 // Row 1 — five stat/action cards
-// ─────────────────────────────────────────────────────────────────────────
-
 function AttendanceTodayCard() {
   const [checkedOut, setCheckedOut] = useState(false);
   return (
@@ -269,10 +256,7 @@ function TeamCard() {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────
 // Row 2 — attendance summary / leave / payslip / important links
-// ─────────────────────────────────────────────────────────────────────────
-
 function AttendanceSummaryCard() {
   return (
     <Card
@@ -415,9 +399,7 @@ function ImportantLinksCard() {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────
 // Row 3 — goals / tasks / announcements / upcoming events
-// ─────────────────────────────────────────────────────────────────────────
 
 function GoalsCard() {
   const overall = 75;
@@ -528,11 +510,7 @@ function UpcomingEventsCard() {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// Row 4 — profile / documents / requests / quick help
-// Kept compact and single-viewport-tall, matching the reference image
-// ─────────────────────────────────────────────────────────────────────────
-
+// Row 4 — profile / documents / requests / quick help Kept compact and single-viewport-tall, matching the reference image
 function ProfileSummaryCard() {
   const details = [
     { label: 'Employee ID', value: employee.employeeId },
@@ -542,7 +520,7 @@ function ProfileSummaryCard() {
     { label: 'Reporting Manager', value: employee.reportingManager },
     { label: 'Work Location', value: employee.workLocation },
   ];
- return (
+  return (
     <Card title="My Profile Summary" footer={<LinkText>View Full Profile</LinkText>}>
       <div className="flex items-start gap-3">
         <img src={employee.avatar} alt={employee.name} className="h-11 w-11 shrink-0 rounded-full object-cover" />
@@ -615,57 +593,54 @@ function QuickHelpCard() {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────
+
 // Page
-// ─────────────────────────────────────────────────────────────────────────
 
 export default function EmployeeDashboard() {
   return (
     <main className="mx-auto max-w-[1600px] space-y-2 pb-4 px-2 sm:px-3">
-        {/* Header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-[18px] font-bold text-zinc-900">Good Morning, Rohan! 👋</h1>
-            <p className="text-[11px] text-zinc-400">Have a great day at work.</p>
-          </div>
-          <p className="mt-1 text-[11px] text-zinc-500">Wednesday, 21 May 2025</p>
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-[18px] font-bold text-zinc-900">Good Morning, Rohan! 👋</h1>
+          <p className="text-[11px] text-zinc-400">Have a great day at work.</p>
         </div>
+        <p className="mt-1 text-[11px] text-zinc-500">Wednesday, 21 May 2025</p>
+      </div>
 
-        {/* Row 1 */}
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-5 xl:items-stretch">
-          <AttendanceTodayCard />
-          <LeaveBalanceCard />
-          <PerformanceCard />
-          <AppraisalCard />
-          <TeamCard />
-        </div>
+      {/* Row 1 */}
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-5 xl:items-stretch">
+        <AttendanceTodayCard />
+        <LeaveBalanceCard />
+        <PerformanceCard />
+        <AppraisalCard />
+        <TeamCard />
+      </div>
 
-        {/* Row 2 — Attendance Summary widened to fit micro-cards + full chart,
-           remaining cards trimmed proportionally to balance the row */}
-        <div className="grid grid-cols-1 gap-2 xl:grid-cols-[1.7fr_0.85fr_0.85fr_0.9fr] xl:items-stretch">
-          <AttendanceSummaryCard />
-          <MyLeaveCard />
-          <PayslipCard />
-          <ImportantLinksCard />
-        </div>
+      {/* Row 2 — Attendance Summary widened to fit micro-cards + full chart, remaining cards trimmed proportionally to balance the row */}
+      <div className="grid grid-cols-1 gap-2 xl:grid-cols-[1.7fr_0.85fr_0.85fr_0.9fr] xl:items-stretch">
+        <AttendanceSummaryCard />
+        <MyLeaveCard />
+        <PayslipCard />
+        <ImportantLinksCard />
+      </div>
 
-        {/* Row 3 */}
-        <div className="grid grid-cols-1 gap-2 xl:grid-cols-4 xl:items-stretch">
-          <GoalsCard />
-          <TasksCard />
-          <AnnouncementsCard />
-          <UpcomingEventsCard />
-        </div>
+      {/* Row 3 */}
+      <div className="grid grid-cols-1 gap-2 xl:grid-cols-4 xl:items-stretch">
+        <GoalsCard />
+        <TasksCard />
+        <AnnouncementsCard />
+        <UpcomingEventsCard />
+      </div>
 
-        {/* Row 4 — Profile Summary widened for the 3-column detail grid,
-           remaining cards trimmed proportionally to balance the row */}
-        <div className="grid grid-cols-1 gap-2 xl:grid-cols-[1.4fr_0.85fr_0.85fr_0.85fr] xl:items-stretch">
-          <ProfileSummaryCard />
-          <DocumentsCard />
-          <RequestsCard />
-          <QuickHelpCard />
-        </div>
+      {/* Row 4 — Profile Summary widened for the 3-column detail grid, remaining cards trimmed proportionally to balance the row */}
+      <div className="grid grid-cols-1 gap-2 xl:grid-cols-[1.4fr_0.85fr_0.85fr_0.85fr] xl:items-stretch">
+        <ProfileSummaryCard />
+        <DocumentsCard />
+        <RequestsCard />
+        <QuickHelpCard />
+      </div>
 
-      </main>
+    </main>
   );
 }

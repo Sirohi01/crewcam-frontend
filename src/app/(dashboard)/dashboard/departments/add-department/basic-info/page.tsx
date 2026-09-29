@@ -6,11 +6,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { useDepartmentForm } from '@/context/DepartmentFormContext';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
-import {
-    Building2, ChevronRight, User, Calendar, Users, CheckCircle2,
-    HelpCircle, Eye, MapPin, Building, Briefcase, UserCheck, ChevronDown,
-    X, Save, ArrowRight
-} from 'lucide-react';
+import { Building2, User, Calendar, Users, CheckCircle2, HelpCircle, Eye, MapPin, Building, Briefcase, UserCheck, ChevronDown, Save, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 
@@ -42,7 +38,7 @@ function SelectField({ title, required, options, helpText, value, onChange }: { 
     return (
         <Field title={title} required={required} helpText={helpText}>
             <div className="relative">
-                <select className={selectCls} value={value} onChange={onChange || (() => {})}>
+                <select className={selectCls} value={value} onChange={onChange || (() => { })}>
                     <option value="" disabled>Select {title}</option>
                     {options.map((o) => <option key={o} value={o}>{o}</option>)}
                 </select>
@@ -153,7 +149,7 @@ export default function BasicInformation() {
                                     <input type="text" value={formData.name} onChange={e => updateFormData({ name: e.target.value })} className={inputCls} placeholder="e.g. Design Studio" />
                                 </Field>
                                 <Field title="Department Code" required helpText="Auto generated">
-                                    <input type="text" value={formData.code} onChange={e => updateFormData({ code: e.target.value })} className={inputCls} />
+                                    <input type="text" value={formData.code} onChange={e => updateFormData({ code: e.target.value })} className={inputCls} placeholder="e.g. DSGN" />
                                 </Field>
 
                                 <SelectField title="Parent Department" value={formData.branchId} onChange={e => updateFormData({ branchId: e.target.value })} options={['Business Operations', 'IT', 'HR']} helpText="Select parent department (if any)" />
@@ -161,9 +157,9 @@ export default function BasicInformation() {
 
                                 <Field title="Business Unit" required helpText="Select business unit">
                                     <div className="relative">
-                                        <select 
-                                            value={formData.businessUnit || ''} 
-                                            onChange={e => updateFormData({ businessUnit: e.target.value })} 
+                                        <select
+                                            value={formData.businessUnit || ''}
+                                            onChange={e => updateFormData({ businessUnit: e.target.value })}
                                             className={selectCls}
                                         >
                                             <option value="" disabled>Select Business Unit</option>
@@ -195,9 +191,9 @@ export default function BasicInformation() {
                             <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-3 mt-0.5">
                                 <Field title="Department Head (HOD)">
                                     <div className="relative">
-                                        <select 
-                                            value={formData.hodEmployeeId || ''} 
-                                            onChange={e => updateFormData({ hodEmployeeId: e.target.value })} 
+                                        <select
+                                            value={formData.hodEmployeeId || ''}
+                                            onChange={e => updateFormData({ hodEmployeeId: e.target.value })}
                                             className={selectCls}
                                         >
                                             <option value="" disabled>Select Department Head</option>
@@ -213,9 +209,9 @@ export default function BasicInformation() {
 
                                 <Field title="Reporting To" helpText="Select reporting manager">
                                     <div className="relative">
-                                        <select 
-                                            value={formData.reportingToId || ''} 
-                                            onChange={e => updateFormData({ reportingToId: e.target.value })} 
+                                        <select
+                                            value={formData.reportingToId || ''}
+                                            onChange={e => updateFormData({ reportingToId: e.target.value })}
                                             className={selectCls}
                                         >
                                             <option value="" disabled>Select Reporting To</option>
@@ -231,10 +227,7 @@ export default function BasicInformation() {
                                 </Field>
 
                                 <Field title="Effective Date" required helpText="From when this department will be active">
-                                    <div className="relative">
-                                        <input type="date" value={formData.effectiveDate} onChange={e => updateFormData({ effectiveDate: e.target.value })} className={`${inputCls} pr-8`} />
-                                        <Calendar size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
-                                    </div>
+                                    <input type="date" value={formData.effectiveDate} onChange={e => updateFormData({ effectiveDate: e.target.value })} className={inputCls} />
                                 </Field>
                             </div>
                         </Card>
@@ -247,6 +240,7 @@ export default function BasicInformation() {
                                         <textarea
                                             value={formData.description} onChange={e => updateFormData({ description: e.target.value })}
                                             className={`${inputCls} h-[70px] py-2 leading-relaxed`}
+                                            placeholder="e.g. Oversees all operations related to design and branding"
                                         />
                                         <div className="absolute bottom-1.5 left-2.5 text-[9px] text-zinc-400 font-medium">{formData.description.length} / 300</div>
                                     </div>
@@ -257,6 +251,7 @@ export default function BasicInformation() {
                                         <textarea
                                             value={formData.keyResponsibilities} onChange={e => updateFormData({ keyResponsibilities: e.target.value })}
                                             className={`${inputCls} h-[70px] py-2 leading-relaxed`}
+                                            placeholder="e.g. UI/UX Design, Branding, User Research"
                                         />
                                         <div className="absolute bottom-1.5 left-2.5 text-[9px] text-zinc-400 font-medium">{formData.keyResponsibilities.length} / 300</div>
                                     </div>
@@ -264,7 +259,7 @@ export default function BasicInformation() {
 
                                 <Field title="Employee Capacity" helpText="Maximum number of employees">
                                     <div className="relative w-full sm:w-1/2">
-                                        <input type="text" value={formData.employeeCapacity} onChange={e => updateFormData({ employeeCapacity: e.target.value })} className={`${inputCls} pr-8`} />
+                                        <input type="text" value={formData.employeeCapacity} onChange={e => updateFormData({ employeeCapacity: e.target.value })} className={`${inputCls} pr-8`} placeholder="e.g. 50" />
                                         <Users size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
                                     </div>
                                 </Field>

@@ -20,7 +20,7 @@ export default function ShiftTimingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -224,39 +224,39 @@ export default function ShiftTimingsPage() {
               <form id="shift-form" onSubmit={handleSave} className="grid grid-cols-2 gap-4">
                 <div className="space-y-1 col-span-2 md:col-span-1">
                   <label className="text-xs font-medium text-zinc-700">Shift Name *</label>
-                  <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g., General Shift" className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
+                  <input required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
                 </div>
                 <div className="space-y-1 col-span-2 md:col-span-1">
                   <label className="text-xs font-medium text-zinc-700">Shift Code</label>
-                  <input value={formData.code} onChange={(e) => setFormData({...formData, code: e.target.value})} placeholder="e.g., GS" className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
+                  <input value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
                 </div>
-                
+
                 <div className="space-y-1 col-span-2 md:col-span-1">
                   <label className="text-xs font-medium text-zinc-700">Check-In Time *</label>
-                  <input required type="time" value={formData.checkInTime} onChange={(e) => setFormData({...formData, checkInTime: e.target.value})} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
+                  <input required type="time" value={formData.checkInTime} onChange={(e) => setFormData({ ...formData, checkInTime: e.target.value })} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
                 </div>
                 <div className="space-y-1 col-span-2 md:col-span-1">
                   <label className="text-xs font-medium text-zinc-700">Check-Out Time *</label>
-                  <input required type="time" value={formData.checkOutTime} onChange={(e) => setFormData({...formData, checkOutTime: e.target.value})} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
+                  <input required type="time" value={formData.checkOutTime} onChange={(e) => setFormData({ ...formData, checkOutTime: e.target.value })} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
                 </div>
 
                 <div className="space-y-1 col-span-2 md:col-span-1">
                   <label className="text-xs font-medium text-zinc-700">Late Coming Grace (mins)</label>
-                  <input type="number" required min="0" value={formData.gracePeriodLC} onChange={(e) => setFormData({...formData, gracePeriodLC: Number(e.target.value)})} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
+                  <input type="number" required min="0" placeholder="15" value={formData.gracePeriodLC === 0 ? '' : formData.gracePeriodLC} onChange={(e) => setFormData({ ...formData, gracePeriodLC: Number(e.target.value) })} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                 </div>
                 <div className="space-y-1 col-span-2 md:col-span-1">
                   <label className="text-xs font-medium text-zinc-700">Early Going Grace (mins)</label>
-                  <input type="number" required min="0" value={formData.gracePeriodEG} onChange={(e) => setFormData({...formData, gracePeriodEG: Number(e.target.value)})} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
+                  <input type="number" required min="0" placeholder="15" value={formData.gracePeriodEG === 0 ? '' : formData.gracePeriodEG} onChange={(e) => setFormData({ ...formData, gracePeriodEG: Number(e.target.value) })} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                 </div>
 
                 <div className="space-y-1 col-span-2 md:col-span-1">
                   <label className="text-xs font-medium text-zinc-700">MHD Threshold (hours)</label>
-                  <input type="number" required min="0" step="0.5" value={formData.halfDayThresholdMHD} onChange={(e) => setFormData({...formData, halfDayThresholdMHD: Number(e.target.value)})} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
+                  <input type="number" required min="0" step="0.5" placeholder="4" value={formData.halfDayThresholdMHD === 0 ? '' : formData.halfDayThresholdMHD} onChange={(e) => setFormData({ ...formData, halfDayThresholdMHD: Number(e.target.value) })} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                   <p className="text-[10px] text-zinc-500">Minimum work hours to avoid Half Day</p>
                 </div>
                 <div className="space-y-1 col-span-2 md:col-span-1">
                   <label className="text-xs font-medium text-zinc-700">Absent Threshold Time</label>
-                  <input type="time" required value={formData.absentThreshold} onChange={(e) => setFormData({...formData, absentThreshold: e.target.value})} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
+                  <input type="time" required value={formData.absentThreshold} onChange={(e) => setFormData({ ...formData, absentThreshold: e.target.value })} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
                   <p className="text-[10px] text-zinc-500">Check-in past this time marks Absent</p>
                 </div>
 
@@ -273,21 +273,21 @@ export default function ShiftTimingsPage() {
 
                 <div className="space-y-1 col-span-2 md:col-span-1">
                   <label className="text-xs font-medium text-zinc-700">Week-Off Pay Multiplier</label>
-                  <input type="number" required min="1" step="0.1" value={formData.workOnWeekOffMultiplier} onChange={(e) => setFormData({...formData, workOnWeekOffMultiplier: Number(e.target.value)})} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
+                  <input type="number" required min="1" step="0.1" placeholder="2" value={formData.workOnWeekOffMultiplier === 0 ? '' : formData.workOnWeekOffMultiplier} onChange={(e) => setFormData({ ...formData, workOnWeekOffMultiplier: Number(e.target.value) })} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                 </div>
                 <div className="space-y-1 col-span-2 md:col-span-1">
                   <label className="text-xs font-medium text-zinc-700">Holiday Pay Multiplier</label>
-                  <input type="number" required min="1" step="0.1" value={formData.workOnHolidayMultiplier} onChange={(e) => setFormData({...formData, workOnHolidayMultiplier: Number(e.target.value)})} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm" />
+                  <input type="number" required min="1" step="0.1" placeholder="2" value={formData.workOnHolidayMultiplier === 0 ? '' : formData.workOnHolidayMultiplier} onChange={(e) => setFormData({ ...formData, workOnHolidayMultiplier: Number(e.target.value) })} className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                 </div>
 
                 <div className="space-y-1 col-span-2 flex items-center gap-2 mt-2">
-                  <input type="checkbox" id="sandwichRule" checked={formData.isSandwichRuleApplicable} onChange={(e) => setFormData({...formData, isSandwichRuleApplicable: e.target.checked})} className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" />
+                  <input type="checkbox" id="sandwichRule" checked={formData.isSandwichRuleApplicable} onChange={(e) => setFormData({ ...formData, isSandwichRuleApplicable: e.target.checked })} className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600" />
                   <label htmlFor="sandwichRule" className="text-sm font-medium text-zinc-700 cursor-pointer">Enable Sandwich Rule</label>
                 </div>
 
                 <div className="space-y-1 col-span-2">
                   <label className="text-xs font-medium text-zinc-700">Description</label>
-                  <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} placeholder="Enter additional details or rules..." className="w-full rounded-md border border-zinc-200 p-3 text-sm min-h-[60px]" />
+                  <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full rounded-md border border-zinc-200 p-3 text-sm min-h-[60px]" />
                 </div>
               </form>
             </div>

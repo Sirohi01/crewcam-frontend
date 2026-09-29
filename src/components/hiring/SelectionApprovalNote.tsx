@@ -76,23 +76,29 @@ export default function SelectionApprovalNote({ candidateId }: { candidateId: st
   const { data: pipeline } = useQuery<any>({ queryKey: ['candidate-pipeline', candidateId], queryFn: async () => (await api.get(`/hiring/candidates/${candidateId}/pipeline`)).data });
   const { data: employees = [] } = useQuery<any[]>({ queryKey: ['employees-picker'], queryFn: async () => (await api.get('/employees')).data.data || [] });
   
-  const { data: savedApprovals = [] } = useQuery<any[]>({ 
+  const { data: savedApprovalsData } = useQuery<any[]>({ 
     queryKey: ['selection-approval', candidateId], 
     queryFn: async () => { 
       const response = await api.get('/hiring/selection-approval', { params: { candidateId } }); 
       return Array.isArray(response.data) ? response.data : (response.data.data || []); 
     } 
   });
+  const savedApprovals = savedApprovalsData || [];
 
-  const { data: evaluations = [] } = useQuery<any[]>({ 
+  const { data: evaluationsData } = useQuery<any[]>({ 
     queryKey: ['evaluation', candidateId], 
     queryFn: async () => { 
       const response = await api.get('/hiring/evaluation', { params: { candidateId } }); 
       return Array.isArray(response.data) ? response.data : (response.data.data || []); 
     } 
   });
+  const evaluations = evaluationsData || [];
+
+  const [formInitialized, setFormInitialized] = useState(false);
 
   useEffect(() => {
+    if (formInitialized) return;
+    
     const saved = savedApprovals[0];
     if (saved) {
       setForm(current => ({
@@ -122,6 +128,7 @@ export default function SelectionApprovalNote({ candidateId }: { candidateId: st
         managementName: saved.managementName || current.managementName,
         managementDecision: saved.managementDecision || current.managementDecision
       }));
+      setFormInitialized(true);
       return;
     }
 
@@ -140,8 +147,9 @@ export default function SelectionApprovalNote({ candidateId }: { candidateId: st
         hrManagerName: evalData.hrName || current.hrManagerName,
         deptHeadName: evalData.hodName || current.deptHeadName
       }));
+      setFormInitialized(true);
     }
-  }, [savedApprovals, evaluations]);
+  }, [savedApprovals, evaluations, formInitialized]);
 
   const gate = pipeline?.steps?.find((step: any) => step.key === 'selectionApproval')?.gate || { unlocked: false, blockedBy: ['evaluation'] };
 
