@@ -306,10 +306,10 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
                   </div>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <Field title="Job Description Summary" required hint="0 / 1500" error={errors.jobDescriptionSummary}>
-                      <textarea className={`${textAreaCls} h-20`} placeholder="e.g. Briefly describe the role and its primary objectives..." placeholder="e.g., Lead the design and development of scalable web applications..." {...register('jobDescriptionSummary', { required: true })} />
+                      <textarea className={`${textAreaCls} h-20`} placeholder="e.g., Lead the design and development of scalable web applications..." {...register('jobDescriptionSummary', { required: true })} />
                     </Field>
                     <Field title="Detailed Justification" hint="0 / 1500" error={errors.detailedJustification}>
-                      <textarea className={`${textAreaCls} h-20`} placeholder="e.g. This role is needed to handle the increased workload in..." placeholder="e.g., Due to the upcoming launch of our new product line, we require additional engineering capacity." {...register('detailedJustification')} />
+                      <textarea className={`${textAreaCls} h-20`} placeholder="e.g., Due to the upcoming launch of our new product line, we require additional engineering capacity." {...register('detailedJustification')} />
                     </Field>
                   </div>
                 </div>
