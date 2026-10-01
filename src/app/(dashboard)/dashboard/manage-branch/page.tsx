@@ -12,99 +12,9 @@ import api from '@/lib/axios';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 
 // ---- DUMMY / MOCK DATA (used as fallback when the API is unavailable) ----
-const MOCK_BRANCHES = [
-    {
-        _id: 'br1',
-        name: 'Head Office – Noida',
-        code: 'BR001',
-        isRegisteredOffice: true,
-        businessUnit: { name: 'Projects' },
-        head: { firstName: 'Amit', lastName: 'Verma', designation: 'Head – Projects', avatarUrl: 'https://i.pravatar.cc/150?u=br1' },
-        city: 'Noida',
-        state: 'Uttar Pradesh',
-        totalEmployees: 124,
-        totalDepartments: 5,
-        activePositions: 12,
-        status: 'Active',
-    },
-    {
-        _id: 'br2',
-        name: 'Bengaluru Branch',
-        code: 'BR002',
-        isRegisteredOffice: false,
-        businessUnit: { name: 'Design & Build' },
-        head: { firstName: 'Rahul', lastName: 'Nair', designation: 'Branch Manager', avatarUrl: 'https://i.pravatar.cc/150?u=br2' },
-        city: 'Bengaluru',
-        state: 'Karnataka',
-        totalEmployees: 68,
-        totalDepartments: 4,
-        activePositions: 8,
-        status: 'Active',
-    },
-    {
-        _id: 'br3',
-        name: 'Mumbai Branch',
-        code: 'BR003',
-        isRegisteredOffice: false,
-        businessUnit: { name: 'Interior Solutions' },
-        head: { firstName: 'Neha', lastName: 'Joshi', designation: 'Branch Manager', avatarUrl: 'https://i.pravatar.cc/150?u=br3' },
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        totalEmployees: 56,
-        totalDepartments: 3,
-        activePositions: 6,
-        status: 'Active',
-    },
-    {
-        _id: 'br4',
-        name: 'Delhi Branch',
-        code: 'BR004',
-        isRegisteredOffice: false,
-        businessUnit: { name: 'Projects' },
-        head: { firstName: 'Sandeep', lastName: 'Singh', designation: 'Branch Manager', avatarUrl: 'https://i.pravatar.cc/150?u=br4' },
-        city: 'New Delhi',
-        state: 'Delhi',
-        totalEmployees: 44,
-        totalDepartments: 3,
-        activePositions: 5,
-        status: 'Active',
-    },
-    {
-        _id: 'br5',
-        name: 'Hyderabad Branch',
-        code: 'BR005',
-        isRegisteredOffice: false,
-        businessUnit: { name: 'Retail Solutions' },
-        head: { firstName: 'Karthik', lastName: 'Reddy', designation: 'Branch Manager', avatarUrl: 'https://i.pravatar.cc/150?u=br5' },
-        city: 'Hyderabad',
-        state: 'Telangana',
-        totalEmployees: 22,
-        totalDepartments: 2,
-        activePositions: 3,
-        status: 'Active',
-    },
-    {
-        _id: 'br6',
-        name: 'Pune Branch',
-        code: 'BR006',
-        isRegisteredOffice: false,
-        businessUnit: { name: 'Design & Build' },
-        head: { firstName: 'Priya', lastName: 'Patil', designation: 'Branch Manager', avatarUrl: 'https://i.pravatar.cc/150?u=br6' },
-        city: 'Pune',
-        state: 'Maharashtra',
-        totalEmployees: 10,
-        totalDepartments: 1,
-        activePositions: 8,
-        status: 'Inactive',
-    },
-];
+/* MOCK_BRANCHES commented out */
 
-const MOCK_BUSINESS_UNITS = [
-    { _id: 'bu1', name: 'Projects' },
-    { _id: 'bu2', name: 'Design & Build' },
-    { _id: 'bu3', name: 'Interior Solutions' },
-    { _id: 'bu4', name: 'Retail Solutions' },
-];
+/* MOCK_BUSINESS_UNITS commented out */
 // ---------------------------------------------------------------------------
 
 export default function ManageBranchPage() {
@@ -139,13 +49,12 @@ export default function ManageBranchPage() {
         const fetchBranches = async () => {
             try {
                 const response = await api.get('/branches');
-                const data = response.data.data || [];
-                // Fallback to dummy data if API returns nothing (e.g. during development/preview)
-                setBranchesData(data.length > 0 ? data : MOCK_BRANCHES);
+                const data = response.data?.data || response.data || [];
+                setBranchesData(data);
             } catch (error) {
                 console.error('Error fetching branches:', error);
-                toast.error('Failed to load branches, showing sample data');
-                setBranchesData(MOCK_BRANCHES);
+                toast.error('Failed to load branches');
+                setBranchesData([]);
             } finally {
                 setIsLoading(false);
             }
@@ -153,11 +62,11 @@ export default function ManageBranchPage() {
         const fetchBusinessUnits = async () => {
             try {
                 const response = await api.get('/business-units');
-                const data = response.data.data || [];
-                setBusinessUnitsData(data.length > 0 ? data : MOCK_BUSINESS_UNITS);
+                const data = response.data?.data || response.data || [];
+                setBusinessUnitsData(data);
             } catch (error) {
                 console.error('Error fetching business units:', error);
-                setBusinessUnitsData(MOCK_BUSINESS_UNITS);
+                setBusinessUnitsData([]);
             }
         };
         fetchBranches();

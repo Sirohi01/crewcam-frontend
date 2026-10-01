@@ -24,6 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import api from '@/lib/axios';
 import EmployeeDashboard from './employee/page';
 import RecruiterDashboard from './hr-dashboard/page';
+import { useAuthStore } from '@/store/authStore';
 
 interface DashboardConfig { category: string; effectivePermissions: string[]; widgets: string[]; }
 
@@ -318,6 +319,8 @@ function WelcomeHeader({ category }: { category?: string }) {
   const [showCustomize, setShowCustomize] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const customizeRef = useRef<HTMLDivElement>(null);
+  const user = useAuthStore((state) => state.user);
+
 
   // live clock, updates every second
   useEffect(() => {
@@ -363,7 +366,7 @@ function WelcomeHeader({ category }: { category?: string }) {
   return (
     <section className="flex flex-wrap items-center justify-between gap-3 py-3">
       <div className="min-w-0">
-        <h1 className="text-md font-bold text-zinc-900 leading-tight">Welcome back, Vikram Singh 👋</h1>
+        <h1 className="text-md font-bold text-zinc-900 leading-tight">Welcome back, {user?.firstName || 'User'} {user?.lastName || ''} 👋</h1>
         <p className="text-[13px] text-zinc-600 mt-1">Here&apos;s what&apos;s happening in your team today.</p>
       </div>
 

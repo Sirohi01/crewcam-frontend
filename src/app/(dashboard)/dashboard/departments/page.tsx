@@ -9,6 +9,7 @@ import { Breadcrumb } from '@/components/ui/breadCrumb';
 import BulkUploadModal, { ColumnConfig } from '@/components/upload/bulkUploadModal';
 import { FormInput } from '@/components/ui/form-input';
 
+/* topCards dummy data commented out
 const topCards = [
     { title: 'TOTAL DEPARTMENTS', value: '10', subtitle: 'All departments', color: '#3b82f6', isChart: true, linkText: 'View all' },
     { title: 'ACTIVE DEPARTMENTS', value: '10', subtitle: '100% of total', color: '#10b981', isChart: true, linkText: 'View all' },
@@ -17,6 +18,7 @@ const topCards = [
     { title: 'TOTAL BUDGET (FY 2025-26)', value: '₹ 15.45 Cr', subtitle: 'Allocated budget', color: '#f97316', isChart: true, linkText: 'View details' },
     { title: 'AVG. UTILIZATION', value: '72%', subtitle: 'Budget utilization', color: '#10b981', isPie: true, linkText: 'View details' },
 ];
+*/
 
 const mockChartData = [{ v: 10 }, { v: 25 }, { v: 20 }, { v: 45 }, { v: 30 }, { v: 50 }, { v: 40 }];
 
@@ -124,6 +126,15 @@ export default function DepartmentsPage() {
     const [loading, setLoading] = useState(true);
     const [showImportModal, setShowImportModal] = useState(false);
 
+    const dynamicCards = [
+        { title: 'TOTAL DEPARTMENTS', value: departments.length.toString(), subtitle: 'All departments', color: '#3b82f6', isChart: true, linkText: 'View all' },
+        { title: 'ACTIVE DEPARTMENTS', value: departments.filter(d => d.isActive !== false).length.toString(), subtitle: 'Active status', color: '#10b981', isChart: true, linkText: 'View all' },
+        { title: 'DEPARTMENT HEADS', value: departments.filter(d => !!d.hodEmployeeId).length.toString(), subtitle: 'With assigned head', color: '#8b5cf6', isChart: true, linkText: 'View all' },
+        { title: 'TOTAL EMPLOYEES', value: departments.reduce((acc, d) => acc + (parseInt(d.employeeCapacity) || d.empTotal || 0), 0).toString(), subtitle: 'Across all departments', color: '#3b82f6', isChart: true, linkText: 'View all' },
+        { title: 'TOTAL BUDGET (FY 2025-26)', value: `₹ ${departments.reduce((acc, d) => acc + (parseFloat((d.budgetStr || '').replace(/[^0-9.]/g, '')) || 0), 0).toFixed(2)} Cr`, subtitle: 'Allocated budget', color: '#f97316', isChart: true, linkText: 'View details' },
+        { title: 'AVG. UTILIZATION', value: departments.length ? `${Math.round(departments.reduce((acc, d) => acc + (d.util || 0), 0) / departments.length)}%` : '0%', subtitle: 'Budget utilization', color: '#10b981', isPie: true, linkText: 'View details' },
+    ];
+
     useEffect(() => {
         fetchDepartments();
     }, []);
@@ -225,7 +236,7 @@ export default function DepartmentsPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 mb-1">
-                {topCards.map((card, idx) => (
+                {dynamicCards.map((card, idx) => (
                     <Card key={idx} className="p-2.5 flex flex-col justify-between bg-white border border-slate-200 shadow-sm rounded-lg min-h-[110px]">
                         <div className="flex items-start gap-2 mb-2">
                             {card.isPie ? (

@@ -221,7 +221,7 @@ export default function AddNewBranch() {
     }
     setSaving(true);
     try {
-      await api.post("/companies/branches", {
+      const payload = {
         name: form.name,
         code: form.code,
         location: form.location,
@@ -243,8 +243,23 @@ export default function AddNewBranch() {
         lat: form.lat,
         lng: form.lng,
         isActive: form.isActive === "Active",
-      });
-      toast.success("Branch created successfully");
+      };
+
+      if (editId) {
+        try {
+          await api.put(`/companies/branches/${editId}`, payload);
+        } catch {
+          await api.put(`/branches/${editId}`, payload);
+        }
+        toast.success("Branch updated successfully");
+      } else {
+        try {
+          await api.post("/companies/branches", payload);
+        } catch {
+          await api.post("/branches", payload);
+        }
+        toast.success("Branch created successfully");
+      }
       router.push("/dashboard/branches");
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to save branch");
@@ -258,13 +273,13 @@ export default function AddNewBranch() {
       <div className="flex justify-between">
 
         <PageHeader
-          title="Add New Branch"
-          description="Create a new branch for your organization."
+          title={editId ? "Edit Branch" : "Add New Branch"}
+          description={editId ? "Edit details for this branch." : "Create a new branch for your organization."}
           icon={<Building2 size={16} />}
           breadcrumbs={[
             { label: "Dashboard", href: "/dashboard" },
             { label: "Branches", href: "/dashboard/branches" },
-            { label: "Add New Branch" },
+            { label: editId ? "Edit Branch" : "Add New Branch" },
           ]}
         />
         <div className="flex items-center justify-end gap-2">
@@ -278,7 +293,7 @@ export default function AddNewBranch() {
           </Button>
           <Button type="submit" form="add-branch-form" disabled={saving} className="bg-indigo-600 hover:bg-indigo-700 text-white">
             <Save className="h-4 w-4 mr-1.5" />
-            {saving ? "Saving..." : "Save Branch"}
+            {saving ? "Saving..." : (editId ? "Update Branch" : "Save Branch")}
           </Button>
         </div>
       </div>

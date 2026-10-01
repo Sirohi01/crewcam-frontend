@@ -280,12 +280,11 @@ export default function ManageBranchPage() {
                     response = await api.get('/branches');
                 }
                 const data = response.data?.data || response.data || [];
-                // Fallback to dummy data if API returns nothing (e.g. during development/preview)
-                setBranchesData(data.length > 0 ? data : MOCK_BRANCHES);
+                setBranchesData(data);
             } catch (error) {
                 console.error('Error fetching branches:', error);
-                toast.error('Failed to load branches, showing sample data');
-                setBranchesData(MOCK_BRANCHES);
+                toast.error('Failed to load branches');
+                setBranchesData([]);
             } finally {
                 setIsLoading(false);
             }
@@ -304,10 +303,10 @@ export default function ManageBranchPage() {
                     }
                 }
                 const data = response.data?.data || response.data || [];
-                setBusinessUnitsData(data.length > 0 ? data : MOCK_BUSINESS_UNITS);
+                setBusinessUnitsData(data);
             } catch (error) {
                 console.error('Error fetching business units:', error);
-                setBusinessUnitsData(MOCK_BUSINESS_UNITS);
+                setBusinessUnitsData([]);
             }
         };
         fetchBranches();
@@ -652,7 +651,7 @@ export default function ManageBranchPage() {
                                                 <Eye className="w-3.5 h-3.5" />
                                             </button>
                                             <button
-                                                onClick={() => openEdit(b)}
+                                                onClick={() => router.push(`/dashboard/branches/add-new-branch?edit=${b.id}`)}
                                                 className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-indigo-50 hover:text-indigo-600 border border-zinc-200 hover:border-indigo-200 rounded-md transition-colors"
                                                 title="Edit"
                                             >

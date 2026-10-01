@@ -123,7 +123,26 @@ export default function DynamicSidebar() {
       return [...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
     }
 
-    let merged = [...STATIC_PEOPLE_ITEMS, ...items];
+    const EXCLUDED_LABELS = new Set([
+      'Interview Process',
+      'Interview Round - 1',
+      'Interview Round - 2',
+      'Interview Round - 3',
+      'Interview Round - 4',
+      'Interview Round - 5',
+      'Review and Edit',
+      'Submit Application',
+      'AI Screening Evaluation',
+      'HOD Evaluation',
+      'Application Submitted',
+      'Interview Section',
+      'Level 1-Walk-In Round',
+      'Level 1-Telephonic Round',
+      'Level 2-HR and HOD Round',
+      'Level 3-HR Final Round'
+    ]);
+    const filteredItems = items.filter(item => !EXCLUDED_LABELS.has(item.label));
+    let merged = [...STATIC_PEOPLE_ITEMS, ...filteredItems];
 
     const hasRecruitment = items.some(item =>
       ['Hiring Process', 'Requirement', 'Recruitment'].includes(item.section)
