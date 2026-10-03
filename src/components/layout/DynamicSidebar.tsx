@@ -199,6 +199,7 @@ export default function DynamicSidebar() {
   const SECTION_ORDER = [
     'Workspace',
     'Company Setup',
+    'Organization Setup',
     'Employee Master',
     'Hiring Process',
     'Accounts Department',

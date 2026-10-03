@@ -93,19 +93,24 @@ export default function AddDepartmentDescriptionSettings() {
         navigate.push('/dashboard/departments/add-department/review-department-details');
     };
 
+    const handleSaveDraft = () => {
+        localStorage.setItem('departmentFormDraft', JSON.stringify(formData));
+        toast.success('Draft saved successfully!');
+    };
+
     return (
         <div className="w-full bg-[#f8f9fc] flex flex-col font-sans min-h-screen">
             <div className="w-full mx-auto p-2 sm:p-2 md:p-2 lg:p-2">
 
                 {/* Header */}
                 <PageHeader
-                    title="Add Department"
-                    description="Create a new department to organize your teams and streamline operations."
+                    title={formData._id ? "Edit Department" : "Add Department"}
+                    description={formData._id ? "Update the details of your existing department." : "Create a new department to organize your teams and streamline operations."}
                     icon={<Building2 size={20} />}
                     breadcrumbs={[
                         { label: 'Organization Setup', href: '/dashboard' },
                         { label: 'Departments', href: '/dashboard/departments' },
-                        { label: 'Add Department' }
+                        { label: formData._id ? 'Edit Department' : 'Add Department' }
                     ]}
                 />
 
@@ -221,7 +226,7 @@ export default function AddDepartmentDescriptionSettings() {
                     <div className="space-y-2">
 
                         {/* Preview Card */}
-                        <Card title={<><Eye size={14} className="text-indigo-600 mr-2" /> Department Preview</>}>
+                        <Card title={<><Eye size={14} className="text-indigo-600 mr-2" /> {formData._id ? 'Edit Preview' : 'Department Preview'}</>}>
                             <div className="flex items-start gap-3 mt-2 mb-4">
                                 <div className="w-12 h-12 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-lg font-bold shrink-0 shadow-md shadow-indigo-600/20">
                                     {formData.code || 'DS'}
@@ -242,44 +247,26 @@ export default function AddDepartmentDescriptionSettings() {
                             <div className="space-y-4 border-t border-zinc-100 pt-4">
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
                                     <div className="text-zinc-400 mt-0.5"><Building size={14} /></div>
-                                    <div className="text-zinc-500 font-medium">Parent Department</div>
-                                    <div className="font-semibold text-zinc-800">{formData.branchId || '-'}</div>
+                                    <div className="text-zinc-500 font-medium">Location</div>
+                                    <div className="font-semibold text-zinc-800">{formData._meta?.branchName || formData.branchId || '-'}</div>
                                 </div>
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
                                     <div className="text-zinc-400 mt-0.5"><Briefcase size={14} /></div>
                                     <div className="text-zinc-500 font-medium">Business Unit</div>
                                     <div className="font-semibold text-zinc-800">{formData.businessUnit || '-'}</div>
                                 </div>
-
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px] mt-1">
-                                    <div className="text-zinc-400 mt-1"><User size={14} /></div>
-                                    <div className="text-zinc-500 mt-[3px] font-medium">Department Head</div>
-                                    <div className="flex items-center gap-2">
-                                        <img src="https://i.pravatar.cc/150?u=aman" alt="Aman" className="w-7 h-7 rounded-full border border-zinc-200 shadow-sm" />
-                                        <div className="leading-tight">
-                                            <div className="font-bold text-zinc-800 text-[11.5px]">{formData.hodEmployeeId ? 'Aman Malhotra' : '-'}</div>
-                                            <div className="text-[9.5px] text-zinc-500 font-medium mt-[1px]">Design Director</div>
-                                        </div>
-                                    </div>
+                                    <div className="text-zinc-400 mt-0.5"><User size={14} /></div>
+                                    <div className="text-zinc-500 font-medium">Department Head</div>
+                                    <div className="font-semibold text-zinc-800">{formData._meta?.hodName || formData.hodEmployeeId || '-'}</div>
                                 </div>
-
-                                <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px] mt-0.5">
-                                    <div className="text-zinc-400 mt-1"><UserCheck size={14} /></div>
-                                    <div className="text-zinc-500 mt-[3px] font-medium">Reporting To</div>
-                                    <div className="flex items-center gap-2">
-                                        <img src="https://i.pravatar.cc/150?u=rajesh" alt="Rajesh" className="w-7 h-7 rounded-full border border-zinc-200 shadow-sm" />
-                                        <div className="leading-tight">
-                                            <div className="font-bold text-zinc-800 text-[11.5px]">{formData.reportingToId || '-'}</div>
-                                            <div className="text-[9.5px] text-zinc-500 font-medium mt-[1px]">Managing Director</div>
-                                        </div>
-                                    </div>
-                                </div>
-
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px] mt-1">
-                                    <div className="text-zinc-400 mt-0.5"><MapPin size={14} /></div>
-                                    <div className="text-zinc-500 font-medium">Location</div>
-                                    <div className="font-semibold text-zinc-800">Noida - Head Office</div>
+                                    <div className="text-zinc-400 mt-0.5"><UserCheck size={14} /></div>
+                                    <div className="text-zinc-500 font-medium">Reporting To</div>
+                                    <div className="font-semibold text-zinc-800">{formData._meta?.reportingToName || formData.reportingToId || '-'}</div>
                                 </div>
+
+
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
                                     <div className="text-zinc-400 mt-0.5"><Users size={14} /></div>
@@ -300,22 +287,25 @@ export default function AddDepartmentDescriptionSettings() {
                             <div className="grid grid-cols-4 gap-2 text-center mt-2">
                                 <div className="py-2.5 px-1 border border-zinc-100 rounded-lg bg-zinc-50/50 flex flex-col items-center justify-center">
                                     <Users size={16} className="text-indigo-600 mb-1.5" />
-                                    <div className="font-bold text-zinc-800 text-[13px]">50</div>
+                                    <div className="font-bold text-zinc-800 text-[13px]">{formData.employeeCapacity || '-'}</div>
                                     <div className="text-[9px] text-zinc-500">Capacity</div>
                                 </div>
                                 <div className="py-2.5 px-1 border border-zinc-100 rounded-lg bg-zinc-50/50 flex flex-col items-center justify-center">
                                     <Building size={16} className="text-indigo-600 mb-1.5" />
-                                    <div className="font-bold text-zinc-800 text-[13px]">Core</div>
+                                    <div className="font-bold text-zinc-800 text-[11px] truncate w-full px-1">{formData.departmentType || '-'}</div>
                                     <div className="text-[9px] text-zinc-500">Type</div>
                                 </div>
                                 <div className="py-2.5 px-1 border border-zinc-100 rounded-lg bg-zinc-50/50 flex flex-col items-center justify-center">
                                     <Users size={16} className="text-indigo-600 mb-1.5" />
-                                    <div className="font-bold text-zinc-800 text-[13px]">1</div>
+                                    <div className="font-bold text-zinc-800 text-[13px]">0</div>
                                     <div className="text-[9px] text-zinc-500 whitespace-nowrap">Sub Dept.</div>
                                 </div>
                                 <div className="py-2.5 px-1 border border-zinc-100 rounded-lg bg-zinc-50/50 flex flex-col items-center justify-center">
                                     <Calendar size={16} className="text-indigo-600 mb-1.5" />
-                                    <div className="font-bold text-zinc-800 text-[10px] leading-tight">01 May<br />2025</div>
+                                    <div className="font-bold text-zinc-800 text-[10px] leading-tight">
+                                        {formData.effectiveDate ? new Date(formData.effectiveDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '-'}<br />
+                                        {formData.effectiveDate ? new Date(formData.effectiveDate).getFullYear() : ''}
+                                    </div>
                                     <div className="text-[8px] text-zinc-500 mt-[2px] leading-tight">Effective<br />From</div>
                                 </div>
                             </div>
@@ -348,7 +338,7 @@ export default function AddDepartmentDescriptionSettings() {
                     <ArrowLeft size={14} className="mr-1.5" /> Back: Department Head
                 </Link>
                 <div className="flex items-center gap-3">
-                    <button type="button" className="flex items-center justify-center gap-2 h-8 px-4 rounded-lg text-[12px] font-bold text-indigo-700 border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100 shadow-sm transition-colors">
+                    <button type="button" onClick={handleSaveDraft} className="flex items-center justify-center gap-2 h-8 px-4 rounded-lg text-[12px] font-bold text-indigo-700 border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100 shadow-sm transition-colors">
                         <Save size={14} /> Save Draft
                     </button>
                     <button type="button" onClick={handleNext} className="flex items-center justify-center gap-2 h-8 px-5 rounded-lg text-[12px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_2px_10px_rgba(79,70,229,0.2)] transition-colors">

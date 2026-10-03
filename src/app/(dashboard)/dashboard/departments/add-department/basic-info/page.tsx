@@ -9,6 +9,7 @@ import api from '@/lib/axios';
 import { Building2, User, Calendar, Users, CheckCircle2, HelpCircle, Eye, MapPin, Building, Briefcase, UserCheck, ChevronDown, Save, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import { ApiSearchableSelect } from '@/components/common/ApiSearchableSelect';
 
 const steps = [
     { num: 1, label: 'Basic Information', status: 'active' },
@@ -65,7 +66,7 @@ function Card({
 }
 
 export default function BasicInformation() {
-    const { formData, updateFormData } = useDepartmentForm();
+    const { formData, updateFormData, updateMeta } = useDepartmentForm();
     const router = useRouter();
 
     const handleNext = (e: React.MouseEvent) => {
@@ -75,6 +76,11 @@ export default function BasicInformation() {
             return;
         }
         router.push('/dashboard/departments/add-department/department-head');
+    };
+
+    const handleSaveDraft = () => {
+        localStorage.setItem('departmentFormDraft', JSON.stringify(formData));
+        toast.success('Draft saved successfully!');
     };
 
     useEffect(() => {
@@ -99,19 +105,25 @@ export default function BasicInformation() {
     });
     const businessUnits = (buRes?.data?.data || []).filter((bu: any) => bu.status === 'Active');
 
+    const { data: branchRes } = useQuery({
+        queryKey: ['branches'],
+        queryFn: () => api.get('/branches')
+    });
+    const branches = branchRes?.data?.data || [];
+
     return (
         <div className="w-full bg-[#f8f9fc] flex flex-col font-sans min-h-screen">
             <div className="w-full mx-auto p-2 sm:p-2 md:p-2 lg:p-2">
 
                 {/* Header */}
                 <PageHeader
-                    title="Add Department"
-                    description="Create a new department to organize your teams and streamline operations."
+                    title={formData._id ? "Edit Department" : "Add Department"}
+                    description={formData._id ? "Update the details of your existing department." : "Create a new department to organize your teams and streamline operations."}
                     icon={<Building2 size={20} />}
                     breadcrumbs={[
                         { label: 'Organization Setup', href: '/dashboard' },
                         { label: 'Departments', href: '/dashboard/departments' },
-                        { label: 'Add Department' }
+                        { label: formData._id ? 'Edit Department' : 'Add Department' }
                     ]}
                 />
 
@@ -152,24 +164,27 @@ export default function BasicInformation() {
                                     <input type="text" value={formData.code} onChange={e => updateFormData({ code: e.target.value })} className={inputCls} placeholder="e.g. DSGN" />
                                 </Field>
 
-                                <SelectField title="Parent Department" value={formData.branchId} onChange={e => updateFormData({ branchId: e.target.value })} options={['Business Operations', 'IT', 'HR']} helpText="Select parent department (if any)" />
+                                <Field title="Parent Branch / Department" helpText="Select branch or parent">
+                                    <div className="mt-1">
+                                        <ApiSearchableSelect
+                                            apiType="branch"
+                                            value={formData.branchId}
+                                            onChange={(val) => updateFormData({ branchId: val })}
+                                            onLabelChange={(label) => updateMeta({ branchName: label })}
+                                            placeholder="Select Branch / Parent"
+                                        />
+                                    </div>
+                                </Field>
                                 <SelectField title="Department Type" value={formData.departmentType} onChange={e => updateFormData({ departmentType: e.target.value })} required options={['Core Department', 'Support', 'Admin', 'Other']} helpText="Core / Support / Admin / Other" />
 
                                 <Field title="Business Unit" required helpText="Select business unit">
-                                    <div className="relative">
-                                        <select
-                                            value={formData.businessUnit || ''}
-                                            onChange={e => updateFormData({ businessUnit: e.target.value })}
-                                            className={selectCls}
-                                        >
-                                            <option value="" disabled>Select Business Unit</option>
-                                            {businessUnits.map((bu: any) => (
-                                                <option key={bu._id} value={bu.name}>
-                                                    {bu.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                                    <div className="mt-1">
+                                        <ApiSearchableSelect
+                                            apiType="business-unit"
+                                            value={formData.businessUnit}
+                                            onChange={(val) => updateFormData({ businessUnit: val })}
+                                            placeholder="Select Business Unit"
+                                        />
                                     </div>
                                 </Field>
 
@@ -190,39 +205,26 @@ export default function BasicInformation() {
                         <Card title={<><span className="flex items-center justify-center bg-indigo-600 text-white rounded-full w-4 h-4 text-[9px]">2</span> Department Head</>}>
                             <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-3 mt-0.5">
                                 <Field title="Department Head (HOD)">
-                                    <div className="relative">
-                                        <select
-                                            value={formData.hodEmployeeId || ''}
-                                            onChange={e => updateFormData({ hodEmployeeId: e.target.value })}
-                                            className={selectCls}
-                                        >
-                                            <option value="" disabled>Select Department Head</option>
-                                            {employees.map((emp: any) => (
-                                                <option key={emp._id} value={emp._id}>
-                                                    {emp.firstName} {emp.lastName} {emp.designation ? `(${emp.designation})` : ''}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                                    <div className="mt-1">
+                                        <ApiSearchableSelect
+                                            apiType="employee"
+                                            value={formData.hodEmployeeId}
+                                            onChange={(val) => updateFormData({ hodEmployeeId: val })}
+                                            onLabelChange={(label) => updateMeta({ hodName: label })}
+                                            placeholder="Select HOD"
+                                        />
                                     </div>
                                 </Field>
 
                                 <Field title="Reporting To" helpText="Select reporting manager">
-                                    <div className="relative">
-                                        <select
-                                            value={formData.reportingToId || ''}
-                                            onChange={e => updateFormData({ reportingToId: e.target.value })}
-                                            className={selectCls}
-                                        >
-                                            <option value="" disabled>Select Reporting To</option>
-                                            <option value="none">None (Top Level)</option>
-                                            {employees.map((emp: any) => (
-                                                <option key={emp._id} value={emp._id}>
-                                                    {emp.firstName} {emp.lastName} {emp.designation ? `(${emp.designation})` : ''}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                                    <div className="mt-1">
+                                        <ApiSearchableSelect
+                                            apiType="employee"
+                                            value={formData.reportingToId}
+                                            onChange={(val) => updateFormData({ reportingToId: val })}
+                                            onLabelChange={(label) => updateMeta({ reportingToName: label })}
+                                            placeholder="Select Reporting To"
+                                        />
                                     </div>
                                 </Field>
 
@@ -272,7 +274,7 @@ export default function BasicInformation() {
                     <div className="space-y-2">
 
                         {/* Preview Card */}
-                        <Card title={<><Eye size={14} className="text-indigo-600 mr-2" /> Department Preview</>}>
+                        <Card title={<><Eye size={14} className="text-indigo-600 mr-2" /> {formData._id ? 'Edit Preview' : 'Department Preview'}</>}>
                             <div className="flex items-start gap-3 mt-1 mb-4">
                                 <div className="min-w-10 w-auto px-1 h-10 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-lg font-semibold shrink-0 shadow-sm shadow-indigo-600/20">
                                     {formData.code || 'DS'}
@@ -293,8 +295,8 @@ export default function BasicInformation() {
                             <div className="space-y-4 border-t border-zinc-100 pt-4">
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
                                     <div className="text-zinc-400 mt-0.5"><Building size={14} /></div>
-                                    <div className="text-zinc-500 font-medium">Parent Department</div>
-                                    <div className="font-semibold text-zinc-800">{formData.branchId || '-'}</div>
+                                    <div className="text-zinc-500 font-medium">Location</div>
+                                    <div className="font-semibold text-zinc-800">{formData._meta?.branchName || formData.branchId || '-'}</div>
                                 </div>
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
                                     <div className="text-zinc-400 mt-0.5"><Briefcase size={14} /></div>
@@ -303,33 +305,15 @@ export default function BasicInformation() {
                                 </div>
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px] mt-1">
-                                    <div className="text-zinc-400 mt-1"><User size={14} /></div>
-                                    <div className="text-zinc-500 mt-[3px] font-medium">Department Head</div>
-                                    <div className="flex items-center gap-2">
-                                        <img src="https://i.pravatar.cc/150?u=aman" alt="Aman" className="w-7 h-7 rounded-full border border-zinc-200 shadow-sm" />
-                                        <div className="leading-tight">
-                                            <div className="font-bold text-zinc-800 text-[11.5px]">{formData.hodEmployeeId ? 'Aman Malhotra' : '-'}</div>
-                                            <div className="text-[9.5px] text-zinc-500 font-medium mt-[1px]">Design Director</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px] mt-0.5">
-                                    <div className="text-zinc-400 mt-1"><UserCheck size={14} /></div>
-                                    <div className="text-zinc-500 mt-[3px] font-medium">Reporting To</div>
-                                    <div className="flex items-center gap-2">
-                                        <img src="https://i.pravatar.cc/150?u=rajesh" alt="Rajesh" className="w-7 h-7 rounded-full border border-zinc-200 shadow-sm" />
-                                        <div className="leading-tight">
-                                            <div className="font-bold text-zinc-800 text-[11.5px]">{formData.reportingToId || '-'}</div>
-                                            <div className="text-[9.5px] text-zinc-500 font-medium mt-[1px]">Managing Director</div>
-                                        </div>
-                                    </div>
+                                    <div className="text-zinc-400 mt-0.5"><User size={14} /></div>
+                                    <div className="text-zinc-500 font-medium">Department Head</div>
+                                    <div className="font-semibold text-zinc-800">{formData._meta?.hodName || formData.hodEmployeeId || '-'}</div>
                                 </div>
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px] mt-1">
-                                    <div className="text-zinc-400 mt-0.5"><MapPin size={14} /></div>
-                                    <div className="text-zinc-500 font-medium">Location</div>
-                                    <div className="font-semibold text-zinc-800">Noida - Head Office</div>
+                                    <div className="text-zinc-400 mt-0.5"><UserCheck size={14} /></div>
+                                    <div className="text-zinc-500 font-medium">Reporting To</div>
+                                    <div className="font-semibold text-zinc-800">{formData._meta?.reportingToName || formData.reportingToId || '-'}</div>
                                 </div>
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
@@ -385,7 +369,7 @@ export default function BasicInformation() {
                     Cancel
                 </Link>
                 <div className="flex items-center gap-3">
-                    <button type="button" className="flex items-center justify-center gap-2 h-8 px-4 rounded-lg text-[12px] font-bold text-indigo-700 border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100 shadow-sm transition-colors">
+                    <button type="button" onClick={handleSaveDraft} className="flex items-center justify-center gap-2 h-8 px-4 rounded-lg text-[12px] font-bold text-indigo-700 border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100 shadow-sm transition-colors">
                         <Save size={14} /> Save Draft
                     </button>
                     <button type="button" onClick={handleNext} className="flex items-center justify-center gap-2 h-8 px-5 rounded-lg text-[12px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_2px_10px_rgba(79,70,229,0.2)] transition-colors">

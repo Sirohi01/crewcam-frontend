@@ -30,6 +30,7 @@ import {
 import api from "@/lib/axios";
 import { geocodeAddress } from "@/lib/geocode";
 import { toast } from "react-hot-toast";
+import { usePincodeLookup } from "@/hooks/usePincodeLookup";
 
 const WEEK_DAYS = [
   { key: "mon", label: "Mon" },
@@ -86,6 +87,7 @@ export default function UpdateBranch() {
   const [detecting, setDetecting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { lookupPincode, loadingPincode } = usePincodeLookup();
 
   useEffect(() => {
     if (!branchId) return;
@@ -163,21 +165,15 @@ export default function UpdateBranch() {
   };
 
   const handlePincodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
+    const val = e.target.value.replace(/\D/g, '');
     set("pincode", val);
+    
     if (val.length === 6) {
-      try {
-        const res = await fetch(`https://api.postalpincode.in/pincode/${val}`);
-        const data = await res.json();
-        if (data && data[0] && data[0].Status === "Success") {
-          const postOffice = data[0].PostOffice[0];
-          set("city", postOffice.District || postOffice.Block || form.city);
-          set("state", postOffice.State || form.state);
-          set("country", postOffice.Country || form.country);
-        }
-      } catch (err) {
-        console.error("Failed to fetch pincode details", err);
-      }
+      lookupPincode(val, (loc) => {
+        set("city", loc.city || form.city);
+        set("state", loc.state || form.state);
+        set("country", loc.country || form.country);
+      });
     }
   };
 
@@ -377,11 +373,14 @@ export default function UpdateBranch() {
                     </FormField>
 
                     <FormField label="Pincode" required>
-                      <FormInput
-                        value={form.pincode}
-                        onChange={handlePincodeChange}
-                        placeholder="Enter pincode"
-                      />
+                      <div className="relative">
+                        <FormInput
+                          value={form.pincode}
+                          onChange={handlePincodeChange}
+                          placeholder="Enter pincode"
+                        />
+                        {loadingPincode && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 animate-spin" />}
+                      </div>
                     </FormField>
 
                     <FormField label="Country" required>

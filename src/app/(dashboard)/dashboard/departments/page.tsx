@@ -123,6 +123,8 @@ export default function DepartmentsPage() {
     const [activeLeftTab, setActiveLeftTab] = useState('Department List');
     const [activeRightTab, setActiveRightTab] = useState('Overview');
     const [departments, setDepartments] = useState<any[]>([]);
+    const [selectedDept, setSelectedDept] = useState<any>(null);
+    const activeDept = selectedDept || (departments.length > 0 ? departments[0] : null);
     const [loading, setLoading] = useState(true);
     const [showImportModal, setShowImportModal] = useState(false);
 
@@ -228,9 +230,9 @@ export default function DepartmentsPage() {
                         <Link href="/dashboard/departments/add-department/basic-info" className="flex items-center gap-2 px-2 h-full bg-blue-600 text-white text-[11px] font-medium hover:bg-blue-700 transition-colors">
                             <Plus className="w-4 h-4" /> Add Department
                         </Link>
-                        <button className="px-2 h-full bg-blue-700 text-white hover:bg-blue-800 transition-colors border-l border-blue-500 flex items-center justify-center">
+                        {/* <button className="px-2 h-full bg-blue-700 text-white hover:bg-blue-800 transition-colors border-l border-blue-500 flex items-center justify-center">
                             <ChevronDown className="w-4 h-4" />
-                        </button>
+                        </button> */}
                     </div>
                 </div>
             </div>
@@ -330,7 +332,7 @@ export default function DepartmentsPage() {
                                     ) : departments.length === 0 ? (
                                         <tr><td colSpan={7} className="text-center py-4 text-slate-500">No departments found.</td></tr>
                                     ) : departments.map((dept, i) => (
-                                        <tr key={dept._id || i} className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors group ${i === 0 ? 'bg-blue-50/20' : ''}`}>
+                                        <tr key={dept._id || i} onClick={() => setSelectedDept(dept)} className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer group ${activeDept && (activeDept._id === dept._id || activeDept.id === dept.id) ? 'bg-blue-50/20' : ''}`}>
                                             <td className="py-2 px-2 align-middle">
                                                 <span className="font-semibold text-slate-800 truncate block">{dept.name}</span>
                                             </td>
@@ -417,12 +419,14 @@ export default function DepartmentsPage() {
                                     <div className="absolute inset-0 bg-blue-600 rounded-xl m-0.5 flex items-center justify-center text-white"><Edit2 className="w-4 h-4" /></div>
                                 </div>
                                 <div className="pt-0.5">
-                                    <h2 className="text-[14px] font-bold text-slate-900 leading-tight mb-1">Design Studio</h2>
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-emerald-600 bg-emerald-50 text-[10px] font-bold tracking-wide mb-1.5 border border-emerald-100/50">Active</span>
+                                    <h2 className="text-[14px] font-bold text-slate-900 leading-tight mb-1">{activeDept?.name || 'Department Name'}</h2>
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded ${activeDept?.isActive ? 'text-emerald-600 bg-emerald-50 border-emerald-100/50' : 'text-rose-600 bg-rose-50 border-rose-100/50'} text-[10px] font-bold tracking-wide mb-1.5 border`}>
+                                        {activeDept?.isActive ? 'Active' : 'Inactive'}
+                                    </span>
                                     <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
-                                        <span>DS</span>
+                                        <span>{activeDept?.code || 'Code'}</span>
                                         <span className="w-0.5 h-0.5 bg-slate-400 rounded-full" />
-                                        <span>Core Function</span>
+                                        <span>{activeDept?.departmentType || 'Core Function'}</span>
                                     </div>
                                 </div>
                             </div>
@@ -440,94 +444,115 @@ export default function DepartmentsPage() {
                             ))}
                         </div>
 
-                        <div className="p-3 pb-3 border-b border-slate-100">
-                            <div className="grid grid-cols-[125px_1fr] gap-y-2.5 gap-x-2 text-[10.5px]">
+                        {activeRightTab === 'Overview' && (
+                            <>
+                                <div className="p-3 pb-3 border-b border-slate-100">
+                                    <div className="grid grid-cols-[125px_1fr] gap-y-2.5 gap-x-2 text-[10.5px]">
 
-                                <div className="flex items-center gap-2 text-slate-500 font-medium"><Users className="w-4 h-4" /> Department Head</div>
-                                <div className="flex items-center gap-3">
-                                    <img src="https://i.pravatar.cc/150?u=1" alt="Aman" className="w-7 h-7 rounded-full object-cover border border-slate-200" />
-                                    <div className="leading-tight">
-                                        <p className="font-bold text-slate-900 text-[11px]">Aman Malhotra</p>
-                                        <p className="text-[10px] text-slate-500 font-medium">Design Director</p>
+                                        <div className="flex items-center gap-2 text-slate-500 font-medium"><Users className="w-4 h-4" /> Department Head</div>
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200">
+                                                {((activeDept?.hodEmployeeId && typeof activeDept.hodEmployeeId === 'object' ? activeDept.hodEmployeeId.firstName?.[0] : (typeof activeDept?.hodEmployeeId === 'string' ? activeDept.hodEmployeeId[0] : 'N'))) || 'N'}
+                                            </div>
+                                            <div className="leading-tight">
+                                                <p className="font-bold text-slate-900 text-[11px]">{(activeDept?.hodEmployeeId && typeof activeDept.hodEmployeeId === 'object' ? `${activeDept.hodEmployeeId.firstName || ''} ${activeDept.hodEmployeeId.lastName || ''}`.trim() : (typeof activeDept?.hodEmployeeId === 'string' ? activeDept.hodEmployeeId : 'Not Assigned'))}</p>
+                                                <p className="text-[10px] text-slate-500 font-medium">{(activeDept?.hodEmployeeId && typeof activeDept.hodEmployeeId === 'object' && activeDept.hodEmployeeId.designation) ? activeDept.hodEmployeeId.designation : 'N/A'}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 text-slate-500 font-medium"><Building className="w-4 h-4" /> Business Unit</div>
+                                        <div className="font-bold text-slate-800">{activeDept?.businessUnit || '-'}</div>
+
+                                        <div className="flex items-center gap-2 text-slate-500 font-medium"><Filter className="w-4 h-4" /> Department Type</div>
+                                        <div className="font-bold text-slate-800">{activeDept?.departmentType || '-'}</div>
+
+                                        <div className="flex items-center gap-2 text-slate-500 font-medium"><Clock className="w-4 h-4" /> Effective Date</div>
+                                        <div className="font-bold text-slate-800">{activeDept?.effectiveDate ? new Date(activeDept.effectiveDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</div>
+
+                                        <div className="flex items-center gap-2 text-slate-500 font-medium"><Users className="w-4 h-4" /> Emp Capacity</div>
+                                        <div className="font-bold text-slate-800">{activeDept?.employeeCapacity || '-'}</div>
+
+                                        <div className="flex items-start gap-2 text-slate-500 font-medium"><Edit2 className="w-4 h-4" /> Description</div>
+                                        <div className="text-slate-700 font-medium leading-relaxed text-[10px]">{activeDept?.description || '-'}</div>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 text-slate-500 font-medium"><User className="w-4 h-4" /> Parent Department</div>
-                                <div className="font-bold text-slate-800">-</div>
-
-                                <div className="flex items-center gap-2 text-slate-500 font-medium"><Building className="w-4 h-4" /> Business Unit</div>
-                                <div className="font-bold text-slate-800">Design & Creative</div>
-
-                                <div className="flex items-center gap-2 text-slate-500 font-medium"><PieChartIcon className="w-4 h-4" /> Cost Center</div>
-                                <div className="font-bold text-slate-800">CC-DS-1001</div>
-
-                                <div className="flex items-center gap-2 text-slate-500 font-medium"><Filter className="w-4 h-4" /> Location</div>
-                                <div className="font-bold text-slate-800">Noida – Head Office</div>
-
-                                <div className="flex items-center gap-2 text-slate-500 font-medium"><Clock className="w-4 h-4" /> Established On</div>
-                                <div className="font-bold text-slate-800">12 Jan 2024</div>
-
-                                <div className="flex items-center gap-2 text-slate-500 font-medium"><Users className="w-4 h-4" /> Employee Capacity</div>
-                                <div className="font-bold text-slate-800">60</div>
-
-                                <div className="flex items-center gap-2 text-slate-500 font-medium"><Upload className="w-4 h-4" /> Email</div>
-                                <div className="font-semibold text-blue-600 hover:underline cursor-pointer">design@house.co.in</div>
-
-                                <div className="flex items-start gap-2 text-slate-500 font-medium"><Edit2 className="w-4 h-4" /> Description</div>
-                                <div className="text-slate-700 font-medium leading-relaxed text-[10px]">Responsible for conceptualization, space planning, 3D design and creative development for all projects and client requirements.</div>
-                            </div>
-                        </div>
-
-                        <div className="p-4 border-b border-slate-100">
-                            <h3 className="text-[11.5px] font-bold text-slate-800 mb-4">Department Composition</h3>
-                            <div className="flex items-center gap-8">
-                                <div className="w-20 h-20 shrink-0">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie data={compositionData} innerRadius="55%" outerRadius="100%" dataKey="value" stroke="none">
-                                                {compositionData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
-                                            </Pie>
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </div>
-                                <div className="flex flex-col gap-3 flex-1">
-                                    {compositionData.map((item, i) => (
-                                        <div key={i} className="flex items-center justify-between text-[11px]">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-2.5 h-2.5 rounded-[3px]" style={{ backgroundColor: item.color }} />
-                                                <span className="text-slate-700 font-semibold">{item.name}</span>
-                                            </div>
-                                            <div className="text-slate-700 font-medium">
-                                                {item.value} <span className="text-slate-500 font-normal ml-1">({item.percent})</span>
-                                            </div>
+                                <div className="p-4 border-b border-slate-100">
+                                    <h3 className="text-[11.5px] font-bold text-slate-800 mb-4">Department Composition</h3>
+                                    <div className="flex items-center gap-8">
+                                        <div className="w-20 h-20 shrink-0">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie data={compositionData} innerRadius="55%" outerRadius="100%" dataKey="value" stroke="none">
+                                                        {compositionData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                                                    </Pie>
+                                                </PieChart>
+                                            </ResponsiveContainer>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-3 pb-3">
-                            <h3 className="text-[11px] font-bold text-slate-800 mb-2.5">Recent Activity</h3>
-                            <div className="flex flex-col gap-2.5">
-                                {activities.map((act) => (
-                                    <div key={act.id} className="flex gap-3">
-                                        <div className="w-7 h-7 rounded bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 text-slate-500">
-                                            {act.id === 1 ? <PieChartIcon className="w-4 h-4" /> : act.id === 2 ? <User className="w-4 h-4" /> : <Building className="w-4 h-4" />}
-                                        </div>
-                                        <div className="leading-tight flex-1 flex justify-between items-start pt-0.5">
-                                            <div>
-                                                <p className="text-[11px] font-bold text-slate-800 mb-1">{act.text}</p>
-                                                <p className="text-[10px] text-slate-500 font-medium">by <span className="text-slate-400">{act.by}</span></p>
-                                            </div>
-                                            <span className="text-[10px] font-semibold text-slate-500">{act.time}</span>
+                                        <div className="flex flex-col gap-3 flex-1">
+                                            {compositionData.map((item, i) => (
+                                                <div key={i} className="flex items-center justify-between text-[11px]">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-2.5 h-2.5 rounded-[3px]" style={{ backgroundColor: item.color }} />
+                                                        <span className="text-slate-700 font-semibold">{item.name}</span>
+                                                    </div>
+                                                    <div className="text-slate-700 font-medium">
+                                                        {item.value} <span className="text-slate-500 font-normal ml-1">({item.percent})</span>
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
-                                ))}
+                                </div>
+
+                                <div className="p-3 pb-3">
+                                    <h3 className="text-[11px] font-bold text-slate-800 mb-2.5">Recent Activity</h3>
+                                    <div className="flex flex-col gap-2.5">
+                                        {activities.map((act) => (
+                                            <div key={act.id} className="flex gap-3">
+                                                <div className="w-7 h-7 rounded bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 text-slate-500">
+                                                    {act.id === 1 ? <PieChartIcon className="w-4 h-4" /> : act.id === 2 ? <User className="w-4 h-4" /> : <Building className="w-4 h-4" />}
+                                                </div>
+                                                <div className="leading-tight flex-1 flex justify-between items-start pt-0.5">
+                                                    <div>
+                                                        <p className="text-[11px] font-bold text-slate-800 mb-1">{act.text}</p>
+                                                        <p className="text-[10px] text-slate-500 font-medium">by <span className="text-slate-400">{act.by}</span></p>
+                                                    </div>
+                                                    <span className="text-[10px] font-semibold text-slate-500">{act.time}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button className="mt-3 text-[11px] font-bold text-blue-600 hover:underline flex items-center justify-center w-full gap-1">
+                                        View all activity <ChevronRight className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            </>
+                        )}
+
+                        {activeRightTab === 'Employees' && (
+                            <div className="p-4 text-center">
+                                <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                                <h3 className="text-[12px] font-bold text-slate-700">No Employees Found</h3>
+                                <p className="text-[10px] text-slate-500 mt-1">There are no employees assigned to this department yet.</p>
                             </div>
-                            <button className="mt-3 text-[11px] font-bold text-blue-600 hover:underline flex items-center justify-center w-full gap-1">
-                                View all activity <ChevronRight className="w-3.5 h-3.5" />
-                            </button>
-                        </div>
+                        )}
+
+                        {activeRightTab === 'Budget' && (
+                            <div className="p-4 text-center">
+                                <PieChartIcon className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                                <h3 className="text-[12px] font-bold text-slate-700">No Budget Data</h3>
+                                <p className="text-[10px] text-slate-500 mt-1">Budget allocation data is not available.</p>
+                            </div>
+                        )}
+
+                        {activeRightTab === 'Documents' && (
+                            <div className="p-4 text-center">
+                                <Upload className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                                <h3 className="text-[12px] font-bold text-slate-700">No Documents</h3>
+                                <p className="text-[10px] text-slate-500 mt-1">No documents have been uploaded for this department.</p>
+                            </div>
+                        )}
                     </Card>
                 </div>
             </div>

@@ -11,7 +11,7 @@ interface FormFieldProps {
 export function FormField({ label, required, children }: FormFieldProps) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-[11px] font-bold text-slate-700 uppercase tracking-tight">
+      <label className="text-[12px] font-semibold text-slate-700">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       {children}
@@ -19,13 +19,13 @@ export function FormField({ label, required, children }: FormFieldProps) {
   );
 }
 
-interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> { }
 
 export function FormInput({ className, ...props }: FormInputProps) {
   return (
     <input
       className={cn(
-        "w-full h-8 px-2 text-[12px] border border-slate-200 rounded-[2px] focus:outline-none focus:ring-1 focus:ring-[#0d3c68] focus:border-[#0d3c68] transition-all disabled:bg-slate-50 disabled:text-slate-500",
+        "w-full h-8 px-2 text-[12px] border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all disabled:bg-slate-50 disabled:text-slate-500",
         className
       )}
       {...props}
@@ -42,7 +42,7 @@ export function FormSelect({ options, placeholder, className, ...props }: FormSe
   return (
     <select
       className={cn(
-        "w-full h-8 px-2 text-[12px] border border-slate-200 rounded-[2px] focus:outline-none focus:ring-1 focus:ring-[#0d3c68] focus:border-[#0d3c68] transition-all bg-white disabled:bg-slate-50 disabled:text-slate-500",
+        "w-full h-8 px-2 text-[12px] border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white disabled:bg-slate-50 disabled:text-slate-500",
         className
       )}
       {...props}

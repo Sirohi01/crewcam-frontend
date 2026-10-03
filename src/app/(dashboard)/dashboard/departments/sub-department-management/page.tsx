@@ -56,14 +56,18 @@ function PageHeading() {
             <p className="text-[13px] text-zinc-500 mt-0.5">Manage sub departments, team leads and workforce under Design Studio.</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <button className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors">
+        <div className="flex items-center gap-2 flex-wrap h-8">
+          <button className="flex h-full items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
             <GitBranch size={14} /> Hierarchy View
           </button>
-          <NextLink href="/dashboard/departments/add-sub-department" className="flex items-center gap-1.5 rounded-lg bg-indigo-600 pl-4 pr-2 py-2.5 text-[12.5px] font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors">
-            <Plus size={14} /> Add Sub Department
-            <span className="ml-1 border-l border-white/30 pl-2"><ChevronDown size={13} /></span>
-          </NextLink>
+          <div className="flex h-full items-center rounded-md overflow-hidden shadow-sm">
+            <NextLink href="/dashboard/departments/add-sub-department" className="flex h-full items-center gap-2 px-2 bg-blue-600 text-white text-[11px] font-medium hover:bg-blue-700 transition-colors">
+              <Plus size={14} /> Add Sub Department
+            </NextLink>
+            <button className="px-2 h-full bg-blue-700 text-white hover:bg-blue-800 transition-colors border-l border-blue-500 flex items-center justify-center">
+              <ChevronDown size={13} />
+            </button>
+          </div>
         </div>
       </div>
     </section>

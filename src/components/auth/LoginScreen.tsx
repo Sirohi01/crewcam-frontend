@@ -319,139 +319,139 @@ export default function LoginScreen({ variant }: { variant: Variant }) {
               <div className="mt-3 h-0.5 w-10 rounded-full bg-[var(--brand-secondary)]" />
             </div>
 
-          <form onSubmit={handleLogin} className="space-y-4" suppressHydrationWarning>
-            {variant === 'employer' && (
+            <form onSubmit={handleLogin} className="space-y-4" suppressHydrationWarning>
+              {variant === 'employer' && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="corporateId" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                    Corporate ID
+                  </Label>
+                  <div className="relative">
+                    <Building2 size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                    <Input
+                      id="corporateId"
+                      type="text"
+                      placeholder="Enter your Corporate ID"
+                      required
+                      className="h-10 pl-10 pr-4 text-sm border-zinc-200 bg-white rounded-xl focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-[var(--brand-primary)] transition-colors shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+                      value={corporateId}
+                      onChange={(e) => { setCorporateId(e.target.value); setOtpSent(false); setOtp(''); }}
+                      disabled={sendingOtp || loading}
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-1.5">
-                <Label htmlFor="corporateId" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-                  Corporate ID
+                <Label htmlFor="identifier" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                  User ID (Employee Code / Email)
                 </Label>
                 <div className="relative">
-                  <Building2 size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                  <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                   <Input
-                    id="corporateId"
+                    id="identifier"
                     type="text"
-                    placeholder="Enter your Corporate ID"
+                    placeholder="Enter your User ID"
                     required
-                    className="h-11 pl-10 pr-4 text-sm border-zinc-200 bg-white rounded-xl focus-visible:ring-1 focus-visible:ring-[var(--brand-primary)] focus-visible:border-[var(--brand-primary)] transition-colors shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
-                    value={corporateId}
-                    onChange={(e) => { setCorporateId(e.target.value); setOtpSent(false); setOtp(''); }}
+                    className="h-10 pl-10 pr-4 text-sm border-zinc-200 bg-white rounded-xl focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-[var(--brand-primary)] transition-colors shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+                    value={identifier}
+                    onChange={(e) => { setIdentifier(e.target.value); setOtpSent(false); setOtp(''); }}
                     disabled={sendingOtp || loading}
                   />
                 </div>
               </div>
-            )}
 
-            <div className="space-y-1.5">
-              <Label htmlFor="identifier" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-                User ID (Employee Code / Email)
-              </Label>
-              <div className="relative">
-                <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                <Input
-                  id="identifier"
-                  type="text"
-                  placeholder="Enter your User ID"
-                  required
-                  className="h-11 pl-10 pr-4 text-sm border-zinc-200 bg-white rounded-xl focus-visible:ring-1 focus-visible:ring-[var(--brand-primary)] focus-visible:border-[var(--brand-primary)] transition-colors shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
-                  value={identifier}
-                  onChange={(e) => { setIdentifier(e.target.value); setOtpSent(false); setOtp(''); }}
-                  disabled={sendingOtp || loading}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="otp" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-                OTP (One Time Password)
-              </Label>
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
-                  <ShieldCheck size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                  <Input
-                    id="otp"
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="Enter 6 digit OTP"
-                    required
-                    maxLength={6}
-                    className="h-11 pl-10 pr-4 text-sm border-zinc-200 bg-white rounded-xl focus-visible:ring-1 focus-visible:ring-[var(--brand-primary)] focus-visible:border-[var(--brand-primary)] transition-colors shadow-sm tracking-widest dark:border-zinc-700 dark:bg-zinc-900"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    disabled={loading}
-                  />
+              <div className="space-y-1.5">
+                <Label htmlFor="otp" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                  OTP (One Time Password)
+                </Label>
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <ShieldCheck size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                    <Input
+                      id="otp"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="Enter 6 digit OTP"
+                      required
+                      maxLength={6}
+                      className="h-10 pl-10 pr-4 text-sm border-zinc-200 bg-white rounded-xl focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-[var(--brand-primary)] transition-colors shadow-sm tracking-widest dark:border-zinc-700 dark:bg-zinc-900"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                      disabled={loading}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleSendOtp}
+                    disabled={sendingOtp || loading || resendIn > 0}
+                    className="h-10 shrink-0 rounded-md border-[var(--brand-primary)] px-4 text-sm font-semibold text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/5 dark:text-[var(--brand-secondary)] dark:border-[var(--brand-secondary)]"
+                  >
+                    {sendingOtp ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : resendIn > 0 ? (
+                      `Resend (${resendIn}s)`
+                    ) : otpSent ? 'Resend OTP' : 'Send OTP'}
+                  </Button>
                 </div>
-                <Button
+                <p className="flex items-center gap-1.5 text-xs text-zinc-400">
+                  <Info size={12} className="shrink-0" /> OTP will be sent to your registered mobile number
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="rounded border-zinc-300 text-[var(--brand-primary)] focus:ring-[var(--brand-primary)]"
+                  />
+                  Remember me
+                </label>
+                <button
                   type="button"
-                  variant="outline"
-                  onClick={handleSendOtp}
-                  disabled={sendingOtp || loading || resendIn > 0}
-                  className="h-11 shrink-0 rounded-xl border-[var(--brand-primary)] px-4 text-sm font-semibold text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/5 dark:text-[var(--brand-secondary)] dark:border-[var(--brand-secondary)]"
+                  onClick={() => { setError(''); setInfo('Please contact your HR administrator to update your registered mobile number.'); }}
+                  className="text-sm font-medium text-[var(--brand-secondary)] hover:opacity-80 transition-opacity"
                 >
-                  {sendingOtp ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : resendIn > 0 ? (
-                    `Resend (${resendIn}s)`
-                  ) : otpSent ? 'Resend OTP' : 'Send OTP'}
-                </Button>
+                  Change Mobile Number?
+                </button>
               </div>
-              <p className="flex items-center gap-1.5 text-xs text-zinc-400">
-                <Info size={12} className="shrink-0" /> OTP will be sent to your registered mobile number
-              </p>
-            </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="rounded border-zinc-300 text-[var(--brand-primary)] focus:ring-[var(--brand-primary)]"
-                />
-                Remember me
-              </label>
-              <button
-                type="button"
-                onClick={() => { setError(''); setInfo('Please contact your HR administrator to update your registered mobile number.'); }}
-                className="text-sm font-medium text-[var(--brand-secondary)] hover:opacity-80 transition-opacity"
-              >
-                Change Mobile Number?
-              </button>
-            </div>
-
-            {info && !error && (
-              <div className="p-3 bg-sky-50 border border-sky-100 rounded-lg dark:bg-sky-950/40 dark:border-sky-900">
-                <p className="text-sm font-medium text-sky-700 dark:text-sky-400">{info}</p>
-              </div>
-            )}
-
-            {error && (
-              <div className="p-3 bg-rose-50 border border-rose-100 rounded-lg dark:bg-rose-950/40 dark:border-rose-900">
-                <p className="text-sm font-medium text-rose-600 dark:text-rose-400">{error}</p>
-                {redirectHint && (
-                  <Link href={redirectHint} className="mt-1 inline-block text-sm font-semibold text-rose-700 underline dark:text-rose-300">
-                    Go there now &rarr;
-                  </Link>
-                )}
-              </div>
-            )}
-
-            <Button
-              type="submit"
-              className="w-full h-11 text-sm font-semibold bg-[var(--brand-primary)] text-white hover:opacity-90 rounded-xl shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all"
-              disabled={loading || !otpSent}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Please wait
-                </>
-              ) : (
-                <span className="flex items-center gap-1.5">
-                  Login <ArrowRight size={15} />
-                </span>
+              {info && !error && (
+                <div className="p-3 bg-sky-50 border border-sky-100 rounded-lg dark:bg-sky-950/40 dark:border-sky-900">
+                  <p className="text-sm font-medium text-sky-700 dark:text-sky-400">{info}</p>
+                </div>
               )}
-            </Button>
-          </form>
+
+              {error && (
+                <div className="p-3 bg-rose-50 border border-rose-100 rounded-lg dark:bg-rose-950/40 dark:border-rose-900">
+                  <p className="text-sm font-medium text-rose-600 dark:text-rose-400">{error}</p>
+                  {redirectHint && (
+                    <Link href={redirectHint} className="mt-1 inline-block text-sm font-semibold text-rose-700 underline dark:text-rose-300">
+                      Go there now &rarr;
+                    </Link>
+                  )}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full h-10 text-sm font-semibold bg-[var(--brand-primary)] text-white hover:opacity-90 rounded-xl shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all"
+                disabled={loading || !otpSent}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Please wait
+                  </>
+                ) : (
+                  <span className="flex items-center gap-1.5">
+                    Login <ArrowRight size={15} />
+                  </span>
+                )}
+              </Button>
+            </form>
           </div>
 
           <p className="mt-4 text-center text-sm">

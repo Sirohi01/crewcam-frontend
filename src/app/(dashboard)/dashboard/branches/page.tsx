@@ -7,6 +7,8 @@ import { Download, Plus, ChevronRight, Search, Check, Eye, Edit2, Users, Chevron
 import api from '@/lib/axios';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 import { geocodeAddress } from '@/lib/geocode';
+import { usePincodeLookup } from '@/hooks/usePincodeLookup';
+import { Loader2 } from 'lucide-react';
 
 // ---- DUMMY / MOCK DATA (used as fallback when the API is unavailable) ----
 const MOCK_BRANCHES = [
@@ -118,6 +120,7 @@ export default function ManageBranchPage() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [detecting, setDetecting] = useState(false);
+    const { lookupPincode, loadingPincode } = usePincodeLookup();
 
     const emptyBranch = {
         name: '', code: '', location: '', address: '', pincode: '', city: '', state: '', country: 'India',
@@ -182,24 +185,17 @@ export default function ManageBranchPage() {
     };
 
     const handlePincodeChange = async (e: any) => {
-        const val = e.target.value;
+        const val = e.target.value.replace(/\D/g, '');
         setBranchData((prev) => ({ ...prev, pincode: val }));
         if (val.length === 6) {
-            try {
-                const res = await fetch(`https://api.postalpincode.in/pincode/${val}`);
-                const data = await res.json();
-                if (data && data[0] && data[0].Status === 'Success') {
-                    const postOffice = data[0].PostOffice[0];
-                    setBranchData((prev) => ({
-                        ...prev,
-                        city: postOffice.District || postOffice.Block || prev.city,
-                        state: postOffice.State || prev.state,
-                        country: postOffice.Country || prev.country
-                    }));
-                }
-            } catch (err) {
-                console.error('Failed to fetch pincode details', err);
-            }
+            lookupPincode(val, (loc) => {
+                setBranchData((prev) => ({
+                    ...prev,
+                    city: loc.city || prev.city,
+                    state: loc.state || prev.state,
+                    country: loc.country || prev.country
+                }));
+            });
         }
     };
 
@@ -747,13 +743,16 @@ export default function ManageBranchPage() {
 
                                     <div className="space-y-1">
                                         <label className="block text-xs font-semibold text-zinc-700">Pincode</label>
-                                        <input
-                                            type="text"
-                                            value={branchData.pincode}
-                                            onChange={handlePincodeChange}
-                                            className="w-full border border-zinc-200 rounded-md text-xs px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
-                                            placeholder="6-digit pincode"
-                                        />
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={branchData.pincode}
+                                                onChange={handlePincodeChange}
+                                                className="w-full border border-zinc-200 rounded-md text-xs px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
+                                                placeholder="6-digit pincode"
+                                            />
+                                            {loadingPincode && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 animate-spin" />}
+                                        </div>
                                     </div>
                                     <div className="space-y-1">
                                         <label className="block text-xs font-semibold text-zinc-700">City</label>

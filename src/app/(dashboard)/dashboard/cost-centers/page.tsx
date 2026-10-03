@@ -12,56 +12,7 @@ const BREADCRUMB = ['Organization Setup', 'Cost Centers', 'Go to Cost Center'];
 export default function CostCentersPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const tableData = [
-    {
-      code: 'CC-INT-001', name: 'Interior Projects', subName: 'Interior Design & Build Projects',
-      bu: 'Interior Design BU', division: 'Design & Build',
-      head: { name: 'Rahul Nair', role: 'Manager', avatar: '150?u=rahul' },
-      budget: '1,25,00,000', util: 72.45, status: 'Active'
-    },
-    {
-      code: 'CC-ADM-001', name: 'Administration', subName: 'Admin & Office Operations',
-      bu: 'Corporate Services', division: 'Administration',
-      head: { name: 'Neha Joshi', role: 'HR Executive', avatar: '150?u=neha' },
-      budget: '85,00,000', util: 58.30, status: 'Active'
-    },
-    {
-      code: 'CC-MKT-001', name: 'Marketing & Branding', subName: 'Marketing & Brand Activities',
-      bu: 'Corporate Services', division: 'Marketing',
-      head: { name: 'Amit Verma', role: 'Manager', avatar: '150?u=amit' },
-      budget: '95,00,000', util: 61.10, status: 'Active'
-    },
-    {
-      code: 'CC-FIN-001', name: 'Finance & Accounts', subName: 'Finance, Accounts & Taxation',
-      bu: 'Corporate Services', division: 'Finance',
-      head: { name: 'Pooja Mehta', role: 'Finance Executive', avatar: '150?u=pooja' },
-      budget: '1,10,00,000', util: 68.75, status: 'Active'
-    },
-    {
-      code: 'CC-IT-001', name: 'IT & Systems', subName: 'IT Infrastructure & Support',
-      bu: 'Corporate Services', division: 'Information Technology',
-      head: { name: 'Vikram Singh', role: 'IT Executive', avatar: '150?u=vikram' },
-      budget: '70,00,000', util: 54.20, status: 'Active'
-    },
-    {
-      code: 'CC-PROC-001', name: 'Procurement', subName: 'Purchasing & Vendor Mgmt.',
-      bu: 'Corporate Services', division: 'Procurement',
-      head: { name: 'Sandeep Kumar', role: 'Procurement Executive', avatar: '150?u=sandeep' },
-      budget: '60,00,000', util: 49.60, status: 'Active'
-    },
-    {
-      code: 'CC-OPE-001', name: 'Operations', subName: 'General Operations',
-      bu: 'Operations BU', division: 'Operations',
-      head: { name: 'Renu Yadav', role: 'Operations Manager', avatar: '150?u=renu' },
-      budget: '2,05,00,000', util: 66.40, status: 'Active'
-    },
-    {
-      code: 'CC-TRN-001', name: 'Training & Development', subName: 'Employee Training & Development',
-      bu: 'People Development BU', division: 'Training & Development',
-      head: { name: 'Swati Sharma', role: 'Training Manager', avatar: '150?u=swati' },
-      budget: '40,00,000', util: 45.20, status: 'Active'
-    }
-  ];
+  const tableData: any[] = [];
 
   return (
     <div className="flex flex-col gap-2 p-2 w-full font-sans text-slate-800 bg-slate-100 min-h-screen overflow-x-hidden">
@@ -97,8 +48,8 @@ export default function CostCentersPage() {
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] font-bold text-slate-500 mb-0.5">Total Cost Centers</span>
-            <span className="text-[18px] font-extrabold text-slate-900 leading-none mb-1">48</span>
-            <span className="text-[9.5px] font-bold text-emerald-600">Active Cost Centers <span className="text-slate-600 font-medium">42</span></span>
+            <span className="text-[18px] font-extrabold text-slate-900 leading-none mb-1">0</span>
+            <span className="text-[9.5px] font-bold text-emerald-600">Active Cost Centers <span className="text-slate-600 font-medium">0</span></span>
           </div>
         </div>
 
@@ -108,7 +59,7 @@ export default function CostCentersPage() {
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] font-bold text-slate-500 mb-0.5">Total Budget (FY 2025-26)</span>
-            <span className="text-[18px] font-extrabold text-slate-900 leading-none mb-1">₹ 9,50,00,000</span>
+            <span className="text-[18px] font-extrabold text-slate-900 leading-none mb-1">₹ 0</span>
             <span className="text-[9.5px] font-medium text-slate-600">Allocated <span className="font-bold text-slate-800">0</span></span>
           </div>
         </div>
@@ -119,7 +70,7 @@ export default function CostCentersPage() {
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] font-bold text-slate-500 mb-0.5">Total Employees</span>
-            <span className="text-[18px] font-extrabold text-slate-900 leading-none mb-1">352</span>
+            <span className="text-[18px] font-extrabold text-slate-900 leading-none mb-1">0</span>
             <span className="text-[9.5px] font-medium text-slate-600">Assigned to Cost Centers</span>
           </div>
         </div>
@@ -130,7 +81,7 @@ export default function CostCentersPage() {
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] font-bold text-slate-500 mb-0.5">Average Utilization</span>
-            <span className="text-[18px] font-extrabold text-slate-900 leading-none mb-1">63.25%</span>
+            <span className="text-[18px] font-extrabold text-slate-900 leading-none mb-1">0%</span>
             <span className="text-[9.5px] font-medium text-slate-600">YTD</span>
           </div>
         </div>
@@ -207,7 +158,13 @@ export default function CostCentersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {tableData.map((row, idx) => (
+              {tableData.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="py-8 text-center text-slate-500 text-[11px] font-medium">
+                    No cost centers found
+                  </td>
+                </tr>
+              ) : tableData.map((row, idx) => (
                 <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                   <td className="py-1.5 px-2 align-middle">
                     <span className="inline-block px-1.5 py-0.5 bg-slate-100 rounded text-[9.5px] font-extrabold text-slate-700">{row.code}</span>
@@ -256,7 +213,7 @@ export default function CostCentersPage() {
 
         {/* Footer Pagination */}
         <div className="p-3 border-t border-slate-200 flex items-center justify-between bg-slate-50/50">
-          <span className="text-[11px] font-extrabold text-slate-700">Showing 1 to 8 of 48 entries</span>
+          <span className="text-[11px] font-extrabold text-slate-700">Showing 0 to 0 of 0 entries</span>
           <div className="flex items-center gap-1">
             <button className="w-7 h-7 flex items-center justify-center rounded border border-slate-300 bg-white hover:bg-slate-100 text-slate-500 transition-colors">
               <ChevronLeft className="w-3.5 h-3.5" />

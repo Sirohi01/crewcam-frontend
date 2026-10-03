@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import api from '@/lib/axios';
+import { usePincodeLookup } from '@/hooks/usePincodeLookup';
 
 const input = 'mt-1 h-8 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1 text-sm focus:border-[#0e4778] focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-zinc-700 dark:bg-zinc-900';
 
@@ -322,35 +323,31 @@ function RepeatingRows<T extends object>({ rows, onAdd, onRemove, children }: { 
 }
 
 function PincodeLookup({ value, onResolved }: { value: string; onResolved: (location: Partial<Application>) => void }) {
-  const [loading, setLoading] = useState(false);
+  const { lookupPincode, loadingPincode, pincodeError } = usePincodeLookup();
   const [message, setMessage] = useState('');
 
-  const lookup = async (postalCode: string) => {
+  const lookup = (postalCode: string) => {
     onResolved({ postalCode });
-    if (!/^\d{6}$/.test(postalCode)) {
-      setMessage('');
-      return;
-    }
-
-    setLoading(true);
     setMessage('');
-    try {
-      const result = await api.get(`/locations/pincode/${postalCode}`);
-      onResolved({ postalCode, country: result.data.country, state: result.data.state, city: result.data.city });
-      setMessage(`Location found: ${result.data.city}, ${result.data.state}`);
-    } catch (error: any) {
-      setMessage(error.response?.data?.message || 'Enter address manually');
-    } finally {
-      setLoading(false);
-    }
+    
+    lookupPincode(postalCode, (loc) => {
+      onResolved({ 
+        postalCode: loc.pincode, 
+        country: loc.country, 
+        state: loc.state, 
+        city: loc.city 
+      });
+      setMessage(`Location found: ${loc.city}, ${loc.state}`);
+    });
   };
 
   return (
     <label>
       <span className="text-[11px] font-semibold uppercase tracking-tight text-slate-700">PIN Code <b className="text-rose-600">*</b></span>
       <input required className={input} inputMode="numeric" maxLength={6} value={value} onChange={(e) => lookup(e.target.value.replace(/\D/g, ''))} placeholder="Enter 6-digit PIN code" />
-      {loading && <p className="mt-1 text-[11px] text-slate-500">Finding location...</p>}
-      {message && !loading && <p className="mt-1 text-[11px] text-indigo-700">{message}</p>}
+      {loadingPincode && <p className="mt-1 text-[11px] text-slate-500">Finding location...</p>}
+      {message && !loadingPincode && !pincodeError && <p className="mt-1 text-[11px] text-indigo-700">{message}</p>}
+      {pincodeError && <p className="mt-1 text-[11px] text-rose-600">{pincodeError}</p>}
     </label>
   );
 }

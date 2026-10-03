@@ -13,12 +13,19 @@ export interface DepartmentFormData {
   isActive: boolean;
   departmentType: string;
   businessUnit: string;
+  budgetOwnerId?: string;
   effectiveDate: string;
   keyResponsibilities: string;
   employeeCapacity: string;
   workingDays: string;
   defaultShift: string;
   documents?: File[];
+  _meta?: {
+    branchName?: string;
+    hodName?: string;
+    reportingToName?: string;
+    budgetOwnerName?: string;
+  };
 }
 
 const defaultFormData: DepartmentFormData = {
@@ -31,18 +38,21 @@ const defaultFormData: DepartmentFormData = {
   isActive: true,
   departmentType: '',
   businessUnit: '',
+  budgetOwnerId: '',
   effectiveDate: '',
   keyResponsibilities: '',
   employeeCapacity: '',
   workingDays: 'Monday - Saturday',
   defaultShift: 'General Shift (09:30 AM - 06:30 PM)',
   documents: [],
+  _meta: {},
 };
 
 interface DepartmentFormContextType {
   formData: DepartmentFormData;
   setFormData: React.Dispatch<React.SetStateAction<DepartmentFormData>>;
   updateFormData: (data: Partial<DepartmentFormData>) => void;
+  updateMeta: (metaData: Partial<NonNullable<DepartmentFormData['_meta']>>) => void;
   resetForm: () => void;
 }
 
@@ -55,12 +65,22 @@ export function DepartmentFormProvider({ children }: { children: ReactNode }) {
     setFormData((prev) => ({ ...prev, ...data }));
   };
 
+  const updateMeta = (metaData: Partial<NonNullable<DepartmentFormData['_meta']>>) => {
+    setFormData((prev) => ({
+      ...prev,
+      _meta: {
+        ...(prev._meta || {}),
+        ...metaData
+      }
+    }));
+  };
+
   const resetForm = () => {
     setFormData(defaultFormData);
   };
 
   return (
-    <DepartmentFormContext.Provider value={{ formData, setFormData, updateFormData, resetForm }}>
+    <DepartmentFormContext.Provider value={{ formData, setFormData, updateFormData, updateMeta, resetForm }}>
       {children}
     </DepartmentFormContext.Provider>
   );

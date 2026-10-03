@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import { ApiSearchableSelect } from '@/components/common/ApiSearchableSelect';
 
 const steps = [
     { num: 1, label: 'Basic Information', status: 'completed', link: '/dashboard/departments/add-department/basic-info' },
@@ -69,7 +70,7 @@ function Card({
 
 export default function AddDepartmentHead() {
     const navigate = useRouter();
-    const { formData, updateFormData } = useDepartmentForm();
+    const { formData, updateFormData, updateMeta } = useDepartmentForm();
 
     const handleNext = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -82,19 +83,24 @@ export default function AddDepartmentHead() {
         navigate.push('/dashboard/departments/add-department/description-settings');
     };
 
+    const handleSaveDraft = () => {
+        localStorage.setItem('departmentFormDraft', JSON.stringify(formData));
+        toast.success('Draft saved successfully!');
+    };
+
     return (
         <div className="w-full bg-[#f8f9fc] flex flex-col font-sans min-h-screen">
             <div className="w-full mx-auto p-2 sm:p-2 md:p-2 lg:p-2">
 
                 {/* Header */}
                 <PageHeader
-                    title="Add Department"
-                    description="Step 2 of 4: Department Head — Assign leadership and reporting structure for this department."
+                    title={formData._id ? "Edit Department" : "Add Department"}
+                    description={formData._id ? "Step 2 of 4: Department Head — Update leadership and reporting structure for this department." : "Step 2 of 4: Department Head — Assign leadership and reporting structure for this department."}
                     icon={<Building2 size={20} />}
                     breadcrumbs={[
                         { label: 'Organization Setup', href: '/dashboard' },
                         { label: 'Departments', href: '/dashboard/departments' },
-                        { label: 'Add Department' }
+                        { label: formData._id ? 'Edit Department' : 'Add Department' }
                     ]}
                 />
 
@@ -133,34 +139,30 @@ export default function AddDepartmentHead() {
                         <Card title={<><ShieldCheck size={16} className="text-indigo-600 mr-1" /> Department Leadership</>}>
                             <div className="grid grid-cols-1 gap-x-5 gap-y-3 sm:grid-cols-3 mt-1">
                                 <Field title="Department Head (HOD)" required>
-                                    <div className="relative flex items-center border border-indigo-200 bg-indigo-50/50 px-2 py-1 mt-1 cursor-pointer h-8 rounded-md transition-colors hover:border-indigo-300">
-                                        <img src="https://i.pravatar.cc/150?u=aman" alt="User" className="w-5 h-5 rounded-full border border-white shrink-0 shadow-sm" />
-                                        <div className="ml-2 flex-1 overflow-hidden leading-tight">
-                                            <p className="text-[11px] font-bold text-zinc-900 truncate">Aman Malhotra</p>
-                                            <p className="text-[9px] text-zinc-500 truncate font-medium">Design Director</p>
-                                        </div>
-                                        <div className="flex items-center shrink-0">
-                                            <X size={12} className="text-zinc-400 hover:text-rose-500 cursor-pointer mx-1" />
-                                            <ChevronDown size={14} className="text-zinc-400 pointer-events-none" />
-                                        </div>
+                                    <div className="mt-1">
+                                        <ApiSearchableSelect
+                                            apiType="employee"
+                                            value={formData.hodEmployeeId}
+                                            onChange={(val) => updateFormData({ hodEmployeeId: val })}
+                                            onLabelChange={(label) => updateMeta({ hodName: label })}
+                                            placeholder="Select HOD"
+                                        />
                                     </div>
                                 </Field>
 
                                 <Field title="Reporting To" required>
-                                    <div className="relative flex items-center border border-indigo-200 bg-indigo-50/50 px-2 py-1 mt-1 cursor-pointer h-8 rounded-md transition-colors hover:border-indigo-300">
-                                        <img src="https://i.pravatar.cc/150?u=rajesh" alt="User" className="w-5 h-5 rounded-full border border-white shrink-0 shadow-sm" />
-                                        <div className="ml-2 flex-1 overflow-hidden leading-tight">
-                                            <p className="text-[11px] font-bold text-zinc-900 truncate">Rajesh Sharma</p>
-                                            <p className="text-[9px] text-zinc-500 truncate font-medium">Managing Director</p>
-                                        </div>
-                                        <div className="flex items-center shrink-0">
-                                            <X size={12} className="text-zinc-400 hover:text-rose-500 cursor-pointer mx-1" />
-                                            <ChevronDown size={14} className="text-zinc-400 pointer-events-none" />
-                                        </div>
+                                    <div className="mt-1">
+                                        <ApiSearchableSelect
+                                            apiType="employee"
+                                            value={formData.reportingToId}
+                                            onChange={(val) => updateFormData({ reportingToId: val })}
+                                            onLabelChange={(label) => updateMeta({ reportingToName: label })}
+                                            placeholder="Select Manager"
+                                        />
                                     </div>
                                 </Field>
 
-                                <SelectField title="Assistant / Co-Head (Optional)" options={['Select assistant or co-head']} helpText="Select if applicable" />
+                                {/* No assistantHodId in default form data, but we can add it if needed, or omit for now */}
 
                                 <Field title="Effective Date" required helpText="From when this department will be active">
                                     <input type="date" value={formData.effectiveDate} onChange={e => updateFormData({ effectiveDate: e.target.value })} className={inputCls} />
@@ -179,25 +181,42 @@ export default function AddDepartmentHead() {
                         {/* Location & Cost Center Card */}
                         <Card title={<><Map size={16} className="text-indigo-600 mr-1" /> Location & Cost Center</>}>
                             <div className="grid grid-cols-1 gap-x-5 gap-y-3 sm:grid-cols-3 mt-1">
-                                <SelectField title="Location" required options={['Noida - Head Office']} helpText="Primary" />
-
-                                <Field title="Cost Center" required helpText="Unique cost center code">
-                                    <input type="text" defaultValue="CC-DS-1001" className={inputCls} />
+                                <Field title="Location" required helpText="Primary">
+                                    <div className="mt-1">
+                                        <ApiSearchableSelect
+                                            apiType="branch"
+                                            value={formData.branchId}
+                                            onChange={(val) => updateFormData({ branchId: val })}
+                                            onLabelChange={(label) => updateMeta({ branchName: label })}
+                                            placeholder="Select Location"
+                                        />
+                                    </div>
                                 </Field>
 
-                                <SelectField title="Business Unit" value={formData.businessUnit} onChange={e => updateFormData({ businessUnit: e.target.value })} required options={['Retail Interiors & Exhibition']} helpText="Select business unit" />
+                                <Field title="Cost Center" required helpText="Unique cost center code">
+                                    <input type="text" className={inputCls} placeholder="e.g. CC-101" />
+                                </Field>
+
+                                <Field title="Business Unit" required helpText="Select business unit">
+                                    <div className="mt-1">
+                                        <ApiSearchableSelect
+                                            apiType="business-unit"
+                                            value={formData.businessUnit}
+                                            onChange={(val) => updateFormData({ businessUnit: val })}
+                                            placeholder="Select Business Unit"
+                                        />
+                                    </div>
+                                </Field>
 
                                 <Field title="Budget Owner" helpText="Person responsible for budget">
-                                    <div className="relative flex items-center border border-indigo-200 bg-indigo-50/50 px-2 py-1 mt-1 cursor-pointer h-8 rounded-md transition-colors hover:border-indigo-300">
-                                        <img src="https://i.pravatar.cc/150?u=neha" alt="User" className="w-5 h-5 rounded-full border border-white shrink-0 shadow-sm" />
-                                        <div className="ml-2 flex-1 overflow-hidden leading-tight">
-                                            <p className="text-[11px] font-bold text-zinc-900 truncate">Neha Sethi</p>
-                                            <p className="text-[9px] text-zinc-500 truncate font-medium">GM - Retail</p>
-                                        </div>
-                                        <div className="flex items-center shrink-0">
-                                            <X size={12} className="text-zinc-400 hover:text-rose-500 cursor-pointer mx-1" />
-                                            <ChevronDown size={14} className="text-zinc-400 pointer-events-none" />
-                                        </div>
+                                    <div className="mt-1">
+                                        <ApiSearchableSelect
+                                            apiType="employee"
+                                            value={formData.budgetOwnerId || ''}
+                                            onChange={(val) => updateFormData({ budgetOwnerId: val })}
+                                            onLabelChange={(label) => updateMeta({ budgetOwnerName: label })}
+                                            placeholder="Select Budget Owner"
+                                        />
                                     </div>
                                 </Field>
                             </div>
@@ -209,7 +228,7 @@ export default function AddDepartmentHead() {
                                 <ArrowLeft size={14} /> Back: Basic Information
                             </Link>
                             <div className="flex items-center gap-3">
-                                <button type="button" className="flex items-center justify-center gap-2 h-8 px-4 rounded-lg text-[12px] font-bold text-indigo-700 border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100 shadow-sm transition-colors">
+                                <button type="button" onClick={handleSaveDraft} className="flex items-center justify-center gap-2 h-8 px-4 rounded-lg text-[12px] font-bold text-indigo-700 border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100 shadow-sm transition-colors">
                                     <Save size={14} /> Save Draft
                                 </button>
                                 <button type="button" onClick={handleNext} className="flex items-center justify-center gap-2 h-8 px-5 rounded-lg text-[12px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_2px_10px_rgba(79,70,229,0.2)] transition-colors">
@@ -222,7 +241,7 @@ export default function AddDepartmentHead() {
                     <div className="space-y-2">
 
                         {/* Preview Card */}
-                        <Card title={<><Eye size={13} className="text-indigo-600 mr-2" /> Department Preview</>}>
+                        <Card title={<><Eye size={13} className="text-indigo-600 mr-2" /> {formData._id ? 'Edit Preview' : 'Department Preview'}</>}>
                             <div className="flex items-start gap-3 mt-1 mb-3">
                                 <div className="w-10 h-10 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-base font-bold shrink-0 shadow-md shadow-indigo-600/20">
                                     {formData.code || 'DS'}
@@ -243,37 +262,24 @@ export default function AddDepartmentHead() {
                             <div className="space-y-2 border-t border-zinc-100 pt-2">
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-2 items-start text-[10.5px]">
                                     <div className="text-zinc-400"><Building size={13} /></div>
-                                    <div className="text-zinc-500 font-medium">Parent Department</div>
-                                    <div className="font-semibold text-zinc-800">{formData.branchId || '-'}</div>
+                                    <div className="text-zinc-500 font-medium">Location</div>
+                                    <div className="font-semibold text-zinc-800">{formData._meta?.branchName || formData.branchId || '-'}</div>
                                 </div>
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-2 items-start text-[10.5px]">
                                     <div className="text-zinc-400"><Briefcase size={13} /></div>
                                     <div className="text-zinc-500 font-medium">Business Unit</div>
                                     <div className="font-semibold text-zinc-800">{formData.businessUnit || '-'}</div>
                                 </div>
-
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-2 items-start text-[10.5px]">
-                                    <div className="text-zinc-400 mt-0.5"><User size={13} /></div>
-                                    <div className="text-zinc-500 mt-[2px] font-medium">Department Head</div>
-                                    <div className="flex items-center gap-2">
-                                        <img src="https://i.pravatar.cc/150?u=aman" alt="Aman" className="w-6 h-6 rounded-full border border-zinc-200 shadow-sm" />
-                                        <div className="leading-tight">
-                                            <div className="font-bold text-zinc-800 text-[11px]">{formData.hodEmployeeId ? 'Aman Malhotra' : '-'}</div>
-                                            <div className="text-[9px] text-zinc-500 font-medium">Design Director</div>
-                                        </div>
-                                    </div>
+                                    <div className="text-zinc-400"><User size={13} /></div>
+                                    <div className="text-zinc-500 font-medium">Department Head</div>
+                                    <div className="font-semibold text-zinc-800">{formData._meta?.hodName || formData.hodEmployeeId || '-'}</div>
                                 </div>
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-2 items-start text-[10.5px]">
                                     <div className="text-zinc-400 mt-0.5"><UserCheck size={13} /></div>
-                                    <div className="text-zinc-500 mt-[2px] font-medium">Reporting To</div>
-                                    <div className="flex items-center gap-2">
-                                        <img src="https://i.pravatar.cc/150?u=rajesh" alt="Rajesh" className="w-6 h-6 rounded-full border border-zinc-200 shadow-sm" />
-                                        <div className="leading-tight">
-                                            <div className="font-bold text-zinc-800 text-[11px]">Rajesh Sharma</div>
-                                            <div className="text-[9px] text-zinc-500 font-medium">Managing Director</div>
-                                        </div>
-                                    </div>
+                                    <div className="text-zinc-500 font-medium">Reporting To</div>
+                                    <div className="font-semibold text-zinc-800">{formData._meta?.reportingToName || formData.reportingToId || '-'}</div>
                                 </div>
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-2 items-start text-[10.5px]">

@@ -9,6 +9,8 @@ import api from '@/lib/axios';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 import { MultiSearchableDropdown } from '@/components/ui/MultiSearchableDropdown';
 import { formatEmployeeId } from '@/lib/utils';
+import { usePincodeLookup } from '@/hooks/usePincodeLookup';
+import { Loader2 } from 'lucide-react';
 
 const emptyForm = {
   firstName: '',
@@ -84,6 +86,7 @@ export default function EmployeesPage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const { lookupPincode, loadingPincode } = usePincodeLookup();
 
   useEffect(() => {
     fetchReferenceData();
@@ -330,35 +333,29 @@ export default function EmployeesPage() {
   };
 
   const handlePincodeChange = async (val: string, type: 'current' | 'permanent') => {
+    const numericVal = val.replace(/\D/g, '');
     setFormData((prev) => ({
       ...prev,
-      [type === 'current' ? 'currentPincode' : 'permanentPincode']: val,
-      ...(prev.sameAsCurrent && type === 'current' ? { permanentPincode: val } : {})
+      [type === 'current' ? 'currentPincode' : 'permanentPincode']: numericVal,
+      ...(prev.sameAsCurrent && type === 'current' ? { permanentPincode: numericVal } : {})
     }));
 
-    if (val.length === 6) {
-      try {
-        const res = await fetch(`https://api.postalpincode.in/pincode/${val}`);
-        const data = await res.json();
-        if (data && data[0] && data[0].Status === 'Success' && data[0].PostOffice && data[0].PostOffice.length > 0) {
-          const po = data[0].PostOffice[0];
-          setFormData((prev) => {
-            const updates: any = {
-              [`${type}City`]: po.District,
-              [`${type}State`]: po.State,
-              [`${type}Country`]: po.Country || 'India',
-            };
-            if (prev.sameAsCurrent && type === 'current') {
-              updates.permanentCity = po.District;
-              updates.permanentState = po.State;
-              updates.permanentCountry = po.Country || 'India';
-            }
-            return { ...prev, ...updates };
-          });
-        }
-      } catch (err) {
-        console.error('Failed to fetch pincode details', err);
-      }
+    if (numericVal.length === 6) {
+      lookupPincode(numericVal, (loc) => {
+        setFormData((prev) => {
+          const updates: any = {
+            [`${type}City`]: loc.city,
+            [`${type}State`]: loc.state,
+            [`${type}Country`]: loc.country,
+          };
+          if (prev.sameAsCurrent && type === 'current') {
+            updates.permanentCity = loc.city;
+            updates.permanentState = loc.state;
+            updates.permanentCountry = loc.country;
+          }
+          return { ...prev, ...updates };
+        });
+      });
     }
   };
 
@@ -521,7 +518,10 @@ export default function EmployeesPage() {
                     setFormData(p => ({ ...p, currentAddress: val, ...(p.sameAsCurrent ? { permanentAddress: val } : {}) }));
                   }} placeholder="House No, Building, Street" />
                   <div className="grid grid-cols-4 gap-3">
-                    <Field label="Pincode" value={formData.currentPincode} onChange={(val) => handlePincodeChange(val, 'current')} placeholder="e.g. 110001" maxLength={6} />
+                    <div className="relative">
+                      <Field label="Pincode" value={formData.currentPincode} onChange={(val) => handlePincodeChange(val, 'current')} placeholder="e.g. 110001" maxLength={6} />
+                      {loadingPincode && <Loader2 size={14} className="absolute right-3 top-[26px] text-zinc-400 animate-spin" />}
+                    </div>
                     <Field label="City / District" value={formData.currentCity} onChange={(val) => setFormData(p => ({ ...p, currentCity: val, ...(p.sameAsCurrent ? { permanentCity: val } : {}) }))} placeholder="e.g. New Delhi" />
                     <Field label="State" value={formData.currentState} onChange={(val) => setFormData(p => ({ ...p, currentState: val, ...(p.sameAsCurrent ? { permanentState: val } : {}) }))} placeholder="e.g. Delhi" />
                     <Field label="Country" value={formData.currentCountry} onChange={(val) => setFormData(p => ({ ...p, currentCountry: val, ...(p.sameAsCurrent ? { permanentCountry: val } : {}) }))} placeholder="e.g. India" />
@@ -540,7 +540,10 @@ export default function EmployeesPage() {
                     <>
                       <Field label="Address Line 1" value={formData.permanentAddress} onChange={(val) => setFormData({ ...formData, permanentAddress: val })} placeholder="House No, Building, Street" />
                       <div className="grid grid-cols-4 gap-3">
-                        <Field label="Pincode" value={formData.permanentPincode} onChange={(val) => handlePincodeChange(val, 'permanent')} placeholder="e.g. 110001" maxLength={6} />
+                        <div className="relative">
+                          <Field label="Pincode" value={formData.permanentPincode} onChange={(val) => handlePincodeChange(val, 'permanent')} placeholder="e.g. 110001" maxLength={6} />
+                          {loadingPincode && <Loader2 size={14} className="absolute right-3 top-[26px] text-zinc-400 animate-spin" />}
+                        </div>
                         <Field label="City / District" value={formData.permanentCity} onChange={(val) => setFormData({ ...formData, permanentCity: val })} placeholder="e.g. New Delhi" />
                         <Field label="State" value={formData.permanentState} onChange={(val) => setFormData({ ...formData, permanentState: val })} placeholder="e.g. Delhi" />
                         <Field label="Country" value={formData.permanentCountry} onChange={(val) => setFormData({ ...formData, permanentCountry: val })} placeholder="e.g. India" />

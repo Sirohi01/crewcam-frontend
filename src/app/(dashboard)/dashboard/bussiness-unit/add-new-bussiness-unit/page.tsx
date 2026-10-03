@@ -146,7 +146,7 @@ export default function AddNewBusinessUnitPage() {
 
         setIsSubmitting(true);
         const toastId = toast.loading('Saving business unit...');
-        
+
         try {
             const payload = {
                 ...formData,
@@ -167,7 +167,7 @@ export default function AddNewBusinessUnitPage() {
                 await api.post('/business-units', payload);
                 toast.success('Business unit saved successfully', { id: toastId });
             }
-            router.push('/dashboard/bussiness-unit/bussinessunit-bu');
+            router.push('/dashboard/bussiness-unit');
         } catch (error: any) {
             console.error('Error saving BU:', error);
             toast.error(error.response?.data?.message || 'Failed to save business unit', { id: toastId });
@@ -195,11 +195,11 @@ export default function AddNewBusinessUnitPage() {
                     <p className="text-[11px] text-zinc-500">{editId ? 'Modify the details of this business unit.' : 'Create a new business unit (BU) and define its details.'}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Link href="/dashboard/bussiness-unit/bussinessunit-bu" className="flex items-center gap-1.5 h-8 px-3 bg-white border border-zinc-200 rounded-md text-[11px] font-semibold hover:bg-zinc-50 transition-colors shadow-sm text-zinc-700">
+                    <Link href="/dashboard/bussiness-unit" className="flex items-center gap-1.5 h-8 px-3 bg-white border border-zinc-200 rounded-md text-[11px] font-semibold hover:bg-zinc-50 transition-colors shadow-sm text-zinc-700">
                         <ArrowLeft className="w-3.5 h-3.5" /> Back to Business Units
                     </Link>
-                    <button 
-                        onClick={handleSubmit} 
+                    <button
+                        onClick={handleSubmit}
                         disabled={isSubmitting}
                         className="flex items-center gap-1.5 h-8 px-4 bg-indigo-600 text-white rounded-md text-[11px] font-semibold hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50"
                     >
@@ -352,7 +352,7 @@ export default function AddNewBusinessUnitPage() {
 
                         <div className="flex gap-3 h-[140px]">
                             {/* Upload Box */}
-                            <div 
+                            <div
                                 onClick={() => !isUploading && fileInputRef.current?.click()}
                                 className={`w-1/3 border border-dashed border-zinc-300 rounded-lg flex flex-col items-center justify-center bg-zinc-50/50 hover:bg-zinc-50 transition-colors cursor-pointer p-2.5 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
@@ -366,11 +366,11 @@ export default function AddNewBusinessUnitPage() {
                                 </span>
                                 <span className="text-[9px] text-zinc-400 text-center">PNG, JPG (Max 2MB)</span>
                             </div>
-                            <input 
-                                type="file" 
-                                accept="image/png, image/jpeg, image/webp" 
-                                className="hidden" 
-                                ref={fileInputRef} 
+                            <input
+                                type="file"
+                                accept="image/png, image/jpeg, image/webp"
+                                className="hidden"
+                                ref={fileInputRef}
                                 onChange={handleIconUpload}
                             />
 
