@@ -5,29 +5,38 @@ import { GitMerge } from 'lucide-react';
 import { useDivisionForm } from '@/context/DivisionFormContext';
 import { Card, Field, SelectField, labelCls } from './FormHelpers';
 import { MultiSearchableDropdown } from '@/components/ui/MultiSearchableDropdown';
+import { ApiSearchableSelect } from '@/components/common/ApiSearchableSelect';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/axios';
 
 export function ReportingAndMappingCard() {
     const { formData, updateFormData } = useDivisionForm();
 
-    const departmentOptions = [
-        { label: 'HR Department', value: 'hr' },
-        { label: 'IT Department', value: 'it' },
-        { label: 'Finance Department', value: 'finance' },
-    ];
+    const { data: departmentsRes } = useQuery({
+        queryKey: ['departments'],
+        queryFn: () => api.get('/companies/departments').then(res => res.data)
+    });
+    
+    const departmentOptions = (departmentsRes?.data || []).map((d: any) => ({
+        label: d.name,
+        value: d._id
+    }));
 
     return (
         <Card title={<><GitMerge size={16} className="text-indigo-600 mr-1" /> Reporting & Mapping</>}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Section - Form Fields */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4 lg:grid-cols-1 xl:grid-cols-2 lg:content-start">
-                    <SelectField 
-                        title="Report To (BU Head / Owner)" 
-                        required 
-                        value={formData.reportToId} 
-                        onChange={e => updateFormData({ reportToId: e.target.value })} 
-                        options={['Vikram Singh', 'Rahul Bajaj']} 
-                        helpText="Reporting manager for this division" 
-                    />
+                    <Field title="Report To (BU Head / Owner)" required helpText="Reporting manager for this division">
+                        <div className="mt-1">
+                            <ApiSearchableSelect
+                                apiType="employee"
+                                value={formData.reportToId}
+                                onChange={(val) => updateFormData({ reportToId: val })}
+                                placeholder="Select Reporting Manager"
+                            />
+                        </div>
+                    </Field>
                     
                     <div className="block">
                         <span className={labelCls}>Linked Departments</span>

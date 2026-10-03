@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import { SearchableDropdown } from '@/components/ui/SearchableDropdown';
 
-export type ApiSelectType = 'department' | 'employee' | 'branch' | 'business-unit' | 'designation' | 'manpower-request';
+export type ApiSelectType = 'department' | 'employee' | 'branch' | 'business-unit' | 'designation' | 'manpower-request' | 'division';
 
 interface ApiSearchableSelectProps {
   apiType: ApiSelectType;
@@ -58,6 +58,13 @@ const apiConfigs = {
     filter: (m: any) => m.status === 'Approved',
     label: (m: any) => `${m.jobCode || ''} ${m.designationId?.name || m.jobTitle}`,
     value: (m: any) => m._id,
+  },
+  division: {
+    key: ['divisions'],
+    url: '/divisions',
+    filter: (d: any) => d.status === 'Active',
+    label: (d: any) => d.divisionName || d.name,
+    value: (d: any) => d._id,
   },
 };
 

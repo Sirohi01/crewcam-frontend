@@ -4,6 +4,7 @@ import React from 'react';
 import { Building2 } from 'lucide-react';
 import { useDivisionForm } from '@/context/DivisionFormContext';
 import { Card, Field, SelectField, inputCls, textareaCls } from './FormHelpers';
+import { ApiSearchableSelect } from '@/components/common/ApiSearchableSelect';
 
 export function DivisionInformationCard() {
     const { formData, updateFormData } = useDivisionForm();
@@ -31,31 +32,38 @@ export function DivisionInformationCard() {
                         maxLength={10}
                     />
                 </Field>
-                <SelectField
-                    title="Business Unit"
-                    required
-                    value={formData.businessUnit}
-                    onChange={e => updateFormData({ businessUnit: e.target.value })}
-                    options={['Retail Interiors & Exhibition', 'Corporate', 'Sales']}
-                    helpText="Choose the BU this division belongs to"
-                />
+                <Field title="Business Unit" required helpText="Choose the BU this division belongs to">
+                    <div className="mt-1">
+                        <ApiSearchableSelect
+                            apiType="business-unit"
+                            value={formData.businessUnit}
+                            onChange={val => updateFormData({ businessUnit: val })}
+                            placeholder="Select Business Unit"
+                        />
+                    </div>
+                </Field>
 
                 {/* Row 2 */}
-                <SelectField
-                    title="Head / Owner"
-                    required
-                    value={formData.headEmployeeId}
-                    onChange={e => updateFormData({ headEmployeeId: e.target.value })}
-                    options={['Aman Malhotra', 'Neha Sethi']}
-                    helpText="Person responsible for this division"
-                />
-                <SelectField
-                    title="Parent Division"
-                    value={formData.parentDivisionId}
-                    onChange={e => updateFormData({ parentDivisionId: e.target.value })}
-                    options={['Main Operations', 'Support Systems']}
-                    helpText="Choose parent division (optional)"
-                />
+                <Field title="Head / Owner" required helpText="Person responsible for this division">
+                    <div className="mt-1">
+                        <ApiSearchableSelect
+                            apiType="employee"
+                            value={formData.headEmployeeId}
+                            onChange={val => updateFormData({ headEmployeeId: val })}
+                            placeholder="Select Head"
+                        />
+                    </div>
+                </Field>
+                <Field title="Parent Division" helpText="Choose parent division (optional)">
+                    <div className="mt-1">
+                        <ApiSearchableSelect
+                            apiType="division"
+                            value={formData.parentDivisionId}
+                            onChange={val => updateFormData({ parentDivisionId: val })}
+                            placeholder="Select Parent Division"
+                        />
+                    </div>
+                </Field>
                 <Field title="Status" required helpText="Choose current status">
                     <div className="relative">
                         <div className="absolute left-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-emerald-500 z-10 pointer-events-none shadow-sm"></div>

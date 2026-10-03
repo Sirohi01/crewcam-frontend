@@ -3,6 +3,7 @@
 import React from 'react';
 import { FileText, User, LayoutList, Calendar as CalendarIcon, ChevronDown } from 'lucide-react';
 import { Card, Field, SelectField, inputCls, textareaCls } from '@/components/divisions/FormHelpers';
+import { ApiSearchableSelect } from '@/components/common/ApiSearchableSelect';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 
@@ -75,19 +76,44 @@ export default function DesignationFormCards({ formData, setFormData }: { formDa
 
         {/* Row 2 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-1 gap-y-1 mt-2">
-          <SelectField title="Business Unit" required options={['Retail Interiors', 'Corporate']} value={formData?.businessUnit || ''} onChange={handleChange('businessUnit')} />
-          <SelectField title="Division" required options={['Design Studio', 'Operations']} value={formData?.division || ''} onChange={handleChange('division')} />
-          <SelectField title="Department" required options={['Space Planning', '3D Visualisation']} value={formData?.department || ''} onChange={handleChange('department')} />
+          <Field title="Business Unit" required>
+            <div className="mt-1">
+              <ApiSearchableSelect
+                apiType="business-unit"
+                value={formData?.businessUnit || ''}
+                onChange={(val) => setFormData?.((prev: any) => ({ ...prev, businessUnit: val }))}
+                placeholder="Select BU"
+              />
+            </div>
+          </Field>
+          <Field title="Division" required>
+            <div className="mt-1">
+              <ApiSearchableSelect
+                apiType="division"
+                value={formData?.division || ''}
+                onChange={(val) => setFormData?.((prev: any) => ({ ...prev, division: val }))}
+                placeholder="Select Division"
+              />
+            </div>
+          </Field>
+          <Field title="Department" required>
+            <div className="mt-1">
+              <ApiSearchableSelect
+                apiType="department"
+                value={formData?.department || ''}
+                onChange={(val) => setFormData?.((prev: any) => ({ ...prev, department: val }))}
+                placeholder="Select Dept"
+              />
+            </div>
+          </Field>
           <Field title="Reports To (Designation)" helpText="Immediate reporting role">
-            <div className="relative">
-              <select className={`${inputCls} appearance-none`} value={formData?.reportsToDesignationId || ''} onChange={handleChange('reportsToDesignationId')}>
-                <option value="" disabled>Select Reports To</option>
-                <option value="">None</option>
-                {designations.map((d: any) => (
-                  <option key={d._id} value={d._id}>{d.name} {d.code ? `(${d.code})` : ''}</option>
-                ))}
-              </select>
-              <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+            <div className="mt-1">
+              <ApiSearchableSelect
+                apiType="designation"
+                value={formData?.reportsToDesignationId || ''}
+                onChange={(val) => setFormData?.((prev: any) => ({ ...prev, reportsToDesignationId: val }))}
+                placeholder="Select Reports To"
+              />
             </div>
           </Field>
         </div>
