@@ -68,7 +68,7 @@ export default function BGVTemplate({ candidateId }: { candidateId: string }) {
 
     const SectionTitle = ({ children }: { children: React.ReactNode }) => (
         <h3 style={{
-            fontSize: 13, fontWeight: 600, color: '#0f172a',
+            fontSize: 11, fontWeight: 600, color: '#0f172a',
             textTransform: 'uppercase', letterSpacing: '0.05em',
             marginTop: 0, marginBottom: 7,
         }}>
@@ -79,7 +79,7 @@ export default function BGVTemplate({ candidateId }: { candidateId: string }) {
     return (
         <div className="page-container bg-slate-50/50 min-h-screen print:h-auto print:min-h-0 print:bg-white print:py-0 print:px-0">
             {/* Printable Sheet */}
-            <div className="max-w-[900px] mx-auto bg-white shadow-lg print:shadow-none p-6 md:p-8 print:p-[1.3cm] print:h-auto print:min-h-0">
+            <div className="max-w-[900px] mx-auto bg-white shadow-lg print:shadow-none p-6 md:p-8 print:p-[1.3cm]">
                 <div>
                     <PrintHiringHeader
                         title={isRequest ? 'BGV REQUEST FORM' : 'BGV FINAL REPORT'}
@@ -420,60 +420,45 @@ export default function BGVTemplate({ candidateId }: { candidateId: string }) {
             </div>
             <style>{`
                 @media print {
-                    .max-w-\\[900px\\] { max-width: 100% !important; margin: 0 !important; }
+                    * {  }
+                    .max-w-\[900px\] { max-width: 100% !important; margin: 0 !important; }
                     @page { size: A4 portrait; margin: 0; }
-        * { 
-            box-sizing: border-box !important; 
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-        }
-        html, body, #root, .page-container, main, .min-h-screen {
-            background: white !important;
-            background-color: white !important;
-            overflow: visible !important;
-            height: auto !important;
-            min-height: 0 !important;
-            padding: 0 !important;
-            margin: 0 !important;
-        }
-        html, body { 
-            background: white !important; 
-            background-color: white !important;
-            margin: 0 !important; 
-            padding: 0 !important; 
-        }
-        .no-print { 
-            display: none !important; 
-        }
-        .page-container { 
-            background: white !important; 
-            background-color: white !important;
-            padding: 0 !important; 
-            margin: 0 !important; 
-            min-height: 0 !important;
-            height: auto !important;
-            overflow: visible !important;
-        }
-        .print-transparent-bg {
-            background: transparent !important;
-            background-color: transparent !important;
-        }
-        .data-value {
-            font-family: 'Calibri', 'Segoe UI', Arial, sans-serif !important;
-            font-weight: 500 !important;
-            line-height: 1.4 !important;
-        }
-        tr { 
-            page-break-inside: avoid;
-        }
-        .print-page-break {
-            page-break-after: always !important;
-            break-after: page !important;
-        }
-        p, span, h1, h2, h3, h4, h5, h6, div, td, th {
-            color: #000000 !important;
-        }
-    }
+                *, *::before, *::after {
+                    box-sizing: border-box !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+                html, body, #root, .page-container, main {
+                    background: white !important;
+                    overflow: visible !important;
+                    height: auto !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    width: 100% !important;
+                }
+                .no-print { display: none !important; }
+                .print-only { display: block !important; }
+                section { page-break-inside: avoid; break-inside: avoid; }
+                
+                /* Force text colors to pure black on print and enforce Calibri */
+                .data-value, p, span, h1, h2, h3, h4, h5, h6, div, td, th {
+                    color: #000000 !important;
+                    font-family: 'Calibri', 'Segoe UI', Arial, sans-serif !important;
+                }
+                
+                .data-value {
+                    font-weight: 500 !important;
+                    line-height: 1.4 !important;
+                }
+                
+                .print-divider { border-top: 1.5px solid #475569 !important; }
+                .print-line { border-bottom: 1px solid #cbd5e1 !important; }
+                * { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+                *::-webkit-scrollbar { display: none !important; }
+                table { border-collapse: collapse !important; border-color: #000 !important; }
+                th, td { border-color: #000 !important; }
+                tr { page-break-inside: avoid; }
+            }
             `}</style>
         </div>
     );

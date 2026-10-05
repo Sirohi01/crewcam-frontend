@@ -359,22 +359,45 @@ export default function IDCardTemplate({ candidateId }: { candidateId: string })
 
             <style>{`
                 @media print {
-                    @page { size: A4 portrait; margin: 1.3cm; }
-                    body, html, #root, main, .page-container {
-                        background-color: white !important;
-                    }
-                    .no-print { display: none !important; }
-                    aside, nav, header { display: none !important; }
-                    * {
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                    }
-                    .print-scale {
-                        transform: scale(1.6);
-                        transform-origin: top center;
-                        margin-top: 40px !important;
-                    }
+                    * {  }
+                    .max-w-\[900px\] { max-width: 100% !important; margin: 0 !important; }
+                    @page { size: A4 portrait; margin: 0; }
+                *, *::before, *::after {
+                    box-sizing: border-box !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                 }
+                html, body, #root, .page-container, main {
+                    background: white !important;
+                    overflow: visible !important;
+                    height: auto !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    width: 100% !important;
+                }
+                .no-print { display: none !important; }
+                .print-only { display: block !important; }
+                section { page-break-inside: avoid; break-inside: avoid; }
+                
+                /* Force text colors to pure black on print and enforce Calibri */
+                .data-value, p, span, h1, h2, h3, h4, h5, h6, div, td, th {
+                    color: #000000 !important;
+                    font-family: 'Calibri', 'Segoe UI', Arial, sans-serif !important;
+                }
+                
+                .data-value {
+                    font-weight: 500 !important;
+                    line-height: 1.4 !important;
+                }
+                
+                .print-divider { border-top: 1.5px solid #475569 !important; }
+                .print-line { border-bottom: 1px solid #cbd5e1 !important; }
+                * { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+                *::-webkit-scrollbar { display: none !important; }
+                table { border-collapse: collapse !important; border-color: #000 !important; }
+                th, td { border-color: #000 !important; }
+                tr { page-break-inside: avoid; }
+            }
             `}</style>
         </div>
     );

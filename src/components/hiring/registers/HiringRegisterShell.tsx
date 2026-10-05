@@ -242,7 +242,7 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
 
   const toggleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedRowIds(new Set(paginatedData.map((row: any) => row._id)));
+      setSelectedRowIds(new Set(paginatedData.map((row: any, i: number) => row._id || row.id || `row-${i}`)));
     } else {
       setSelectedRowIds(new Set());
     }
@@ -338,10 +338,12 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
               ) : paginatedData.length === 0 ? (
                 <tr><td colSpan={dynamicColumns.length + 3} className="p-4 text-center text-slate-500">No records found.</td></tr>
               ) : (
-                paginatedData.map((row, index) => (
-                  <tr key={row._id} className="hover:bg-slate-50 transition-colors">
+                paginatedData.map((row, index) => {
+                  const rowKey = row._id || row.id || `row-${index}`;
+                  return (
+                  <tr key={rowKey} className="hover:bg-slate-50 transition-colors">
                     <td className="px-3 py-2 border-r border-slate-100 text-center">
-                      <input type="checkbox" className="rounded" checked={selectedRowIds.has(row._id)} onChange={(e) => toggleSelectRow(row._id, e.target.checked)} />
+                      <input type="checkbox" className="rounded" checked={selectedRowIds.has(rowKey)} onChange={(e) => toggleSelectRow(rowKey, e.target.checked)} />
                     </td>
                     <td className="px-3 py-2 border-r border-slate-100 text-center font-medium text-slate-500">
                       {(page - 1) * pageSize + index + 1}
@@ -353,31 +355,39 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                         if (row.employeeId) {
                           const emp = employeeDirectory.find((e: any) => String(e._id) === idOf(row.employeeId));
                           if (emp) {
-                            if (col.key === 'employeeName' || col.key === 'candidateName' || col.key === 'employeename') {
+                            if (col.key === 'employeeName' || col.key === 'candidateName' || col.key === 'employeename' || col.key.includes('fullName')) {
                               val = `${emp.firstName} ${emp.lastName || ''}`.trim();
-                            } else if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId') {
-                              val = emp.employeeCode || val;
-                            } else if (col.key === 'designation' || col.key === 'position') {
+                            } else if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId' || col.key.includes('empCode')) {
+                              val = emp.employeeCode || emp.uniqueId || val;
+                            } else if (col.key === 'designation' || col.key === 'position' || col.key.includes('designation')) {
                               val = emp.designation || emp.jobRole || val;
-                            } else if (col.key === 'department') {
+                            } else if (col.key === 'department' || col.key.includes('department')) {
                               val = emp.department || val;
-                            } else if (col.key === 'joiningDate') {
+                            } else if (col.key === 'joiningDate' || col.key.includes('joiningDate')) {
                               val = emp.dateOfJoining || emp.expectedJoiningDate || val;
+                            } else if (col.key.toLowerCase().includes('mobile') || col.key.toLowerCase().includes('phone')) {
+                              val = emp.mobileNumber || emp.phone || val;
+                            } else if (col.key.toLowerCase().includes('email')) {
+                              val = emp.email || emp.personalEmailId || val;
                             }
                           }
                         } else if (row.candidateId) {
                           const cand = candidateDirectory.find((c: any) => String(c._id) === idOf(row.candidateId));
                           if (cand) {
-                            if (col.key === 'employeeName' || col.key === 'candidateName' || col.key === 'employeename') {
+                            if (col.key === 'employeeName' || col.key === 'candidateName' || col.key === 'employeename' || col.key.includes('fullName')) {
                               val = `${cand.firstName} ${cand.lastName || ''}`.trim();
-                            } else if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId') {
-                              val = cand.employeeCode || val;
-                            } else if (col.key === 'designation' || col.key === 'position') {
-                              val = cand.jobRole || val;
-                            } else if (col.key === 'department') {
+                            } else if (col.key === 'empCode' || col.key === 'employeeCode' || col.key === 'uniqueId' || col.key.includes('empCode')) {
+                              val = cand.employeeCode || cand.uniqueId || val;
+                            } else if (col.key === 'designation' || col.key === 'position' || col.key.includes('designation')) {
+                              val = cand.jobRole || cand.designation || val;
+                            } else if (col.key === 'department' || col.key.includes('department')) {
                               val = cand.department || val;
-                            } else if (col.key === 'joiningDate') {
+                            } else if (col.key === 'joiningDate' || col.key.includes('joiningDate')) {
                               val = cand.expectedJoiningDate || cand.dateOfJoining || val;
+                            } else if (col.key.toLowerCase().includes('mobile') || col.key.toLowerCase().includes('phone')) {
+                              val = cand.phone || cand.mobileNumber || val;
+                            } else if (col.key.toLowerCase().includes('email')) {
+                              val = cand.email || cand.personalEmailId || val;
                             }
                           }
                         }
@@ -444,7 +454,8 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
                       </div>
                     </td>
                   </tr>
-                ))
+                );
+              })
               )}
             </tbody>
             <tfoot className="bg-slate-50">
@@ -553,33 +564,38 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
       {selectedRecord && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity">
           <div className="flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl border border-slate-200 ring-1 ring-black/5 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-6 py-5">
+            <div className="flex items-start justify-between border-b border-slate-200 bg-white px-6 py-5">
               <div>
-
-                <h3 className="text-xl font-bold text-slate-900">{step.title} Details</h3>
-
-                <div className="flex items-center gap-3 mt-0.5">
-                  <p className="text-sm font-medium text-slate-500 mt-1">{subjectName(selectedRecord)}</p>
-
+                <h3 className="text-lg font-bold text-slate-900 tracking-tight">{step.title} Details</h3>
+                <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <UserRound size={13} className="shrink-0" />
+                    <span className="text-xs font-semibold">{subjectName(selectedRecord)}</span>
+                  </div>
                   {(getRecordCanonicalId(selectedRecord) || selectedRecord.employeeCode || selectedRecord.uniqueId || selectedRecord.candidateCode || selectedRecord.empCode) && (
-                    <span className="text-xs font-mono font-bold text-[#0d3c68] bg-slate-100 px-2 py-0.5 rounded">
-                      ID: {getRecordCanonicalId(selectedRecord) || formatEmployeeId(selectedRecord.employeeCode || selectedRecord.uniqueId || selectedRecord.candidateCode || selectedRecord.empCode)}
-                    </span>
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-50 text-slate-600 border border-slate-200">
+                      <FileText size={13} className="shrink-0 text-slate-400" />
+                      <span className="text-xs font-mono font-bold">
+                        {getRecordCanonicalId(selectedRecord) || formatEmployeeId(selectedRecord.employeeCode || selectedRecord.uniqueId || selectedRecord.candidateCode || selectedRecord.empCode)}
+                      </span>
+                    </div>
                   )}
                 </div>
               </div>
-              <button onClick={() => setSelectedRecord(null)} className="rounded-full bg-white border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-all shadow-sm">
-                <X size={18} strokeWidth={2.5} />
+              <button onClick={() => setSelectedRecord(null)} className="rounded-full bg-slate-50 border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-all shadow-sm">
+                <X size={16} strokeWidth={2.5} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-6 bg-white">
-              <div className="grid gap-4 md:grid-cols-2 rounded-xl border border-slate-200 bg-slate-50 p-5 shadow-[inset_0_1px_4px_rgba(0,0,0,0.02)]">
-                {detailRows(selectedRecord, '', getRecordCanonicalId(selectedRecord)).map((entry, index) => (
-                  <div key={`${entry.label}-${index}`} className="flex flex-col rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-blue-200/80">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#0d3c68]/80 mb-2">{entry.label}</p>
-                    <p className="break-words text-[13px] font-medium text-slate-800 leading-relaxed">{entry.value}</p>
-                  </div>
-                ))}
+            <div className="flex-1 overflow-y-auto p-6 bg-[#f8fafc]">
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="grid grid-cols-1 md:grid-cols-2 divide-y divide-slate-100 md:divide-y-0 [&>*:nth-child(n+3)]:md:border-t [&>*:nth-child(n+3)]:md:border-slate-100 [&>*:nth-child(odd)]:md:border-r [&>*:nth-child(odd)]:md:border-slate-100">
+                  {detailRows(selectedRecord, '', getRecordCanonicalId(selectedRecord)).map((entry, index) => (
+                    <div key={`${entry.label}-${index}`} className="px-5 py-3.5 hover:bg-slate-50/80 transition-colors group">
+                      <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-500 mb-1 group-hover:text-indigo-600 transition-colors">{entry.label}</p>
+                      <p className="break-words text-[13px] font-medium text-slate-900">{entry.value}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

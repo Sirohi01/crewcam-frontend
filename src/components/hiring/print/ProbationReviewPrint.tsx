@@ -97,7 +97,7 @@ export default function ProbationReviewPrint({ recordId }: { recordId: string })
             <span style={{ fontSize: 11, fontWeight: 700, color: '#0f172a', fontFamily: FONT }}>{label}</span>
         </div>
     );
-    
+
     const candidateName = data.candidateId?.name || data.candidateId?.firstName ? `${data.candidateId.firstName} ${data.candidateId.lastName || ''}`.trim() : data.employeeName || data.candidateName || '';
     const departmentName = data.departmentId?.name || data.department || '';
 
@@ -119,7 +119,7 @@ export default function ProbationReviewPrint({ recordId }: { recordId: string })
             </div>
 
             {/* Printable Sheet */}
-            <div className="max-w-[900px] mx-auto print:w-[210mm] print:max-w-[210mm] print:mx-auto bg-white shadow-lg print:shadow-none p-6 md:p-8 print:p-0">
+            <div className="max-w-[900px] mx-auto bg-white shadow-lg print:shadow-none p-6 md:p-8 print:p-[1.3cm]">
                 <div className='print:p-[8mm]'>
                     <div className="relative">
                         <PrintHiringHeader
@@ -306,38 +306,45 @@ export default function ProbationReviewPrint({ recordId }: { recordId: string })
             {/* ── Print Styles ── */}
             <style>{`
                 @media print {
-                    @page { size: A4; margin: 0mm !important; }
-                    *, *::before, *::after {
-                        box-sizing: border-box !important;
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                    }
-                    html, body, #root, .page-container, main {
-                        background: white !important;
-                        overflow: visible !important;
-                        height: auto !important;
-                        padding: 0 !important;
-                        margin: 0 !important;
-                        width: 100% !important;
-                    }
-                    .no-print { display: none !important; }
-                    section { page-break-inside: avoid; break-inside: avoid; }
-                    .print-divider { border-top: 1.5px solid #475569 !important; }
-                    .print-line { border-bottom: 1px solid #cbd5e1 !important; }
-                    * { -ms-overflow-style: none !important; scrollbar-width: none !important; }
-                    *::-webkit-scrollbar { display: none !important; }
-                    .print\\:w-\\[210mm\\] { width: 210mm !important; }
-                    .print\\:max-w-\\[210mm\\] { max-width: 210mm !important; }
-                    .print\\:mx-auto { margin-left: auto !important; margin-right: auto !important; }
-                    .print\\:p-0 { padding: 0 !important; }
-                    .print\\:p-\\[8mm\\] { padding: 8mm !important; }
-                    .print\\:shadow-none { box-shadow: none !important; }
-                    .print\\:bg-white { background: white !important; }
-                    p, span, div, li, h2, h3, h4 {
-                        font-family: Poppins, Inter, -apple-system, BlinkMacSystemFont,
-                            "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
-                    }
+                    * {  }
+                    .max-w-\[900px\] { max-width: 100% !important; margin: 0 !important; }
+                    @page { size: A4 portrait; margin: 0; }
+                *, *::before, *::after {
+                    box-sizing: border-box !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                 }
+                html, body, #root, .page-container, main {
+                    background: white !important;
+                    overflow: visible !important;
+                    height: auto !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    width: 100% !important;
+                }
+                .no-print { display: none !important; }
+                .print-only { display: block !important; }
+                section { page-break-inside: avoid; break-inside: avoid; }
+                
+                /* Force text colors to pure black on print and enforce Calibri */
+                .data-value, p, span, h1, h2, h3, h4, h5, h6, div, td, th {
+                    color: #000000 !important;
+                    font-family: 'Calibri', 'Segoe UI', Arial, sans-serif !important;
+                }
+                
+                .data-value {
+                    font-weight: 500 !important;
+                    line-height: 1.4 !important;
+                }
+                
+                .print-divider { border-top: 1.5px solid #475569 !important; }
+                .print-line { border-bottom: 1px solid #cbd5e1 !important; }
+                * { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+                *::-webkit-scrollbar { display: none !important; }
+                table { border-collapse: collapse !important; border-color: #000 !important; }
+                th, td { border-color: #000 !important; }
+                tr { page-break-inside: avoid; }
+            }
             `}</style>
         </div>
     );

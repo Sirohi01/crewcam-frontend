@@ -96,7 +96,7 @@ export default function CTCBreakupTemplate({ candidateId }: { candidateId: strin
 
     const SectionTitle = ({ children }: { children: React.ReactNode }) => (
         <h3 style={{
-            fontSize: 13, fontWeight: 600, color: '#0f172a',
+            fontSize: 11, fontWeight: 600, color: '#0f172a',
             textTransform: 'uppercase', letterSpacing: '0.05em',
             marginTop: -2, marginBottom: 7,
         }}>
@@ -355,7 +355,8 @@ export default function CTCBreakupTemplate({ candidateId }: { candidateId: strin
             {/* Print Styles */}
             <style>{`
                 @media print {
-                    .max-w-\\[900px\\] { max-width: 100% !important; margin: 0 !important; }
+                    * {  }
+                    .max-w-\[900px\] { max-width: 100% !important; margin: 0 !important; }
                     @page { size: A4 portrait; margin: 0; }
                 *, *::before, *::after {
                     box-sizing: border-box !important;
@@ -374,13 +375,13 @@ export default function CTCBreakupTemplate({ candidateId }: { candidateId: strin
                 .print-only { display: block !important; }
                 section { page-break-inside: avoid; break-inside: avoid; }
                 
-                /* Force text colors to pure black on print to avoid light/grey appearance */
+                /* Force text colors to pure black on print and enforce Arial */
                 .data-value, p, span, h1, h2, h3, h4, h5, h6, div, td, th {
                     color: #000000 !important;
+                    font-family: Arial, Helvetica, sans-serif !important;
                 }
                 
                 .data-value {
-                    font-family: 'Calibri', 'Segoe UI', Arial, sans-serif !important;
                     font-weight: 500 !important;
                     line-height: 1.4 !important;
                 }

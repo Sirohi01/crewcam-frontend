@@ -61,7 +61,7 @@ export default function JoiningConfirmationTemplate({ candidateId }: { candidate
 
     // ── Shared text style — matches img2 body font weight & size ──
     const bodyStyle: React.CSSProperties = {
-        fontSize: 13,
+        fontSize: 11,
         fontWeight: 500,
         textAlign: 'justify',
         color: '#0f172a',
@@ -72,9 +72,7 @@ export default function JoiningConfirmationTemplate({ candidateId }: { candidate
 
     return (
         <div className="page-container bg-slate-50/50 min-h-screen print:bg-white">
-            <div
-                className="max-w-[900px] mx-auto bg-white shadow-lg print:shadow-none p-6 md:p-8 print:p-[1.3cm]"
-            >
+            <div className="max-w-[900px] mx-auto bg-white shadow-lg print:shadow-none p-6 md:p-8 print:p-[1.3cm]">
                 <div>
                     <PrintHiringHeader
                         title="JOINING CONFIRMATION MAIL"
@@ -115,7 +113,7 @@ export default function JoiningConfirmationTemplate({ candidateId }: { candidate
 
                         {/* Reporting Details */}
                         <div style={{ marginBottom: 8 }}>
-                            <h3 style={{ fontSize: 13, fontWeight: 600, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: -2, marginBottom: 7 }}>
+                            <h3 style={{ fontSize: 11, fontWeight: 600, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: -2, marginBottom: 7 }}>
                                 You are required to report as follows:
                             </h3>
                             <div style={{ paddingLeft: 16, display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -124,10 +122,10 @@ export default function JoiningConfirmationTemplate({ candidateId }: { candidate
                                     { label: 'Reporting Time', value: record.reportingTime || '9:30 AM' },
                                     { label: 'Reporting Location', value: record.reportingLocation || 'Head Office – Mohan Nagar, Ghaziabad' },
                                 ].map(({ label, value }) => (
-                                    <div key={label} style={{ display: 'flex', alignItems: 'baseline', fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+                                    <div key={label} style={{ display: 'flex', alignItems: 'baseline', fontSize: 11, fontWeight: 700, color: '#0f172a' }}>
                                         <span style={{ whiteSpace: 'nowrap', flexShrink: 0, width: 140 }}>{label}</span>
                                         <span style={{ flexShrink: 0, marginRight: 6 }}>:</span>
-                                        <span style={{ fontWeight: 500, flex: 1, fontSize: 13, color: '#0f172a' }}>{value}</span>
+                                        <span style={{ fontWeight: 500, flex: 1, fontSize: 11, color: '#0f172a' }}>{value}</span>
                                     </div>
                                 ))}
                             </div>
@@ -135,7 +133,7 @@ export default function JoiningConfirmationTemplate({ candidateId }: { candidate
 
                         {/* Upon Reporting */}
                         <div style={{ marginBottom: 8 }}>
-                            <h3 style={{ fontSize: 13, fontWeight: 600, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: -2, marginBottom: 7 }}>
+                            <h3 style={{ fontSize: 11, fontWeight: 600, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: -2, marginBottom: 7 }}>
                                 Upon reporting, you will be required to:
                             </h3>
                             <div style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -194,32 +192,45 @@ export default function JoiningConfirmationTemplate({ candidateId }: { candidate
 
             <style>{`
                 @media print {
-                    .max-w-\\[900px\\] { max-width: 100% !important; margin: 0 !important; }
+                    * {  }
+                    .max-w-\[900px\] { max-width: 100% !important; margin: 0 !important; }
                     @page { size: A4 portrait; margin: 0; }
-                    *, *::before, *::after {
-                        box-sizing: border-box !important;
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                    }
-                    html, body, #root, .page-container, main {
-                        background: white !important;
-                        overflow: visible !important;
-                        height: auto !important;
-                        padding: 0 !important;
-                        margin: 0 !important;
-                        width: 100% !important;
-                    }
-                    .no-print { display: none !important; }
-                    * { -ms-overflow-style: none !important; scrollbar-width: none !important; }
-                    *::-webkit-scrollbar { display: none !important; }
-                    .print\\:p-0 { padding: 0 !important; }
-                    .print\\:shadow-none { box-shadow: none !important; }
-                    .print\\:bg-white { background: white !important; }
-                    /* Force text colors to pure black on print */
-                    p, span, h1, h2, h3, h4, h5, h6, div, td, th {
-                        color: #000000 !important;
-                    }
+                *, *::before, *::after {
+                    box-sizing: border-box !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                 }
+                html, body, #root, .page-container, main {
+                    background: white !important;
+                    overflow: visible !important;
+                    height: auto !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    width: 100% !important;
+                }
+                .no-print { display: none !important; }
+                .print-only { display: block !important; }
+                section { page-break-inside: avoid; break-inside: avoid; }
+                
+                /* Force text colors to pure black on print and enforce Calibri */
+                .data-value, p, span, h1, h2, h3, h4, h5, h6, div, td, th {
+                    color: #000000 !important;
+                    font-family: 'Calibri', 'Segoe UI', Arial, sans-serif !important;
+                }
+                
+                .data-value {
+                    font-weight: 500 !important;
+                    line-height: 1.4 !important;
+                }
+                
+                .print-divider { border-top: 1.5px solid #475569 !important; }
+                .print-line { border-bottom: 1px solid #cbd5e1 !important; }
+                * { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+                *::-webkit-scrollbar { display: none !important; }
+                table { border-collapse: collapse !important; border-color: #000 !important; }
+                th, td { border-color: #000 !important; }
+                tr { page-break-inside: avoid; }
+            }
             `}</style>
         </div>
     );

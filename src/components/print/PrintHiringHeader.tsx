@@ -20,6 +20,7 @@ export default function PrintHiringHeader({
                     style={{
                         textAlign: "right",
                         marginBottom: 6,
+                        marginTop: -10,
                         fontSize: 10,
                         fontWeight: 700,
                         color: "#64748b",

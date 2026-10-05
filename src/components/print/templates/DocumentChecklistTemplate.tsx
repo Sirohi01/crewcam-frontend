@@ -84,7 +84,7 @@ export default function DocumentChecklistTemplate({ candidateId }: { candidateId
 
     const SectionTitle = ({ children }: { children: React.ReactNode }) => (
         <h3 style={{
-            fontSize: 13,
+            fontSize: 11,
             fontWeight: 600,
             color: '#0f172a',
             textTransform: 'uppercase',
@@ -343,61 +343,45 @@ export default function DocumentChecklistTemplate({ candidateId }: { candidateId
 
             <style>{`
                 @media print {
-                    .max-w-\\[900px\\] { max-width: 100% !important; margin: 0 !important; }
+                    * {  }
+                    .max-w-\[900px\] { max-width: 100% !important; margin: 0 !important; }
                     @page { size: A4 portrait; margin: 0; }
-                    *, *::before, *::after {
-                        box-sizing: border-box !important;
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                    }
-                    html, body, #root, .page-container, main {
-                        background: white !important;
-                        overflow: visible !important;
-                        height: auto !important;
-                        padding: 0 !important;
-                        margin: 0 !important;
-                        width: 100% !important;
-                    }
-                    .no-print { display: none !important; }
-                    section { page-break-inside: avoid; break-inside: avoid; }
-                    tr { page-break-inside: avoid !important; break-inside: avoid !important; }
-                    tr:has(td[colspan]) { page-break-after: avoid !important; }
-                    .data-value {
-                        font-family: 'Calibri', 'Segoe UI', Arial, sans-serif !important;
-                        font-weight: 500 !important;
-                        line-height: 1.4 !important;
-                    }
-                    .print-divider { border-top: 1.5px solid #475569 !important; }
-                    .print-line { border-bottom: 1px solid #cbd5e1 !important; }
-                    table, th, td { border-color: #475569 !important; }
-                    thead tr { background-color: #f1f5f9 !important; }
-                    * { -ms-overflow-style: none !important; scrollbar-width: none !important; }
-                    *::-webkit-scrollbar { display: none !important; }
-                    .print-page-break {
-                        display: block !important;
-                        page-break-before: always !important;
-                        break-before: page !important;
-                        height: 0 !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                    }
-                    .print\\:p-0            { padding: 0 !important; }
-                    .print\\:p-\\[8mm\\]    { padding: 8mm !important; }
-                    .print\\:w-full { width: 100% !important; }
-                    .print\\:max-w-full { max-width: 100% !important; }
-                    .print\\:mx-auto        { margin-left: auto !important; margin-right: auto !important; }
-                    .print\\:shadow-none    { box-shadow: none !important; }
-                    .print\\:bg-white       { background: white !important; }
-                    .print\\:mb-0           { margin-bottom: 0 !important; }
-                    .print\\:mt-0           { margin-top: 0 !important; }
-                    /* Force text colors to pure black on print */
-                    p, span, h1, h2, h3, h4, h5, h6, div, td, th {
-                        color: #000000 !important;
-                    }
+                *, *::before, *::after {
+                    box-sizing: border-box !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                 }
-                @media screen {
-                    .print-page-break { display: none; }
+                html, body, #root, .page-container, main {
+                    background: white !important;
+                    overflow: visible !important;
+                    height: auto !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    width: 100% !important;
                 }
+                .no-print { display: none !important; }
+                .print-only { display: block !important; }
+                section { page-break-inside: avoid; break-inside: avoid; }
+                
+                /* Force text colors to pure black on print and enforce Calibri */
+                .data-value, p, span, h1, h2, h3, h4, h5, h6, div, td, th {
+                    color: #000000 !important;
+                    font-family: 'Calibri', 'Segoe UI', Arial, sans-serif !important;
+                }
+                
+                .data-value {
+                    font-weight: 500 !important;
+                    line-height: 1.4 !important;
+                }
+                
+                .print-divider { border-top: 1.5px solid #475569 !important; }
+                .print-line { border-bottom: 1px solid #cbd5e1 !important; }
+                * { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+                *::-webkit-scrollbar { display: none !important; }
+                table { border-collapse: collapse !important; border-color: #000 !important; }
+                th, td { border-color: #000 !important; }
+                tr { page-break-inside: avoid; }
+            }
             `}</style>
         </div>
     );

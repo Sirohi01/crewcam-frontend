@@ -1,13 +1,16 @@
-'use client';
+import React from "react";
+
 interface PrintHiringHeaderProps {
     title: string;
-    subtitle: string;
+    subtitle?: string;
+    refNo?: string;
     step?: number;
 }
 
 export default function PrintHiringHeader({
     title,
     subtitle,
+    refNo,
     step,
 }: PrintHiringHeaderProps) {
     return (
@@ -17,22 +20,20 @@ export default function PrintHiringHeader({
                     style={{
                         textAlign: "right",
                         marginBottom: 6,
-                        marginTop: -16,   // Step 1 ko upar le jayega
+                        marginTop: -10,
                         fontSize: 10,
-                        fontWeight: 600,
+                        fontWeight: 700,
                         color: "#64748b",
+                        letterSpacing: "0.04em",
+                        textTransform: "uppercase"
                     }}
                 >
                     Step {step}
                 </div>
             )}
-            <div
-                style={{
-                    marginTop: 0,
-                    marginBottom: 12, // Header image ke niche gap
-                    width: "100%",
-                }}
-            >
+
+            {/* Company header image */}
+            <div style={{ marginTop: 0, marginBottom: 12, width: "100%" }}>
                 <img
                     src="/header.jpg"
                     alt="Company Header"
@@ -47,16 +48,18 @@ export default function PrintHiringHeader({
                 />
             </div>
 
+            {/* Title row */}
             <div
                 style={{
                     borderBottom: "2px solid #0f172a",
                     paddingBottom: 2,
-                    marginBottom: 8, // 1. DEPARTMENT DETAILS ko upar laye
+                    marginBottom: 8,
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "flex-end",
                 }}
             >
+                {/* Title */}
                 <h1
                     style={{
                         fontSize: 14,
@@ -70,16 +73,29 @@ export default function PrintHiringHeader({
                     {title}
                 </h1>
 
-                <span
-                    style={{
-                        fontSize: 10,
-                        fontWeight: 600,
-                        color: "#64748b",
-                        fontStyle: "italic",
-                    }}
-                >
-                    {subtitle}
-                </span>
+                {/* Ref No OR subtitle */}
+                {refNo ? (
+                    <span
+                        style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: "#0f172a",
+                        }}
+                    >
+                        Ref. No.&nbsp;&nbsp;{refNo}
+                    </span>
+                ) : subtitle ? (
+                    <span
+                        style={{
+                            fontSize: 10,
+                            fontWeight: 600,
+                            color: "#64748b",
+                            fontStyle: "italic",
+                        }}
+                    >
+                        {subtitle}
+                    </span>
+                ) : null}
             </div>
         </div>
     );
