@@ -33,7 +33,8 @@ interface SidebarItem {
 }
 
 type GroupedItem = SidebarItem | { isGroup: true; label: string; children: GroupedItem[] };
-
+// const STATIC_PEOPLE_ITEMS: SidebarItem[] = []
+// const STATIC_RECRUITMENT_ITEMS: SidebarItem[] = []
 const STATIC_PEOPLE_ITEMS: SidebarItem[] = [
   { _id: 'e1', section: 'WORKSPACE', label: 'Dashboard', href: '/dashboard/employee', icon: 'LayoutDashboard', order: 1 },
   { _id: 'e2', section: 'WORKSPACE', label: 'My Profile', href: '/dashboard/my-profile-extension', icon: 'User', order: 2 },
@@ -89,6 +90,8 @@ const STATIC_RECRUITMENT_ITEMS: SidebarItem[] = [
 export default function DynamicSidebar() {
   const pathname = usePathname();
   const isSidebarOpen = useUIStore((s) => s.isSidebarOpen);
+  const setSidebarOpen = useUIStore((s) => s.setSidebarOpen);
+  const [openSection, setOpenSection] = React.useState<string | null>(null);
   const setPageTitle = useUIStore((s) => s.setPageTitle);
   const router = useRouter();
   const logout = useAuthStore((state) => state.logout);
@@ -246,10 +249,22 @@ export default function DynamicSidebar() {
         title = 'Career Applications';
       }
       setPageTitle(title);
+
+      const activeSec = sections.find(s => s.items.some(i => {
+        const checkActive = (child: GroupedItem): boolean => {
+          if ('isGroup' in child) return child.children.some(checkActive);
+          return child._id === matchedItem._id;
+        };
+        return checkActive(i);
+      }));
+      if (activeSec && !openSection) {
+        setOpenSection(activeSec.section);
+      }
     } else {
       setPageTitle('Dashboard');
     }
-  }, [matchedItem, setPageTitle]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matchedItem, sections]);
 
   return (
     <>
@@ -310,26 +325,71 @@ export default function DynamicSidebar() {
         <div className="sidebar-scroll flex-1 overflow-y-auto py-2">
           <div className="px-2 space-y-4">
 
-            {sections.map((group) => (
-              <nav key={group.section} className="space-y-0.5">
-                {group.section !== 'WORKSPACE' && <SectionLabel>{group.section}</SectionLabel>}
-                {group.items.map((item, index) => {
-                  if ('isGroup' in item) {
-                    return <NavGroup key={item.label + index} label={item.label} items={item.children} pathname={pathname} level={0} activeItemId={matchedItem?._id} />;
-                  }
-                  return (
-                    <NavItem
-                      key={`${item._id || 'itm'}-${index}-${item.href}`}
-                      href={item.href}
-                      icon={React.createElement(ICONS[item.icon] || Circle, { size: 14 })}
-                      label={item.label}
-                      active={matchedItem?._id === item._id}
-                      disabled={item.href.includes('/coming-soon')}
-                    />
-                  );
-                })}
-              </nav>
-            ))}
+            {sections.map((group) => {
+              const isSectionOpen = openSection === group.section || group.section === 'WORKSPACE';
+              return (
+                <nav key={group.section} className="space-y-0.5">
+                  {group.section !== 'WORKSPACE' && (
+                    <button
+                      onClick={() => {
+                        if (!isSidebarOpen) {
+                          setSidebarOpen(true);
+                          setOpenSection(group.section);
+                        } else {
+                          setOpenSection(isSectionOpen ? null : group.section);
+                        }
+                      }}
+                      className={`w-full flex items-center py-1.5 font-bold uppercase tracking-wider transition-colors ${isSidebarOpen ? 'justify-between px-2 text-[10px]' : 'justify-center mx-auto text-[12px]'}`}
+                      style={{
+                        color: isSectionOpen ? '#fde68a' : '#a5b4fc',
+                        height: isSidebarOpen ? 'auto' : '36px',
+                        width: isSidebarOpen ? '100%' : '36px',
+                        borderRadius: isSidebarOpen ? '6px' : '12px',
+                        backgroundColor: isSectionOpen && !isSidebarOpen ? 'rgba(0, 19, 51, 1)' : 'transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSectionOpen || !isSidebarOpen) {
+                          (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(245, 158, 11, 0.15)';
+                          (e.currentTarget as HTMLButtonElement).style.color = '#ffffff';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSectionOpen || !isSidebarOpen) {
+                          (e.currentTarget as HTMLButtonElement).style.backgroundColor = isSectionOpen && !isSidebarOpen ? 'rgba(0, 19, 51, 1)' : 'transparent';
+                          (e.currentTarget as HTMLButtonElement).style.color = isSectionOpen ? '#fde68a' : '#a5b4fc';
+                        }
+                      }}
+                    >
+                      {isSidebarOpen ? group.section : group.section.charAt(0)}
+                      {isSidebarOpen && (
+                        <span className="flex-shrink-0 ml-1">
+                          {isSectionOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                        </span>
+                      )}
+                    </button>
+                  )}
+                  {(isSectionOpen || !isSidebarOpen) && (
+                    <div className={`space-y-0.5 ${group.section !== 'WORKSPACE' && isSidebarOpen ? 'ml-3 pl-2 py-1' : ''}`} style={group.section !== 'WORKSPACE' && isSidebarOpen ? { borderLeft: '1px solid rgba(99,102,241,0.35)' } : {}}>
+                      {group.items.map((item, index) => {
+                        if ('isGroup' in item) {
+                          return <NavGroup key={item.label + index} label={item.label} items={item.children} pathname={pathname} level={0} activeItemId={matchedItem?._id} />;
+                        }
+                        return (
+                          <NavItem
+                            key={`${item._id || 'itm'}-${index}-${item.href}`}
+                            href={item.href}
+                            icon={React.createElement(ICONS[item.icon] || Circle, { size: 14 })}
+                            label={item.label}
+                            active={matchedItem?._id === item._id}
+                            disabled={item.href.includes('/coming-soon')}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
+                </nav>
+              );
+            })}
           </div>
         </div>
 
@@ -352,17 +412,7 @@ export default function DynamicSidebar() {
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  const isSidebarOpen = useUIStore((s) => s.isSidebarOpen);
-  if (!isSidebarOpen) {
-    return <div className="mx-4 my-3 h-px bg-indigo-400/20" />;
-  }
-  return (
-    <div className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#a5b4fc' }}>
-      {children}
-    </div>
-  );
-}
+
 
 function NavItem({
   href, icon, label, active = false, disabled = false,
