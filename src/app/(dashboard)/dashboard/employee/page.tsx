@@ -598,7 +598,7 @@ function QuickHelpCard() {
 
 export default function EmployeeDashboard() {
   return (
-    <main className="mx-auto max-w-[1600px] space-y-2 pb-4 px-2 sm:px-3">
+    <main className="w-full space-y-2 pb-4 px-2 sm:px-3">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>

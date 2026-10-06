@@ -555,7 +555,7 @@ export default function HoldCandidatesPage() {
   };
 
   return (
-    <main className="mx-auto max-w-[1600px] w-full space-y-3 overflow-x-hidden pb-6 px-2 sm:px-3">
+    <main className=" w-full space-y-3 overflow-x-hidden pb-6 px-2 sm:px-3">
       <PageHeader />
       <SummaryCards />
       <FiltersBar

@@ -202,7 +202,7 @@ export default function SubmitApplicationPreview({
       id="submit-application-root"
     >
       {/* Header Container matched to Add New Candidate width */}
-      <div className="w-full mx-auto max-w-[1600px] px-2 pt-2">
+      <div className="w-full  px-2 pt-2">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-3">
           {/* Title */}
           <div className="shrink-0 w-full lg:w-[380px]">

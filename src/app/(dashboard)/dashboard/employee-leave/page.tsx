@@ -180,7 +180,7 @@ export default function LeaveManagementPage() {
     activeTab === 'All' ? leaveHistory : leaveHistory.filter((l) => l.status === activeTab);
 
   return (
-    <main className="mx-auto max-w-[1600px] space-y-1 pb-2 px-2 sm:px-3">
+    <main className=" space-y-1 pb-2 px-2 sm:px-3">
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-[13px] text-zinc-400">
         <Link href="/dashboard" className="hover:text-zinc-600">Dashboard</Link>

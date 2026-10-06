@@ -178,7 +178,7 @@ export default function CandidateCreateForm() {
   };
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-10">
+    <div className="w-full space-y-2 mb-10">
 
       {/* Header Section */}
       <div className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden ">
@@ -329,13 +329,13 @@ function PincodeLookup({ value, onResolved }: { value: string; onResolved: (loca
   const lookup = (postalCode: string) => {
     onResolved({ postalCode });
     setMessage('');
-    
+
     lookupPincode(postalCode, (loc) => {
-      onResolved({ 
-        postalCode: loc.pincode, 
-        country: loc.country, 
-        state: loc.state, 
-        city: loc.city 
+      onResolved({
+        postalCode: loc.pincode,
+        country: loc.country,
+        state: loc.state,
+        city: loc.city
       });
       setMessage(`Location found: ${loc.city}, ${loc.state}`);
     });

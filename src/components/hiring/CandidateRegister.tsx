@@ -64,7 +64,7 @@ export default function CandidateRegister({
     setPage(1);
   }, [debouncedQuery, statusFilter, pageSize]);
 
-  
+
   const { data: statsData } = useQuery({
     queryKey: ['hiringDashboardStats'],
     queryFn: async () => (await api.get('/hiring/dashboard-stats')).data.data,
@@ -163,7 +163,7 @@ export default function CandidateRegister({
           </button>
         </div>
       </div>
-      <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-2 px-2 lg:px-4">
+      <div className="w-full space-y-2 mb-2 px-2 lg:px-4">
         {/* <Card className="rounded-md border-zinc-200/80 shadow-sm dark:border-zinc-800 w-full overflow-hidden">
           <CardHeader className="pb-0 flex flex-row items-center justify-between">
             <CardTitle className="text-base uppercase">CANDIDATE REGISTER</CardTitle>

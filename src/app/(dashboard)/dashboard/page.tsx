@@ -1576,7 +1576,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="mx-auto max-w-[1600px] space-y-2 pb-4 px-2 sm:px-3">
+    <main className="w-full space-y-2 pb-4 px-2 sm:px-3">
 
       {/* Banner — commented out, replaced by WelcomeHeader (see comment block above) */}
       {/* <HeroSlider /> */}

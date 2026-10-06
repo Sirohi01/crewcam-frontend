@@ -303,7 +303,7 @@ export default function ReviewPage() {
 
   return (
     <div className="w-full bg-slate-50 flex flex-col font-sans select-none" id="review-page-root">
-      <div className="w-full mx-auto max-w-[1600px] px-2 pt-2">
+      <div className="w-full  px-2 pt-2">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-3">
           <div className="shrink-0 w-full lg:w-auto">
             <h1 className="text-[17px] font-bold text-zinc-900 tracking-tight leading-tight">Review &amp; Edit Candidate</h1>

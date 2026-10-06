@@ -133,7 +133,7 @@ export default function CompanyProfilePage() {
   if (loading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-indigo-600" /></div>;
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-10">
+    <div className="w-full space-y-2 mb-10">
       <div className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden mb-3">
         <div className="bg-slate-50 px-4 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex flex-col gap-1.5">

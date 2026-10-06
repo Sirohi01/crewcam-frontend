@@ -321,7 +321,7 @@ export default function CreateCandidatePage() {
             } else if (list.length > 0) {
               setCandidate(prev => ({ ...prev, department: list[0]._id }));
             }
-          }).catch(() => {});
+          }).catch(() => { });
 
           // Match approved Manpower Request automatically
           api.get('/hiring/manpower-request').then(res => {
@@ -336,7 +336,7 @@ export default function CreateCandidatePage() {
             } else if (approved.length > 0) {
               setCandidate(prev => ({ ...prev, manpowerRequestId: approved[0]._id }));
             }
-          }).catch(() => {});
+          }).catch(() => { });
 
           return;
         }
@@ -534,7 +534,7 @@ export default function CreateCandidatePage() {
 
   return (
     <div className="w-full bg-slate-50 flex flex-col font-sans min-h-[650px] pb-6" id="create-page-root">
-      <div className="w-full mx-auto max-w-[1600px] px-2 pt-2">
+      <div className="w-full px-2 pt-2">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-3">
           {/* Title */}

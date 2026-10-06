@@ -33,59 +33,59 @@ interface SidebarItem {
 }
 
 type GroupedItem = SidebarItem | { isGroup: true; label: string; children: GroupedItem[] };
-// const STATIC_PEOPLE_ITEMS: SidebarItem[] = []
-// const STATIC_RECRUITMENT_ITEMS: SidebarItem[] = []
-const STATIC_PEOPLE_ITEMS: SidebarItem[] = [
-  { _id: 'e1', section: 'WORKSPACE', label: 'Dashboard', href: '/dashboard/employee', icon: 'LayoutDashboard', order: 1 },
-  { _id: 'e2', section: 'WORKSPACE', label: 'My Profile', href: '/dashboard/my-profile-extension', icon: 'User', order: 2 },
-  { _id: 'e3', section: 'WORKSPACE', label: 'Attendance', href: '/dashboard/attendance', icon: 'Clock', order: 3 },
-  { _id: 'e4', section: 'WORKSPACE', label: 'Leave', href: '/dashboard/employee-leave', icon: 'Calendar', order: 4 },
-  { _id: 'e5', section: 'WORKSPACE', label: 'My Performance', href: '/dashboard/my-performance', icon: 'TrendingUp', order: 5 },
-  { _id: 'e6', section: 'WORKSPACE', label: 'Goals & OKRs', href: '/dashboard/goals-and-okrs', icon: 'Circle', order: 6 },
-  { _id: 'e7', section: 'WORKSPACE', label: 'Payslip & Income Tax', href: '/dashboard/payslip-and-income-tax', icon: 'Receipt', order: 7 },
-  { _id: 'e8', section: 'WORKSPACE', label: 'Reimbursement (Imprest)', href: '/dashboard/reimbursement', icon: 'Wallet', order: 8 },
-  { _id: 'e9', section: 'WORKSPACE', label: 'My Requests', href: '/dashboard/my-requests', icon: 'ClipboardList', order: 9 },
-  { _id: 'e10', section: 'WORKSPACE', label: 'My Tasks', href: '/dashboard/my-tasks', icon: 'ListTree', order: 10 },
-  { _id: 'e11', section: 'WORKSPACE', label: 'Training & Development', href: '/dashboard/training-development', icon: 'GraduationCap', order: 11 },
-  { _id: 'e12', section: 'WORKSPACE', label: 'Policies & Documents', href: '/dashboard/policies', icon: 'FileSignature', order: 12 },
-  { _id: 'e13', section: 'WORKSPACE', label: 'Company Directory', href: '/dashboard/company-directory', icon: 'Users', order: 13 },
-  { _id: 'e14', section: 'WORKSPACE', label: 'Announcements', href: '/dashboard/announcements', icon: 'MessageSquare', order: 14 },
-  { _id: 'e15', section: 'WORKSPACE', label: 'Helpdesk / Support', href: '/dashboard/helpdesk', icon: 'ShieldCheck', order: 15 },
-  { _id: 'e16', section: 'WORKSPACE', label: 'Settings', href: '/dashboard/settings', icon: 'Settings', order: 16 },
-];
+const STATIC_PEOPLE_ITEMS: SidebarItem[] = []
+const STATIC_RECRUITMENT_ITEMS: SidebarItem[] = []
+// const STATIC_PEOPLE_ITEMS: SidebarItem[] = [
+//   { _id: 'e1', section: 'WORKSPACE', label: 'Dashboard', href: '/dashboard/employee', icon: 'LayoutDashboard', order: 1 },
+//   { _id: 'e2', section: 'WORKSPACE', label: 'My Profile', href: '/dashboard/my-profile-extension', icon: 'User', order: 2 },
+//   { _id: 'e3', section: 'WORKSPACE', label: 'Attendance', href: '/dashboard/attendance', icon: 'Clock', order: 3 },
+//   { _id: 'e4', section: 'WORKSPACE', label: 'Leave', href: '/dashboard/employee-leave', icon: 'Calendar', order: 4 },
+//   { _id: 'e5', section: 'WORKSPACE', label: 'My Performance', href: '/dashboard/my-performance', icon: 'TrendingUp', order: 5 },
+//   { _id: 'e6', section: 'WORKSPACE', label: 'Goals & OKRs', href: '/dashboard/goals-and-okrs', icon: 'Circle', order: 6 },
+//   { _id: 'e7', section: 'WORKSPACE', label: 'Payslip & Income Tax', href: '/dashboard/payslip-and-income-tax', icon: 'Receipt', order: 7 },
+//   { _id: 'e8', section: 'WORKSPACE', label: 'Reimbursement (Imprest)', href: '/dashboard/reimbursement', icon: 'Wallet', order: 8 },
+//   { _id: 'e9', section: 'WORKSPACE', label: 'My Requests', href: '/dashboard/my-requests', icon: 'ClipboardList', order: 9 },
+//   { _id: 'e10', section: 'WORKSPACE', label: 'My Tasks', href: '/dashboard/my-tasks', icon: 'ListTree', order: 10 },
+//   { _id: 'e11', section: 'WORKSPACE', label: 'Training & Development', href: '/dashboard/training-development', icon: 'GraduationCap', order: 11 },
+//   { _id: 'e12', section: 'WORKSPACE', label: 'Policies & Documents', href: '/dashboard/policies', icon: 'FileSignature', order: 12 },
+//   { _id: 'e13', section: 'WORKSPACE', label: 'Company Directory', href: '/dashboard/company-directory', icon: 'Users', order: 13 },
+//   { _id: 'e14', section: 'WORKSPACE', label: 'Announcements', href: '/dashboard/announcements', icon: 'MessageSquare', order: 14 },
+//   { _id: 'e15', section: 'WORKSPACE', label: 'Helpdesk / Support', href: '/dashboard/helpdesk', icon: 'ShieldCheck', order: 15 },
+//   { _id: 'e16', section: 'WORKSPACE', label: 'Settings', href: '/dashboard/settings', icon: 'Settings', order: 16 },
+// ];
 
-const STATIC_RECRUITMENT_ITEMS: SidebarItem[] = [
-  { _id: 'r1', section: 'WORKSPACE', label: 'HR Dashboard', href: '/dashboard/hr-dashboard', icon: 'LayoutDashboard', order: 2.01, parent: 'Requirement' },
-  { _id: 'r2', section: 'WORKSPACE', label: 'Job Requisition', href: '/dashboard/hiring/manpower', icon: 'Briefcase', order: 2.02, parent: 'Requirement' },
-  { _id: 'r3', section: 'WORKSPACE', label: 'Job Opening', href: '/dashboard/hiring/job-opening', icon: 'ListTree', order: 2.03, parent: 'Requirement' },
-  { _id: 'r3b', section: 'WORKSPACE', label: 'Post New Job', href: '/dashboard/hiring/jobs/new', icon: 'PlusSquare', order: 2.04, parent: 'Requirement' },
+// const STATIC_RECRUITMENT_ITEMS: SidebarItem[] = [
+//   { _id: 'r1', section: 'WORKSPACE', label: 'HR Dashboard', href: '/dashboard/hr-dashboard', icon: 'LayoutDashboard', order: 2.01, parent: 'Requirement' },
+//   { _id: 'r2', section: 'WORKSPACE', label: 'Job Requisition', href: '/dashboard/hiring/manpower', icon: 'Briefcase', order: 2.02, parent: 'Requirement' },
+//   { _id: 'r3', section: 'WORKSPACE', label: 'Job Opening', href: '/dashboard/hiring/job-opening', icon: 'ListTree', order: 2.03, parent: 'Requirement' },
+//   { _id: 'r3b', section: 'WORKSPACE', label: 'Post New Job', href: '/dashboard/hiring/jobs/new', icon: 'PlusSquare', order: 2.04, parent: 'Requirement' },
 
-  { _id: 'r4e', section: 'WORKSPACE', label: 'Job Applications', href: '/dashboard/hiring/applications', icon: 'FileText', order: 2.05, parent: 'Requirement' },
-  // { _id: 'r4', section: 'WORKSPACE', label: 'Review and Edit', href: '/dashboard/hiring/candidates/new/create/review-and-edit', icon: 'FileSignature', order: 2.06, parent: 'Requirement', subParent: 'Job Application' },
-  // { _id: 'r4a', section: 'WORKSPACE', label: 'Submit Application', href: '/dashboard/hiring/candidates/new/create/submit-application-preview', icon: 'UserPlus', order: 2.07, parent: 'Requirement', subParent: 'Job Application' },
-  // { _id: 'r4a', section: 'WORKSPACE', label: 'AI Screening Evaluation', href: '/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation', icon: 'Sparkles', order: 2.07, parent: 'Requirement', subParent: 'Job Application' },
-  // { _id: 'r4b', section: 'WORKSPACE', label: 'HOD Evaluation', href: '/dashboard/hiring/candidates/new/create/evaluation', icon: 'UserPlus', order: 2.08, parent: 'Requirement', subParent: 'Job Application' },
-  // { _id: 'r4c', section: 'WORKSPACE', label: 'Interview Round - 1', href: '/dashboard/hiring/candidates/new/create/interview-process', icon: 'UserPlus', order: 2.09, parent: 'Requirement', subParent: 'Job Application' },
-  // { _id: 'r4c', section: 'WORKSPACE', label: 'Interview Round - 2', href: '/dashboard/hiring/candidates/new/create/round-2', icon: 'UserPlus', order: 2.09, parent: 'Requirement', subParent: 'Job Application' },
-  // { _id: 'r4c', section: 'WORKSPACE', label: 'Interview Round - 3', href: '/dashboard/hiring/candidates/new/create/interview', icon: 'UserPlus', order: 2.09, parent: 'Requirement', subParent: 'Job Application' },
-  // { _id: 'r4d', section: 'WORKSPACE', label: 'Interview Round - 4', href: '/dashboard/hiring/candidates/new/create/assessment', icon: 'UserPlus', order: 2.10, parent: 'Requirement', subParent: 'Job Application' },
-  // { _id: 'r4d', section: 'WORKSPACE', label: 'Interview Round - 5', href: '/dashboard/hiring/candidates/new/create/round-5', icon: 'UserPlus', order: 2.11, parent: 'Requirement', subParent: 'Job Application' },
+//   { _id: 'r4e', section: 'WORKSPACE', label: 'Job Applications', href: '/dashboard/hiring/applications', icon: 'FileText', order: 2.05, parent: 'Requirement' },
+//   // { _id: 'r4', section: 'WORKSPACE', label: 'Review and Edit', href: '/dashboard/hiring/candidates/new/create/review-and-edit', icon: 'FileSignature', order: 2.06, parent: 'Requirement', subParent: 'Job Application' },
+//   // { _id: 'r4a', section: 'WORKSPACE', label: 'Submit Application', href: '/dashboard/hiring/candidates/new/create/submit-application-preview', icon: 'UserPlus', order: 2.07, parent: 'Requirement', subParent: 'Job Application' },
+//   // { _id: 'r4a', section: 'WORKSPACE', label: 'AI Screening Evaluation', href: '/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation', icon: 'Sparkles', order: 2.07, parent: 'Requirement', subParent: 'Job Application' },
+//   // { _id: 'r4b', section: 'WORKSPACE', label: 'HOD Evaluation', href: '/dashboard/hiring/candidates/new/create/evaluation', icon: 'UserPlus', order: 2.08, parent: 'Requirement', subParent: 'Job Application' },
+//   // { _id: 'r4c', section: 'WORKSPACE', label: 'Interview Round - 1', href: '/dashboard/hiring/candidates/new/create/interview-process', icon: 'UserPlus', order: 2.09, parent: 'Requirement', subParent: 'Job Application' },
+//   // { _id: 'r4c', section: 'WORKSPACE', label: 'Interview Round - 2', href: '/dashboard/hiring/candidates/new/create/round-2', icon: 'UserPlus', order: 2.09, parent: 'Requirement', subParent: 'Job Application' },
+//   // { _id: 'r4c', section: 'WORKSPACE', label: 'Interview Round - 3', href: '/dashboard/hiring/candidates/new/create/interview', icon: 'UserPlus', order: 2.09, parent: 'Requirement', subParent: 'Job Application' },
+//   // { _id: 'r4d', section: 'WORKSPACE', label: 'Interview Round - 4', href: '/dashboard/hiring/candidates/new/create/assessment', icon: 'UserPlus', order: 2.10, parent: 'Requirement', subParent: 'Job Application' },
+//   // { _id: 'r4d', section: 'WORKSPACE', label: 'Interview Round - 5', href: '/dashboard/hiring/candidates/new/create/round-5', icon: 'UserPlus', order: 2.11, parent: 'Requirement', subParent: 'Job Application' },
 
-  // { _id: 'r5', section: 'WORKSPACE', label: 'Application Submitted', href: '/dashboard/application-submitted', icon: 'FileSignature', order: 2.11, parent: 'Requirement', subParent: 'Job Application' },
+//   // { _id: 'r5', section: 'WORKSPACE', label: 'Application Submitted', href: '/dashboard/application-submitted', icon: 'FileSignature', order: 2.11, parent: 'Requirement', subParent: 'Job Application' },
 
-  { _id: 'r6', section: 'WORKSPACE', label: 'All candidates', href: '/dashboard/all-candidates', icon: 'Users', order: 2.12, parent: 'Requirement', subParent: 'Candidates' },
-  { _id: 'r7', section: 'WORKSPACE', label: 'New Application', href: '/dashboard/hiring/candidates/new/create/new-applications', icon: 'User', order: 2.13, parent: 'Requirement', subParent: 'Candidates' },
-  { _id: 'r8', section: 'WORKSPACE', label: 'Ai screening', href: '/dashboard/ai-screening', icon: 'Sparkles', order: 2.17, parent: 'Requirement', subParent: 'Candidates' },
-  { _id: 'r9', section: 'WORKSPACE', label: 'Assessments', href: '/dashboard/assessments', icon: 'ClipboardList', order: 2.19, parent: 'Requirement', subParent: 'Candidates' },
-  { _id: 'r10', section: 'WORKSPACE', label: 'Shortlist candidates', href: '/dashboard/shortlisted-candidates-ui', icon: 'ShieldCheck', order: 2.14, parent: 'Requirement', subParent: 'Candidates' },
-  { _id: 'r11', section: 'WORKSPACE', label: 'Hold Candidates', href: '/dashboard/hiring/candidates/hold', icon: 'Clock', order: 2.15, parent: 'Requirement', subParent: 'Candidates' },
-  { _id: 'r12', section: 'WORKSPACE', label: 'Rejected candidates', href: '/dashboard/rejected-candidates', icon: 'Circle', order: 2.16, parent: 'Requirement', subParent: 'Candidates' },
-  { _id: 'r13', section: 'WORKSPACE', label: 'Selected candidates', href: '/dashboard/hiring/candidates/selected', icon: 'Circle', order: 2.16, parent: 'Requirement', subParent: 'Candidates' },
-  { _id: 'r14', section: 'WORKSPACE', label: 'Interviews', href: '/dashboard/interviews', icon: 'MessageSquare', order: 2.20, parent: 'Requirement' },
-  { _id: 'r15', section: 'WORKSPACE', label: 'Offers', href: '/dashboard/offers', icon: 'FileSignature', order: 2.21, parent: 'Requirement' },
-  { _id: 'r16', section: 'WORKSPACE', label: 'Onboarding', href: '/dashboard/onboarding', icon: 'UserPlus', order: 2.22, parent: 'Requirement' },
-  { _id: 'r17', section: 'WORKSPACE', label: 'Reports Analytics', href: '/dashboard/report-analytics', icon: 'TrendingUp', order: 2.23, parent: 'Requirement' },
-];
+//   { _id: 'r6', section: 'WORKSPACE', label: 'All candidates', href: '/dashboard/all-candidates', icon: 'Users', order: 2.12, parent: 'Requirement', subParent: 'Candidates' },
+//   { _id: 'r7', section: 'WORKSPACE', label: 'New Application', href: '/dashboard/hiring/candidates/new/create/new-applications', icon: 'User', order: 2.13, parent: 'Requirement', subParent: 'Candidates' },
+//   { _id: 'r8', section: 'WORKSPACE', label: 'Ai screening', href: '/dashboard/ai-screening', icon: 'Sparkles', order: 2.17, parent: 'Requirement', subParent: 'Candidates' },
+//   { _id: 'r9', section: 'WORKSPACE', label: 'Assessments', href: '/dashboard/assessments', icon: 'ClipboardList', order: 2.19, parent: 'Requirement', subParent: 'Candidates' },
+//   { _id: 'r10', section: 'WORKSPACE', label: 'Shortlist candidates', href: '/dashboard/shortlisted-candidates-ui', icon: 'ShieldCheck', order: 2.14, parent: 'Requirement', subParent: 'Candidates' },
+//   { _id: 'r11', section: 'WORKSPACE', label: 'Hold Candidates', href: '/dashboard/hiring/candidates/hold', icon: 'Clock', order: 2.15, parent: 'Requirement', subParent: 'Candidates' },
+//   { _id: 'r12', section: 'WORKSPACE', label: 'Rejected candidates', href: '/dashboard/rejected-candidates', icon: 'Circle', order: 2.16, parent: 'Requirement', subParent: 'Candidates' },
+//   { _id: 'r13', section: 'WORKSPACE', label: 'Selected candidates', href: '/dashboard/hiring/candidates/selected', icon: 'Circle', order: 2.16, parent: 'Requirement', subParent: 'Candidates' },
+//   { _id: 'r14', section: 'WORKSPACE', label: 'Interviews', href: '/dashboard/interviews', icon: 'MessageSquare', order: 2.20, parent: 'Requirement' },
+//   { _id: 'r15', section: 'WORKSPACE', label: 'Offers', href: '/dashboard/offers', icon: 'FileSignature', order: 2.21, parent: 'Requirement' },
+//   { _id: 'r16', section: 'WORKSPACE', label: 'Onboarding', href: '/dashboard/onboarding', icon: 'UserPlus', order: 2.22, parent: 'Requirement' },
+//   { _id: 'r17', section: 'WORKSPACE', label: 'Reports Analytics', href: '/dashboard/report-analytics', icon: 'TrendingUp', order: 2.23, parent: 'Requirement' },
+// ];
 
 export default function DynamicSidebar() {
   const pathname = usePathname();
