@@ -435,32 +435,7 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
               </button>
             </Card>
 
-            <Card title="Request Summary">
-              <div className="space-y-2">
-                {requestSummary.map((r) => (
-                  <div key={r.label} className="flex items-start justify-between gap-2 text-[10.5px]">
-                    <span className="shrink-0 text-zinc-500">{r.label}</span>
-                    <span className="text-right font-semibold text-zinc-800">{r.value}</span>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            <Card title="Approval Workflow">
-              <div className="space-y-0">
-                {approvalSteps.map((s, i) => (
-                  <div key={s.title} className="relative flex gap-2.5 pb-2 last:pb-0">
-                    {i < approvalSteps.length - 1 && <span className="absolute left-[7px] top-4 h-full w-px bg-zinc-200" />}
-                    <span className="relative z-10 mt-0.5 grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full border-2 border-indigo-500 bg-white" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[10.5px] font-semibold text-zinc-800">{s.title}</p>
-                      <p className="truncate text-[9.5px] text-zinc-400">{s.name}</p>
-                    </div>
-                    <span className="shrink-0 rounded-full bg-amber-50 px-1.5 py-0.5 text-[9px] font-semibold text-amber-600">{s.status}</span>
-                  </div>
-                ))}
-              </div>
-            </Card>
+            {/* Status cards (Request Summary & Approval Workflow) removed from create/edit mode per user request */}
           </div>
         </div>
 

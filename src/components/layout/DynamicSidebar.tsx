@@ -223,6 +223,9 @@ export default function DynamicSidebar() {
     const indexB = SECTION_ORDER.indexOf(b.section);
     const rankA = indexA === -1 ? 999 : indexA;
     const rankB = indexB === -1 ? 999 : indexB;
+    if (rankA === rankB) {
+      return a.section.localeCompare(b.section);
+    }
     return rankA - rankB;
   });
 

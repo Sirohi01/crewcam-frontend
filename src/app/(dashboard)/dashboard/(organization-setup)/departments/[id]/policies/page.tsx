@@ -54,6 +54,7 @@ export default function PoliciesPage({ params }: { params: Promise<{ id: string 
   const paginatedPolicies = filteredPolicies.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
   const fetchPolicies = async () => {
+    if (!id || id === 'new' || id === '[id]' || id === 'undefined') return;
     try {
       const res = await getCompanyPolicies({ departmentId: id });
       setCompanyPolicies(res?.data || res || []);

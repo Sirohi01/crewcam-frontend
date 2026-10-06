@@ -22,6 +22,10 @@ export default function KPIsAndGoalsPage({ params }: { params: Promise<{ id: str
 
   useEffect(() => {
     const fetchKpis = async () => {
+      if (!id || id === 'new' || id === '[id]' || id === 'undefined') {
+        setLoading(false);
+        return;
+      }
       try {
         const res = await getDepartmentKpis(id);
         if (res.success && res.data) {

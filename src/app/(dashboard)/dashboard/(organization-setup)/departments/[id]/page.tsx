@@ -50,6 +50,10 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
   }, [id]);
 
   const fetchDepartment = async () => {
+    if (!id || id === 'new' || id === '[id]' || id === 'undefined') {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const data = await getDepartmentById(id);

@@ -7,13 +7,13 @@ import {
   CheckCircle2, Calendar
 } from 'lucide-react';
 
-import laptop from '../../../../../../public/assets/laptop.jpg';
-import iphone from '../../../../../../public/assets/iphone.jpg';
-import headset from '../../../../../../public/assets/headset.jpg';
-import bag from '../../../../../../public/assets/bag.jpg';
-import cards from '../../../../../../public/assets/cards.jpg';
-import charger from '../../../../../../public/assets/charger.jpg';
-import wallet from '../../../../../../public/assets/wallet 2.png';
+import laptop from '../../../../../../../public/assets/laptop.jpg';
+import iphone from '../../../../../../../public/assets/iphone.jpg';
+import headset from '../../../../../../../public/assets/headset.jpg';
+import bag from '../../../../../../../public/assets/bag.jpg';
+import cards from '../../../../../../../public/assets/cards.jpg';
+import charger from '../../../../../../../public/assets/charger.jpg';
+import wallet from '../../../../../../../public/assets/wallet 2.png';
 
 const assetsData = [
   { id: 1, name: 'Dell Latitude 5440', type: 'Laptop', assetId: 'AST-LAP-0001', category: 'IT Equipment', assignedOn: '15 Apr 2024', status: 'Active', condition: 'Good', value: '75,000', img: laptop, iconBg: 'bg-zinc-800 text-white' },

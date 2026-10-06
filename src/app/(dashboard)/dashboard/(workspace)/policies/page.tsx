@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import book from '../../../../../public/assets/book.png'
+import book from '../../../../../../public/assets/book.png'
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 
 
