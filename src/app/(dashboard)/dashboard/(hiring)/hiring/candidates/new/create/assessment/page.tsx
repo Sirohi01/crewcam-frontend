@@ -183,7 +183,7 @@ export default function AssessmentRoundPage() {
   const isPass = scorePct >= 60;
 
   return (
-    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
+    <div className="w-full px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>

@@ -231,7 +231,7 @@ export default function DivisionsPage() {
   const activeCount = safeDivisions.filter((div: any) => div.isActive !== false).length;
 
   return (
-    <main className="mx-auto w-full max-w-[1600px] space-y-2 overflow-x-hidden bg-zinc-50/40 p-2 sm:p-2">
+    <main className="mx-auto w-full space-y-2 overflow-x-hidden bg-zinc-50/40 p-2 sm:p-2">
       {/* Breadcrumb */}
       <Breadcrumb
         items={[

@@ -468,7 +468,7 @@ const OffersPage = () => {
   }
 
   return (
-    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
+    <div className="w-full px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
 
       <div className="flex h-full w-full flex-col gap-2 overflow-hidden bg-white p-2 text-slate-900" style={{ height: 'calc(100% - 3rem)' }}>
         {toast && <Toast message={toast} onClose={() => setToast(null)} />}

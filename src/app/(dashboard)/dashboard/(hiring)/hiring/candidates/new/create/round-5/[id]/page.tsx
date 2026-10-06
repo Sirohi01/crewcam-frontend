@@ -755,7 +755,7 @@ export default function InterviewRoundPage() {
   if (!candidate) return <div className="p-8 text-center text-zinc-500 font-medium">Loading candidate details...</div>;
 
   return (
-    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
+    <div className="w-full px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       <PageHeader candidateId={candidateId} />
 
       {/* Row 1: Candidate Info + Application Summary — same height */}

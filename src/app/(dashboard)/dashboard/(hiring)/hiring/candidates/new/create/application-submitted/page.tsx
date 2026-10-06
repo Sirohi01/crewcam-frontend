@@ -10,7 +10,7 @@ import {
 
 export default function ApplicationSubmittedUI() {
   return (
-    <div className="w-full max-w-[1600px] mx-auto p-2 font-sans text-zinc-900 bg-white min-h-screen">
+    <div className="w-full mx-auto p-2 font-sans text-zinc-900 bg-white min-h-screen">
 
       {/* Top Header — full width */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 mb-2 pb-2 border-b border-zinc-100">

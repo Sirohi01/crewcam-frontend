@@ -206,7 +206,7 @@ export default function SelectedCandidatesPage() {
   const active = React.useMemo(() => candidates.find((c: any) => c.id === activeId) || candidates[0], [candidates, activeId]);
 
   return (
-    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
+    <div className="w-full px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       <div className="mx-auto max-w-[1500px] space-y-2 p-1">
         {/* Header */}
         <div className="flex flex-wrap items-start justify-between gap-2">

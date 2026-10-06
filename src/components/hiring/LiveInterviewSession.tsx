@@ -200,7 +200,7 @@ export default function LiveInterviewSession({ interviewId }: { interviewId: str
   const showSplitLayout = questions.length > 0 && !sessionEnded && !isTelephonic;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4 pb-12">
+    <div className="mx-auto w-full space-y-4 pb-12">
       <Link href={`/dashboard/hiring/interviews/questions/${interviewId}`} className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-indigo-600">
         <ArrowLeft size={13} /> Back to interview prep
       </Link>

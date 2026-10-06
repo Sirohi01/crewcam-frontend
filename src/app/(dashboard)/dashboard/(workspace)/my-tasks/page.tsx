@@ -470,7 +470,7 @@ function UpcomingTasksCard() {
 
 export default function MyTasks() {
   return (
-    <main className="mx-auto w-full max-w-[1600px] space-y-2 overflow-x-hidden bg-zinc-50/40 p-2 sm:p-2">
+    <main className="mx-auto w-full space-y-2 overflow-x-hidden bg-zinc-50/40 p-2 sm:p-2">
       <PageHeader />
 
       {/* Row 1 — five summary stat cards */}

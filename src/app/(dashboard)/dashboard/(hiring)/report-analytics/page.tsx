@@ -247,7 +247,7 @@ const Legend: React.FC<{ data: { name: string; color: string; sub?: string }[] }
 
 const ReportAnalytics: React.FC = () => {
   return (
-    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
+    <div className="w-full px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       <div className="w-full min-h-[650px] flex flex-col gap-2 p-2 bg-slate-50 relative z-0">
 
         {/* Header */}

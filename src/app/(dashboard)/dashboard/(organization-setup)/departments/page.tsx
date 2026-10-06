@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { toast } from 'react-hot-toast';
 import { Upload, Download, Sparkles, Plus, ChevronRight, Search, Filter, RotateCcw, Eye, Edit2, X, ChevronDown, ChevronLeft, Building, Users, User, PieChart as PieChartIcon, TrendingUp, Clock, Trash2 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Card } from '@/components/ui/card';
@@ -29,11 +30,8 @@ const compositionData = [
     { name: 'Support Staff', value: 2, color: '#8b5cf6', percent: '4%' },
 ];
 
-const activities = [
-    { id: 1, text: 'Budget updated for FY 2025-26', by: 'Vijay Sharma', time: '28 May 2025, 11:30 AM' },
-    { id: 2, text: 'Neha Sethi assigned as GM - Retail', by: 'Vijay Sharma', time: '20 May 2025, 04:15 PM' },
-    { id: 3, text: 'Department created', by: 'Vijay Sharma', time: '12 Jan 2024, 10:00 AM' },
-];
+const activities: any[] = [];
+const generateMockActivities = (deptName: string) => [];
 
 const MicroLineChart = ({ color }: { color: string }) => {
     const chartId = color.replace('#', '');
@@ -127,6 +125,16 @@ export default function DepartmentsPage() {
     const activeDept = selectedDept || (departments.length > 0 ? departments[0] : null);
     const [loading, setLoading] = useState(true);
     const [showImportModal, setShowImportModal] = useState(false);
+    const [showActivityModal, setShowActivityModal] = useState(false);
+    const [showFilters, setShowFilters] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const filteredDepartments = departments.filter(d =>
+        (d.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (d.code || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const activeDeptActivities = activeDept ? generateMockActivities(activeDept.name) : activities;
 
     const dynamicCards = [
         { title: 'TOTAL DEPARTMENTS', value: departments.length.toString(), subtitle: 'All departments', color: '#3b82f6', isChart: true, linkText: 'View all' },
@@ -219,10 +227,10 @@ export default function DepartmentsPage() {
                         className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-md text-[11px] font-medium hover:bg-slate-50 transition-colors shadow-sm text-slate-700">
                         <Upload className="w-4 h-4" /> Import
                     </button>
-                    <button className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-md text-[11px] font-medium hover:bg-slate-50 transition-colors shadow-sm text-slate-700">
+                    <button onClick={() => toast('Exporting data...')} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-md text-[11px] font-medium hover:bg-slate-50 transition-colors shadow-sm text-slate-700">
                         <Download className="w-4 h-4" /> Export
                     </button>
-                    <button className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-md text-[11px] font-medium hover:bg-indigo-100 transition-colors relative">
+                    <button onClick={() => toast('AI Insights generating...')} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-md text-[11px] font-medium hover:bg-indigo-100 transition-colors relative">
                         <span className="absolute -top-2.5 -right-2 bg-purple-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">New</span>
                         <Sparkles className="w-4 h-4" /> AI Insights
                     </button>
@@ -288,124 +296,162 @@ export default function DepartmentsPage() {
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                                 <div className="relative">
-                                    <FormInput variant="search" type="text" placeholder="Search departments..." className="w-36 pl-3 pr-7" />
+                                    <FormInput value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} variant="search" type="text" placeholder="Search departments..." className="w-36 pl-3 pr-7" />
                                     <Search className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
                                 </div>
-                                <button className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 rounded-md text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+                                <button onClick={() => setShowFilters(!showFilters)} className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-[11px] font-medium transition-colors ${showFilters ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
                                     <Filter className="w-3.5 h-3.5" /> Filters
                                 </button>
-                                <button className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 rounded-md text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+                                <button onClick={() => toast('Active filter toggled')} className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 rounded-md text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition-colors">
                                     Active Only <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                                 </button>
-                                <button className="flex flex-col items-center justify-center w-12 py-1 border border-slate-200 rounded-md text-blue-500 hover:bg-blue-50 transition-colors">
+                                <button onClick={() => { setShowFilters(false); setSearchTerm(''); }} className="flex flex-col items-center justify-center w-12 py-1 border border-slate-200 rounded-md text-blue-500 hover:bg-blue-50 transition-colors">
                                     <RotateCcw className="w-3 h-3 mb-0.5" />
                                     <span className="text-[9px] font-bold">Reset</span>
                                 </button>
                             </div>
                         </div>
 
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse table-fixed">
-                                <colgroup>
-                                    <col style={{ width: '22%' }} />
-                                    <col style={{ width: '7%' }} />
-                                    <col style={{ width: '20%' }} />
-                                    <col style={{ width: '13%' }} />
-                                    <col style={{ width: '18%' }} />
-                                    <col style={{ width: '10%' }} />
-                                    <col style={{ width: '10%' }} />
-                                </colgroup>
-                                <thead>
-                                    <tr className="border-b border-slate-100">
-                                        <th className="py-1.5 px-2 text-[10px] text-align-center font-semibold text-slate-500 uppercase tracking-wider">Department</th>
-                                        <th className="py-1.5 px-2 text-[10px] text-align-center font-semibold text-slate-500 uppercase tracking-wider">Code</th>
-                                        <th className="py-1.5 px-2 text-[10px] text-align-center font-semibold text-slate-500 uppercase tracking-wider">Department Head</th>
-                                        <th className="py-1.5 px-2 text-[10px] text-align-center font-semibold text-slate-500 uppercase tracking-wider leading-tight">Employees <span className="block text-[9px] text-slate-400 font-normal normal-case tracking-normal">Count</span></th>
-                                        <th className="py-1.5 px-2 text-[10px] text-align-center font-semibold text-slate-500 uppercase tracking-wider leading-tight">Budget(FY 25-26) <span className="block text-[9px] text-slate-400 font-normal normal-case tracking-normal">Utilization</span></th>
-                                        <th className="py-1.5 px-2 text-[10px] text-align-center font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                                        <th className="py-1.5 px-2 text-[10px] text-align-center font-semibold text-slate-500 uppercase tracking-wider text-center">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="text-[11px]">
-                                    {loading ? (
-                                        <tr><td colSpan={7} className="text-center py-4 text-slate-500">Loading departments...</td></tr>
-                                    ) : departments.length === 0 ? (
-                                        <tr><td colSpan={7} className="text-center py-4 text-slate-500">No departments found.</td></tr>
-                                    ) : departments.map((dept, i) => (
-                                        <tr key={dept._id || i} onClick={() => setSelectedDept(dept)} className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer group ${activeDept && (activeDept._id === dept._id || activeDept.id === dept.id) ? 'bg-blue-50/20' : ''}`}>
-                                            <td className="py-2 px-2 align-middle">
-                                                <span className="font-semibold text-slate-800 truncate block">{dept.name}</span>
-                                            </td>
-                                            <td className="py-2 px-2 align-middle font-semibold text-slate-600 text-[10.5px]">{dept.code}</td>
-                                            <td className="py-2 px-2 align-middle">
-                                                <div className="flex items-center gap-2">
-                                                    <img src={`https://i.pravatar.cc/150?u=${dept._id || dept.id}`} alt={(typeof dept.headName === 'string' ? dept.headName : dept.hodEmployeeId?.firstName) || 'User'} className="w-6 h-6 rounded-full border border-slate-200 shrink-0" />
-                                                    <div className="min-w-0">
-                                                        <p className="font-semibold text-slate-800 text-[11px] truncate">
-                                                            {(dept.hodEmployeeId && typeof dept.hodEmployeeId === 'object')
-                                                                ? `${dept.hodEmployeeId.firstName || ''} ${dept.hodEmployeeId.lastName || ''}`.trim()
-                                                                : (typeof dept.hodEmployeeId === 'string' ? dept.hodEmployeeId : 'Aman Malhotra')}
-                                                        </p>
-                                                        <p className="text-[10px] text-slate-400 truncate">
-                                                            {(dept.hodEmployeeId && typeof dept.hodEmployeeId === 'object' && dept.hodEmployeeId.designation)
-                                                                ? dept.hodEmployeeId.designation
-                                                                : 'Design Director'}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-2 px-2 align-middle">
-                                                <span className="font-semibold text-slate-800 block">{dept.employeeCapacity || dept.empTotal || 0}</span>
-                                                <div className="flex items-center gap-1.5 text-[10px] font-medium mt-0.5">
-                                                    <span className="text-blue-600 flex items-center gap-0.5"><Users className="w-3 h-3" /> {dept.empManager || 0}</span>
-                                                    <span className="text-rose-500 flex items-center gap-0.5"><Users className="w-3 h-3" /> {dept.empSupport || 0}</span>
-                                                </div>
-                                            </td>
-                                            <td className="py-2 px-2 align-middle">
-                                                <div className="flex items-center justify-between text-[10px] mb-1">
-                                                    <span className="font-semibold text-slate-800">{dept.budgetStr || '₹ 0'}</span>
-                                                    <span className="font-semibold text-slate-500">{dept.util || 0}%</span>
-                                                </div>
-                                                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                                    <div className="h-full bg-blue-600 rounded-full" style={{ width: `${dept.util || 0}%` }} />
-                                                </div>
-                                            </td>
-                                            <td className="py-2 px-2 align-middle">
-                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-md ${dept.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'} text-[10px] font-bold uppercase tracking-wider border`}>
-                                                    {dept.isActive ? 'Active' : 'Inactive'}
-                                                </span>
-                                            </td>
-                                            <td className="py-2 px-2 align-middle">
-                                                <div className="flex items-center justify-center gap-0.5">
-                                                    <Link href={`/dashboard/departments/${dept._id || dept.id}`} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors block"><Eye className="w-3 h-3" /></Link>
-                                                    <Link href={`/dashboard/departments/add-department/init/${dept._id || dept.id}`} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors block"><Edit2 className="w-3 h-3" /></Link>
-                                                    <button onClick={() => handleDelete(dept._id || dept.id?.toString())} className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"><Trash2 className="w-3 h-3" /></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div className="mt-auto border-t border-slate-100 p-2 flex items-center justify-between text-[11px] text-slate-500 bg-white">
-                            <div className="flex-1">Showing 1 to 10 of 10 departments</div>
-                            <div className="flex-1 flex justify-center items-center gap-1">
-                                <button className="p-1.5 border border-slate-200 rounded-md bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-400"><ChevronLeft className="w-4 h-4" /></button>
-                                <button className="w-7 h-7 flex items-center justify-center border border-blue-600 bg-blue-600 text-white rounded-md font-medium text-[11px]">1</button>
-                                <button className="p-1.5 border border-slate-200 rounded-md bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-400"><ChevronRight className="w-4 h-4" /></button>
-                            </div>
-                            <div className="flex-1 flex justify-end">
-                                <div className="relative">
-                                    <select className="appearance-none border border-slate-200 bg-white pl-3 pr-8 py-1.5 rounded-md cursor-pointer hover:bg-slate-50 transition-colors font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 text-[11px]">
-                                        <option value="10">10 per page</option>
-                                        <option value="20">20 per page</option>
-                                        <option value="50">50 per page</option>
+                        {showFilters && activeLeftTab === 'Department List' && (
+                            <div className="bg-slate-50 border-b border-slate-100 p-3 flex gap-4 text-[11px]">
+                                <div className="flex flex-col gap-1.5">
+                                    <span className="font-semibold text-slate-700">Sort By</span>
+                                    <select className="border border-slate-200 rounded px-2 py-1 bg-white text-slate-600 focus:outline-none focus:border-blue-500">
+                                        <option>Name (A-Z)</option>
+                                        <option>Name (Z-A)</option>
+                                        <option>Newest First</option>
                                     </select>
-                                    <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400" />
+                                </div>
+                                <div className="flex flex-col gap-1.5 flex-1">
+                                    <span className="font-semibold text-slate-700">Column Filters</span>
+                                    <div className="flex gap-2 flex-wrap">
+                                        {['Department', 'Code', 'Department Head', 'Employees', 'Budget', 'Status'].map(col => (
+                                            <label key={col} className="flex items-center gap-1 text-slate-600 cursor-pointer">
+                                                <input type="checkbox" defaultChecked className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-3 h-3" />
+                                                {col}
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
+
+                        {activeLeftTab === 'Department List' && (
+                            <div className="flex flex-col">
+                                <table className="w-full text-left border-collapse table-fixed">
+                                    <colgroup>
+                                        <col style={{ width: '22%' }} />
+                                        <col style={{ width: '7%' }} />
+                                        <col style={{ width: '20%' }} />
+                                        <col style={{ width: '13%' }} />
+                                        <col style={{ width: '18%' }} />
+                                        <col style={{ width: '10%' }} />
+                                        <col style={{ width: '10%' }} />
+                                    </colgroup>
+                                    <thead>
+                                        <tr className="border-b border-slate-100">
+                                            <th className="py-1.5 px-2 text-[10px] text-left font-semibold text-slate-500 uppercase tracking-wider">Department</th>
+                                            <th className="py-1.5 px-2 text-[10px] text-left font-semibold text-slate-500 uppercase tracking-wider">Code</th>
+                                            <th className="py-1.5 px-2 text-[10px] text-left font-semibold text-slate-500 uppercase tracking-wider">Department Head</th>
+                                            <th className="py-1.5 px-2 text-[10px] text-left font-semibold text-slate-500 uppercase tracking-wider leading-tight">Employees <span className="block text-[9px] text-slate-400 font-normal normal-case tracking-normal">Count</span></th>
+                                            <th className="py-1.5 px-2 text-[10px] text-left font-semibold text-slate-500 uppercase tracking-wider leading-tight">Budget(FY 25-26) <span className="block text-[9px] text-slate-400 font-normal normal-case tracking-normal">Utilization</span></th>
+                                            <th className="py-1.5 px-2 text-[10px] text-left font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                                            <th className="py-1.5 px-2 text-[10px] text-center font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="text-[11px]">
+                                        {loading ? (
+                                            <tr><td colSpan={7} className="text-center py-4 text-slate-500">Loading departments...</td></tr>
+                                        ) : filteredDepartments.length === 0 ? (
+                                            <tr><td colSpan={7} className="text-center py-4 text-slate-500">No departments found.</td></tr>
+                                        ) : filteredDepartments.map((dept, i) => (
+                                            <tr key={dept._id || i} onClick={() => setSelectedDept(dept)} className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer group ${activeDept && (activeDept._id === dept._id || activeDept.id === dept.id) ? 'bg-blue-50/20' : ''}`}>
+                                                <td className="py-2 px-2 align-middle">
+                                                    <span className="font-semibold text-slate-800 truncate block">{dept.name}</span>
+                                                </td>
+                                                <td className="py-2 px-2 align-middle font-semibold text-slate-600 text-[10.5px]">{dept.code}</td>
+                                                <td className="py-2 px-2 align-middle">
+                                                    <div className="flex items-center gap-2">
+                                                        <img src={`https://i.pravatar.cc/150?u=${dept._id || dept.id}`} alt={(typeof dept.headName === 'string' ? dept.headName : dept.hodEmployeeId?.firstName) || 'User'} className="w-6 h-6 rounded-full border border-slate-200 shrink-0" />
+                                                        <div className="min-w-0">
+                                                            <p className="font-semibold text-slate-800 text-[11px] truncate">
+                                                                {(dept.hodEmployeeId && typeof dept.hodEmployeeId === 'object')
+                                                                    ? `${dept.hodEmployeeId.firstName || ''} ${dept.hodEmployeeId.lastName || ''}`.trim()
+                                                                    : (typeof dept.hodEmployeeId === 'string' ? dept.hodEmployeeId : 'Aman Malhotra')}
+                                                            </p>
+                                                            <p className="text-[10px] text-slate-400 truncate">
+                                                                {(dept.hodEmployeeId && typeof dept.hodEmployeeId === 'object' && dept.hodEmployeeId.designation)
+                                                                    ? dept.hodEmployeeId.designation
+                                                                    : 'Design Director'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="py-2 px-2 align-middle">
+                                                    <span className="font-semibold text-slate-800 block">{dept.employeeCapacity || dept.empTotal || 0}</span>
+                                                    <div className="flex items-center gap-1.5 text-[10px] font-medium mt-0.5">
+                                                        <span className="text-blue-600 flex items-center gap-0.5"><Users className="w-3 h-3" /> {dept.empManager || 0}</span>
+                                                        <span className="text-rose-500 flex items-center gap-0.5"><Users className="w-3 h-3" /> {dept.empSupport || 0}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-2 px-2 align-middle">
+                                                    <div className="flex items-center justify-between text-[10px] mb-1">
+                                                        <span className="font-semibold text-slate-800">{dept.budgetStr || '₹ 0'}</span>
+                                                        <span className="font-semibold text-slate-500">{dept.util || 0}%</span>
+                                                    </div>
+                                                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                        <div className="h-full bg-blue-600 rounded-full" style={{ width: `${dept.util || 0}%` }} />
+                                                    </div>
+                                                </td>
+                                                <td className="py-2 px-2 align-middle">
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md ${dept.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'} text-[10px] font-bold uppercase tracking-wider border`}>
+                                                        {dept.isActive ? 'Active' : 'Inactive'}
+                                                    </span>
+                                                </td>
+                                                <td className="py-2 px-2 align-middle">
+                                                    <div className="flex items-center justify-center gap-0.5">
+                                                        <Link href={`/dashboard/departments/${dept._id || dept.id}`} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors block"><Eye className="w-3 h-3" /></Link>
+                                                        <Link href={`/dashboard/departments/add-department/init/${dept._id || dept.id}`} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors block"><Edit2 className="w-3 h-3" /></Link>
+                                                        <button onClick={() => handleDelete(dept._id || dept.id?.toString())} className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"><Trash2 className="w-3 h-3" /></button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        {activeLeftTab !== 'Department List' && (
+                            <div className="flex-1 min-h-[460px] flex flex-col items-center justify-center text-slate-500 bg-slate-50/30">
+                                {activeLeftTab === 'Hierarchy View' && <Users className="w-12 h-12 mb-4 text-slate-300" />}
+                                {activeLeftTab === 'Analytics' && <TrendingUp className="w-12 h-12 mb-4 text-slate-300" />}
+                                {activeLeftTab === 'Budget Overview' && <PieChartIcon className="w-12 h-12 mb-4 text-slate-300" />}
+                                <h3 className="text-sm font-bold text-slate-700">{activeLeftTab}</h3>
+                                <p className="text-[11px] mt-1">This module is currently under development.</p>
+                            </div>
+                        )}
+
+                        {activeLeftTab === 'Department List' && (
+                            <div className="mt-auto border-t border-slate-100 p-2 flex items-center justify-between text-[11px] text-slate-500 bg-white">
+                                <div className="flex-1">Showing {filteredDepartments.length > 0 ? 1 : 0} to {Math.min(10, filteredDepartments.length)} of {filteredDepartments.length} departments</div>
+                                <div className="flex-1 flex justify-center items-center gap-1">
+                                    <button className="p-1.5 border border-slate-200 rounded-md bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-400"><ChevronLeft className="w-4 h-4" /></button>
+                                    <button className="w-7 h-7 flex items-center justify-center border border-blue-600 bg-blue-600 text-white rounded-md font-medium text-[11px]">1</button>
+                                    <button className="p-1.5 border border-slate-200 rounded-md bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-400"><ChevronRight className="w-4 h-4" /></button>
+                                </div>
+                                <div className="flex-1 flex justify-end">
+                                    <div className="relative">
+                                        <select className="appearance-none border border-slate-200 bg-white pl-3 pr-8 py-1.5 rounded-md cursor-pointer hover:bg-slate-50 transition-colors font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 text-[11px]">
+                                            <option value="10">10 per page</option>
+                                            <option value="20">20 per page</option>
+                                            <option value="50">50 per page</option>
+                                        </select>
+                                        <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400" />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </Card>
                 </div>
 
@@ -508,7 +554,11 @@ export default function DepartmentsPage() {
                                 <div className="p-3 pb-3">
                                     <h3 className="text-[11px] font-bold text-slate-800 mb-2.5">Recent Activity</h3>
                                     <div className="flex flex-col gap-2.5">
-                                        {activities.map((act) => (
+                                        {activeDeptActivities.length === 0 ? (
+                                            <div className="text-center py-4">
+                                                <p className="text-[10px] text-slate-500">No recent activities found.</p>
+                                            </div>
+                                        ) : activeDeptActivities.map((act: any) => (
                                             <div key={act.id} className="flex gap-3">
                                                 <div className="w-7 h-7 rounded bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 text-slate-500">
                                                     {act.id === 1 ? <PieChartIcon className="w-4 h-4" /> : act.id === 2 ? <User className="w-4 h-4" /> : <Building className="w-4 h-4" />}
@@ -523,7 +573,7 @@ export default function DepartmentsPage() {
                                             </div>
                                         ))}
                                     </div>
-                                    <button className="mt-3 text-[11px] font-bold text-blue-600 hover:underline flex items-center justify-center w-full gap-1">
+                                    <button onClick={() => setShowActivityModal(true)} className="mt-3 text-[11px] font-bold text-blue-600 hover:underline flex items-center justify-center w-full gap-1">
                                         View all activity <ChevronRight className="w-3.5 h-3.5" />
                                     </button>
                                 </div>
@@ -567,6 +617,54 @@ export default function DepartmentsPage() {
                 existingData={departments}
                 onImport={handleImportDepartments}
             />
+
+            {showActivityModal && (
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-lg flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between p-4 border-b border-slate-100">
+                            <div>
+                                <h2 className="text-[15px] font-bold text-slate-900">Activity Logs</h2>
+                                <p className="text-[11px] text-slate-500 mt-0.5">Tracking all changes for {activeDept?.name || 'Department'}</p>
+                            </div>
+                            <button onClick={() => setShowActivityModal(false)} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-1.5 rounded-md transition-colors"><X className="w-4 h-4" /></button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                            <table className="w-full text-left text-[11.5px]">
+                                <thead className="bg-slate-50 sticky top-0 border-y border-slate-100">
+                                    <tr>
+                                        <th className="py-2.5 px-3 font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Action Details</th>
+                                        <th className="py-2.5 px-3 font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Performed By</th>
+                                        <th className="py-2.5 px-3 font-semibold text-slate-500 uppercase tracking-wider text-[10px] text-right">Timestamp</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {activeDeptActivities.length === 0 && activities.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={3} className="py-8 text-center text-slate-500 text-[11px]">No activity logs found.</td>
+                                        </tr>
+                                    ) : [...activeDeptActivities, ...activities, ...activeDeptActivities].map((act: any, i: number) => (
+                                        <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                                            <td className="py-3 px-3 text-slate-800 font-medium">{act.text}</td>
+                                            <td className="py-3 px-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-[9px] font-bold">
+                                                        {act.by[0]}
+                                                    </div>
+                                                    <span className="text-slate-600 font-medium">{act.by}</span>
+                                                </div>
+                                            </td>
+                                            <td className="py-3 px-3 text-slate-500 text-right whitespace-nowrap">{act.time}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="p-3 border-t border-slate-100 bg-slate-50 flex justify-end">
+                            <button onClick={() => setShowActivityModal(false)} className="px-4 py-1.5 bg-white border border-slate-200 rounded-md text-[11px] font-semibold text-slate-600 hover:bg-slate-50">Close</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <style dangerouslySetInnerHTML={{
                 __html: `

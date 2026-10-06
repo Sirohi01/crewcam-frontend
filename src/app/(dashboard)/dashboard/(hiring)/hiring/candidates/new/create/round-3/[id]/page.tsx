@@ -395,7 +395,7 @@ export default function InterviewUI() {
 
   return (
     <div className={immersiveClasses}>
-      <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
+      <div className="w-full px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
 
         {/* Header & Steps */}
         <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4  pb-2">

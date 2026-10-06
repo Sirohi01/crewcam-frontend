@@ -162,7 +162,7 @@ function SectionCard({
 export default function JobFamilyDetailsPage() {
   const router = useRouter()
   return (
-    <main className="mx-auto w-full max-w-[1600px] space-y-2 overflow-x-hidden bg-zinc-50/40 p-2 sm:p-2">
+    <main className="mx-auto w-full space-y-2 overflow-x-hidden bg-zinc-50/40 p-2 sm:p-2">
       {/* Breadcrumb */}
       <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold">
         <span className="text-zinc-400">Organization Setup</span>

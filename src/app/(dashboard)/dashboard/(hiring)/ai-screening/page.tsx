@@ -363,7 +363,7 @@ export default function AiScreening() {
   }, [filters]);
 
   return (
-    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
+    <div className="w-full px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
 
         {/* Toast Notice */}
         {exportNotice && (

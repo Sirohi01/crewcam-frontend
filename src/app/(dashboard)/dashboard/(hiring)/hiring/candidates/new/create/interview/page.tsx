@@ -141,7 +141,7 @@ export default function InterviewRoundPage() {
   const strokeDashoffset = circumference - (timeLeft / totalSeconds) * circumference;
 
   return (
-    <div className="w-full max-w-[1600px] px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
+    <div className="w-full px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
       <div className=" space-y-2 p-1">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3">
