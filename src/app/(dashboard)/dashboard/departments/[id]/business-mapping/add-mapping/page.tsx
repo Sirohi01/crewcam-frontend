@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, use } from 'react';
 import Link from 'next/link';
 import {
   ChevronRight, Building2, Map, Briefcase, GitBranch, Layers,
@@ -9,7 +9,9 @@ import {
 
 const BREADCRUMB = ['Organization Setup', 'Departments', 'Department Details', 'Business Mapping', 'Add Mapping'];
 
-export default function AddBusinessMappingPage() {
+export default function AddBusinessMappingPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const id = resolvedParams.id;
   const [activeTab, setActiveTab] = useState('Business Units');
   const tabs = [
     { name: 'Business Units', icon: Building2 },
@@ -41,7 +43,7 @@ export default function AddBusinessMappingPage() {
           <p className="text-[12px] text-slate-500 font-medium">Map this sub department with business units, cost centers, projects and processes.</p>
         </div>
         <div className="flex items-center gap-2 mt-2 md:mt-4">
-          <Link href="/dashboard/departments/business-mapping" className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors shadow-sm">
+          <Link href={`/dashboard/departments/${id}/business-mapping`} className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors shadow-sm">
             <ArrowLeft className="w-4 h-4" /> Back to Business Mapping
           </Link>
           <button className="flex items-center gap-1.5 px-6 py-2 bg-[#4f46e5] border border-[#4f46e5] text-white rounded-md font-bold text-[12px] hover:bg-indigo-700 transition-colors shadow-sm">
@@ -426,7 +428,7 @@ export default function AddBusinessMappingPage() {
 
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 mt-4 mb-8">
-            <Link href="/dashboard/departments/business-mapping" className="px-5 py-2 border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-md font-bold text-[12px] transition-colors shadow-sm">
+            <Link href={`/dashboard/departments/${id}/business-mapping`} className="px-5 py-2 border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-md font-bold text-[12px] transition-colors shadow-sm">
               Cancel
             </Link>
             <button className="flex items-center gap-1.5 px-6 py-2 bg-[#4f46e5] border border-[#4f46e5] text-white rounded-md font-bold text-[12px] hover:bg-indigo-700 transition-colors shadow-sm">

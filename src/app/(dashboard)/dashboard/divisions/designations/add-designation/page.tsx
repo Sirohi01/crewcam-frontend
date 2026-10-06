@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import api from '@/lib/axios';
 import DesignationFormCards from '@/components/designations/DesignationFormCards';
@@ -14,6 +14,7 @@ function DesignationFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get('editId');
+  const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -90,6 +91,8 @@ function DesignationFormContent() {
     },
     onSuccess: () => {
       toast.success(editId ? 'Designation updated successfully!' : 'Designation created successfully!');
+      queryClient.invalidateQueries({ queryKey: ['designations'] });
+      queryClient.invalidateQueries({ queryKey: ['designationStats'] });
       router.push('/dashboard/divisions/designations');
     },
     onError: (err: any) => {

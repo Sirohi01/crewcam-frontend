@@ -16,9 +16,10 @@ interface SearchableDropdownProps {
   placeholder?: string;
   className?: string;
   allowManualEntry?: boolean;
+  disabled?: boolean;
 }
 
-export function SearchableDropdown({ options, value, onChange, placeholder = "Select an option...", className = '', allowManualEntry = false }: SearchableDropdownProps) {
+export function SearchableDropdown({ options, value, onChange, placeholder = "Select an option...", className = '', allowManualEntry = false, disabled = false }: SearchableDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -64,6 +65,7 @@ export function SearchableDropdown({ options, value, onChange, placeholder = "Se
   }, []);
 
   const handleOpen = () => {
+    if (disabled) return;
     if (!isOpen) {
       updatePosition();
     }
@@ -111,7 +113,8 @@ export function SearchableDropdown({ options, value, onChange, placeholder = "Se
     <div className={`relative ${className}`} ref={triggerRef}>
       <button
         type="button"
-        className={`flex w-full items-center justify-between rounded-md border px-3 py-1.5 text-sm focus:border-[#0e4778] focus:outline-none focus:ring-1 focus:ring-blue-200 transition-colors ${isOpen ? 'border-[#0e4778] ring-1 ring-blue-200' : 'border-slate-300 bg-white'}`}
+        disabled={disabled}
+        className={`flex w-full items-center justify-between rounded-md border px-3 py-1.5 text-sm focus:border-[#0e4778] focus:outline-none focus:ring-1 focus:ring-blue-200 transition-colors ${disabled ? 'bg-slate-50 cursor-not-allowed border-slate-200' : isOpen ? 'border-[#0e4778] ring-1 ring-blue-200' : 'border-slate-300 bg-white'}`}
         onClick={handleOpen}
       >
         <span className={value ? 'text-slate-900 truncate pr-2 text-xs' : 'text-slate-400 truncate pr-2 text-xs'}>

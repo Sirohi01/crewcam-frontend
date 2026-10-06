@@ -7,6 +7,7 @@ import ApiSelect from '@/components/common/ApiSelect';
 import { toast } from 'react-hot-toast';
 import api from '@/lib/axios';
 import { Briefcase, FileText, Clock3, Percent, UserCheck, Wallet, ChevronDown, Save, ListChecks, Target, BarChart3, Lightbulb, TrendingUp, RotateCcw, Plus, UploadCloud, Bold, Italic, Underline, List, ListOrdered, Indent, Link2, Eye, ArrowRight, CalendarDays, Sparkles, X, } from 'lucide-react';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 import { FormInput } from '@/components/ui/form-input';
 
@@ -98,14 +99,14 @@ function RangeField({ title, required, unit }: { title: string; required?: boole
 }
 
 function RichTextBox({
-  title, aiLabel, placeholder, hint,
-}: { title: string; required?: boolean; aiLabel?: string; placeholder: string; hint: string }) {
+  title, aiLabel, placeholder, hint, onAiClick, ...props
+}: { title: string; required?: boolean; aiLabel?: string; placeholder: string; hint: string; onAiClick?: () => void } & React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <div>
       <div className="mb-1 flex items-center justify-between">
         <span className={labelCls}>{title}<b className="text-rose-500"> *</b></span>
         {aiLabel && (
-          <button type="button" className="flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1 text-[10.5px] font-semibold text-white hover:bg-indigo-700 shadow-sm transition-colors whitespace-nowrap">
+          <button type="button" onClick={onAiClick} className="flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1 text-[10.5px] font-semibold text-white hover:bg-indigo-700 shadow-sm transition-colors whitespace-nowrap">
             ✦ {aiLabel}
           </button>
         )}
@@ -115,7 +116,7 @@ function RichTextBox({
           <Bold size={12} /><Italic size={12} /><Underline size={12} /><List size={12} /><ListOrdered size={12} /><Indent size={12} /><Link2 size={12} />
         </div>
         <div className="relative">
-          <textarea className="h-20 w-full resize-none rounded-none px-2.5 py-2 text-[11.5px] text-zinc-800 outline-none placeholder:text-zinc-400" placeholder={placeholder} />
+          <textarea className="h-20 w-full resize-none rounded-none px-2.5 py-2 text-[11.5px] text-zinc-800 outline-none placeholder:text-zinc-400" placeholder={placeholder} {...props} />
           <span className="pointer-events-none absolute bottom-1.5 right-2.5 text-[9px] text-zinc-400">{hint}</span>
         </div>
       </div>
@@ -165,7 +166,42 @@ export default function PostNewJobPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [publishChannelsState, setPublishChannelsState] = useState<string[]>(['Career Portal', 'Website', 'Naukri.com', 'LinkedIn']);
 
-  const { register, handleSubmit, setValue } = useForm();
+  const { register, handleSubmit, setValue, getValues, watch } = useForm();
+
+  const getArray = (res: any) => Array.isArray(res?.data) ? res.data : (res?.data?.data || []);
+  const { data: deptRes } = useQuery({ queryKey: ['departments'], queryFn: () => api.get('/companies/departments') });
+  const activeDepartments = getArray(deptRes).filter((d: any) => d.isActive !== false);
+
+  const aiMutation = useMutation({
+    mutationFn: async () => {
+      const jobTitle = getValues('jobTitle');
+      const designationId = getValues('designationId');
+      const departmentId = getValues('departmentId');
+      
+      if (!jobTitle) throw new Error("Job Title is required to generate AI content");
+      
+      const departmentObj = activeDepartments.find((d: any) => d._id === departmentId || d.id === departmentId);
+      const departmentName = departmentObj ? departmentObj.name : undefined;
+
+      const res = await api.post('/ai/hiring/generate-jd-kra', {
+        jobTitle, designation: designationId, departmentName
+      });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      setValue('jobDescription', data.jobDescriptionSummary);
+      if (data.kraReport) {
+        setValue('justification', data.kraReport);
+      }
+      if (data.keyResponsibilities && data.keyResponsibilities.length > 0) {
+        setKeyResponsibilities(data.keyResponsibilities);
+      }
+      toast.success('AI content generated successfully!');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || err.message || 'AI generation failed');
+    }
+  });
 
   useEffect(() => {
     setValue('jobCode', `JOB-${Math.floor(1000 + Math.random() * 9000)}`);
@@ -227,26 +263,6 @@ export default function PostNewJobPage() {
                   { label: "Post New Job" },
                 ]}
               />
-            </div>
-
-            {/* KPI strip */}
-            <div className="grid grid-cols-2 gap-1 sm:grid-cols-3 xl:grid-cols-6">
-              {KPIS.map((s) => (
-                <div key={s.label} className="flex flex-col justify-between rounded-none border border-zinc-200 bg-white p-2 shadow-sm">
-                  <div className="flex items-start justify-between gap-1">
-                    <p className="text-[11px] font-medium text-zinc-500 leading-snug">{s.label}</p>
-                    <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full ${s.accent}`}>
-                      <s.icon size={13} />
-                    </span>
-                  </div>
-                  <div className="mt-1.5">
-                    <p className="text-md font-bold leading-none text-zinc-900">{s.value}</p>
-                    <p className={`mt-1 text-[9.5px] font-semibold leading-none ${s.up ? 'text-emerald-600' : 'text-rose-500'}`}>
-                      {s.up ? '↗' : '↘'} {s.trend}
-                    </p>
-                  </div>
-                </div>
-              ))}
             </div>
 
             {/* Form */}
@@ -336,7 +352,7 @@ export default function PostNewJobPage() {
               <SectionCard number={2} title="Job Description & Responsibilities">
                 <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
                   <div className="space-y-1.5">
-                    <RichTextBox title="Job Description(JD)" aiLabel="AI Generate JD" placeholder="Write a detailed job description..." hint="0 / 3000" />
+                    <RichTextBox title="Job Description(JD)" aiLabel={aiMutation.isPending ? "Generating..." : "AI Generate JD"} onAiClick={() => aiMutation.mutate()} placeholder="Write a detailed job description..." hint="0 / 3000" {...register('jobDescription')} />
                     <button type="button" className="text-[9px] font-semibold text-indigo-600 hover:text-indigo-700">Add Responsibility</button>
                   </div>
                   <div className="space-y-1.5">
@@ -366,7 +382,7 @@ export default function PostNewJobPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <RichTextBox title="Justification for Hiring" placeholder="Explain the reason for this hiring requirement, business impact, and how it aligns with organizational goals..." hint="0 / 1500" />
+                    <RichTextBox title="Justification for Hiring" placeholder="Explain the reason for this hiring requirement, business impact, and how it aligns with organizational goals..." hint="0 / 1500" {...register('justification')} />
                   </div>
                 </div>
               </SectionCard>
@@ -479,8 +495,14 @@ export default function PostNewJobPage() {
                   </button>
                 ))}
               </div>
-              <button type="button" className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-none border border-indigo-100 bg-indigo-50/60 py-1.5 text-[11px] font-semibold text-indigo-600 hover:bg-indigo-50">
-                <RotateCcw size={12} /> Regenerate All with AI
+              <button 
+                type="button" 
+                onClick={() => aiMutation.mutate()}
+                disabled={aiMutation.isPending}
+                className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-none border border-indigo-100 bg-indigo-50/60 py-1.5 text-[11px] font-semibold text-indigo-600 hover:bg-indigo-50 disabled:opacity-50"
+              >
+                <RotateCcw size={12} className={aiMutation.isPending ? "animate-spin" : ""} /> 
+                {aiMutation.isPending ? 'Generating...' : 'Regenerate All with AI'}
               </button>
             </Card>
 

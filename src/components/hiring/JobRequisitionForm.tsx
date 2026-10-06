@@ -9,19 +9,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Briefcase, Clock3, UserCheck, Percent, Wallet, ChevronDown, Save, Send,
   FileText, ListChecks, Target, TrendingUp, Lightbulb, RotateCcw, Plus,
-  UploadCloud, MessageCircle, X,
+  UploadCloud, MessageCircle, X, Loader2,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import ApiSelect from '@/components/common/ApiSelect';
 
-const KPIS = [
-  { label: 'Open Positions', value: '42', icon: Briefcase, accent: 'bg-blue-50 text-blue-600', trend: '8 from last month', up: true },
-  { label: 'Active Requisitions', value: '18', icon: FileText, accent: 'bg-emerald-50 text-emerald-600', trend: '12% from last month', up: true },
-  { label: 'Avg. Time to Hire', value: '18 Days', icon: Clock3, accent: 'bg-amber-50 text-amber-600', trend: '2 days from last month', up: false },
-  { label: 'Positions Filled', value: '24', icon: UserCheck, accent: 'bg-violet-50 text-violet-600', trend: '10 from last month', up: true },
-  { label: 'Offer Acceptance Rate', value: '87%', icon: Percent, accent: 'bg-pink-50 text-pink-600', trend: '7% from last month', up: true },
-  { label: 'Cost Per Hire', value: '₹ 8,750', icon: Wallet, accent: 'bg-teal-50 text-teal-600', trend: '7% from last month', up: true },
-];
 
 const aiActions = [
   { title: 'Generate Job Description (JD)', detail: 'Based on Job Title & Role', icon: FileText },
@@ -91,7 +83,7 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm();
+  const { register, handleSubmit, reset, watch, setValue, getValues, formState: { errors } } = useForm();
 
   // Watch values for the summary card
   const watchedJobTitle = watch('jobTitle');
@@ -140,6 +132,34 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
       return data;
     },
     enabled: isEditMode,
+  });
+
+  const aiMutation = useMutation({
+    mutationFn: async () => {
+      const jobTitle = getValues('jobTitle');
+      const designation = getValues('designation');
+      const departmentId = getValues('departmentId');
+      
+      if (!jobTitle) throw new Error("Job Title is required to generate AI content");
+      
+      const departmentObj = activeDepartments.find((d: any) => d._id === departmentId);
+      const departmentName = departmentObj ? departmentObj.name : undefined;
+
+      const res = await api.post('/ai/hiring/generate-jd-kra', {
+        jobTitle, designation, departmentName
+      });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      setValue('jobDescriptionSummary', data.jobDescriptionSummary);
+      if (data.kraReport) {
+        setValue('detailedJustification', data.kraReport);
+      }
+      toast.success('AI content generated successfully!');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || err.message || 'AI generation failed');
+    }
   });
 
   const mutation = useMutation({
@@ -204,26 +224,6 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
               <Send size={13} /> Submit for Approval
             </button>
           </div>
-        </div>
-
-        {/* KPI strip */}
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-          {KPIS.map((s) => (
-            <div key={s.label} className="rounded-xl border border-zinc-200 bg-white p-2.5 shadow-sm">
-              <div className="flex items-center gap-2">
-                <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl ${s.accent}`}>
-                  <s.icon size={15} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[10px] text-zinc-500 leading-tight">{s.label}</p>
-                  <p className="text-lg font-bold leading-tight text-zinc-900">{s.value}</p>
-                  <p className={`truncate text-[9px] font-semibold leading-tight ${s.up ? 'text-emerald-600' : 'text-rose-500'}`}>
-                    {s.up ? '↗' : '↘'} {s.trend}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
 
         {/* Main content: form + sidebar */}
@@ -424,8 +424,14 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
                   </button>
                 ))}
               </div>
-              <button type="button" className="mt-1.5 flex w-full items-center justify-center gap-1.5 border-t border-zinc-100 pt-1.5 text-[10.5px] font-semibold text-indigo-600 hover:text-indigo-700">
-                <RotateCcw size={11} /> Regenerate All with AI
+              <button 
+                type="button" 
+                onClick={() => aiMutation.mutate()}
+                disabled={aiMutation.isPending}
+                className="mt-1.5 flex w-full items-center justify-center gap-1.5 border-t border-zinc-100 pt-1.5 text-[10.5px] font-semibold text-indigo-600 hover:text-indigo-700 disabled:opacity-50"
+              >
+                {aiMutation.isPending ? <Loader2 size={11} className="animate-spin" /> : <RotateCcw size={11} />} 
+                {aiMutation.isPending ? 'Generating...' : 'Regenerate All with AI'}
               </button>
             </Card>
 

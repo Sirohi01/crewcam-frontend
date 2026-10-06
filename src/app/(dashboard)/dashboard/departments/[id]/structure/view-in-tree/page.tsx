@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, use } from 'react';
 import Link from 'next/link';
 import {
   ChevronRight, Download, Edit2, Search, Share2,
@@ -125,15 +125,15 @@ const OrgNode = ({ node }: { node: any }) => {
       {node.children && node.children.length > 0 && (
         <ul className={`relative flex ${isVertical ? 'flex-col items-start pl-[110px] pt-4 vertical-tree' : 'flex-row justify-center pt-4'}`}>
           {isVertical && (
-            <div className="absolute top-0 bottom-8 left-[110px] w-px bg-slate-300 -translate-x-px" />
+            <li className="absolute top-0 bottom-8 left-[110px] w-px bg-slate-300 -translate-x-px list-none" />
           )}
           {node.children.map((child: any, idx: number) => (
             <React.Fragment key={idx}>
               {isVertical ? (
-                <div className="relative pl-6 py-2 w-full flex vertical-node">
+                <li className="relative pl-6 py-2 w-full flex vertical-node list-none">
                   <div className="absolute left-0 top-1/2 w-6 h-px bg-slate-300 -translate-y-px" />
-                  <OrgNode node={child} />
-                </div>
+                  <ul className="p-0 m-0 w-full"><OrgNode node={child} /></ul>
+                </li>
               ) : (
                 <OrgNode node={child} />
               )}
@@ -145,7 +145,9 @@ const OrgNode = ({ node }: { node: any }) => {
   );
 };
 
-export default function DepartmentStructurePage() {
+export default function DepartmentStructurePage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const id = resolvedParams.id;
   const [zoom, setZoom] = useState(100);
 
   return (
@@ -226,7 +228,7 @@ export default function DepartmentStructurePage() {
           <p className="text-[11px] text-slate-500">Visual representation of your organization hierarchy.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/departments" className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 bg-white rounded-md text-[11px] font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition-colors">
+          <Link href={`/dashboard/departments/${id}`} className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 bg-white rounded-md text-[11px] font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition-colors">
             &larr; Back to Department
           </Link>
           <button className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 bg-white rounded-md text-[11px] font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition-colors">

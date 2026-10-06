@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -11,14 +11,15 @@ import toast from 'react-hot-toast';
 
 const BREADCRUMB = ['Performance Management', 'KPIs & Goals', 'KPI Management', 'Add New KPI & Goal'];
 
-export default function AddNewKPIPage() {
+export default function AddNewKPIPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const id = resolvedParams.id;
   const router = useRouter();
   const searchParams = useSearchParams();
   const isEditMode = searchParams.get('edit') === 'true';
   const editId = searchParams.get('id');
   
-  // Dummy department ID for testing since URL doesn't have one
-  const departmentId = '64a7c1e5f8b9a9d2a4f6e1b3'; 
+  const departmentId = id; 
 
   const [formData, setFormData] = useState({
     title: '',
@@ -126,7 +127,7 @@ export default function AddNewKPIPage() {
                 {i === BREADCRUMB.length - 1 ? (
                   <span className="text-slate-900 font-bold">{crumb}</span>
                 ) : (
-                  <Link href="/dashboard/departments/kpi-and-goals" className="cursor-pointer hover:text-slate-700">{crumb}</Link>
+                  <span className="cursor-pointer hover:text-slate-700">{crumb}</span>
                 )}
                 {i < BREADCRUMB.length - 1 && <ChevronRight className="w-2.5 h-2.5 text-slate-400" />}
               </React.Fragment>
@@ -144,7 +145,7 @@ export default function AddNewKPIPage() {
         </div>
 
         <div className="flex items-center gap-2 mt-2 md:mt-0">
-          <Link href="/dashboard/departments/kpi-and-goals" className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 rounded-md text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition-colors">
+          <Link href={`/dashboard/departments/${id}/kpi-and-goals`} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 rounded-md text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition-colors">
             <ArrowLeft className="w-3.5 h-3.5" /> Back to KPI & Goals
           </Link>
           <button onClick={handleSave} disabled={isSubmitting} className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-700 text-white rounded-md text-[11px] font-bold hover:bg-indigo-800 transition-colors shadow-sm disabled:opacity-50">
@@ -477,7 +478,7 @@ export default function AddNewKPIPage() {
 
       {/* Footer Actions */}
       <div className="flex items-center justify-between p-3 bg-white border border-slate-300 rounded-lg shadow-md mb-2">
-        <Link href="/dashboard/departments/kpi-and-goals" className="px-5 py-2 border border-slate-300 bg-white rounded-md text-[11px] font-bold text-slate-700 hover:bg-slate-100 transition-colors">
+        <Link href={`/dashboard/departments/${id}/kpi-and-goals`} className="px-5 py-2 border border-slate-300 bg-white rounded-md text-[11px] font-bold text-slate-700 hover:bg-slate-100 transition-colors">
           Cancel
         </Link>
         <button onClick={handleSave} disabled={isSubmitting} className="flex items-center gap-1.5 px-5 py-2 bg-indigo-700 text-white rounded-md text-[11px] font-bold hover:bg-indigo-800 transition-colors shadow-sm disabled:opacity-50">

@@ -176,23 +176,8 @@ export default function DivisionsPage() {
     queryKey: ["divisions"],
     queryFn: async () => {
       const res = await api.get("/divisions");
-      return res.data?.data || res.data || [];
-    },
-  });
-
-  const { data: apiDepartments = [] } = useQuery({
-    queryKey: ["departments"],
-    queryFn: async () => {
-      const res = await api.get("/departments");
-      return res.data?.data || res.data || [];
-    },
-  });
-
-  const { data: apiEmployees = [] } = useQuery({
-    queryKey: ["employees"],
-    queryFn: async () => {
-      const res = await api.get("/employees");
-      return res.data?.data || res.data || [];
+      const d = res.data?.data || res.data;
+      return Array.isArray(d) ? d : [];
     },
   });
 
@@ -209,8 +194,10 @@ export default function DivisionsPage() {
     },
   });
 
+  const safeDivisions = Array.isArray(apiDivisions) ? apiDivisions : [];
+
   // Map backend data to UI format with default icons/colors if needed
-  const mappedDivisions = apiDivisions.map((div: any, index: number) => {
+  const mappedDivisions = safeDivisions.map((div: any, index: number) => {
     // Pick an icon from the hardcoded list or fallback
     const template = defaultDivisions[index % defaultDivisions.length];
     return {
@@ -219,8 +206,8 @@ export default function DivisionsPage() {
       name: div.name || div.divisionName,
       code: div.code || div.divisionCode,
       description: div.description || template.description,
-      departments: apiDepartments.filter((d: any) => d.divisionId === div._id).length || 0,
-      employees: 0, // Need accurate employee mapping
+      departments: Array.isArray(div.linkedDepartments) ? div.linkedDepartments.length : 0,
+      employees: parseInt(div.totalEmployees) || 0,
       icon: template.icon,
       iconBg: template.iconBg,
       iconColor: template.iconColor,
@@ -241,7 +228,7 @@ export default function DivisionsPage() {
     currentPage * rowsPerPage
   );
 
-  const activeCount = apiDivisions.filter((div: any) => div.isActive !== false).length;
+  const activeCount = safeDivisions.filter((div: any) => div.isActive !== false).length;
 
   return (
     <main className="mx-auto w-full max-w-[1600px] space-y-2 overflow-x-hidden bg-zinc-50/40 p-2 sm:p-2">
@@ -294,7 +281,7 @@ export default function DivisionsPage() {
         <SummaryCard
           icon={<Network size={18} />}
           title="Total Divisions"
-          value={apiDivisions.length.toString()}
+          value={safeDivisions.length.toString()}
           subtitle="Total recorded"
           iconBg="bg-[#eeeaff]"
           iconColor="text-[#6246d9]"
@@ -303,7 +290,7 @@ export default function DivisionsPage() {
         <SummaryCard
           icon={<BriefcaseBusiness size={18} />}
           title="Total Departments"
-          value={apiDepartments?.length?.toString()}
+          value={safeDivisions.reduce((acc: number, d: any) => acc + (Array.isArray(d.linkedDepartments) ? d.linkedDepartments.length : 0), 0).toString()}
           subtitle="Under These Divisions"
           iconBg="bg-[#e6f8ec]"
           iconColor="text-[#2da348]"
@@ -312,7 +299,7 @@ export default function DivisionsPage() {
         <SummaryCard
           icon={<Users size={18} />}
           title="Total Employees"
-          value={apiEmployees?.length?.toString()}
+          value={safeDivisions.reduce((acc: number, d: any) => acc + (parseInt(d.totalEmployees) || 0), 0).toString()}
           subtitle="Mapped to Divisions"
           iconBg="bg-[#fff4df]"
           iconColor="text-[#ec8a13]"
@@ -321,7 +308,7 @@ export default function DivisionsPage() {
         <SummaryCard
           icon={<UserRound size={18} />}
           title="Average Employees / Division"
-          value={apiDivisions.length ? Math.round(apiEmployees.length / apiDivisions.length).toString() : "0"}
+          value={safeDivisions.length ? Math.round(safeDivisions.reduce((acc: number, d: any) => acc + (parseInt(d.totalEmployees) || 0), 0) / safeDivisions.length).toString() : "0"}
           subtitle="Across All Divisions"
           iconBg="bg-[#eaf3ff]"
           iconColor="text-[#2672d0]"
@@ -381,7 +368,7 @@ export default function DivisionsPage() {
                       {div.icon}
                     </div>
 
-                    <span className="whitespace-nowrap font-semibold hover:text-blue-600 cursor-pointer" onClick={() => router.push(`/dashboard/divisions/add-new-division?editId=${div._id}`)}>
+                    <span className="whitespace-nowrap font-semibold hover:text-blue-600 cursor-pointer" onClick={() => router.push(`/dashboard/divisions/add-division?editId=${div._id}`)}>
                       {div.name}
                     </span>
                   </div>
@@ -414,7 +401,7 @@ export default function DivisionsPage() {
 
                   <div className="flex items-center justify-center gap-1.5">
                     <button
-                      onClick={() => router.push(`/dashboard/divisions/add-new-division?editId=${div._id}`)}
+                      onClick={() => router.push(`/dashboard/divisions/add-division?editId=${div._id}`)}
                       className="flex h-7 w-7 items-center justify-center rounded-full border border-zinc-200 bg-white text-blue-600 hover:bg-zinc-50"
                     >
                       <Pencil size={14} />

@@ -4,6 +4,7 @@ import { ChevronRight, ArrowLeft, GitBranch, Pencil, Users, Building2, Wallet, C
 import Link from 'next/link';
 import CostCenterMappingTab from './CostCenterMappingTab';
 import BudgetAllocationTab from './BudgetAllocationTab';
+import { use } from 'react';
 
 // ─── Static data ────────────────────────────────────────────────────────────
 const BREADCRUMB = ['Organization Setup', 'Departments', 'Department Structure', 'Sub Department Details', 'Budget & Costing'];
@@ -16,9 +17,9 @@ const INFO_CARDS = [
   { label: 'Financial Year', value: 'FY 2025-26', sub: '01 Apr 2025 – 31 Mar 2026', icon: CalendarRange, bg: 'bg-blue-50', color: 'text-blue-600' },
 ];
 
-const TABS = [
+const getTabs = (id: string) => [
   { name: 'Budget Overview' },
-  { name: 'Budget Allocation', href: "/dashboard/departments/123/approval-workflow/view" },
+  { name: 'Budget Allocation', href: `/dashboard/departments/${id}/approval-workflow/view` },
   { name: 'Expense Tracking' },
   { name: 'Cost Center Mapping' },
   { name: 'Approval Workflow' },
@@ -61,7 +62,7 @@ const TOP_EXPENSES = [
 ];
 
 // ─── Breadcrumb + heading ───────────────────────────────────────────────────
-function PageHeading() {
+function PageHeading({ id }: { id: string }) {
   return (
     <section className="space-y-0.5">
       <div className="flex items-center gap-1.5 text-[12px] text-zinc-500 flex-wrap">
@@ -82,8 +83,8 @@ function PageHeading() {
           <p className="text-[13px] text-zinc-500">Plan, allocate and track budgets and costs for this sub department.</p>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          <Link href={'/dashboard/departments'} className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors whitespace-nowrap">
-            <ArrowLeft size={13} /> Back to Sub Departments
+          <Link href={`/dashboard/departments/${id}`} className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors whitespace-nowrap">
+            <ArrowLeft size={13} /> Back to Department Details
           </Link>
           <button className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50 transition-colors whitespace-nowrap">
             <Pencil size={13} /> Edit Details
@@ -120,10 +121,11 @@ function InfoStrip() {
 }
 
 // ─── Tabs ────────────────────────────────────────────────────────────────────
-function Tabs({ active, onChange }: { active: string; onChange: (t: string) => void }) {
+function Tabs({ active, onChange, id }: { active: string; onChange: (t: string) => void; id: string }) {
+  const tabsList = getTabs(id);
   return (
     <div className="flex items-center gap-4 border-b border-zinc-200 overflow-x-auto">
-      {TABS.map((t) => (
+      {tabsList.map((t) => (
         <button
           key={t.name}
           onClick={() => onChange(t.name)}
@@ -357,14 +359,16 @@ function QuickActionsCard() {
 }
 
 // ─── Page ───────────────────────────────────────────────────────────────────
-export default function BudgetAndCostingPage() {
+export default function BudgetAndCostingPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const id = resolvedParams.id;
   const [activeTab, setActiveTab] = useState('Budget Overview');
 
   return (
     <div className="space-y-2.5 font-sans text-zinc-900 p-2">
-      <PageHeading />
+      <PageHeading id={id} />
       <InfoStrip />
-      <Tabs active={activeTab} onChange={setActiveTab} />
+      <Tabs active={activeTab} onChange={setActiveTab} id={id} />
 
       {activeTab === 'Cost Center Mapping' ? (
         <CostCenterMappingTab />

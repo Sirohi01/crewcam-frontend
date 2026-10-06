@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, use } from 'react';
 import Link from 'next/link';
 import {
   ChevronRight, Download, Edit2, Search, Share2,
@@ -55,7 +55,9 @@ const legendItems = [
   { type: 'Sub Department', desc: 'Team / sub functional unit' },
 ];
 
-export default function DepartmentStructurePage() {
+export default function DepartmentStructurePage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const id = resolvedParams.id;
   const [activeView, setActiveView] = useState('Tree View');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -81,8 +83,8 @@ export default function DepartmentStructurePage() {
           <p className="text-[11px] text-slate-500">Visualize the full hierarchy of your organization.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/departments" className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 bg-white rounded-md text-[11px] font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition-colors">
-            &larr; Back to Departments
+          <Link href={`/dashboard/departments/${id}`} className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 bg-white rounded-md text-[11px] font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition-colors">
+            &larr; Back to Department Details
           </Link>
           <button className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 bg-white rounded-md text-[11px] font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition-colors">
             <Download className="w-4 h-4" /> Export Structure <ChevronDown className="w-4 h-4 text-slate-400" />

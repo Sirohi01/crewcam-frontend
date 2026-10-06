@@ -10,6 +10,7 @@ import {
   Target, Book, AlignLeft, Clock, Archive, Save,
   PieChartIcon, Share2, GitBranch, ShieldCheck
 } from 'lucide-react';
+import { ApiSearchableSelect } from '@/components/common/ApiSearchableSelect';
 
 // Missing standard lucide icons mapped to custom svgs for exact matches
 const Users = ({ className }: { className?: string }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>;
@@ -42,6 +43,7 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
     keyResponsibilities: ''
   });
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     fetchDepartment();
@@ -62,6 +64,10 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
         ...data,
         hodEmployeeId: resolveField(data.hodEmployeeId),
         reportingToId: resolveField(data.reportingToId),
+        branchId: resolveField(data.branchId),
+        location: resolveField(data.location),
+        businessUnit: typeof data.businessUnit === 'object' && data.businessUnit ? data.businessUnit.name || data.businessUnit._id : data.businessUnit,
+        costCenter: typeof data.costCenter === 'object' && data.costCenter ? data.costCenter.name || data.costCenter._id : data.costCenter,
       }));
     } catch (error) {
       console.error('Failed to fetch department details', error);
@@ -77,7 +83,8 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
   const handleSave = async () => {
     try {
       await updateDepartment(id, formData);
-      router.push('/dashboard/departments');
+      setIsEditing(false);
+      // Optional: re-fetch or show success toast
     } catch (error) {
       console.error('Failed to update department', error);
       alert('Failed to update department');
@@ -86,11 +93,11 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
 
   const tabs = [
     { name: 'Basic Information', icon: Info },
-    { name: 'Department Structure', icon: GitBranch, href: '/dashboard/departments/structure' },
-    { name: 'Business Mapping', icon: Building, href: '/dashboard/departments/business-mapping' },
-    { name: 'Budget & Costing', icon: PieChartIcon, href: "/dashboard/departments/buget-and-costing" },
-    { name: 'Documents (3)', icon: FileText, href: "/dashboard/department-documents" },
-    { name: 'KPIs & Goals', icon: Target, href: '/dashboard/departments/kpi-and-goals' },
+    { name: 'Department Structure', icon: GitBranch, href: `/dashboard/departments/${id}/structure` },
+    { name: 'Business Mapping', icon: Building, href: `/dashboard/departments/${id}/business-mapping` },
+    { name: 'Budget & Costing', icon: PieChartIcon, href: `/dashboard/departments/${id}/buget-and-costing` },
+    { name: 'Documents (3)', icon: FileText, href: `/dashboard/departments/${id}/department-documents` },
+    { name: 'KPIs & Goals', icon: Target, href: `/dashboard/departments/${id}/kpi-and-goals` },
     { name: 'Policies', icon: Book, href: `/dashboard/departments/${id}/policies` },
     { name: 'Custom Fields', icon: AlignLeft, href: `/dashboard/departments/${id}/custom-fields` },
     { name: 'Audit Trail', icon: Clock, href: `/dashboard/departments/${id}/audit-trail` },
@@ -120,16 +127,16 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Link href="/dashboard/departments" className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors shadow-sm">
-            <ArrowLeft className="w-4 h-4" /> Back to List
+            <ArrowLeft className="w-4 h-4" />Back to List
           </Link>
           <Link href="/dashboard/departments/sub-department-management" className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors shadow-sm">
-            <Users className="w-4 h-4" /> Sub Departments
+            <Users className="w-4 h-4" />Sub Departments
           </Link>
           {/* <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors shadow-sm">
             <Copy className="w-4 h-4" /> Duplicate Department
           </button> */}
-          <button className="flex items-center gap-2 px-6 py-2 bg-blue-600 border border-blue-600 text-white rounded-md font-bold text-[12px] hover:bg-blue-700 transition-colors shadow-sm">
-            <Edit2 className="w-4 h-4" /> Edit Department
+          <button onClick={() => setIsEditing(true)} className="flex items-center gap-2 px-6 py-2 bg-blue-600 border border-blue-600 text-white rounded-md font-bold text-[12px] hover:bg-blue-700 transition-colors shadow-sm">
+            <Edit2 className="w-4 h-4" />Edit Department
           </button>
         </div>
       </div>
@@ -178,15 +185,15 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Department Name <span className="text-red-500">*</span></label>
-                <input type="text" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm" />
+                <input type="text" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} disabled={!isEditing} className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors shadow-sm ${!isEditing ? 'bg-slate-50 cursor-not-allowed' : 'bg-white'}`} />
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Department Code <span className="text-red-500">*</span></label>
-                <input type="text" value={formData.code} onChange={(e) => handleInputChange('code', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm" />
+                <input type="text" value={formData.code} onChange={(e) => handleInputChange('code', e.target.value)} disabled={!isEditing} className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors shadow-sm ${!isEditing ? 'bg-slate-50 cursor-not-allowed' : 'bg-white'}`} />
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Short Name</label>
-                <input type="text" value={formData.shortName} onChange={(e) => handleInputChange('shortName', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm" />
+                <input type="text" value={formData.shortName} onChange={(e) => handleInputChange('shortName', e.target.value)} disabled={!isEditing} className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors shadow-sm ${!isEditing ? 'bg-slate-50 cursor-not-allowed' : 'bg-white'}`} />
               </div>
             </div>
 
@@ -194,47 +201,33 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Parent Department</label>
-                <div className="relative">
-                  <select value={formData.branchId || ''} onChange={(e) => handleInputChange('branchId', e.target.value)} className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-500 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm pr-8">
-                    <option value="">-- None (Top Level) --</option>
-                  </select>
-                  <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                </div>
+                <ApiSearchableSelect
+                  apiType="department"
+                  value={formData.branchId || ''}
+                  onChange={(val) => handleInputChange('branchId', val)}
+                  placeholder="-- None (Top Level) --"
+                />
                 <p className="text-[10px] text-slate-500 font-medium mt-2 flex items-center gap-1">Select the parent department <HelpCircle className="w-3.5 h-3.5 text-slate-400" /></p>
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Department Head <span className="text-red-500">*</span></label>
-                <div className="flex items-center justify-between border border-slate-200 rounded-lg p-1.5 pr-2.5 shadow-sm bg-white cursor-pointer hover:border-blue-400 transition-colors">
-                  <div className="flex items-center gap-2 pl-1">
-                    <img src="https://i.pravatar.cc/150?u=1" alt="Aman" className="w-7 h-7 rounded-full object-cover border border-slate-200" />
-                    <div className="leading-tight">
-                      <p className="text-[11.5px] font-bold text-slate-900">{formData.hodEmployeeId || 'Aman Malhotra'}</p>
-                      <p className="text-[9.5px] font-medium text-slate-500">Design Director</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="p-0.5 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600 transition-colors"><X className="w-3.5 h-3.5" /></div>
-                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                  </div>
-                </div>
+                <ApiSearchableSelect
+                  apiType="employee"
+                  value={formData.hodEmployeeId || ''}
+                  onChange={(val) => handleInputChange('hodEmployeeId', val)}
+                  placeholder="Select Head"
+                />
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Alternate Head</label>
-                <div className="flex items-center justify-between border border-slate-200 rounded-lg p-1.5 pr-2.5 shadow-sm bg-white cursor-pointer hover:border-blue-400 transition-colors">
-                  <div className="flex items-center gap-2 pl-1">
-                    <img src="https://i.pravatar.cc/150?u=2" alt="Neha" className="w-7 h-7 rounded-full object-cover border border-slate-200" />
-                    <div className="leading-tight">
-                      <p className="text-[11.5px] font-bold text-slate-900">{formData.reportingToId || 'Neha Sethi'}</p>
-                      <p className="text-[9.5px] font-medium text-slate-500">GM – Retail</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="p-0.5 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600 transition-colors"><X className="w-3.5 h-3.5" /></div>
-                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                  </div>
-                </div>
+                <ApiSearchableSelect
+                  apiType="employee"
+                  value={formData.reportingToId || ''}
+                  onChange={(val) => handleInputChange('reportingToId', val)}
+                  placeholder="Select Alternate Head"
+                />
               </div>
             </div>
 
@@ -242,35 +235,31 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Business Unit <span className="text-red-500">*</span></label>
-                <div className="relative">
-                  <select value={formData.businessUnit || ''} onChange={(e) => handleInputChange('businessUnit', e.target.value)} className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm pr-8">
-                    <option value="Design & Creative">Design & Creative</option>
-                    <option value="Retail Interiors & Exhibition">Retail Interiors & Exhibition</option>
-                  </select>
-                  <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                </div>
+                <ApiSearchableSelect
+                  apiType="business-unit"
+                  value={formData.businessUnit || ''}
+                  onChange={(val) => handleInputChange('businessUnit', val)}
+                  placeholder="Select Business Unit"
+                  disabled={!isEditing}
+                />
                 <p className="text-[10px] text-slate-500 font-medium mt-2 flex items-center gap-1">Select the business unit <HelpCircle className="w-3.5 h-3.5 text-slate-400" /></p>
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Cost Center <span className="text-red-500">*</span></label>
-                <div className="relative">
-                  <select value={formData.costCenter} onChange={(e) => handleInputChange('costCenter', e.target.value)} className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm pr-8">
-                    <option value="CC-DS-1001">CC-DS-1001</option>
-                  </select>
-                  <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                </div>
+                <input type="text" value={formData.costCenter || ''} onChange={(e) => handleInputChange('costCenter', e.target.value)} disabled={!isEditing} className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors shadow-sm ${!isEditing ? 'bg-slate-50 cursor-not-allowed' : 'bg-white'}`} placeholder="Enter Cost Center" />
                 <p className="text-[10px] text-slate-500 font-medium mt-2 flex items-center gap-1">Select the cost center <HelpCircle className="w-3.5 h-3.5 text-slate-400" /></p>
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Location <span className="text-red-500">*</span></label>
-                <div className="relative">
-                  <select value={formData.location} onChange={(e) => handleInputChange('location', e.target.value)} className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm pr-8">
-                    <option value="Noida – Head Office">Noida – Head Office</option>
-                  </select>
-                  <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                </div>
+                <ApiSearchableSelect
+                  apiType="branch"
+                  value={formData.location || ''}
+                  onChange={(val) => handleInputChange('location', val)}
+                  placeholder="Select Location"
+                  disabled={!isEditing}
+                />
                 <p className="text-[10px] text-slate-500 font-medium mt-2 flex items-center gap-1">Select the primary location <HelpCircle className="w-3.5 h-3.5 text-slate-400" /></p>
               </div>
             </div>
@@ -289,16 +278,16 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
             <div className="grid grid-cols-4 gap-4">
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Budget (FY 2025-26)</label>
-                <input type="text" value={formData.budget} onChange={(e) => handleInputChange('budget', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm" />
+                <input type="text" value={formData.budget} onChange={(e) => handleInputChange('budget', e.target.value)} disabled={!isEditing} className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors shadow-sm ${!isEditing ? 'bg-slate-50 cursor-not-allowed' : 'bg-white'}`} />
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Employee Capacity</label>
-                <input type="text" value={formData.employeeCapacity || ''} onChange={(e) => handleInputChange('employeeCapacity', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm" />
+                <input type="text" value={formData.employeeCapacity || ''} onChange={(e) => handleInputChange('employeeCapacity', e.target.value)} disabled={!isEditing} className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors shadow-sm ${!isEditing ? 'bg-slate-50 cursor-not-allowed' : 'bg-white'}`} />
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Department Type</label>
                 <div className="relative">
-                  <select value={formData.departmentType || ''} onChange={(e) => handleInputChange('departmentType', e.target.value)} className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm pr-8">
+                  <select value={formData.departmentType || ''} onChange={(e) => handleInputChange('departmentType', e.target.value)} disabled={!isEditing} className={`w-full appearance-none px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors shadow-sm pr-8 ${!isEditing ? 'bg-slate-50 cursor-not-allowed' : 'bg-white'}`}>
                     <option value="Core Department">Core Department</option>
                   </select>
                   <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -310,7 +299,7 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <span className={`text-[12px] font-bold ${formData.isActive ? 'text-emerald-600' : 'text-rose-600'}`}>{formData.isActive ? 'Active' : 'Inactive'}</span>
                   </div>
-                  <select value={formData.isActive.toString()} onChange={(e) => handleInputChange('isActive', e.target.value === 'true')} className="w-full appearance-none pl-12 pr-8 py-2 border border-slate-200 rounded-lg text-[12px] text-transparent font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm cursor-pointer">
+                  <select value={formData.isActive.toString()} onChange={(e) => handleInputChange('isActive', e.target.value === 'true')} disabled={!isEditing} className={`w-full appearance-none pl-12 pr-8 py-2 border border-slate-200 rounded-lg text-[12px] text-transparent font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors shadow-sm cursor-pointer ${!isEditing ? 'bg-slate-50 cursor-not-allowed' : 'bg-white'}`}>
                     <option value="true">Active</option>
                     <option value="false">Inactive</option>
                   </select>
@@ -323,18 +312,18 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Email</label>
-                <input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm" />
+                <input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} disabled={!isEditing} className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors shadow-sm ${!isEditing ? 'bg-slate-50 cursor-not-allowed' : 'bg-white'}`} />
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-2">Phone</label>
-                <input type="text" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm" />
+                <input type="text" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} disabled={!isEditing} className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors shadow-sm ${!isEditing ? 'bg-slate-50 cursor-not-allowed' : 'bg-white'}`} />
               </div>
             </div>
 
             {/* DESCRIPTION */}
             <div>
               <label className="block text-[11px] font-bold text-slate-700 mb-1.5">Description</label>
-              <textarea rows={2} value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors bg-white shadow-sm resize-none"></textarea>
+              <textarea rows={2} value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)} disabled={!isEditing} className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-[12px] text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-colors shadow-sm resize-none ${!isEditing ? 'bg-slate-50 cursor-not-allowed' : 'bg-white'}`}></textarea>
               <div className="flex justify-end mt-1">
                 <span className="text-[11px] font-bold text-slate-400">{formData.description.length} / 500</span>
               </div>
@@ -343,19 +332,21 @@ export default function DepartmentDetailsPage({ params }: { params: Promise<{ id
           </div>
 
           {/* ACTIONS */}
-          <div className="p-4 border-t border-slate-100 flex items-center justify-between">
-            <button className="flex items-center gap-2 px-5 py-2.5 border border-red-200 text-red-600 rounded-md font-bold text-[12px] hover:bg-red-50 transition-colors bg-white shadow-sm">
-              <Archive className="w-4 h-4" /> Archive Department
-            </button>
-            <div className="flex items-center gap-3">
-              <Link href="/dashboard/departments" className="px-6 py-2.5 border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors bg-white shadow-sm">
-                Cancel
-              </Link>
-              <button onClick={handleSave} className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 border border-blue-600 text-white rounded-md font-bold text-[12px] hover:bg-blue-700 transition-colors shadow-sm">
-                <Save className="w-4 h-4" /> Save Changes
+          {isEditing && (
+            <div className="p-4 border-t border-slate-100 flex items-center justify-between">
+              <button className="flex items-center gap-2 px-5 py-2.5 border border-red-200 text-red-600 rounded-md font-bold text-[12px] hover:bg-red-50 transition-colors bg-white shadow-sm">
+                <Archive className="w-4 h-4" /> Archive Department
               </button>
+              <div className="flex items-center gap-3">
+                <button onClick={() => { setIsEditing(false); fetchDepartment(); }} className="px-6 py-2.5 border border-slate-200 text-slate-700 rounded-md font-bold text-[12px] hover:bg-slate-50 transition-colors bg-white shadow-sm">
+                  Cancel
+                </button>
+                <button onClick={handleSave} className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 border border-blue-600 text-white rounded-md font-bold text-[12px] hover:bg-blue-700 transition-colors shadow-sm">
+                  <Save className="w-4 h-4" /> Save Changes
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* RIGHT INFORMATION PANEL */}

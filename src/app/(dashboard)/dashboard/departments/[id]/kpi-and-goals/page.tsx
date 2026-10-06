@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import {
   ChevronRight, ArrowLeft, Plus, Building2, Users, MapPin, GitBranch,
@@ -11,7 +11,9 @@ import { getDepartmentKpis } from '@/services/kpiService';
 
 const BREADCRUMB = ['Organization Setup', 'Departments', 'Department Details', 'KPIs & Goals'];
 
-export default function KPIsAndGoalsPage() {
+export default function KPIsAndGoalsPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const id = resolvedParams.id;
   const tabs = ['Overview', 'KPIs', 'Goals', 'Progress Tracking', 'History'];
 
   const [kpisData, setKpisData] = useState<any[]>([]);
@@ -21,7 +23,7 @@ export default function KPIsAndGoalsPage() {
   useEffect(() => {
     const fetchKpis = async () => {
       try {
-        const res = await getDepartmentKpis('64a7c1e5f8b9a9d2a4f6e1b3');
+        const res = await getDepartmentKpis(id);
         if (res.success && res.data) {
           // Map backend KPIs to frontend format
           const mappedKpis = res.data.map((kpi: any, idx: number) => ({
@@ -115,11 +117,11 @@ export default function KPIsAndGoalsPage() {
         </div>
 
         <div className="flex items-center gap-2 mt-2 md:mt-0">
-          <button className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 bg-white rounded-md text-[11px] font-semibold text-slate-700 hover:bg-slate-50 shadow-sm transition-colors whitespace-nowrap">
+          <Link href={`/dashboard/departments/${id}`} className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 bg-white rounded-md text-[11px] font-semibold text-slate-700 hover:bg-slate-50 shadow-sm transition-colors whitespace-nowrap">
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Department Details
-          </button>
+          </Link>
 
-          <Link href="/dashboard/departments/kpi-and-goals/add-new" className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 border border-indigo-600 text-white rounded-md text-[11px] font-semibold hover:bg-indigo-700 shadow-sm transition-colors whitespace-nowrap">
+          <Link href={`/dashboard/departments/${id}/kpi-and-goals/add-new`} className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 border border-indigo-600 text-white rounded-md text-[11px] font-semibold hover:bg-indigo-700 shadow-sm transition-colors whitespace-nowrap">
             <Plus className="w-3.5 h-3.5" /> Add KPI / Goal
           </Link>
         </div>

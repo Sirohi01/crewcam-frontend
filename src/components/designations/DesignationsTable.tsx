@@ -47,6 +47,9 @@ export default function DesignationsTable() {
   const [filterStatus, setFilterStatus] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [showFilters, setShowFilters] = useState(false);
+  const [sortField, setSortField] = useState('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const user = useAuthStore(state => state.user);
   const qc = useQueryClient();
@@ -100,8 +103,46 @@ export default function DesignationsTable() {
   const uniqueGrades = Array.from(new Set(designationsArray.map((d: any) => d.jobGrade?.name || d.jobGrade))).filter(Boolean) as string[];
   const uniqueFamilies = Array.from(new Set(designationsArray.map((d: any) => d.jobFamily?.name || d.jobFamily))).filter(Boolean) as string[];
 
-  const totalPages = Math.ceil(filtered.length / rowsPerPage) || 1;
-  const paginatedData = filtered.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+  const sortedData = [...filtered].sort((a: any, b: any) => {
+    let aVal = a[sortField] || '';
+    let bVal = b[sortField] || '';
+    if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+    if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+
+    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const totalPages = Math.ceil(sortedData.length / rowsPerPage) || 1;
+  const paginatedData = sortedData.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+
+  const renderSortableHeader = (label: string, field: string, widthClass?: string) => {
+    return (
+      <th
+        className={`py-3 px-2 text-[11px] font-semibold text-[#101743] text-left transition-colors ${showFilters ? 'cursor-pointer hover:bg-zinc-100' : ''} ${widthClass || ''}`}
+        onClick={() => {
+          if (!showFilters) return;
+          if (sortField === field) {
+            setSortDirection(p => p === 'asc' ? 'desc' : 'asc');
+          } else {
+            setSortField(field);
+            setSortDirection('asc');
+          }
+        }}
+      >
+        <div className="flex items-center gap-1">
+          {label}
+          {showFilters && (
+            <div className="flex flex-col">
+              <ChevronDown size={12} className={`rotate-180 -mb-1 ${sortField === field && sortDirection === 'asc' ? 'text-blue-600' : 'text-zinc-300'}`} />
+              <ChevronDown size={12} className={`-mt-1 ${sortField === field && sortDirection === 'desc' ? 'text-blue-600' : 'text-zinc-300'}`} />
+            </div>
+          )}
+        </div>
+      </th>
+    )
+  };
 
   return (
     <div className="bg-white border border-zinc-200 rounded-xl shadow-sm flex flex-col min-w-0">
@@ -134,23 +175,63 @@ export default function DesignationsTable() {
             className="w-full rounded-md border border-zinc-200 bg-white pl-9 pr-3 py-2 text-[12px] text-zinc-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors placeholder:text-zinc-400"
           />
         </div>
-        
-        <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 px-2 py-2 text-[12px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
+
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className={`flex items-center gap-1.5 rounded-md border border-zinc-200 px-2 py-2 text-[12px] font-semibold transition-colors ${showFilters ? 'bg-zinc-100 text-blue-600 border-blue-200' : 'text-zinc-700 hover:bg-zinc-50'}`}
+        >
           <Filter size={14} /> Filters
         </button>
-        <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 px-2 py-2 text-[12px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
-          Job Grade <ChevronDown size={14} />
-        </button>
-        <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 px-2 py-2 text-[12px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
-          Job Family <ChevronDown size={14} />
-        </button>
-        <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 px-2 py-2 text-[12px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
-          Status <ChevronDown size={14} />
-        </button>
-        <button className="flex items-center gap-1.5 rounded-md border border-zinc-200 px-2 py-2 text-[12px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
-          <Settings2 size={14} /> More Filters
-        </button>
-        <button className="flex items-center gap-1.5 rounded-md px-2 py-2 text-[12px] font-semibold text-zinc-500 hover:text-zinc-700 transition-colors">
+        <div className="flex items-center gap-2 relative">
+          <select
+            value={filterGrade}
+            onChange={(e) => setFilterGrade(e.target.value)}
+            className="appearance-none flex items-center gap-1.5 rounded-md border border-zinc-200 px-3 py-2 text-[12px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors outline-none cursor-pointer pr-8"
+          >
+            <option value="All">Job Grade</option>
+            {uniqueGrades.map(g => (
+              <option key={g} value={g}>{g}</option>
+            ))}
+          </select>
+          <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+        </div>
+
+        <div className="flex items-center gap-2 relative">
+          <select
+            value={filterFamily}
+            onChange={(e) => setFilterFamily(e.target.value)}
+            className="appearance-none flex items-center gap-1.5 rounded-md border border-zinc-200 px-3 py-2 text-[12px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors outline-none cursor-pointer pr-8"
+          >
+            <option value="All">Job Family</option>
+            {uniqueFamilies.map(f => (
+              <option key={f} value={f}>{f}</option>
+            ))}
+          </select>
+          <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+        </div>
+
+        <div className="flex items-center gap-2 relative">
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="appearance-none flex items-center gap-1.5 rounded-md border border-zinc-200 px-3 py-2 text-[12px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors outline-none cursor-pointer pr-8"
+          >
+            <option value="All">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+          <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+        </div>
+        <button
+          onClick={() => {
+            setSearchTerm('');
+            setFilterGrade('All');
+            setFilterFamily('All');
+            setFilterStatus('All');
+            setActiveTab('All Designations');
+          }}
+          className="flex items-center gap-1.5 rounded-md px-2 py-2 text-[12px] font-semibold text-zinc-500 hover:text-zinc-700 transition-colors"
+        >
           <RotateCcw size={14} /> Reset
         </button>
       </div>
@@ -159,7 +240,7 @@ export default function DesignationsTable() {
       <div className="overflow-x-auto min-w-0">
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
-            <tr className="bg-zinc-50/50 border-b border-zinc-100">
+            <tr className="bg-[#f8f9fc] border-y border-[#e2e6ea]">
               <th className="py-3 pl-4 pr-2 w-10">
                 <input
                   type="checkbox"
@@ -168,14 +249,14 @@ export default function DesignationsTable() {
                   onChange={(e) => setSelectedIds(e.target.checked ? filtered.map((d: any) => d.id) : [])}
                 />
               </th>
-              <th className="py-3 px-2 text-[11px] font-semibold text-zinc-700 text-left">Designation Name</th>
-              <th className="py-3 px-2 text-[11px] font-semibold text-zinc-700 text-left">Code</th>
-              <th className="py-3 px-2 text-[11px] font-semibold text-zinc-700 text-left">Job Grade</th>
-              <th className="py-3 px-2 text-[11px] font-semibold text-zinc-700 text-left">Job Family</th>
-              <th className="py-3 px-2 text-[11px] font-semibold text-zinc-700 text-left">Employees</th>
-              <th className="py-3 px-2 text-[11px] font-semibold text-zinc-700 text-left">Vacant</th>
-              <th className="py-3 px-2 text-[11px] font-semibold text-zinc-700 text-left">Status</th>
-              {hasEditPermission && <th className="py-3 px-4 text-[11px] font-semibold text-zinc-700 text-center">Actions</th>}
+              {renderSortableHeader('Designation Name', 'name')}
+              {renderSortableHeader('Code', 'code')}
+              {renderSortableHeader('Job Grade', 'jg')}
+              {renderSortableHeader('Job Family', 'family')}
+              {renderSortableHeader('Employees', 'emp')}
+              {renderSortableHeader('Vacant', 'vac')}
+              {renderSortableHeader('Status', 'status')}
+              {hasEditPermission && <th className="py-3 px-4 text-[11px] font-semibold text-[#101743] text-center">Actions</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">

@@ -12,6 +12,7 @@ interface ApiSearchableSelectProps {
   onLabelChange?: (label: string) => void;
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 const getArray = (res: any) => (Array.isArray(res?.data) ? res.data : res?.data?.data || []);
@@ -25,8 +26,8 @@ const apiConfigs = {
     value: (d: any) => d._id,
   },
   employee: {
-    key: ['employees'],
-    url: '/employees',
+    key: ['employees-minimal'],
+    url: '/employees/minimal',
     filter: (e: any) => e.isActive !== false,
     label: (e: any) => `${e.firstName} ${e.lastName}`,
     value: (e: any) => e._id,
@@ -43,7 +44,7 @@ const apiConfigs = {
     url: '/business-units',
     filter: (b: any) => b.status === 'Active',
     label: (b: any) => b.name,
-    value: (b: any) => b.name,
+    value: (b: any) => b._id,
   },
   designation: {
     key: ['designations'],
@@ -62,13 +63,13 @@ const apiConfigs = {
   division: {
     key: ['divisions'],
     url: '/divisions',
-    filter: (d: any) => d.status === 'Active',
+    filter: (d: any) => d.isActive !== false,
     label: (d: any) => d.divisionName || d.name,
     value: (d: any) => d._id,
   },
 };
 
-export function ApiSearchableSelect({ apiType, value, onChange, onLabelChange, placeholder = "Select...", className = '' }: ApiSearchableSelectProps) {
+export function ApiSearchableSelect({ apiType, value, onChange, onLabelChange, placeholder = "Select...", className = '', disabled = false }: ApiSearchableSelectProps) {
   const config = apiConfigs[apiType];
 
   const { data: response, isLoading } = useQuery({
@@ -108,6 +109,7 @@ export function ApiSearchableSelect({ apiType, value, onChange, onLabelChange, p
       onChange={handleChange}
       placeholder={isLoading ? "Loading..." : placeholder}
       className={className}
+      disabled={disabled}
     />
   );
 }

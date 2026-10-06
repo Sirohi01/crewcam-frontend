@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { use } from 'react';
 import Link from 'next/link';
 import {
   ChevronRight, ArrowLeft, Plus, Building2, Users, GitBranch, Calendar,
@@ -9,7 +9,9 @@ import {
 
 const BREADCRUMB = ['Organization Setup', 'Departments', 'Department Details', 'Business Mapping'];
 
-export default function BusinessMappingPage() {
+export default function BusinessMappingPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const id = resolvedParams.id;
   const tabs = ['Business Mapping', 'Mapped Overview', 'Mapping History'];
 
   const kpiData = [
@@ -49,10 +51,10 @@ export default function BusinessMappingPage() {
           <p className="text-[11px] text-slate-500">Map this department with business units, cost centers, projects and processes to define its role in the organization.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 bg-white rounded-md text-[11px] font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition-colors">
+          <Link href={`/dashboard/departments/${id}`} className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 bg-white rounded-md text-[11px] font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back to Department Details
-          </button>
-          <Link href="/dashboard/departments/business-mapping/add-mapping" className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 border border-blue-600 text-white rounded-md text-[11px] font-medium hover:bg-blue-700 shadow-sm transition-colors">
+          </Link>
+          <Link href={`/dashboard/departments/${id}/business-mapping/add-mapping`} className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 border border-blue-600 text-white rounded-md text-[11px] font-medium hover:bg-blue-700 shadow-sm transition-colors">
             <Plus className="w-4 h-4" /> Add Mapping
           </Link>
         </div>
