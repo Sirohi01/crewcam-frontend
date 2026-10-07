@@ -77,7 +77,7 @@ export default function HODReviewTab() {
 
       // Routing
       if (newStatus === 'ASSESSMENT') {
-        router.push(`/dashboard/assessments`);
+        router.push(`/dashboard/hiring/candidates/new/create/interview-process/${targetId}`);
       } else {
         router.push(`/dashboard/all-candidates?status=${newStatus}`);
       }

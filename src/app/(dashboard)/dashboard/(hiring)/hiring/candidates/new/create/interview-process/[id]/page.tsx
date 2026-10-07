@@ -311,22 +311,34 @@ export default function InterviewProcessPage() {
               <p className="mt-0.5 text-[10.5px] text-zinc-500">All rounds are AI-driven. Questions are generated based on job role, candidate profile &amp; skills.</p>
 
               <div className="mt-1.5 flex items-stretch gap-1">
-                {rounds(candidateId).map((r, i) => (
+                {dynamicRounds.map((r, i) => {
+                  const isEnabled = r.status === 'Completed' || r.status === 'In Progress';
+                  // Mock score logic for 70% requirement
+                  const hasRequiredScore = i === 0 ? true : (completedRounds.includes(i) ? true : false); 
+                  
+                  return (
                   <React.Fragment key={r.name}>
                     <div
-                      onClick={() => r.href && window.open(r.href, '_blank')}
-                      className={`min-w-0 flex-1 rounded-lg border p-1.5 cursor-pointer hover:border-indigo-400 transition-colors ${i === 0 ? 'border-indigo-300 bg-indigo-50/40' : 'border-zinc-200'}`}
+                      onClick={() => {
+                        if (!isEnabled) {
+                          toast.error("Please complete the previous rounds and achieve at least 70% score to unlock this round.");
+                          return;
+                        }
+                        if (r.href) window.open(r.href, '_blank');
+                      }}
+                      className={`min-w-0 flex-1 rounded-lg border p-1.5 transition-colors ${!isEnabled ? 'opacity-50 cursor-not-allowed bg-zinc-50 border-zinc-200' : 'cursor-pointer hover:border-indigo-400'} ${i === 0 && isEnabled ? 'border-indigo-300 bg-indigo-50/40' : 'border-zinc-200'}`}
                     >
                       <p className="truncate text-[11px] font-bold text-zinc-800">{r.name}</p>
                       <p className="truncate text-[10px] text-zinc-500">{r.title}</p>
-                      <span className={`mt-1 inline-block truncate rounded-full px-1.5 py-0.5 text-[8.5px] font-semibold ${i === 0 ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-500'}`}>{r.badge}</span>
+                      <span className={`mt-1 inline-block truncate rounded-full px-1.5 py-0.5 text-[8.5px] font-semibold ${r.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : r.status === 'In Progress' ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-500'}`}>{r.badge}</span>
                       <p className="mt-1 flex items-center gap-1 truncate text-[9px] text-zinc-500"><Clock3 size={10} className="shrink-0 text-zinc-400" /> <span className="truncate">{r.duration}</span></p>
                       <p className="mt-0.5 flex items-center gap-1 truncate text-[9px] text-zinc-500"><Sparkles size={10} className="shrink-0 text-zinc-400" /> <span className="truncate">{r.questionsLabel}</span></p>
-                      <p className={`mt-0.5 flex items-center gap-1 truncate text-[9px] font-medium ${i === 0 ? 'text-indigo-600' : 'text-zinc-400'}`}><Info size={10} className="shrink-0" /> <span className="truncate">{r.status}</span></p>
+                      <p className={`mt-0.5 flex items-center gap-1 truncate text-[9px] font-medium ${r.status === 'Completed' ? 'text-emerald-600' : r.status === 'In Progress' ? 'text-indigo-600' : 'text-zinc-400'}`}><Info size={10} className="shrink-0" /> <span className="truncate">{r.status}</span></p>
+                      {r.status === 'Pending' && <p className="mt-1 text-[8px] text-rose-500 font-semibold">Requires 70% in previous round</p>}
                     </div>
-                    {i < rounds(candidateId).length - 1 && <span className="flex shrink-0 items-center text-zinc-300"><ArrowRight size={14} /></span>}
+                    {i < dynamicRounds.length - 1 && <span className="flex shrink-0 items-center text-zinc-300"><ArrowRight size={14} /></span>}
                   </React.Fragment>
-                ))}
+                )})}
               </div>
 
               <div className="mt-1.5 flex items-start gap-2 rounded-lg bg-indigo-50/60 px-2.5 py-2">

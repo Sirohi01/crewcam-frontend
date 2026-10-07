@@ -539,7 +539,9 @@ export default function CreateCandidatePage() {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4 mb-3">
           {/* Title */}
           <div className="shrink-0 w-full lg:w-[380px]">
-            <h1 className="text-[17px] font-bold text-zinc-900 tracking-tight leading-tight">Add New Candidate</h1>
+            <h1 className="text-[17px] font-bold text-zinc-900 tracking-tight leading-tight">
+              {candidateId ? 'Edit Candidate' : 'Add New Candidate'}
+            </h1>
             <p className="mt-0.5 text-[11px] font-medium text-zinc-500 whitespace-nowrap">Upload CV and let AI extract details automatically</p>
           </div>
 

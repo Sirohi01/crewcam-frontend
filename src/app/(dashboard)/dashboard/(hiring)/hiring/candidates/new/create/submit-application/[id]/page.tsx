@@ -322,13 +322,15 @@ export default function SubmittedPage() {
                     <div
                       key={idx}
                       onClick={() => {
-                        if (step.href) {
+                        if (step.href && step.active) {
                           window.open(step.href, '_blank');
                         }
                       }}
-                      className={`p-2 rounded-lg border text-left cursor-pointer transition-all hover:scale-[1.02] flex flex-col ${step.active ? 'bg-indigo-50 border-indigo-300 shadow-xs' :
-                          step.completed ? 'bg-emerald-50/30 border-emerald-200 shadow-xs' : 'bg-white border-slate-200 hover:border-slate-300'
-                        }`}
+                      className={`p-2 rounded-lg border text-left transition-all flex flex-col ${
+                        step.active ? 'bg-indigo-50 border-indigo-300 shadow-xs cursor-pointer hover:scale-[1.02]' :
+                        step.completed ? 'bg-emerald-50/30 border-emerald-200 opacity-60 cursor-not-allowed' : 
+                        'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed'
+                      }`}
                     >
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center mb-1.5 ${step.completed ? 'bg-emerald-100 text-emerald-700' :
                           step.active ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'

@@ -147,15 +147,10 @@ export default function EvaluationPage() {
   const [screeningData, setScreeningData] = React.useState<any>(null);
   const [loadingScreening, setLoadingScreening] = React.useState(true);
   const [realCandidateId, setRealCandidateId] = React.useState<string | null>(null);
+  const [showAllMatchedSkills, setShowAllMatchedSkills] = React.useState(false);
+  const [showAllMissingSkills, setShowAllMissingSkills] = React.useState(false);
 
-  // const mockScreeningData = {
-  //   fitScore: 87,
-  //   matchedSkills: ["Sales Strategy", "Team Leadership", "Client Relationship Management", "Business Development", "CRM"],
-  //   missingSkills: ["Advanced Data Analytics", "PPC / Google Ads", "Digital Marketing", "Salesforce Automation"],
-  //   summary: "This candidate has a strong background in sales and marketing with 7 years of relevant experience. They possess excellent leadership and CRM skills, making them a good fit for the role despite lacking some advanced digital marketing analytics experience."
-  // };
 
-  // const displayData = screeningData || mockScreeningData;
   const displayData = screeningData
   React.useEffect(() => {
     if (candidateId) {
@@ -207,7 +202,7 @@ export default function EvaluationPage() {
           });
 
           try {
-            const screenRes = await api.get(`/hiring/resume-screen/${cId}`);
+            const screenRes = await api.get(`/ai/hiring/resume-screen/${cId}`);
             if (screenRes.data && screenRes.data.length > 0) {
               setScreeningData(screenRes.data[0]);
             }
@@ -225,18 +220,26 @@ export default function EvaluationPage() {
     }
   }, [candidateId]);
 
+  const mockScreeningData = {
+    fitScore: 87,
+    matchedSkills: ["Sales Strategy", "Team Leadership", "Client Relationship Management", "Business Development", "CRM"],
+    missingSkills: ["Advanced Data Analytics", "PPC / Google Ads", "Digital Marketing", "Salesforce Automation"],
+    summary: "This candidate has a strong background in sales and marketing with 7 years of relevant experience. They possess excellent leadership and CRM skills, making them a good fit for the role despite lacking some advanced digital marketing analytics experience."
+  };
+
   const handleRunScreening = async () => {
     if (!realCandidateId) return;
     try {
       setLoadingScreening(true);
-      const res = await api.post(`/hiring/resume-screen/${realCandidateId}`);
+      const res = await api.post(`/ai/hiring/resume-screen/${realCandidateId}`);
       if (res.data) {
         setScreeningData(res.data);
         toast.success('AI Screening completed successfully!');
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      toast.error('Failed to run AI screening. Please try again.');
+      const errorMsg = e?.response?.data?.message || e.message || 'Unknown error';
+      toast.error(`Backend failed: ${errorMsg}.`);
     } finally {
       setLoadingScreening(false);
     }
@@ -335,8 +338,8 @@ export default function EvaluationPage() {
           </button>
           <button
             onClick={handleMoveToHOD}
-            disabled={isMovingToHOD}
-            className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors"
+            disabled={isMovingToHOD || !displayData || displayData.fitScore < 70}
+            className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isMovingToHOD ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
             Move to HOD Review &rarr;
@@ -596,7 +599,7 @@ export default function EvaluationPage() {
                             {(!displayData || displayData.matchedSkills.length === 0) ? (
                               <div className="text-[10px] text-slate-500 py-2">No matched skills identified.</div>
                             ) : (
-                              displayData.matchedSkills.map((skill: string, idx: number) => (
+                              (showAllMatchedSkills ? displayData.matchedSkills : displayData.matchedSkills.slice(0, 5)).map((skill: string, idx: number) => (
                                 <div key={idx} className="flex items-center gap-1.5 bg-white p-1 rounded border border-emerald-200/50">
                                   <span className="w-3 h-3 rounded-full bg-emerald-100 flex items-center justify-center text-[8px] font-bold text-emerald-800 shrink-0">✓</span>
                                   <span className="font-medium text-slate-900">{skill}</span>
@@ -604,9 +607,14 @@ export default function EvaluationPage() {
                               ))
                             )}
                           </div>
-                          <button className="text-[9px] font-bold text-indigo-700 hover:text-indigo-900 text-left mt-1.5">
-                            View All Skills ({displayData?.matchedSkills.length || 0}) →
-                          </button>
+                          {displayData && displayData.matchedSkills.length > 5 && (
+                            <button
+                              onClick={() => setShowAllMatchedSkills(!showAllMatchedSkills)}
+                              className="text-[9px] font-bold text-indigo-700 hover:text-indigo-900 text-left mt-1.5"
+                            >
+                              {showAllMatchedSkills ? "View Less ↑" : `View All Skills (${displayData.matchedSkills.length}) →`}
+                            </button>
+                          )}
                         </div>
 
                         {/* Missing Skills block */}
@@ -620,7 +628,7 @@ export default function EvaluationPage() {
                             {(!displayData || displayData.missingSkills.length === 0) ? (
                               <div className="text-[10px] text-slate-500 py-2">No missing skills identified.</div>
                             ) : (
-                              displayData.missingSkills.map((skill: string, idx: number) => (
+                              (showAllMissingSkills ? displayData.missingSkills : displayData.missingSkills.slice(0, 5)).map((skill: string, idx: number) => (
                                 <div key={idx} className="flex items-center gap-1.5 bg-white p-1 rounded border border-amber-200/50">
                                   <span className="w-3 h-3 rounded-full bg-amber-100 flex items-center justify-center text-[8px] font-bold text-amber-800 shrink-0">!</span>
                                   <span className="font-medium text-slate-900">{skill}</span>
@@ -628,9 +636,14 @@ export default function EvaluationPage() {
                               ))
                             )}
                           </div>
-                          <button className="text-[9px] font-bold text-amber-700 hover:text-amber-900 text-left mt-1.5">
-                            View Improvement Tips →
-                          </button>
+                          {displayData && displayData.missingSkills.length > 5 && (
+                            <button
+                              onClick={() => setShowAllMissingSkills(!showAllMissingSkills)}
+                              className="text-[9px] font-bold text-amber-700 hover:text-amber-900 text-left mt-1.5"
+                            >
+                              {showAllMissingSkills ? "View Less ↑" : `View Improvement Tips (${displayData.missingSkills.length}) →`}
+                            </button>
+                          )}
                         </div>
 
                       </div>
@@ -794,15 +807,16 @@ export default function EvaluationPage() {
                       alert("Moving application to HOD Review Stage!");
                       router.push(`/dashboard/hiring/candidates/new/create/submit-application/${candidateId}`);
                     }}
-                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded flex items-center gap-1 shadow-xs transition-all text-xs"
+                    disabled={!displayData || displayData.fitScore < 70}
+                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded flex items-center gap-1 shadow-xs transition-all text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <span>Recommended</span>
                     <Star className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={handleMoveToHOD}
-                    disabled={isMovingToHOD}
-                    className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded flex items-center gap-1 shadow-xs transition-all text-xs"
+                    disabled={isMovingToHOD || !displayData || displayData.fitScore < 70}
+                    className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded flex items-center gap-1 shadow-xs transition-all text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isMovingToHOD ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                     <span>Send to HOD Review</span>
@@ -810,8 +824,8 @@ export default function EvaluationPage() {
                   </button>
                   <button
                     onClick={handleShortlist}
-                    disabled={isShortlisting}
-                    className="px-2.5 py-1 bg-white text-indigo-950 font-bold border border-indigo-200 rounded hover:bg-indigo-50 transition-colors text-xs flex items-center gap-1"
+                    disabled={isShortlisting || !displayData || displayData.fitScore < 70}
+                    className="px-2.5 py-1 bg-white text-indigo-950 font-bold border border-indigo-200 rounded hover:bg-indigo-50 transition-colors text-xs flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isShortlisting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                     Shortlist for Interview

@@ -163,7 +163,7 @@ export default function CandidateRegister({
           </button>
         </div>
       </div>
-      <div className="w-full space-y-2 mb-2 px-2 lg:px-4">
+      <div className="w-full space-y-2 mb-2">
         {/* <Card className="rounded-md border-zinc-200/80 shadow-sm dark:border-zinc-800 w-full overflow-hidden">
           <CardHeader className="pb-0 flex flex-row items-center justify-between">
             <CardTitle className="text-base uppercase">CANDIDATE REGISTER</CardTitle>
@@ -204,7 +204,7 @@ export default function CandidateRegister({
             );
           })}
         </div>
-        <div className="p-2 space-y-2">
+        <div className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             {/* <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
               {meta.total || rows.length} candidate{(meta.total || rows.length) === 1 ? '' : 's'}
@@ -347,6 +347,16 @@ export default function CandidateRegister({
                             title="Open Workflow"
                           >
                             <Eye className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              const path = customEditPath ? customEditPath(candidate._id) : `/dashboard/hiring/candidates/new/create?id=${candidate._id}`;
+                              router.push(path);
+                            }}
+                            className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-emerald-50 hover:text-emerald-600 border border-zinc-200 hover:border-emerald-200 rounded-md transition-colors"
+                            title="Edit Candidate"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
                           </button>
                           <button
                             // onClick={() => router.push(`/dashboard/hiring/${candidate._id}`)}

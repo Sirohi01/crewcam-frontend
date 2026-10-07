@@ -77,6 +77,9 @@ export default function ReviewPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState<boolean>(false);
   const [experiences, setExperiences] = React.useState<ExperienceEntry[]>([]);
   const [resumeUrl, setResumeUrl] = React.useState('');
+  const [profileImageUrl, setProfileImageUrl] = React.useState('');
+  const [isUploadingImage, setIsUploadingImage] = React.useState(false);
+  const imageInputRef = React.useRef<HTMLInputElement>(null);
 
   const params = useParams() as { id: string };
   const candidateId = params?.id;
@@ -146,6 +149,7 @@ export default function ReviewPage() {
             setExperiences(safeExperiences);
           }
           if (data.resumeUrl) setResumeUrl(data.resumeUrl);
+          if (data.profileImageUrl) setProfileImageUrl(data.profileImageUrl);
         } catch (err) {
           console.error(err);
           toast.error('Failed to load candidate details');
@@ -174,6 +178,7 @@ export default function ReviewPage() {
         jobRole: candidate.appliedFor,
         departmentId: candidate.department,
         resumeUrl,
+        profileImageUrl,
         applicationDetails: {
           ...candidate,
           experiences
@@ -183,6 +188,28 @@ export default function ReviewPage() {
       router.push(`/dashboard/hiring/candidates/new/create/submit-application/${candidateId}`);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to update candidate');
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    setIsUploadingImage(true);
+    try {
+      const res = await api.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setProfileImageUrl(res.data.url);
+      setHasUnsavedChanges(true);
+      toast.success('Image uploaded successfully!');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to upload image');
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
@@ -362,16 +389,30 @@ export default function ReviewPage() {
             {/* Candidate Overview Header Card */}
             <div className="bg-white rounded-lg mb-4 border-b border-indigo-100 p-2 w-full">
               <div className="flex w-full items-start gap-2">
-                <div className="relative shrink-0">
-                  <div className="w-16 h-16 border-2 border-indigo-500 overflow-hidden bg-indigo-100 flex items-center justify-center">
-                    <img
-                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
-                      alt="Amit"
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
+                <div 
+                  className="relative shrink-0 cursor-pointer group"
+                  onClick={() => imageInputRef.current?.click()}
+                  title="Click to upload profile photo"
+                >
+                  <div className="w-16 h-16 border-2 border-indigo-500 overflow-hidden bg-indigo-100 flex items-center justify-center relative">
+                    {isUploadingImage ? (
+                      <Loader2 className="w-6 h-6 text-indigo-500 animate-spin" />
+                    ) : (
+                      <>
+                        <img
+                          src={profileImageUrl || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"}
+                          alt={candidate.fullName || "Candidate"}
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
+                        <div className="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center">
+                          <Pen className="w-4 h-4 text-white" />
+                        </div>
+                      </>
+                    )}
                   </div>
                   <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
+                  <input type="file" accept="image/*" className="hidden" ref={imageInputRef} onChange={handleImageUpload} />
                 </div>
                 <div className="flex-1 min-w-0 flex justify-between gap-2">
                   <div className="flex-1 min-w-0">
