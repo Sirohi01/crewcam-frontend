@@ -198,7 +198,8 @@ export default function EvaluationPage() {
             university: appDetails.university || '',
             yearOfPassing: appDetails.yearOfPassing || '',
             cgpa: appDetails.cgpa || '',
-            resumeUrl: data.resumeUrl || defaultCandidate.resumeUrl
+            resumeUrl: data.resumeUrl || defaultCandidate.resumeUrl,
+            profileImageUrl: data.profileImageUrl || ''
           });
 
           try {
@@ -374,8 +375,8 @@ export default function EvaluationPage() {
                   <div className="flex gap-2 w-full lg:w-auto">
                     <div className="w-16 h-16 rounded-lg border border-indigo-400 overflow-hidden bg-indigo-50 shrink-0">
                       <img
-                        src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
-                        alt={candidate.fullName}
+                        src={(candidate as any).profileImageUrl || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"}
+                        alt={candidate.fullName || "Candidate"}
                         className="w-full h-full object-cover"
                         referrerPolicy="no-referrer"
                       />

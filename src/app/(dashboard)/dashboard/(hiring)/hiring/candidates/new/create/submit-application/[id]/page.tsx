@@ -141,7 +141,8 @@ export default function SubmittedPage() {
             experiences: appDetails.experiences || [],
             education: appDetails.education || [],
             status: data.status || 'Applied',
-            candidateCode: data.candidateCode || 'APP-PENDING'
+            candidateCode: data.candidateCode || 'APP-PENDING',
+            profileImageUrl: data.profileImageUrl || ''
           });
         } catch (err) {
           console.error(err);
@@ -495,8 +496,8 @@ export default function SubmittedPage() {
                 <div className="relative shrink-0">
                   <div className="w-16 h-16 rounded-full border-2 border-indigo-600 overflow-hidden bg-indigo-50">
                     <img
-                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
-                      alt="Amit"
+                      src={(candidate as any).profileImageUrl || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"}
+                      alt={candidate.fullName || "Candidate"}
                       className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
                     />

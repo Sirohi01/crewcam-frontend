@@ -32,6 +32,7 @@ export interface CandidateInfo {
   education?: any[];
   status?: string;
   candidateCode?: string;
+  profileImageUrl?: string;
 }
 
 export interface Note {

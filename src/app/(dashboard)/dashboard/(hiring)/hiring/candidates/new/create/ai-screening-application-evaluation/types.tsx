@@ -27,6 +27,7 @@ export interface CandidateInfo {
   yearOfPassing: string; // e.g. "2017"
   cgpa: string; // e.g. "7.8 CGPA"
   resumeUrl:string;
+  profileImageUrl?: string;
 }
 
 export interface Note {
