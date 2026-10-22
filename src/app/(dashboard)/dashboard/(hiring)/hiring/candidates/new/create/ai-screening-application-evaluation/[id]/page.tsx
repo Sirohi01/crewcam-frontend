@@ -289,7 +289,7 @@ export default function EvaluationPage() {
       setIsMovingToHOD(true);
       await api.put(`/hiring/candidates/${realCandidateId || candidateId}/status`, { status: 'HOD_APPROVAL' });
       toast.success('Candidate moved to HOD Review successfully');
-      router.push('/dashboard/hiring/hod-evaluation');
+      router.push(`/dashboard/hiring/candidates/new/create/evaluation/${candidateId}`);
     } catch (err: any) {
       console.error(err);
       toast.error(err?.response?.data?.message || 'Failed to move candidate to HOD Review');

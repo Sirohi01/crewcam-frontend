@@ -507,7 +507,7 @@ export default function DepartmentsPage() {
                                         </div>
 
                                         <div className="flex items-center gap-2 text-slate-500 font-medium"><Building className="w-4 h-4" /> Business Unit</div>
-                                        <div className="font-bold text-slate-800">{activeDept?.businessUnit || '-'}</div>
+                                        <div className="font-bold text-slate-800">{(activeDept?.businessUnit && typeof activeDept.businessUnit === 'object' ? activeDept.businessUnit.name : activeDept?.businessUnit) || '-'}</div>
 
                                         <div className="flex items-center gap-2 text-slate-500 font-medium"><Filter className="w-4 h-4" /> Department Type</div>
                                         <div className="font-bold text-slate-800">{activeDept?.departmentType || '-'}</div>

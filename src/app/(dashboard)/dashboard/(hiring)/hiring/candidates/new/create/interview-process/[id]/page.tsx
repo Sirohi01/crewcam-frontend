@@ -28,12 +28,7 @@ const steps = [
 
 const tabs = ['Interview Rounds', 'Written Test', 'AI Questions', 'Performance', 'Feedback'];
 
-const applicationSummary = [
-  { label: 'Application ID', value: 'APP-2026-000124' },
-  { label: 'Applied On', value: '15 June 2026, 11:32 AM' },
-  { label: 'Current Stage', value: 'Interview' },
-  { label: 'AI Screening Score', value: '87%' },
-];
+// Application Summary data is now dynamic
 
 const rounds = (candidateId: string) => [
   { name: 'Round 1', title: 'AI Screening Interview', badge: 'Current Round', duration: '30 Mins', questionsLabel: 'AI Generated Questions', status: 'In Progress', href: `/dashboard/hiring/candidates/new/create/interview-process/${candidateId}` },
@@ -200,7 +195,12 @@ export default function InterviewProcessPage() {
             totalExperience: appDetails.totalExperience || '',
             expectedCTC: appDetails.expectedCTC || '',
             noticePeriod: appDetails.noticePeriod || '',
-            resumeUrl: data.resumeUrl
+            resumeUrl: data.resumeUrl,
+            profileImageUrl: data.profileImageUrl || '',
+            status: data.status || '',
+            createdAt: data.createdAt || new Date(),
+            _id: data._id,
+            rating: data.rating || 4,
           });
         } catch (err) {
           console.error(err);
@@ -249,7 +249,7 @@ export default function InterviewProcessPage() {
             <button className="flex items-center justify-center h-8 px-3 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
               Save as Draft
             </button>
-            <button type="button" onClick={() => window.open('/dashboard/offers', "_blank")} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
+            <button type="button" onClick={() => router.push(`/dashboard/hiring/candidates/new/create/round-2/${candidateId}`)} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
               Start Interview &rarr;
             </button>
           </div>
@@ -263,11 +263,17 @@ export default function InterviewProcessPage() {
             <Card className="bg-white">
               <div className="grid grid-cols-1 gap-2 lg:grid-cols-[auto_1fr_1fr]">
                 <div className="flex items-start gap-3">
-                  <span className="h-16 w-16 shrink-0 rounded-full bg-zinc-200 overflow-hidden"><img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Candidate" className="w-full h-full object-cover" /></span>
+                  {candidate.profileImageUrl ? (
+                    <span className="h-16 w-16 shrink-0 rounded-full bg-zinc-200 overflow-hidden"><img src={candidate.profileImageUrl} alt="Candidate" className="w-full h-full object-cover" /></span>
+                  ) : (
+                    <span className="grid h-16 w-16 place-items-center rounded-full bg-zinc-100 text-[14px] font-bold text-zinc-500">
+                      {candidate.fullName?.charAt(0) || 'A'}
+                    </span>
+                  )}
                   <div className="min-w-0">
                     <p className="flex flex-wrap items-center gap-1.5 text-[14px] font-bold text-zinc-900">
                       {candidate.fullName}
-                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-600">Interview In Progress</span>
+                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-600 uppercase">{candidate.status}</span>
                     </p>
                     <p className="text-[10.5px] text-zinc-500">{candidate.appliedFor}</p>
                     <div className="mt-1 space-y-0.5 text-[10px] text-zinc-500">
@@ -433,12 +439,18 @@ export default function InterviewProcessPage() {
           <div className="space-y-2">
             <Card title="Application Summary" className="bg-white">
               <div className="space-y-1.5">
-                {applicationSummary.map((s) => (
-                  <div key={s.label} className="flex items-center justify-between gap-2 text-[10.5px]">
-                    <span className="text-zinc-500">{s.label}</span>
-                    <span className="text-right font-semibold text-zinc-800">{s.value}</span>
-                  </div>
-                ))}
+                <div className="flex items-center justify-between gap-2 text-[10.5px]">
+                  <span className="text-zinc-500">Application ID</span>
+                  <span className="text-right font-semibold text-zinc-800">{candidate._id?.slice(-6).toUpperCase()}</span>
+                </div>
+                <div className="flex items-center justify-between gap-2 text-[10.5px]">
+                  <span className="text-zinc-500">Applied On</span>
+                  <span className="text-right font-semibold text-zinc-800">{new Date(candidate.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                </div>
+                <div className="flex items-center justify-between gap-2 text-[10.5px]">
+                  <span className="text-zinc-500">Current Stage</span>
+                  <span className="text-right font-semibold text-zinc-800">{candidate.status}</span>
+                </div>
                 <div className="flex items-center justify-between gap-2 text-[10.5px]">
                   <span className="text-zinc-500">HOD Review</span>
                   <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9.5px] font-semibold text-emerald-600">Recommended</span>

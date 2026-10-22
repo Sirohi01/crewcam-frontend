@@ -436,6 +436,7 @@ export default function CreateCandidatePage() {
       } else {
         const { data } = await api.post('/hiring/candidates', payload);
         newId = data._id;
+        window.history.replaceState(null, '', `?id=${newId}`);
       }
 
       router.push(`/dashboard/hiring/candidates/new/create/review-and-edit/${newId}`);

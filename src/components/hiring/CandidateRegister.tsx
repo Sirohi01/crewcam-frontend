@@ -342,9 +342,12 @@ export default function CandidateRegister({
                       <td className="py-2 px-3 text-center">
                         <div className="flex items-center justify-center gap-1.5">
                           <button
-                            onClick={() => router.push(`/dashboard/hiring/${candidate._id}`)}
+                            onClick={() => {
+                              const path = customViewPath ? customViewPath(candidate._id) : `/dashboard/hiring/candidates/${candidate._id}`;
+                              router.push(path);
+                            }}
                             className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-blue-50 hover:text-blue-600 border border-zinc-200 hover:border-blue-200 rounded-md transition-colors"
-                            title="Open Workflow"
+                            title="Open Overview"
                           >
                             <Eye className="w-3.5 h-3.5" />
                           </button>
@@ -359,7 +362,7 @@ export default function CandidateRegister({
                             <Edit className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            // onClick={() => router.push(`/dashboard/hiring/${candidate._id}`)}
+                            onClick={() => handleDelete(candidate._id)}
                             className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-red-50 hover:text-red-600 border border-zinc-200 hover:border-red-200 rounded-md transition-colors"
                             title="Delete Candidate"
                           >
