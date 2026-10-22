@@ -1,5 +1,8 @@
 "use client"
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
+import Link from 'next/link'
+import api from '@/lib/axios'
+import { toAssetUrl } from '@/lib/fileUrls'
 import {
   Download,
   Mail,
@@ -19,7 +22,16 @@ import {
   Hourglass,
   XCircle,
   Ticket,
+  X,
+  FileText,
+  User,
+  MapPin,
+  Briefcase,
+  Coins,
+  Send,
+  Loader2,
 } from 'lucide-react'
+import { openFileUrl } from '@/lib/fileUrls'
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -34,7 +46,8 @@ interface Offer {
   candidateName: string
   email: string
   phone: string
-  avatarUrl: string
+  avatarUrl: string | null
+  avatarInitials: string
   jobTitle: string
   jobId: string
   ctc: string
@@ -47,6 +60,10 @@ interface Offer {
   offeredByName: string
   offeredByRole: string
   status: OfferStatus
+  pdfUrl?: string
+  candidateIdRef?: string
+  joiningDate?: string
+  offerContent?: string
 }
 
 interface FilterDef {
@@ -81,7 +98,8 @@ const OFFERS: Offer[] = [
     candidateName: 'Ananya Verma',
     email: 'ananya.verma@email.com',
     phone: '+91 98765 43210',
-    avatarUrl: 'https://i.pravatar.cc/64?img=47',
+    avatarUrl: null,
+    avatarInitials: 'AV',
     jobTitle: 'Digital Marketing Executive',
     jobId: 'JOB-2026-048',
     ctc: '₹8,40,000',
@@ -100,7 +118,8 @@ const OFFERS: Offer[] = [
     candidateName: 'Rohit Singh',
     email: 'rohit.singh@email.com',
     phone: '+91 91234 56789',
-    avatarUrl: 'https://i.pravatar.cc/64?img=12',
+    avatarUrl: null,
+    avatarInitials: 'RS',
     jobTitle: 'Software Developer',
     jobId: 'JOB-2026-049',
     ctc: '₹12,00,000',
@@ -119,7 +138,8 @@ const OFFERS: Offer[] = [
     candidateName: 'Pooja Mehta',
     email: 'pooja.mehta@email.com',
     phone: '+91 99887 66554',
-    avatarUrl: 'https://i.pravatar.cc/64?img=32',
+    avatarUrl: null,
+    avatarInitials: 'PM',
     jobTitle: 'HR Executive',
     jobId: 'JOB-2026-050',
     ctc: '₹6,00,000',
@@ -138,7 +158,8 @@ const OFFERS: Offer[] = [
     candidateName: 'Karan Malhotra',
     email: 'karan.malhotra@email.com',
     phone: '+91 98712 34567',
-    avatarUrl: 'https://i.pravatar.cc/64?img=15',
+    avatarUrl: null,
+    avatarInitials: 'KM',
     jobTitle: 'UI/UX Designer',
     jobId: 'JOB-2026-046',
     ctc: '₹9,60,000',
@@ -157,7 +178,8 @@ const OFFERS: Offer[] = [
     candidateName: 'Neha Yadav',
     email: 'neha.yadav@email.com',
     phone: '+91 99111 22334',
-    avatarUrl: 'https://i.pravatar.cc/64?img=29',
+    avatarUrl: null,
+    avatarInitials: 'NY',
     jobTitle: 'Business Analyst',
     jobId: 'JOB-2026-045',
     ctc: '₹7,20,000',
@@ -176,7 +198,8 @@ const OFFERS: Offer[] = [
     candidateName: 'Vikas Sharma',
     email: 'vikas.sharma@email.com',
     phone: '+91 98855 66778',
-    avatarUrl: 'https://i.pravatar.cc/64?img=51',
+    avatarUrl: null,
+    avatarInitials: 'VS',
     jobTitle: 'DevOps Engineer',
     jobId: 'JOB-2026-044',
     ctc: '₹11,40,000',
@@ -195,7 +218,8 @@ const OFFERS: Offer[] = [
     candidateName: 'Ritika Agarwal',
     email: 'ritika.agarwal@email.com',
     phone: '+91 90012 34567',
-    avatarUrl: 'https://i.pravatar.cc/64?img=25',
+    avatarUrl: null,
+    avatarInitials: 'RA',
     jobTitle: 'Accountant',
     jobId: 'JOB-2026-043',
     ctc: '₹5,40,000',
@@ -214,7 +238,8 @@ const OFFERS: Offer[] = [
     candidateName: 'Saurabh Kumar',
     email: 'saurabh.kumar@email.com',
     phone: '+91 91234 87654',
-    avatarUrl: 'https://i.pravatar.cc/64?img=60',
+    avatarUrl: null,
+    avatarInitials: 'SK',
     jobTitle: 'Data Analyst',
     jobId: 'JOB-2026-042',
     ctc: '₹8,00,000',
@@ -302,9 +327,9 @@ function Dropdown({ field, onChange }: DropdownProps) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex h-full w-full items-center justify-between gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-left text-xs font-medium text-slate-700 hover:border-slate-300"
+        className="flex w-full items-center justify-between gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-left text-xs font-medium text-slate-700 hover:border-slate-300 overflow-hidden"
       >
-        <span className="truncate">{field.value}</span>
+        <span className="truncate min-w-0 flex-1">{field.value}</span>
         <ChevronDown className="h-3.5 w-3.5 shrink-0 text-indigo-500" />
       </button>
 
@@ -337,6 +362,57 @@ function Dropdown({ field, onChange }: DropdownProps) {
 /* ------------------------------------------------------------------ */
 
 const OffersPage = () => {
+  const [offersData, setOffersData] = useState<Offer[]>(OFFERS)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    api.get('/hiring/offer-letter')
+      .then(res => {
+        if (res.data && Array.isArray(res.data)) {
+          const mapped = res.data.map((o: any) => {
+            const firstName = o.candidateId?.firstName || ''
+            const lastName = o.candidateId?.lastName || ''
+            const name = firstName || lastName ? `${firstName} ${lastName}`.trim() : (o.candidateName || 'Unknown')
+            
+            const rawPhoto = toAssetUrl(o.candidateId?.profileImageUrl || o.candidateId?.applicationDetails?.profile_photo || o.candidateId?.applicationDetails?.photo) || null
+            const initials = name
+              .split(' ')
+              .filter(Boolean)
+              .slice(0, 2)
+              .map((w: string) => w[0].toUpperCase())
+              .join('')
+            return {
+              id: o._id,
+              candidateName: name,
+              email: o.candidateId?.email || 'N/A',
+              phone: o.candidateId?.phone || 'N/A',
+              avatarUrl: rawPhoto,
+              avatarInitials: initials || '??',
+              jobTitle: o.designation || o.candidateId?.jobRole || 'N/A',
+              jobId: o.uniqueId || o.candidateId?.candidateCode || 'N/A',
+              ctc: o.annualCTC ? `₹${Number(o.annualCTC).toLocaleString('en-IN')}` : 'N/A',
+              offerType: 'Full Time',
+              location: o.location || 'N/A',
+              offerDate: o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A',
+              expiryDate: o.validUntil ? new Date(o.validUntil).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A',
+              joiningDate: o.joiningDate ? new Date(o.joiningDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A',
+              expiryNote: 'View details',
+              expiryTone: 'ok' as ExpiryTone,
+              offeredByName: o.issuedBy?.name || 'HR Dept',
+              offeredByRole: 'Manager',
+              status: o.status === 'Draft' ? 'Pending' : (o.status || 'Pending'),
+              pdfUrl: o.pdfUrl || null,
+              candidateIdRef: o.candidateId?._id || null,
+              offerContent: o.offerContent || null,
+            }
+          })
+          setOffersData(mapped)
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
+
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState<'All' | OfferStatus>('All')
   const [filters, setFilters] = useState<Record<string, string>>(
@@ -350,6 +426,7 @@ const OffersPage = () => {
   const [page, setPage] = useState(1)
   const [toast, setToast] = useState<string | null>(null)
   const [actionMenu, setActionMenu] = useState<ActionMenuState | null>(null)
+  const [downloadingId, setDownloadingId] = useState<string | null>(null)
 
   React.useEffect(() => {
     if (!actionMenu) return
@@ -379,6 +456,41 @@ const OffersPage = () => {
 
   const notify = (msg: string) => setToast(msg)
 
+  const handleDownload = async (o: Offer) => {
+    setDownloadingId(o.id)
+    try {
+      if (o.pdfUrl) {
+        openFileUrl(o.pdfUrl)
+        notify('Opening offer letter PDF...')
+      } else {
+        const res = await api.post(`/hiring/offer-letter/${o.id}/generate-pdf`)
+        if (res.data?.pdfUrl) {
+          openFileUrl(res.data.pdfUrl)
+          notify('Offer letter PDF generated and opened!')
+          // update local state with new pdfUrl
+          setOffersData(prev => prev.map(r => r.id === o.id ? { ...r, pdfUrl: res.data.pdfUrl } : r))
+        } else {
+          notify('PDF generation failed. Try again.')
+        }
+      }
+    } catch {
+      notify('Error generating PDF. Please try again.')
+    } finally {
+      setDownloadingId(null)
+    }
+  }
+
+  const handleWithdraw = async (o: Offer) => {
+    if (!window.confirm(`Withdraw offer for ${o.candidateName}?`)) return
+    try {
+      await api.put(`/hiring/offer-letter/${o.id}/respond`, { status: 'Declined' })
+      setOffersData(prev => prev.map(r => r.id === o.id ? { ...r, status: 'Declined' as OfferStatus } : r))
+      notify(`Offer withdrawn for ${o.candidateName}`)
+    } catch {
+      notify('Error withdrawing offer. Try again.')
+    }
+  }
+
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }))
     setPage(1)
@@ -393,7 +505,7 @@ const OffersPage = () => {
   }
 
   const filtered = useMemo(() => {
-    let rows = OFFERS.slice()
+    let rows = offersData.slice()
     if (activeTab !== 'All') rows = rows.filter((r) => r.status === activeTab)
     if (filters.offerStatus && filters.offerStatus !== 'All Status') {
       rows = rows.filter((r) => r.status === filters.offerStatus)
@@ -418,20 +530,20 @@ const OffersPage = () => {
     }
     rows.sort((a, b) => (sortNewestFirst ? b.offerDate.localeCompare(a.offerDate) : a.offerDate.localeCompare(b.offerDate)))
     return rows
-  }, [activeTab, filters, search, sortNewestFirst])
+  }, [activeTab, filters, search, sortNewestFirst, offersData])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const pageRows = filtered.slice((page - 1) * pageSize, (page - 1) * pageSize + pageSize)
 
   const counts = useMemo(
     () => ({
-      All: OFFERS.length,
-      Accepted: OFFERS.filter((o) => o.status === 'Accepted').length,
-      Pending: OFFERS.filter((o) => o.status === 'Pending').length,
-      Expired: OFFERS.filter((o) => o.status === 'Expired').length,
-      Declined: OFFERS.filter((o) => o.status === 'Declined').length,
+      All: offersData.length,
+      Accepted: offersData.filter((o) => o.status === 'Accepted').length,
+      Pending: offersData.filter((o) => o.status === 'Pending').length,
+      Expired: offersData.filter((o) => o.status === 'Expired').length,
+      Declined: offersData.filter((o) => o.status === 'Declined').length,
     }),
-    []
+    [offersData]
   )
 
   const stats: StatItem[] = [
@@ -477,30 +589,48 @@ const OffersPage = () => {
           <>
             <div className="fixed inset-0 z-40" onClick={() => setActionMenu(null)} />
             <div
-              className="fixed z-50 w-44 rounded-lg border border-slate-200 bg-white p-1 shadow-lg"
+              className="fixed z-50 w-48 rounded-lg border border-slate-200 bg-white p-1 shadow-lg"
               style={{ top: actionMenu.top, left: actionMenu.left }}
             >
-              {[
-                { label: 'View details', tone: 'text-slate-700' },
-                { label: 'Download offer letter', tone: 'text-slate-700' },
-                { label: 'Resend offer', tone: 'text-slate-700' },
-                { label: 'Edit offer', tone: 'text-slate-700' },
-                { label: 'Withdraw offer', tone: 'text-rose-600' },
-              ].map((item) => {
+              {(() => {
                 const row = pageRows.find((r) => r.id === actionMenu.id)
+                if (!row) return null
                 return (
-                  <button
-                    key={item.label}
-                    onClick={() => {
-                      notify(`${item.label}: ${row?.candidateName ?? ''}`)
-                      setActionMenu(null)
-                    }}
-                    className={`block w-full rounded-md px-2.5 py-1.5 text-left text-xs font-medium hover:bg-slate-50 ${item.tone}`}
-                  >
-                    {item.label}
-                  </button>
+                  <>
+                    <Link
+                      href={`/dashboard/offers/create?candidateId=${row.candidateIdRef}`}
+                      className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-xs font-medium text-slate-700 hover:bg-slate-50"
+                    >
+                      <Eye className="h-3.5 w-3.5 text-indigo-500" /> View details
+                    </Link>
+                    <button
+                      onClick={() => { handleDownload(row); setActionMenu(null) }}
+                      disabled={downloadingId === row.id}
+                      className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                    >
+                      {downloadingId === row.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5 text-indigo-500" />}
+                      {row.pdfUrl ? 'Open PDF' : 'Generate PDF'}
+                    </button>
+                    {row.candidateIdRef && (
+                      <a
+                        href={`/dashboard/hiring/${row.candidateIdRef}`}
+                        target="_blank"
+                        className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-xs font-medium text-slate-700 hover:bg-slate-50"
+                        onClick={() => setActionMenu(null)}
+                      >
+                        <User className="h-3.5 w-3.5 text-indigo-500" /> View candidate
+                      </a>
+                    )}
+                    <div className="my-1 border-t border-slate-100" />
+                    <button
+                      onClick={() => { handleWithdraw(row); setActionMenu(null) }}
+                      className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-xs font-medium text-rose-600 hover:bg-rose-50"
+                    >
+                      <XCircle className="h-3.5 w-3.5" /> Withdraw offer
+                    </button>
+                  </>
                 )
-              })}
+              })()}
             </div>
           </>
         )}
@@ -529,12 +659,12 @@ const OffersPage = () => {
             >
               <Mail className="h-3.5 w-3.5 text-indigo-600" /> Email
             </button>
-            <button
-              onClick={() => notify('Create Offer flow started')}
+            <Link
+              href="/dashboard/offers/create"
               className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700"
             >
               <Plus className="h-3.5 w-3.5" /> Create Offer
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -640,7 +770,12 @@ const OffersPage = () => {
         </div>
 
         {/* Table */}
-        <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-slate-200">
+        <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-slate-200 relative">
+          {loading ? (
+            <div className="flex h-64 items-center justify-center">
+              <div className="text-[12px] font-medium text-slate-500">Loading offers...</div>
+            </div>
+          ) : (
           <table className="w-full min-w-[860px] border-collapse text-left text-xs">
             <thead className="sticky top-0 bg-slate-50">
               <tr className="text-slate-700">
@@ -675,22 +810,44 @@ const OffersPage = () => {
                     />
                   </td>
                   <td className="px-2 py-2 align-top">
-                    <div className="flex items-start gap-2">
-                      <img src={o.avatarUrl} alt={o.candidateName} className="h-7 w-7 shrink-0 rounded-full object-cover" />
-                      <div className="min-w-0">
-                        <div className="truncate font-medium text-slate-900">{o.candidateName}</div>
-                        <div className="truncate text-[11px] text-slate-700">{o.email}</div>
-                        <div className="truncate text-[11px] text-slate-700">{o.phone}</div>
+                    <div className="flex items-start gap-2.5">
+                      {o.avatarUrl ? (
+                        <img
+                          src={o.avatarUrl}
+                          alt={o.candidateName}
+                          className="h-8 w-8 shrink-0 rounded-full object-cover shadow-sm mt-0.5"
+                          onError={(e) => {
+                            const target = e.currentTarget as HTMLImageElement
+                            target.style.display = 'none'
+                            const sibling = target.nextElementSibling as HTMLElement | null
+                            if (sibling) sibling.style.display = 'flex'
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className="h-8 w-8 shrink-0 rounded-full bg-indigo-100 items-center justify-center mt-0.5"
+                        style={{ display: o.avatarUrl ? 'none' : 'flex' }}
+                      >
+                        <span className="text-[11px] font-bold text-indigo-600 select-none">{o.avatarInitials}</span>
+                      </div>
+                      <div className="min-w-0 flex flex-col gap-0.5">
+                        <div className="truncate font-semibold text-slate-900 leading-tight">{o.candidateName}</div>
+                        <div className="truncate text-[11px] text-slate-500 leading-tight">{o.email !== 'N/A' ? o.email : 'No email provided'}</div>
+                        <div className="truncate text-[11px] text-slate-500 leading-tight">{o.phone !== 'N/A' ? o.phone : 'No phone provided'}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-2 py-2 align-top">
-                    <div className="truncate font-medium text-slate-900">{o.jobTitle}</div>
-                    <div className="truncate text-[11px] text-slate-700">{o.jobId}</div>
+                    <div className="flex flex-col gap-0.5">
+                      <div className="truncate font-semibold text-slate-900 leading-tight">{o.jobTitle}</div>
+                      <div className="truncate text-[11px] text-slate-500 leading-tight">{o.jobId}</div>
+                    </div>
                   </td>
                   <td className="px-2 py-2 align-top">
-                    <div className="font-medium text-slate-900">{o.ctc}</div>
-                    <div className="text-[11px] text-slate-700">CTC per annum</div>
+                    <div className="flex flex-col gap-0.5">
+                      <div className="font-semibold text-slate-900 leading-tight">{o.ctc}</div>
+                      <div className="text-[11px] text-slate-500 leading-tight">CTC per annum</div>
+                    </div>
                   </td>
                   <td className="px-2 py-2 align-top">
                     <span className="mb-0.5 inline-block rounded-md bg-indigo-50 px-1.5 py-0.5 text-[11px] font-medium text-indigo-600">
@@ -715,25 +872,30 @@ const OffersPage = () => {
                   </td>
                   <td className="px-2 py-2 align-top">
                     <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => notify(`Viewing offer for ${o.candidateName}`)}
+                      <Link
+                        href={`/dashboard/offers/create?candidateId=${o.candidateIdRef}`}
                         className="flex h-6 w-6 items-center justify-center rounded-md text-indigo-600 hover:bg-indigo-50"
                         aria-label="View offer"
+                        title="View offer details"
                       >
                         <Eye className="h-3.5 w-3.5" />
-                      </button>
+                      </Link>
                       <button
-                        onClick={() => notify(`Downloading offer letter for ${o.candidateName}`)}
-                        className="flex h-6 w-6 items-center justify-center rounded-md text-indigo-600 hover:bg-indigo-50"
-                        aria-label="Download offer"
+                        onClick={() => handleDownload(o)}
+                        disabled={downloadingId === o.id}
+                        className="flex h-6 w-6 items-center justify-center rounded-md text-indigo-600 hover:bg-indigo-50 disabled:opacity-50"
+                        aria-label="Download offer letter"
+                        title={o.pdfUrl ? 'Open PDF' : 'Generate & Download PDF'}
                       >
-                        <Download className="h-3.5 w-3.5" />
+                        {downloadingId === o.id
+                          ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          : <Download className="h-3.5 w-3.5" />}
                       </button>
                       <button
                         onClick={(e) => openActionMenu(o.id, e)}
-                        className={`flex h-6 w-6 items-center justify-center rounded-md hover:bg-slate-100 ${actionMenu?.id === o.id ? 'bg-slate-100 text-slate-900' : 'text-slate-600'
-                          }`}
+                        className={`flex h-6 w-6 items-center justify-center rounded-md hover:bg-slate-100 ${actionMenu?.id === o.id ? 'bg-slate-100 text-slate-900' : 'text-slate-600'}`}
                         aria-label="More actions"
+                        title="More actions"
                       >
                         <MoreHorizontal className="h-3.5 w-3.5" />
                       </button>
@@ -750,6 +912,7 @@ const OffersPage = () => {
               )}
             </tbody>
           </table>
+          )}
         </div>
 
         {/* Footer / pagination */}

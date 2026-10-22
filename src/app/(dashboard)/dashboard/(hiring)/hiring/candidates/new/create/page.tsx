@@ -405,8 +405,8 @@ export default function CreateCandidatePage() {
   }, [candidateId, sourceParam]);
 
   const handleNext = async () => {
-    if (!candidate.fullName || !candidate.email || !candidate.mobile || !candidate.manpowerRequestId || !candidate.appliedFor || !candidate.department) {
-      toast.error('Please fill all mandatory fields (Full Name, Email, Mobile, Manpower Request, Position, Department).');
+    if (!candidate.fullName?.trim() || !candidate.email?.trim() || !candidate.mobile?.trim() || !candidate.currentLocation?.trim() || !candidate.manpowerRequestId || !candidate.appliedFor?.trim() || !candidate.department) {
+      toast.error('Please fill all mandatory fields (Full Name, Email, Mobile, Current Location, Manpower Request, Position, Department).');
       return;
     }
 

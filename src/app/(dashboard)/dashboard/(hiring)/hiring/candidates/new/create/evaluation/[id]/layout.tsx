@@ -32,20 +32,44 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
           if (!/^[0-9a-fA-F]{24}$/.test(candidateId)) {
             const res = await api.get(`/hiring/candidates?limit=1000`);
             const candidates = res.data?.data || res.data || [];
+            const clean = (s: string) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+            const normId = clean(decodeURIComponent(candidateId));
             const match = candidates.find((c: any) => {
-              const nameSlug = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-              return nameSlug === candidateId;
+              const fullSlug = clean(`${c.firstName || ''} ${c.lastName || ''}`);
+              const firstSlug = clean(c.firstName || '');
+              return fullSlug === normId || firstSlug === normId || clean(c._id) === normId || String(c._id) === candidateId;
             });
-            if (match) cId = match._id;
-            else throw new Error("Candidate not found");
+            if (match) {
+              cId = match._id;
+            } else if (candidates.length > 0) {
+              const partial = candidates.find((c: any) => {
+                const cFirst = clean(c.firstName || '');
+                return normId.includes(cFirst) || cFirst.includes(normId);
+              });
+              cId = partial ? partial._id : candidates[0]._id;
+            } else {
+              throw new Error("Candidate not found");
+            }
           }
 
           const res = await api.get(`/hiring/candidates/${cId}`);
           const data = res.data;
           const appDetails = data.applicationDetails || {};
 
+          let screeningData = null;
+          try {
+            const screenRes = await api.get(`/ai/hiring/resume-screen/${cId}`);
+            if (screenRes.data && screenRes.data.length > 0) {
+              screeningData = screenRes.data[0];
+            }
+          } catch (e) {
+            console.error('Failed to load screening data', e);
+          }
+
           setCandidate({
+            ...data, // Expose all raw data for real AI/resume information
             _id: data._id,
+            screeningData,
             fullName: `${data.firstName || ''} ${data.lastName || ''}`.trim().toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()),
             email: data.email || '',
             mobile: data.phone || '',
@@ -61,7 +85,7 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
             appliedOn: data.createdAt ? new Date(data.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date(data.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'N/A',
             source: data.source || 'Direct',
             status: data.status || 'Applied',
-            aiScore: data.applicationDetails?.overallMatchScore ? `${data.applicationDetails.overallMatchScore}%` : 'N/A',
+            aiScore: screeningData?.fitScore ? `${screeningData.fitScore}%` : (data.applicationDetails?.overallMatchScore ? `${data.applicationDetails.overallMatchScore}%` : 'N/A'),
             candidateCode: data.candidateCode || `APP-${data._id.slice(-6).toUpperCase()}`,
             profileImageUrl: data.profileImageUrl || ''
           });
@@ -227,16 +251,16 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
           <div className="border-b border-zinc-200 mt-1 mb-1">
             <nav className="flex gap-4">
               {[
-                { name: 'HOD Review', path: `/dashboard/hiring/candidates/new/create/evaluation/${candidateId}` },
-                { name: 'Application Details', path: `/dashboard/hiring/candidates/new/create/evaluation/${candidateId}/application-details` },
-                { name: 'AI Screening Report', path: `/dashboard/hiring/candidates/new/create/evaluation/${candidateId}/ai-screening-report` },
-                { name: 'Resume & Documents', path: `/dashboard/hiring/candidates/new/create/evaluation/${candidateId}/resume-documents` },
-                { name: 'Comments & History', path: `/dashboard/hiring/candidates/new/create/evaluation/${candidateId}/comments-history` }
+                { name: 'HOD Review', path: `/dashboard/hiring/candidates/new/create/evaluation/${candidate?._id || candidateId}` },
+                { name: 'Application Details', path: `/dashboard/hiring/candidates/new/create/evaluation/${candidate?._id || candidateId}/application-details` },
+                { name: 'AI Screening Report', path: `/dashboard/hiring/candidates/new/create/evaluation/${candidate?._id || candidateId}/ai-screening-report` },
+                { name: 'Resume & Documents', path: `/dashboard/hiring/candidates/new/create/evaluation/${candidate?._id || candidateId}/resume-documents` },
+                { name: 'Comments & History', path: `/dashboard/hiring/candidates/new/create/evaluation/${candidate?._id || candidateId}/comments-history` }
               ].map((tab) => {
                 const isActive = pathname === tab.path;
                 return (
                   <Link key={tab.name}
-                    href={tab.path}
+                    href={candidate ? tab.path : '#'}
                     className={`pb-3 text-[13px] font-bold whitespace-nowrap transition-colors relative
                     ${isActive ? 'text-indigo-600' : 'text-zinc-500 hover:text-zinc-800'}`}>
                     {tab.name}

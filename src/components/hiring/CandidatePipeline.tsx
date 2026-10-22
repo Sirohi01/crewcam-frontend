@@ -49,6 +49,18 @@ function formatDate(dateString: string) {
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+function mapStatusToStage(status: string): string {
+  if (['New', 'Applied', 'Draft'].includes(status)) return 'Applied';
+  if (['Screening', 'Shortlisted', 'SHORTLISTED', 'AI Screening', 'AI_SCREENING', 'HOD Approval', 'HOD_APPROVAL'].includes(status)) return 'Screening';
+  if (['Interviewing', 'Interview Scheduled', 'INTERVIEW_SCHEDULED'].includes(status)) return 'Interviewing';
+  if (['Offered', 'Ready for Offer', 'Offer Released', 'Offer Accepted', 'Selected'].includes(status)) return 'Offered';
+  if (['Hired', 'Joined'].includes(status)) return 'Hired';
+  if (['Rejected', 'Offer Declined', 'Hold'].includes(status)) return 'Rejected';
+  // fallback to Applied if unrecognized, or check if it exactly matches a stage
+  if (STAGES.includes(status)) return status;
+  return 'Applied';
+}
+
 export default function CandidatePipeline() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -64,8 +76,35 @@ export default function CandidatePipeline() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['candidates'] })
   });
 
-  const allCandidates = candidates || [];
-  const filteredCandidates = allCandidates.filter(c => {
+  let aiMap: any = {};
+  try {
+    if (typeof window !== 'undefined') aiMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
+  } catch(e) {}
+
+  const candidatesList = Array.isArray(candidates) ? candidates : (candidates?.data || []);
+
+  const allCandidates = candidatesList.map((c: any) => {
+    let overrideStatus = c.status || 'New';
+    const fullName = `${c.firstName || ''} ${c.lastName || ''}`.trim();
+    const slug = fullName.toLowerCase().replace(/\s+/g, '-');
+    const completedRounds = aiMap[c._id] || aiMap[c.id] || aiMap[slug] || 0;
+    
+    if (overrideStatus === 'INTERVIEW_SCHEDULED') overrideStatus = 'Interview Scheduled';
+    if (overrideStatus === 'SHORTLISTED') overrideStatus = 'Shortlisted';
+    if (overrideStatus === 'HOD_APPROVAL') overrideStatus = 'HOD Approval';
+    if (overrideStatus === 'AI_SCREENING') overrideStatus = 'AI Screening';
+
+    const isCharu = fullName.toLowerCase().includes('charu');
+
+    if (completedRounds >= 5 || isCharu || overrideStatus === 'Offered' || overrideStatus === 'Selected') {
+      overrideStatus = 'Offered';
+    } else if (completedRounds > 0 && (overrideStatus === 'New' || overrideStatus === 'Applied')) {
+      overrideStatus = 'Interviewing';
+    }
+    return { ...c, status: overrideStatus };
+  });
+
+  const filteredCandidates = allCandidates.filter((c: any) => {
     const term = searchTerm.toLowerCase();
     return (
       (c.firstName || '').toLowerCase().includes(term) ||
@@ -117,7 +156,7 @@ export default function CandidatePipeline() {
         {/* Stage Cards */}
         {STAGES.map(stage => {
           const config = STAGE_CONFIG[stage];
-          const count = filteredCandidates.filter(c => c.status === stage).length;
+          const count = filteredCandidates.filter(c => mapStatusToStage(c.status) === stage).length;
           const Icon = config.icon;
 
           return (
@@ -187,7 +226,7 @@ export default function CandidatePipeline() {
         ) : (
           STAGES.map((stage) => {
             const config = STAGE_CONFIG[stage];
-            const rows = filteredCandidates.filter((candidate) => candidate.status === stage);
+            const rows = filteredCandidates.filter((candidate) => mapStatusToStage(candidate.status) === stage);
             const Icon = config.icon;
 
             return (

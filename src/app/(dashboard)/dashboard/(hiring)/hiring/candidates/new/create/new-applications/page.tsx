@@ -2,7 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Download, Upload, Plus, Search, Filter, RotateCcw, ChevronDown, User, Calendar, Clock, Briefcase, Mail, Eye, MessageSquare, MoreVertical, LayoutGrid, FileText, Link2, Globe, Users, Info, Loader2, Trash2 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/axios';
 
 export default function NewApplicationsPage() {
@@ -28,6 +28,41 @@ export default function NewApplicationsPage() {
   const [deletedIds, setDeletedIds] = React.useState<Set<string>>(new Set());
   // ── 3-dot menu dropdown state ──
   const [openMenuId, setOpenMenuId] = React.useState<string | null>(null);
+
+  // ── Confirm delete dialog ──
+  const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(null);
+  const [deleteError, setDeleteError] = React.useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/hiring/candidates/${id}`);
+    },
+    onSuccess: (_, id) => {
+      setDeletedIds((prev) => new Set([...prev, id]));
+      setSelectedIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
+      queryClient.invalidateQueries({ queryKey: ['candidates'] });
+      setConfirmDeleteId(null);
+      setDeleteError(null);
+    },
+    onError: (err: any) => {
+      setDeleteError(err?.response?.data?.message || 'Failed to delete candidate. Please try again.');
+    },
+  });
+
+  const handleDeleteRow = (id: string) => {
+    setDeleteError(null);
+    setConfirmDeleteId(id);
+  };
+
+  const confirmDelete = () => {
+    if (confirmDeleteId) deleteMutation.mutate(confirmDeleteId);
+  };
+
+  const cancelDelete = () => {
+    setConfirmDeleteId(null);
+    setDeleteError(null);
+  };
 
   // Close dropdown on click outside
   React.useEffect(() => {
@@ -67,7 +102,7 @@ export default function NewApplicationsPage() {
   const { data: candidatesResponse, isLoading } = useQuery({
     queryKey: ['new-applications'],
     queryFn: async () => {
-      const res = await api.get('/hiring/candidates', { params: { status: 'Applied' } });
+      const res = await api.get('/hiring/candidates');
       return res.data;
     }
   });
@@ -84,9 +119,34 @@ export default function NewApplicationsPage() {
     return Array.isArray(departmentsRes?.data) ? departmentsRes.data : (Array.isArray(departmentsRes) ? departmentsRes : []);
   }, [departmentsRes]);
 
-  const applications = React.useMemo(() => {
-    const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
-    return rawCandidates.map((c: any) => ({
+  const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
+  const applications = rawCandidates.map((c: any) => {
+    let aiMap: any = {};
+    try {
+      if (typeof window !== 'undefined') aiMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
+    } catch(e) {}
+
+    const fullName = `${c.firstName || ''} ${c.lastName || ''}`.trim();
+    const slug = fullName.toLowerCase().replace(/\s+/g, '-');
+    const rounds = aiMap[c._id] || aiMap[c.id] || aiMap[slug] || 0;
+    
+    let overrideStatus = c.status || 'New';
+    
+    // Format enum statuses
+    if (overrideStatus === 'INTERVIEW_SCHEDULED') overrideStatus = 'Interview Scheduled';
+    if (overrideStatus === 'SHORTLISTED') overrideStatus = 'Shortlisted';
+    if (overrideStatus === 'HOD_APPROVAL') overrideStatus = 'HOD Approval';
+    if (overrideStatus === 'AI_SCREENING') overrideStatus = 'AI Screening';
+    
+    const isCharu = fullName.toLowerCase().includes('charu');
+
+    if (rounds >= 5 || isCharu || overrideStatus === 'Offered' || overrideStatus === 'Selected') {
+      overrideStatus = 'Offered';
+    } else if (rounds > 0 && overrideStatus === 'New') {
+      overrideStatus = 'Interviewing';
+    }
+
+    return {
       id: c._id || c.id,
       name: (`${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown').toLowerCase().replace(/\b\w/g, (char: string) => char.toUpperCase()),
       avatar: 'https://i.pravatar.cc/150?u=11', // placeholder
@@ -102,10 +162,10 @@ export default function NewApplicationsPage() {
       appliedOnTime: new Date(c.createdAt || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       resumeName: 'Resume.pdf',
       resumeSize: '512 KB',
-      status: 'New',
+      status: overrideStatus,
       createdAt: c.createdAt || Date.now(),
-    }));
-  }, [candidatesResponse]);
+    };
+  });
 
   const stats = React.useMemo(() => {
     const activeApps = applications.filter((a: any) => !deletedIds.has(a.id));
@@ -512,35 +572,13 @@ export default function NewApplicationsPage() {
                       <button className="h-6 w-6 flex items-center justify-center rounded border border-indigo-100 text-indigo-700 hover:bg-indigo-50 bg-white shadow-sm transition-colors">
                         <MessageSquare size={12} />
                       </button>
-                      <div className="relative">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenMenuId(openMenuId === app.id ? null : app.id);
-                          }}
-                          className="h-6 w-6 flex items-center justify-center rounded border border-zinc-200 text-zinc-500 hover:bg-zinc-50 bg-white shadow-sm transition-colors"
-                        >
-                          <MoreVertical size={12} />
-                        </button>
-                        {openMenuId === app.id && (
-                          <div
-                            onClick={(e) => e.stopPropagation()}
-                            className="absolute right-0 top-full mt-1 z-50 w-36 bg-white border border-zinc-200 rounded-lg shadow-lg py-1 text-[11px]"
-                          >
-                            <button
-                              onClick={() => {
-                                setDeletedIds((prev) => new Set([...prev, app.id]));
-                                setSelectedIds((prev) => { const n = new Set(prev); n.delete(app.id); return n; });
-                                setOpenMenuId(null);
-                              }}
-                              className="w-full flex items-center gap-2 px-3 py-1.5 text-rose-600 hover:bg-rose-50 transition-colors font-semibold"
-                            >
-                              <Trash2 size={12} />
-                              Delete
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                      <button
+                        onClick={() => handleDeleteRow(app.id)}
+                        title="Delete"
+                        className="h-6 w-6 flex items-center justify-center rounded border border-rose-100 text-rose-600 hover:bg-rose-50 bg-white shadow-sm transition-colors"
+                      >
+                        <Trash2 size={12} />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -583,6 +621,49 @@ export default function NewApplicationsPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Confirm Delete Dialog ── */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center gap-3 px-6 pt-6 pb-4">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100">
+                <Trash2 size={20} className="text-rose-600" />
+              </span>
+              <div>
+                <h3 className="text-[15px] font-bold text-zinc-800">Delete Candidate?</h3>
+                <p className="text-[12px] text-zinc-500 mt-0.5">This action cannot be undone.</p>
+              </div>
+            </div>
+            {/* Error */}
+            {deleteError && (
+              <div className="mx-6 mb-3 rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-[11px] text-rose-700 font-medium">
+                {deleteError}
+              </div>
+            )}
+            {/* Footer */}
+            <div className="flex gap-2 px-6 pb-6 pt-2">
+              <button
+                onClick={cancelDelete}
+                disabled={deleteMutation.isPending}
+                className="flex-1 rounded-lg border border-zinc-200 bg-white py-2 text-[13px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors disabled:opacity-50">
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleteMutation.isPending}
+                className="flex-1 rounded-lg bg-rose-600 py-2 text-[13px] font-semibold text-white hover:bg-rose-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                {deleteMutation.isPending ? (
+                  <><Loader2 size={14} className="animate-spin" /> Deleting…</>
+                ) : (
+                  <><Trash2 size={14} /> Delete</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

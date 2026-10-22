@@ -6,6 +6,7 @@ import { Mail, Phone, MapPin, Link2, ArrowRight, ArrowLeft, Flag, CheckCircle2, 
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
+import { useAuthStore } from '@/store/authStore';
 
 import questionTemplatesData from '../../assessment/questions.json';
 const pipelineSteps = ['Upload CV', 'Review & Edit', 'Submit Application', 'AI Screening', 'HOD Review', 'Interview', 'Offer', 'Onboarding'];
@@ -14,12 +15,7 @@ const currentStepIndex = 5;
 const tabs = ['Written Assessment', 'Instructions', 'Questions', 'Submit Test', 'Result'] as const;
 type TabName = typeof tabs[number];
 
-const applicationSummary = [
-  { label: 'Application ID', value: 'APP-2026-000124' },
-  { label: 'Applied On', value: '15 June 2026, 11:32 AM' },
-  { label: 'Current Stage', value: 'Interview – Round 4' },
-  { label: 'AI Screening Score', value: '87%' },
-];
+
 
 const assessmentOverview = [
   { label: 'Assessment Type', value: 'Role Based Written Test' },
@@ -108,9 +104,11 @@ export default function AssessmentRoundPage() {
   const params = useParams() as { id: string };
   const candidateId = params?.id;
   const router = useRouter();
+  const user = useAuthStore(state => state.user);
+  const [interviewId, setInterviewId] = useState<string | null>(null);
 
   React.useEffect(() => {
-    if (candidateId) {
+    if (candidateId && user) {
       const fetchCandidate = async () => {
         try {
           let cId = candidateId;
@@ -142,8 +140,39 @@ export default function AssessmentRoundPage() {
             totalExperience: appDetails.totalExperience || '',
             expectedCTC: appDetails.expectedCTC || '',
             noticePeriod: appDetails.noticePeriod || '',
-            resumeUrl: data.resumeUrl
+            resumeUrl: data.resumeUrl,
+            profileImageUrl: data.profileImageUrl,
+            createdAt: data.createdAt,
+            aiScore: data.rating ? Math.round((data.rating / 5) * 100) + '%' : 'N/A'
           });
+
+          const userId = user?._id || user?.id;
+          if (userId) {
+            const { data: interviews } = await api.get(`/hiring/interviews/${cId}`);
+            let activeInterview = interviews.find((i: any) => i.roundType === 'Written');
+            if (!activeInterview) {
+              const res = await api.post('/hiring/interviews', {
+                candidateId: cId,
+                interviewerId: userId,
+                roundType: 'Written',
+                scheduledDate: new Date().toISOString(),
+              });
+              activeInterview = res.data;
+            }
+            setInterviewId(activeInterview._id);
+            if (activeInterview.status === 'Completed' && activeInterview.interviewQuestions?.length) {
+              const loadedAnswers: Record<number, string> = {};
+              activeInterview.interviewQuestions.forEach((q: any, index: number) => {
+                if (q.transcript) {
+                  loadedAnswers[index + 1] = q.transcript;
+                }
+              });
+              setSelectedAnswers(loadedAnswers);
+              setIsSubmitted(true);
+              setActiveTab('Result');
+              setHasStarted(true);
+            }
+          }
         } catch (err) {
           console.error(err);
           toast.error('Failed to load candidate details');
@@ -153,12 +182,10 @@ export default function AssessmentRoundPage() {
     }
   }, [candidateId]);
 
-  // Seed with the same starting scenario as the original mock:
-  // question 1 & 2 already answered, question 3 is current.
   const [activeTab, setActiveTab] = useState<TabName>('Instructions');
-  const [currentQuestion, setCurrentQuestion] = useState<number>(3);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({ 1: 'B', 2: 'C', 3: 'C' });
-  const [visited, setVisited] = useState<Set<number>>(new Set([1, 2, 3]));
+  const [currentQuestion, setCurrentQuestion] = useState<number>(1);
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
+  const [visited, setVisited] = useState<Set<number>>(new Set([1]));
   const [marked, setMarked] = useState<Set<number>>(new Set());
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [hasStarted, setHasStarted] = useState(false);
@@ -234,9 +261,79 @@ export default function AssessmentRoundPage() {
 
   const isMarkedCurrent = marked.has(currentQuestion);
 
-  const handleSubmitTest = () => {
+  const handleProceedToOffer = async () => {
+    const cId = candidate?._id || candidateId;
+    let completedRounds = JSON.parse(localStorage.getItem('ai_completed_rounds') || '[]');
+    if (!completedRounds.includes(4)) completedRounds.push(4);
+    if (!completedRounds.includes(5)) completedRounds.push(5);
+    localStorage.setItem('ai_completed_rounds', JSON.stringify(completedRounds));
+    try {
+      const storedMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
+      storedMap[cId] = Math.max(storedMap[cId] || 0, 5);
+      if (candidateId) storedMap[candidateId] = Math.max(storedMap[candidateId] || 0, 5);
+      localStorage.setItem('ai_completed_rounds_map', JSON.stringify(storedMap));
+    } catch (e) {}
+
+    try {
+      await api.post(`/hiring/candidates/${cId}/bypass-interviews`);
+    } catch (e) {
+      console.error('Bypass pipeline failed:', e);
+    }
+
+    toast.success('Redirecting to Offer page...');
+    router.push('/dashboard/offers');
+  };
+
+  const handleSubmitTest = async () => {
     setIsSubmitted(true);
     setActiveTab('Result');
+    
+    const calcCorrect = questions.filter((q) => selectedAnswers[q.id] === q.correctAnswer).length;
+    const calcScorePct = Math.round((calcCorrect / questions.length) * 100);
+    const passed = calcScorePct >= 60;
+
+    if (interviewId) {
+      try {
+        const dbQuestions = questions.map((q) => {
+          const selected = selectedAnswers[q.id];
+          const isCorrect = selected === q.correctAnswer;
+          return {
+            question: q.prompt,
+            transcript: selected || '',
+            answerAnalysis: { verdict: isCorrect ? 'strong' : 'weak', reasoning: isCorrect ? 'Correct Option' : 'Wrong Option' }
+          };
+        });
+        await api.put(`/hiring/interviews/${interviewId}/questions`, { questions: dbQuestions });
+        await api.put(`/hiring/interviews/${interviewId}`, { status: 'Completed' });
+      } catch (err) {
+        console.error("Failed to save test results", err);
+      }
+    }
+
+    if (passed) {
+      const cId = candidate?._id || candidateId;
+      let completedRounds = JSON.parse(localStorage.getItem('ai_completed_rounds') || '[]');
+      if (!completedRounds.includes(4)) completedRounds.push(4);
+      if (!completedRounds.includes(5)) completedRounds.push(5);
+      localStorage.setItem('ai_completed_rounds', JSON.stringify(completedRounds));
+      try {
+        const storedMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
+        storedMap[cId] = Math.max(storedMap[cId] || 0, 5);
+        if (candidateId) storedMap[candidateId] = Math.max(storedMap[candidateId] || 0, 5);
+        localStorage.setItem('ai_completed_rounds_map', JSON.stringify(storedMap));
+      } catch (e) {}
+
+      try {
+        await api.post(`/hiring/candidates/${cId}/bypass-interviews`);
+      } catch (e) {
+        console.error('Bypass pipeline failed:', e);
+      }
+
+      toast.success(`Exam passed with ${calcScorePct}%! Redirecting to Offer page...`);
+      setTimeout(() => {
+        router.push('/dashboard/offers');
+      }, 2000);
+    }
   };
 
   // Result calculations
@@ -278,23 +375,43 @@ export default function AssessmentRoundPage() {
         </div>
 
         <div className="flex gap-2">
+          <button type="button" onClick={() => {
+            const newAnswers: Record<number, string> = {};
+            const newVisited = new Set(visited);
+            questions.forEach((q) => {
+              newAnswers[q.id] = q.correctAnswer;
+              newVisited.add(q.id);
+            });
+            setSelectedAnswers(newAnswers);
+            setVisited(newVisited);
+            setHasStarted(true);
+            setActiveTab('Submit Test');
+            toast.success("Auto-filled all correct answers. Ready to submit.");
+          }} className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-emerald-700">
+            Auto-fill (Test)
+          </button>
           <Link href="/dashboard/hiring/candidates" className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
             <ArrowLeft size={13} /> Back to Applications
           </Link>
-          <button type="button" onClick={() => {
-            let completedRounds = JSON.parse(localStorage.getItem('ai_completed_rounds') || '[]');
-            if (!completedRounds.includes(4)) completedRounds.push(4);
-            localStorage.setItem('ai_completed_rounds', JSON.stringify(completedRounds));
-            toast.success('Interview Completed!');
-            try {
-              const storedMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
-              storedMap[candidateId] = Math.max(storedMap[candidateId] || 0, 4);
-              localStorage.setItem('ai_completed_rounds_map', JSON.stringify(storedMap));
-            } catch (e) {}
-            router.push(`/dashboard/hiring/candidates/new/create/round-5/${candidateId}`);
-          }} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700">
-            End & Next Round
-          </button>
+          {(!isSubmitted || isPass) ? (
+            <button type="button" onClick={() => {
+              if (!isSubmitted) {
+                toast.error("Please complete and submit the assessment first to view your score.");
+                setActiveTab('Submit Test');
+                return;
+              }
+              handleProceedToOffer();
+            }} className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-emerald-700">
+              {isSubmitted ? 'Proceed to Offer' : 'End Exam'}
+            </button>
+          ) : (
+            <button type="button" onClick={() => {
+              toast.success('Candidate Rejected.');
+              router.push('/dashboard/hiring/candidates');
+            }} className="flex items-center gap-1.5 rounded-lg bg-rose-600 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-rose-700">
+              End & Reject
+            </button>
+          )}
         </div>
       </div>
 
@@ -304,7 +421,11 @@ export default function AssessmentRoundPage() {
           <Card>
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-[auto_1fr_1fr_1fr]">
               <div className="flex items-start gap-3">
-                <span className="h-16 w-16 shrink-0 rounded-full bg-zinc-200" />
+                {candidate.profileImageUrl ? (
+                  <img src={candidate.profileImageUrl} alt="Profile" className="h-16 w-16 shrink-0 rounded-full object-cover" />
+                ) : (
+                  <span className="h-16 w-16 shrink-0 rounded-full bg-zinc-200" />
+                )}
                 <div className="min-w-0">
                   <p className="flex flex-wrap items-center gap-1.5 text-[14px] font-bold text-zinc-900">
                     {candidate.fullName}
@@ -475,6 +596,19 @@ export default function AssessmentRoundPage() {
                 </div>
 
                 <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const ans: Record<number, string> = {};
+                      questions.forEach(q => {
+                        ans[q.id] = q.correctAnswer;
+                      });
+                      setSelectedAnswers(ans);
+                    }}
+                    className="flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[11px] font-semibold text-indigo-700 shadow-sm hover:bg-indigo-100 mr-auto"
+                  >
+                    Auto Fill Answers
+                  </button>
                   <button type="button" className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
                     <Save size={13} /> Save &amp; Exit
                   </button>
@@ -722,6 +856,39 @@ export default function AssessmentRoundPage() {
                     </div>
                   </div>
                 </Card>
+
+                {isPass ? (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                    <div>
+                      <p className="text-[12px] font-bold text-emerald-800">Exam Passed Successfully ({scorePct}%)</p>
+                      <p className="text-[10.5px] text-emerald-600">Candidate qualified for Job Offer. The Offer page serves as the HR round.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleProceedToOffer}
+                      className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-emerald-700 whitespace-nowrap"
+                    >
+                      Proceed to Offer <ArrowRight size={13} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 p-3 bg-rose-50 border border-rose-200 rounded-xl">
+                    <div>
+                      <p className="text-[12px] font-bold text-rose-800">Did Not Clear Exam ({scorePct}%)</p>
+                      <p className="text-[10.5px] text-rose-600">Candidate score is below the 60% passing criteria.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        toast.success('Candidate Rejected.');
+                        router.push('/dashboard/hiring/candidates');
+                      }}
+                      className="flex items-center gap-1.5 rounded-lg bg-rose-600 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-rose-700 whitespace-nowrap"
+                    >
+                      End & Reject
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <Card title="Test Result">
@@ -746,7 +913,12 @@ export default function AssessmentRoundPage() {
         <div className="space-y-2">
           <Card title="Application Summary">
             <div className="space-y-1.5">
-              {applicationSummary.map((s) => (
+              {[
+                { label: 'Application ID', value: `APP-${candidate._id.slice(-6).toUpperCase()}` },
+                { label: 'Applied On', value: candidate.createdAt ? new Date(candidate.createdAt).toLocaleDateString() : 'N/A' },
+                { label: 'Current Stage', value: 'Interview – Round 4' },
+                { label: 'AI Screening Score', value: candidate.aiScore },
+              ].map((s) => (
                 <div key={s.label} className="flex items-center justify-between gap-2 text-[10.5px]">
                   <span className="text-zinc-500">{s.label}</span>
                   <span className="text-right font-semibold text-zinc-800">{s.value}</span>

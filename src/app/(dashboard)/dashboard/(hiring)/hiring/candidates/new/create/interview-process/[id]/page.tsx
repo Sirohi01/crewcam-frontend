@@ -35,7 +35,7 @@ const rounds = (candidateId: string) => [
   { name: 'Round 2', title: 'Technical Interview', badge: 'UPCOMING', duration: '40 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending', href: `/dashboard/hiring/candidates/new/create/round-2/${candidateId}` },
   { name: 'Round 3', title: 'Managerial Interview', badge: 'UPCOMING', duration: '30 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending', href: `/dashboard/hiring/candidates/new/create/round-3/${candidateId}` },
   { name: 'Round 4', title: 'Written Assessment', badge: 'UPCOMING', duration: '45 Mins', questionsLabel: 'AI Generated Test', status: 'Pending', href: `/dashboard/hiring/candidates/new/create/round-4/${candidateId}` },
-  { name: 'Round 5', title: 'HR Interview', badge: 'UPCOMING', duration: '25 Mins', questionsLabel: 'AI Generated Questions', status: 'Pending', href: `/dashboard/hiring/candidates/new/create/round-5/${candidateId}` },
+  { name: 'Round 5', title: 'Offer (HR Round)', badge: 'UPCOMING', duration: 'Offer Stage', questionsLabel: 'Offer Discussion', status: 'Pending', href: `/dashboard/offers` },
 ];
 
 const questions = [
@@ -103,17 +103,27 @@ export default function InterviewProcessPage() {
   const [completedRounds, setCompletedRounds] = useState<number[]>([]);
 
   React.useEffect(() => {
-    try {
-      const storedMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
-      const maxCompleted = storedMap[candidateId] || 0;
-      const arr = Array.from({ length: maxCompleted }, (_, i) => i + 1);
-      setCompletedRounds(arr);
-    } catch (e) { }
-  }, []);
+    if (candidate) {
+      try {
+        const storedMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
+        const maxCompleted = storedMap[candidate._id] || storedMap[candidateId] || 0;
+        const arr = Array.from({ length: maxCompleted }, (_, i) => i + 1);
+        setCompletedRounds(arr);
+      } catch (e) { }
+    }
+  }, [candidate, candidateId]);
 
   const dynamicRounds = rounds(candidateId).map((r, idx) => {
-    const isCompleted = completedRounds.includes(idx + 1);
-    const isCurrent = !isCompleted && (idx === 0 || completedRounds.includes(idx));
+    const roundNum = idx + 1;
+    const isOffered = candidate?.status === 'Offered' || candidate?.status === 'Hired';
+    const isRejected = candidate?.status === 'Rejected' || candidate?.status === 'Hold';
+    
+    const isCompleted = completedRounds.includes(roundNum) || isOffered;
+    let isCurrent = false;
+    if (!isCompleted && !isRejected) {
+      isCurrent = (roundNum === 1 || completedRounds.includes(roundNum - 1));
+    }
+    
     return {
       ...r,
       status: isCompleted ? 'Completed' : isCurrent ? 'In Progress' : 'Pending',
@@ -124,12 +134,26 @@ export default function InterviewProcessPage() {
   const dynamicTimeline = timeline.map((item, idx) => {
     if (idx >= 3 && idx <= 7) {
       const roundNum = idx - 2;
-      const isCompleted = completedRounds.includes(roundNum);
-      const isCurrent = !isCompleted && (roundNum === 1 || completedRounds.includes(roundNum - 1));
+      const isOffered = candidate?.status === 'Offered' || candidate?.status === 'Hired';
+      const isRejected = candidate?.status === 'Rejected' || candidate?.status === 'Hold';
+      
+      const isCompleted = completedRounds.includes(roundNum) || isOffered;
+      let isCurrent = false;
+      if (!isCompleted && !isRejected) {
+        isCurrent = (roundNum === 1 || completedRounds.includes(roundNum - 1));
+      }
       return {
         ...item,
         state: isCompleted ? 'done' : isCurrent ? 'current' : 'pending',
         detail: isCompleted ? 'Completed' : isCurrent ? 'In Progress' : 'Pending'
+      };
+    }
+    if (idx === 8) {
+      const isOffered = candidate?.status === 'Offered' || candidate?.status === 'Hired';
+      return {
+        ...item,
+        state: isOffered ? 'done' : 'pending',
+        detail: isOffered ? 'Completed' : 'Pending'
       };
     }
     return item;
@@ -168,15 +192,28 @@ export default function InterviewProcessPage() {
       const fetchCandidate = async () => {
         try {
           let cId = candidateId;
+          // If it's a slug, find the candidate first
           if (!/^[0-9a-fA-F]{24}$/.test(candidateId)) {
             const res = await api.get(`/hiring/candidates?limit=1000`);
             const candidates = res.data?.data || res.data || [];
+            const clean = (s: string) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+            const normId = clean(decodeURIComponent(candidateId));
             const match = candidates.find((c: any) => {
-              const nameSlug = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-              return nameSlug === candidateId;
+              const fullSlug = clean(`${c.firstName || ''} ${c.lastName || ''}`);
+              const firstSlug = clean(c.firstName || '');
+              return fullSlug === normId || firstSlug === normId || clean(c._id) === normId || String(c._id) === candidateId;
             });
-            if (match) cId = match._id;
-            else throw new Error("Candidate not found");
+            if (match) {
+              cId = match._id;
+            } else if (candidates.length > 0) {
+              const partial = candidates.find((c: any) => {
+                const cFirst = clean(c.firstName || '');
+                return normId.includes(cFirst) || cFirst.includes(normId);
+              });
+              cId = partial ? partial._id : candidates[0]._id;
+            } else {
+              throw new Error("Candidate not found");
+            }
           }
 
           const res = await api.get(`/hiring/candidates/${cId}`);
@@ -228,16 +265,16 @@ export default function InterviewProcessPage() {
           <div className="flex-1 max-w-[550px] xl:max-w-[600px] w-full flex items-center justify-center relative mx-auto">
             <div className="absolute left-[30px] right-[30px] top-[11px] h-[2px] bg-zinc-200 -z-0"></div>
             <div className="flex w-full justify-between z-10">
-              {steps.map((step, idx) => (
+              {dynamicRounds.map((step, idx) => (
                 <div key={idx} className="relative z-10 flex flex-col items-center gap-1 px-1 bg-slate-50 lg:bg-transparent">
                   <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-colors
-                    ${step.status === 'completed' ? 'border-indigo-100 text-indigo-600 bg-indigo-50' :
-                      step.status === 'active' ? 'border-indigo-600 bg-indigo-600 text-white shadow-[0_0_0_3px_rgba(79,70,229,0.15)]' :
+                    ${step.status === 'Completed' ? 'border-indigo-100 text-indigo-600 bg-indigo-50' :
+                      step.status === 'In Progress' ? 'border-indigo-600 bg-indigo-600 text-white shadow-[0_0_0_3px_rgba(79,70,229,0.15)]' :
                         'border-zinc-200 text-zinc-400 bg-white'}`}>
-                    {step.status === 'completed' ? <Check className="w-3 h-3" strokeWidth={3} /> : step.num}
+                    {step.status === 'Completed' ? <Check className="w-3 h-3" strokeWidth={3} /> : (idx + 1)}
                   </div>
-                  <span className={`text-[8.5px] lg:text-[9px] whitespace-nowrap font-bold ${step.status === 'active' ? 'text-indigo-900' : step.status === 'completed' ? 'text-indigo-600' : 'text-zinc-400'}`}>
-                    {step.label}
+                  <span className={`text-[8.5px] lg:text-[9px] whitespace-nowrap font-bold ${step.status === 'In Progress' ? 'text-indigo-900' : step.status === 'Completed' ? 'text-indigo-600' : 'text-zinc-400'}`}>
+                    {step.name}
                   </span>
                 </div>
               ))}
@@ -249,9 +286,15 @@ export default function InterviewProcessPage() {
             <button className="flex items-center justify-center h-8 px-3 rounded-md text-[11px] font-semibold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
               Save as Draft
             </button>
-            <button type="button" onClick={() => router.push(`/dashboard/hiring/candidates/new/create/round-2/${candidateId}`)} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
-              Start Interview &rarr;
-            </button>
+            {completedRounds.length >= 4 ? (
+              <button type="button" onClick={() => router.push('/dashboard/offers')} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-colors">
+                <Check size={13} className="mr-1.5" strokeWidth={3} /> Proceed to Offer &rarr;
+              </button>
+            ) : (
+              <button type="button" onClick={() => router.push(`/dashboard/hiring/candidates/new/create/round-${Math.max(2, completedRounds.length + 1)}/${candidateId}`)} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
+                Start Next Round &rarr;
+              </button>
+            )}
           </div>
         </div>
 
@@ -273,7 +316,9 @@ export default function InterviewProcessPage() {
                   <div className="min-w-0">
                     <p className="flex flex-wrap items-center gap-1.5 text-[14px] font-bold text-zinc-900">
                       {candidate.fullName}
-                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-600 uppercase">{candidate.status}</span>
+                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-600 uppercase">
+                        {completedRounds.length >= 5 ? 'Offered' : (candidate.status || 'New')}
+                      </span>
                     </p>
                     <p className="text-[10.5px] text-zinc-500">{candidate.appliedFor}</p>
                     <div className="mt-1 space-y-0.5 text-[10px] text-zinc-500">
@@ -293,7 +338,7 @@ export default function InterviewProcessPage() {
                 <div className="space-y-1.5 text-[10.5px]">
                   <div><p className="text-zinc-400">Expected CTC</p><p className="font-bold text-zinc-800">₹ {candidate.expectedCTC}</p></div>
                   <div><p className="text-zinc-400">Notice Period</p><p className="font-bold text-zinc-800">{candidate.noticePeriod}</p></div>
-                  <div><p className="text-zinc-400">Current Stage</p><p className="font-bold text-zinc-800">Interview - Round 1</p></div>
+                  <div><p className="text-zinc-400">Current Stage</p><p className="font-bold text-zinc-800">{completedRounds.length >= 5 ? 'Offered' : (completedRounds.length > 0 ? `Interview - Round ${completedRounds.length}` : 'New')}</p></div>
                 </div>
               </div>
             </Card>
@@ -355,7 +400,7 @@ export default function InterviewProcessPage() {
 
             {/* Current round detail + AI assistant */}
             <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-[1.6fr_1fr]">
-              <Card title="Current Round – AI Screening Interview">
+              <Card title={`Current Round – ${dynamicRounds.find(r => r.status === 'In Progress')?.title || dynamicRounds[dynamicRounds.length - 1].title}`}>
                 <div className="flex items-center gap-4 border-b border-zinc-100 pb-1.5 text-[11px] font-semibold text-zinc-400">
                   <span>Time Remaining</span>
                   <button type="button" onClick={() => setRoundTab('questions')} className={`border-b-2 pb-1 ${roundTab === 'questions' ? 'border-indigo-600 text-indigo-600' : 'border-transparent hover:text-zinc-700'}`}>AI Generated Questions</button>
@@ -367,7 +412,7 @@ export default function InterviewProcessPage() {
                     <div className="relative mx-auto grid h-20 w-20 place-items-center rounded-full" style={{ background: `conic-gradient(#22c55e ${timerPercentage}%, #e5e7eb 0)` }}>
                       <div className="flex flex-col items-center justify-center h-16 w-16 rounded-full bg-white text-center">
                         <p className={`text-[14px] leading-none font-bold ${timeLeft < 60 ? 'text-rose-600' : 'text-zinc-900'}`}>{formatTime(timeLeft)}</p>
-                        <p className="text-[8px] leading-none mt-1 text-zinc-400">of 30:00</p>
+                        <p className="text-[8px] leading-none mt-1 text-zinc-400">of {dynamicRounds.find(r => r.status === 'In Progress')?.duration || '30 Mins'}</p>
                       </div>
                     </div>
                     <button type="button" onClick={handleEndInterview} className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors hover:text-rose-600 hover:border-rose-200">
@@ -449,7 +494,9 @@ export default function InterviewProcessPage() {
                 </div>
                 <div className="flex items-center justify-between gap-2 text-[10.5px]">
                   <span className="text-zinc-500">Current Stage</span>
-                  <span className="text-right font-semibold text-zinc-800">{candidate.status}</span>
+                  <span className="text-right font-semibold text-zinc-800">
+                    {completedRounds.length >= 5 ? 'Offered' : (candidate.status || 'New')}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between gap-2 text-[10.5px]">
                   <span className="text-zinc-500">HOD Review</span>
