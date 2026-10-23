@@ -103,22 +103,21 @@ export default function DynamicSidebar() {
     router.replace('/login');
   };
 
-  const { data, isLoading } = useQuery<{ items: SidebarItem[]; roleScope: string }>({
+  const { data, isLoading } = useQuery<{ items: SidebarItem[]; roleScope: string; loginType?: string }>({
     queryKey: ['sidebar', 'mine'],
     queryFn: async () => (await api.get('/permissions/sidebar-config/mine')).data,
     staleTime: 5 * 60 * 1000,
   });
   const items = data?.items;
   const roleScope = data?.roleScope;
+  const loginType = data?.loginType;
 
   const sections: { section: string; items: GroupedItem[] }[] = [];
 
   // If loading, we wait. Whether to merge the dynamic (role-permissioned) items with
   // the static employee items comes straight from the backend-resolved role scope (see
   // resolveRoleScope) — a plain 'self'-scope role only gets the static self-service items,
-  // every broader scope (team, department, branch, company) gets both. This used to be
-  // guessed client-side from which sidebar sections happened to come back, which broke
-  // for any admin whose role didn't have the specific permissions gating those sections.
+  // every broader scope (team, department, branch, company) gets both.
   const allItems = React.useMemo(() => {
     if (isLoading) return [];
     if (!items || items.length === 0 || roleScope === 'self') {
@@ -143,7 +142,22 @@ export default function DynamicSidebar() {
       'Level 2-HR and HOD Round',
       'Level 3-HR Final Round'
     ]);
-    const filteredItems = items.filter(item => !EXCLUDED_LABELS.has(item.label));
+
+    const ADMIN_EXCLUSIVE_SECTIONS = new Set([
+      'Organization Setup',
+      'Company Setup',
+      'Sidebar Section',
+      'Admin Section',
+      'Admin UI',
+    ]);
+
+    let filteredItems = items.filter(item => !EXCLUDED_LABELS.has(item.label));
+
+    // When logged in as employee / non-employer role, never show company admin exclusive sections
+    if (loginType === 'employee') {
+      filteredItems = filteredItems.filter(item => !ADMIN_EXCLUSIVE_SECTIONS.has(item.section));
+    }
+
     let merged = [...STATIC_PEOPLE_ITEMS, ...filteredItems];
 
     const hasRecruitment = items.some(item =>
@@ -168,7 +182,7 @@ export default function DynamicSidebar() {
     }
 
     return merged.sort((a: SidebarItem, b: SidebarItem) => a.order - b.order);
-  }, [items, isLoading, roleScope]);
+  }, [items, isLoading, roleScope, loginType]);
 
   allItems.forEach((item: SidebarItem) => {
     let group = sections.find((s) => s.section === item.section);

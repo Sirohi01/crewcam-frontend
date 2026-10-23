@@ -1567,6 +1567,19 @@ export default function DashboardPage() {
 
   const topKpiKeys = ['org-headcount', 'team-attendance-today', 'absent-today', 'work-from-home', 'late-coming', 'on-leave-today', 'new-joinees'];
 
+  if (isLoading) {
+    return (
+      <div className="w-full p-6 space-y-4">
+        <div className="h-10 w-48 bg-zinc-100 animate-pulse rounded-lg" />
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-7">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div key={i} className="h-20 bg-zinc-100 animate-pulse rounded-xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (config && config.category === 'employee') {
     return <EmployeeDashboard />;
   }
