@@ -19,16 +19,25 @@ export default function InitEditDepartment() {
           code: data.code || '',
           branchId: data.branchId?._id || data.branchId || '',
           hodEmployeeId: data.hodEmployeeId?._id || data.hodEmployeeId || '',
-          reportingToId: data.reportingToId || '',
+          reportingToId: data.reportingToId?._id || data.reportingToId || '',
+          assistantCoHeadId: data.assistantCoHeadId?._id || data.assistantCoHeadId || '',
           description: data.description || '',
           isActive: data.isActive ?? true,
           departmentType: data.departmentType || 'Core Department',
-          businessUnit: data.businessUnit || '',
-          effectiveDate: data.effectiveDate || '',
+          businessUnit: data.businessUnit?._id || data.businessUnit || '',
+          budgetOwnerId: data.budgetOwnerId?._id || data.budgetOwnerId || '',
+          // <input type="date"> needs exactly YYYY-MM-DD — a full ISO datetime string
+          // (what the API returns) renders as a blank, invalid-looking field otherwise.
+          effectiveDate: data.effectiveDate ? String(data.effectiveDate).slice(0, 10) : '',
           keyResponsibilities: data.keyResponsibilities || '',
-          employeeCapacity: data.employeeCapacity || '',
+          employeeCapacity: data.employeeCapacity != null ? String(data.employeeCapacity) : '',
           workingDays: data.workingDays || 'Monday - Saturday',
           defaultShift: data.defaultShift || 'General Shift (09:30 AM - 06:30 PM)',
+          costCenter: data.costCenter || '',
+          probationPeriodMonths: data.probationPeriodMonths != null ? String(data.probationPeriodMonths) : '',
+          departmentEmail: data.departmentEmail || '',
+          departmentKeywords: Array.isArray(data.departmentKeywords) ? data.departmentKeywords.join(', ') : '',
+          documents: Array.isArray(data.documents) ? data.documents.map((d: any) => ({ name: d.name, url: d.url })) : [],
           _id: data._id
         });
         router.push('/dashboard/departments/add-department/basic-info');

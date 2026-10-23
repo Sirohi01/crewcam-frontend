@@ -8,10 +8,11 @@ import { createDepartment, updateDepartment } from '@/services/departmentService
 import { useRouter } from 'next/navigation';
 import {
     Building2, User, Calendar, Users, CheckCircle2,
-    Eye, MapPin, Building, Briefcase, UserCheck, ChevronDown,
+    Eye, MapPin, Building, Briefcase, UserCheck,
     Save, ArrowLeft, Settings, FileText, Info, Edit, Sparkles, Check, ClipboardList, CheckCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getDepartmentFormErrors } from '@/lib/departmentValidation';
 
 const steps = [
     { num: 1, label: 'Basic Information', status: 'completed' },
@@ -59,17 +60,36 @@ export default function ReviewDepartmentDetails() {
     const router = useRouter();
 
     const handleCreate = async () => {
+        // The authoritative gate — a direct link to this step, or stepping back and forth,
+        // must not be able to submit something the per-step "Next" buttons would have blocked.
+        const errors = getDepartmentFormErrors(formData);
+        if (errors.length > 0) {
+            toast.error(errors[0]);
+            return;
+        }
+
+        const payload = {
+            ...formData,
+            employeeCapacity: formData.employeeCapacity ? Number(formData.employeeCapacity) : undefined,
+            probationPeriodMonths: formData.probationPeriodMonths ? Number(formData.probationPeriodMonths) : undefined,
+            departmentKeywords: formData.departmentKeywords
+                ? formData.departmentKeywords.split(',').map((k) => k.trim()).filter(Boolean)
+                : [],
+        };
+
         try {
             if (formData._id) {
-                await updateDepartment(formData._id, formData);
+                await updateDepartment(formData._id, payload);
+                toast.success('Department updated successfully!');
             } else {
-                await createDepartment(formData);
+                await createDepartment(payload);
+                toast.success('Department created successfully!');
             }
             resetForm();
             router.push('/dashboard/departments');
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to save department', error);
-            alert('Failed to save department');
+            toast.error(error?.response?.data?.message || 'Failed to save department');
         }
     };
 
@@ -141,7 +161,7 @@ export default function ReviewDepartmentDetails() {
                                     <InfoRow label="Department Code" value={formData.code || '-'} />
                                     <InfoRow label="Location" value={formData._meta?.branchName || formData.branchId || '-'} />
                                     <InfoRow label="Department Type" value={formData.departmentType || 'Core Department'} />
-                                    <InfoRow label="Business Unit" value={formData.businessUnit || '-'} />
+                                    <InfoRow label="Business Unit" value={formData._meta?.businessUnitName || formData.businessUnit || '-'} />
                                     <InfoRow label="Status" value={<span className={`px-1.5 py-0.5 rounded ${formData.isActive ? 'bg-emerald-100/60 text-emerald-600' : 'bg-rose-100/60 text-rose-600'} text-[10px] font-bold`}>{formData.isActive ? 'Active' : 'Inactive'}</span>} />
                                 </div>
                             </Card>
@@ -151,10 +171,10 @@ export default function ReviewDepartmentDetails() {
                                 <div className="mt-1">
                                     <InfoRow label="Department Head (HOD)" value={formData._meta?.hodName || formData.hodEmployeeId || '-'} />
                                     <InfoRow label="Reporting To" value={formData._meta?.reportingToName || formData.reportingToId || '-'} />
-                                    <InfoRow label="Assistant / Co-Head" value="-" />
-                                    <InfoRow label="Effective Date" value={formData.effectiveDate || '-'} />
-                                    <InfoRow label="Probation Period" value="-" />
-                                    <InfoRow label="Department Email" value="-" />
+                                    <InfoRow label="Assistant / Co-Head" value={formData._meta?.assistantCoHeadName || formData.assistantCoHeadId || '-'} />
+                                    <InfoRow label="Effective Date" value={formData.effectiveDate ? new Date(formData.effectiveDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'} />
+                                    <InfoRow label="Probation Period" value={formData.probationPeriodMonths ? `${formData.probationPeriodMonths} month(s)` : '-'} />
+                                    <InfoRow label="Department Email" value={formData.departmentEmail || '-'} />
                                 </div>
                             </Card>
 
@@ -162,8 +182,8 @@ export default function ReviewDepartmentDetails() {
                             <Card title={<><MapPin size={14} className="text-emerald-600" /> Location & Cost Center</>}>
                                 <div className="mt-1">
                                     <InfoRow label="Location" value={formData._meta?.branchName || formData.branchId || '-'} />
-                                    <InfoRow label="Cost Center" value="-" />
-                                    <InfoRow label="Business Unit" value={formData.businessUnit || '-'} />
+                                    <InfoRow label="Cost Center" value={formData.costCenter || '-'} />
+                                    <InfoRow label="Business Unit" value={formData._meta?.businessUnitName || formData.businessUnit || '-'} />
                                     <InfoRow label="Budget Owner" value={formData._meta?.budgetOwnerName || formData.budgetOwnerId || '-'} />
                                 </div>
                             </Card>
@@ -174,6 +194,7 @@ export default function ReviewDepartmentDetails() {
                                     <InfoRow vertical label="Department Purpose" value={formData.description || '-'} />
                                     <InfoRow vertical label="Key Responsibilities" value={formData.keyResponsibilities || '-'} />
                                     <InfoRow label="Employee Capacity" value={formData.employeeCapacity || '-'} />
+                                    <InfoRow label="Keywords" value={formData.departmentKeywords || '-'} />
                                 </div>
                             </Card>
 
@@ -196,11 +217,10 @@ export default function ReviewDepartmentDetails() {
                                         )}
                                         {formData.documents && formData.documents.map((file, idx) => (
                                             <div key={idx} className="flex items-center justify-between text-[11px]">
-                                                <div className="flex items-center gap-2 text-rose-500 overflow-hidden">
+                                                <a href={file.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-rose-500 overflow-hidden hover:underline">
                                                     <FileText size={14} className="fill-rose-50 shrink-0" />
                                                     <span className="text-zinc-700 font-semibold truncate">{file.name}</span>
-                                                </div>
-                                                <span className="text-zinc-500 font-medium shrink-0 ml-2">{(file.size / 1024).toFixed(0)} KB</span>
+                                                </a>
                                             </div>
                                         ))}
                                     </div>
@@ -243,7 +263,7 @@ export default function ReviewDepartmentDetails() {
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
                                     <div className="text-zinc-400 mt-0.5"><Briefcase size={14} /></div>
                                     <div className="text-zinc-500 font-medium">Business Unit</div>
-                                    <div className="font-semibold text-zinc-800">{formData.businessUnit || '-'}</div>
+                                    <div className="font-semibold text-zinc-800">{formData._meta?.businessUnitName || formData.businessUnit || '-'}</div>
                                 </div>
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px] mt-1">
@@ -261,13 +281,13 @@ export default function ReviewDepartmentDetails() {
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
                                     <div className="text-zinc-400 mt-0.5"><Users size={14} /></div>
                                     <div className="text-zinc-500 font-medium">Employee Capacity</div>
-                                    <div className="font-semibold text-zinc-800">50</div>
+                                    <div className="font-semibold text-zinc-800">{formData.employeeCapacity || '-'}</div>
                                 </div>
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
                                     <div className="text-zinc-400 mt-0.5"><Calendar size={14} /></div>
                                     <div className="text-zinc-500 font-medium">Effective From</div>
-                                    <div className="font-semibold text-zinc-800">01 May 2025</div>
+                                    <div className="font-semibold text-zinc-800">{formData.effectiveDate ? new Date(formData.effectiveDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</div>
                                 </div>
                             </div>
                         </Card>

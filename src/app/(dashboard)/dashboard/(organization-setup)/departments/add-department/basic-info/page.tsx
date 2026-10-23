@@ -4,12 +4,11 @@ import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/ui/page-header';
 import { useDepartmentForm } from '@/context/DepartmentFormContext';
-import { useQuery } from '@tanstack/react-query';
-import api from '@/lib/axios';
 import { Building2, User, Calendar, Users, CheckCircle2, HelpCircle, Eye, MapPin, Building, Briefcase, UserCheck, ChevronDown, Save, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { ApiSearchableSelect } from '@/components/common/ApiSearchableSelect';
+import { isValidEmployeeCapacity, sanitizeDepartmentCode } from '@/lib/departmentValidation';
 
 const steps = [
     { num: 1, label: 'Basic Information', status: 'active' },
@@ -71,8 +70,12 @@ export default function BasicInformation() {
 
     const handleNext = (e: React.MouseEvent) => {
         e.preventDefault();
-        if (!formData.name || !formData.code || !formData.departmentType || !formData.businessUnit) {
+        if (!formData.name || !formData.code || !formData.departmentType || !formData.businessUnit || !formData.effectiveDate) {
             toast.error('Please fill in all required fields to proceed.');
+            return;
+        }
+        if (!isValidEmployeeCapacity(formData.employeeCapacity)) {
+            toast.error('Employee Capacity must be a positive whole number.');
             return;
         }
         router.push('/dashboard/departments/add-department/department-head');
@@ -85,31 +88,14 @@ export default function BasicInformation() {
 
     useEffect(() => {
         if (formData.name && !formData.code) {
-            const words = formData.name.split(' ');
+            const words = formData.name.split(' ').filter(Boolean);
             const code = words.length > 1
                 ? words.map(w => w[0]).join('').toUpperCase().substring(0, 5)
                 : formData.name.substring(0, 3).toUpperCase();
-            updateFormData({ code });
+            updateFormData({ code: sanitizeDepartmentCode(code) });
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [formData.name]);
-
-    const { data: employeesRes } = useQuery({
-        queryKey: ['employees'],
-        queryFn: () => api.get('/employees')
-    });
-    const employees = employeesRes?.data?.data || [];
-
-    const { data: buRes } = useQuery({
-        queryKey: ['business-units'],
-        queryFn: () => api.get('/business-units')
-    });
-    const businessUnits = (buRes?.data?.data || []).filter((bu: any) => bu.status === 'Active');
-
-    const { data: branchRes } = useQuery({
-        queryKey: ['branches'],
-        queryFn: () => api.get('/branches')
-    });
-    const branches = branchRes?.data?.data || [];
 
     return (
         <div className="w-full bg-[#f8f9fc] flex flex-col font-sans min-h-screen">
@@ -161,7 +147,7 @@ export default function BasicInformation() {
                                     <input type="text" value={formData.name} onChange={e => updateFormData({ name: e.target.value })} className={inputCls} placeholder="e.g. Design Studio" />
                                 </Field>
                                 <Field title="Department Code" required helpText="Auto generated">
-                                    <input type="text" value={formData.code} onChange={e => updateFormData({ code: e.target.value })} className={inputCls} placeholder="e.g. DSGN" />
+                                    <input type="text" value={formData.code} onChange={e => updateFormData({ code: sanitizeDepartmentCode(e.target.value) })} className={inputCls} placeholder="e.g. DSGN" maxLength={10} />
                                 </Field>
 
                                 <Field title="Parent Branch / Department" helpText="Select branch or parent">
@@ -183,6 +169,7 @@ export default function BasicInformation() {
                                             apiType="business-unit"
                                             value={formData.businessUnit}
                                             onChange={(val) => updateFormData({ businessUnit: val })}
+                                            onLabelChange={(label) => updateMeta({ businessUnitName: label })}
                                             placeholder="Select Business Unit"
                                         />
                                     </div>
@@ -261,7 +248,7 @@ export default function BasicInformation() {
 
                                 <Field title="Employee Capacity" helpText="Maximum number of employees">
                                     <div className="relative w-full sm:w-1/2">
-                                        <input type="text" value={formData.employeeCapacity} onChange={e => updateFormData({ employeeCapacity: e.target.value })} className={`${inputCls} pr-8`} placeholder="e.g. 50" />
+                                        <input type="text" inputMode="numeric" value={formData.employeeCapacity} onChange={e => updateFormData({ employeeCapacity: e.target.value.replace(/[^0-9]/g, '') })} className={`${inputCls} pr-8`} placeholder="e.g. 50" />
                                         <Users size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
                                     </div>
                                 </Field>
@@ -301,7 +288,7 @@ export default function BasicInformation() {
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
                                     <div className="text-zinc-400 mt-0.5"><Briefcase size={14} /></div>
                                     <div className="text-zinc-500 font-medium">Business Unit</div>
-                                    <div className="font-semibold text-zinc-800">{formData.businessUnit || '-'}</div>
+                                    <div className="font-semibold text-zinc-800">{formData._meta?.businessUnitName || formData.businessUnit || '-'}</div>
                                 </div>
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px] mt-1">

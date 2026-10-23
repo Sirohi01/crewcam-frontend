@@ -3,7 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import {
   LayoutDashboard, Users, Building2, Settings, LogOut, Briefcase, UserCog, Plug, Palette,
@@ -105,6 +105,7 @@ export default function DynamicSidebar() {
   const setPageTitle = useUIStore((s) => s.setPageTitle);
   const router = useRouter();
   const logout = useAuthStore((state) => state.logout);
+  const queryClient = useQueryClient();
 
   const handleSignOut = async () => {
     try {
@@ -122,6 +123,27 @@ export default function DynamicSidebar() {
   const items = data?.items;
   const roleScope = data?.roleScope;
   const loginType = data?.loginType;
+
+  // A brand-new company has no branches/departments/designations yet — until it does, the
+  // sidebar below hides every section except Organization Setup so a new admin isn't
+  // dropped into hiring/attendance/finance screens that have nothing to operate on.
+  const { data: orgSetupStatus } = useQuery<{ completed: boolean }>({
+    queryKey: ['organization-setup-status'],
+    queryFn: async () => (await api.get('/settings/organization-setup-status')).data,
+    staleTime: 30 * 1000,
+    enabled: Boolean(data) && loginType !== 'employee',
+    refetchOnWindowFocus: true,
+  });
+
+  // Re-check after every navigation while setup is still incomplete, so finishing the
+  // last required step (e.g. adding the first Designation) unlocks the rest of the
+  // sidebar on the very next click instead of needing a manual refresh.
+  React.useEffect(() => {
+    if (orgSetupStatus && !orgSetupStatus.completed) {
+      queryClient.invalidateQueries({ queryKey: ['organization-setup-status'] });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   const sections: { section: string; items: GroupedItem[] }[] = [];
 
@@ -257,6 +279,15 @@ export default function DynamicSidebar() {
     return rankA - rankB;
   });
 
+  // While Organization Setup is incomplete, show only that section (plus the always-visible
+  // Workspace items) — every other module assumes branches/departments/designations already
+  // exist. Roles that never see Organization Setup to begin with (e.g. employee logins) are
+  // unaffected, since the query above doesn't run for them and `orgSetupStatus` stays undefined.
+  const isOrgSetupGated = Boolean(orgSetupStatus && !orgSetupStatus.completed && sections.some((s) => s.section === 'Organization Setup'));
+  const visibleSections = isOrgSetupGated
+    ? sections.filter((s) => s.section === 'Organization Setup' || s.section === 'WORKSPACE')
+    : sections;
+
   const matchedItem = React.useMemo(() => {
     let matched = allItems.find((i: SidebarItem) => pathname === i.href);
     if (!matched) {
@@ -356,7 +387,7 @@ export default function DynamicSidebar() {
         <div className="sidebar-scroll flex-1 overflow-y-auto py-2">
           <div className="px-2 space-y-1">
 
-            {sections.map((group) => {
+            {visibleSections.map((group) => {
               const isSectionOpen = openSection === group.section || group.section === 'WORKSPACE';
               return (
                 <nav key={group.section} className="space-y-0.5">

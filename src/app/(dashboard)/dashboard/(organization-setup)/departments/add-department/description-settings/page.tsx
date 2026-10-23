@@ -1,16 +1,18 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/ui/page-header';
 import { useDepartmentForm } from '@/context/DepartmentFormContext';
 import {
     Building2, User, Calendar, Users, CheckCircle2,
     Eye, MapPin, Building, Briefcase, UserCheck, ChevronDown,
-    Save, ArrowRight, ArrowLeft, Settings, FileText, CloudUpload, X
+    Save, ArrowRight, ArrowLeft, Settings, FileText, CloudUpload, X, Loader2
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import api from '@/lib/axios';
+import { isValidEmployeeCapacity } from '@/lib/departmentValidation';
 
 const steps = [
     { num: 1, label: 'Basic Information', status: 'completed' },
@@ -70,11 +72,26 @@ export default function AddDepartmentDescriptionSettings() {
     const navigate = useRouter();
     const { formData, updateFormData } = useDepartmentForm();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [uploading, setUploading] = useState(false);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files.length > 0) {
-            const newFiles = Array.from(e.target.files);
-            updateFormData({ documents: [...(formData.documents || []), ...newFiles] });
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files ? Array.from(e.target.files) : [];
+        if (files.length === 0) return;
+        e.target.value = ''; // allow re-selecting the same file name after removal
+
+        setUploading(true);
+        try {
+            const uploaded = await Promise.all(files.map(async (file) => {
+                const body = new FormData();
+                body.append('file', file);
+                const { data } = await api.post('/upload', body, { headers: { 'Content-Type': 'multipart/form-data' } });
+                return { name: file.name, url: data.url as string };
+            }));
+            updateFormData({ documents: [...(formData.documents || []), ...uploaded.filter((d) => d.url)] });
+        } catch (err) {
+            toast.error('One or more files failed to upload.');
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -88,6 +105,10 @@ export default function AddDepartmentDescriptionSettings() {
         e.preventDefault();
         if (!formData.description || !formData.keyResponsibilities || !formData.employeeCapacity) {
             toast.error('Please fill in all required fields to proceed.');
+            return;
+        }
+        if (!isValidEmployeeCapacity(formData.employeeCapacity)) {
+            toast.error('Employee Capacity must be a positive whole number.');
             return;
         }
         navigate.push('/dashboard/departments/add-department/review-department-details');
@@ -168,13 +189,13 @@ export default function AddDepartmentDescriptionSettings() {
 
                                 <Field title="Employee Capacity" required helpText="Maximum number of employees">
                                     <div className="relative w-full">
-                                        <input type="text" value={formData.employeeCapacity} onChange={e => updateFormData({ employeeCapacity: e.target.value })} className={`${inputCls} pr-8`} placeholder="e.g. 50" />
+                                        <input type="text" inputMode="numeric" value={formData.employeeCapacity} onChange={e => updateFormData({ employeeCapacity: e.target.value.replace(/[^0-9]/g, '') })} className={`${inputCls} pr-8`} placeholder="e.g. 50" />
                                         <Users size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
                                     </div>
                                 </Field>
 
-                                <Field title="Department Keywords (Optional)" helpText="Helps in search and analytics">
-                                    <input type="text" placeholder="Design, Creative, Interior, 3D, Visualization" className={inputCls} />
+                                <Field title="Department Keywords (Optional)" helpText="Helps in search and analytics, comma separated">
+                                    <input type="text" value={formData.departmentKeywords} onChange={e => updateFormData({ departmentKeywords: e.target.value })} placeholder="Design, Creative, Interior, 3D, Visualization" className={inputCls} />
                                 </Field>
                             </div>
                         </Card>
@@ -197,20 +218,26 @@ export default function AddDepartmentDescriptionSettings() {
                         {/* Section: Documents (Optional) */}
                         <Card title={<><FileText size={14} className="text-indigo-600 mr-1" /> Documents (Optional)</>}>
                             <p className="text-[11px] text-zinc-500 mb-3 mt-0.5">Upload department related documents (SOPs, Guidelines, Structure, etc.)</p>
-                            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple accept=".pdf,.doc,.docx,.xls,.xlsx" />
-                            <div onClick={() => fileInputRef.current?.click()} className="border border-dashed border-indigo-200 rounded-lg p-[18px] flex flex-col items-center justify-center text-center hover:bg-indigo-50/20 transition-colors cursor-pointer bg-white">
-                                <CloudUpload size={24} className="text-indigo-500 mb-2" strokeWidth={1.5} />
-                                <p className="text-[12px] font-semibold text-zinc-700">Drag & drop files here or <span className="text-indigo-600 hover:underline">click to upload</span></p>
+                            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple accept=".pdf,.doc,.docx,.xls,.xlsx" disabled={uploading} />
+                            <div onClick={() => !uploading && fileInputRef.current?.click()} className={`border border-dashed border-indigo-200 rounded-lg p-[18px] flex flex-col items-center justify-center text-center transition-colors bg-white ${uploading ? 'opacity-60 cursor-wait' : 'hover:bg-indigo-50/20 cursor-pointer'}`}>
+                                {uploading ? (
+                                    <Loader2 size={24} className="text-indigo-500 mb-2 animate-spin" strokeWidth={1.5} />
+                                ) : (
+                                    <CloudUpload size={24} className="text-indigo-500 mb-2" strokeWidth={1.5} />
+                                )}
+                                <p className="text-[12px] font-semibold text-zinc-700">
+                                    {uploading ? 'Uploading…' : <>Drag & drop files here or <span className="text-indigo-600 hover:underline">click to upload</span></>}
+                                </p>
                                 <p className="text-[10px] text-zinc-500 mt-1">PDF, DOC, DOCX, XLS, XLSX (Max. 10MB each)</p>
                             </div>
                             {formData.documents && formData.documents.length > 0 && (
                                 <div className="mt-3 space-y-2">
                                     {formData.documents.map((file, idx) => (
                                         <div key={idx} className="flex items-center justify-between p-2 border border-zinc-100 bg-zinc-50 rounded-md text-[11px]">
-                                            <div className="flex items-center gap-2 overflow-hidden">
+                                            <a href={file.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 overflow-hidden hover:underline">
                                                 <FileText size={14} className="text-indigo-500 shrink-0" />
                                                 <span className="truncate font-medium text-zinc-700">{file.name}</span>
-                                            </div>
+                                            </a>
                                             <button type="button" onClick={() => removeFile(idx)} className="text-zinc-400 hover:text-rose-500 p-0.5 ml-2 shrink-0">
                                                 <X size={14} />
                                             </button>

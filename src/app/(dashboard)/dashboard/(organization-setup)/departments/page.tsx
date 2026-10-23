@@ -5,7 +5,8 @@ import { toast } from 'react-hot-toast';
 import { Upload, Download, Sparkles, Plus, ChevronRight, Search, Filter, RotateCcw, Eye, Edit2, X, ChevronDown, ChevronLeft, Building, Users, User, PieChart as PieChartIcon, TrendingUp, Clock, Trash2 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Card } from '@/components/ui/card';
-import { getDepartments, deleteDepartment } from '@/services/departmentService';
+import { getDepartments, deleteDepartment, createDepartment } from '@/services/departmentService';
+import { sanitizeDepartmentCode } from '@/lib/departmentValidation';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 import BulkUploadModal, { ColumnConfig } from '@/components/upload/bulkUploadModal';
 import { FormInput } from '@/components/ui/form-input';
@@ -67,54 +68,43 @@ const CircularProgress = ({ value, color, hideText }: { value: number, color: st
     );
 };
 
+// Only fields the backend accepts directly as plain text/numbers/dates are offered for
+// bulk import. Fields that are really a relation (parent branch, business unit, HOD,
+// reporting manager, budget owner) need an actual ObjectId, not a typed name or employee
+// code, so there is no reliable way to resolve them from a spreadsheet cell — import those
+// departments without a branch/HOD/etc. here, then assign them individually afterwards.
 interface DepartmentRow {
     name: string;
     code: string;
-    branchId: string;
     departmentType: string;
-    businessUnit: string;
     isActive: string;
-    hodEmployeeId: string;
-    reportingToId: string;
     effectiveDate: string;
     description: string;
     keyResponsibilities: string;
     employeeCapacity: string;
-    location: string;
     costCenter: string;
     probationPeriod: string;
     departmentEmail: string;
-    budgetOwner: string;
-    assistantCoHead: string;
     workingDays: string;
     defaultShift: string;
     departmentKeywords: string;
-    budgetStr: string;
 }
 
 const departmentColumns: ColumnConfig<DepartmentRow>[] = [
     { key: 'name', label: 'Department Name', required: true, unique: true, sampleValue: 'Design Studio' },
     { key: 'code', label: 'Department Code', required: true, unique: true, sampleValue: 'DS' },
-    { key: 'branchId', label: 'Parent Department', sampleValue: 'Business Operations' },
-    { key: 'departmentType', label: 'Department Type', required: true, sampleValue: 'Core Department' },
-    { key: 'businessUnit', label: 'Business Unit', required: true, sampleValue: 'Retail Interiors & Exhibition' },
+    { key: 'departmentType', label: 'Department Type', required: true, sampleValue: 'Core Department', validate: (v) => (['Core Department', 'Support', 'Admin', 'Other'].includes(String(v)) ? null : 'Must be Core Department, Support, Admin or Other') },
     { key: 'isActive', label: 'Status', required: true, sampleValue: 'Active', validate: (v) => (['active', 'inactive'].includes(String(v).toLowerCase()) ? null : 'Status must be Active or Inactive') },
-    { key: 'hodEmployeeId', label: 'Department Head (HOD)', required: true, sampleValue: 'EMP1023' },
-    { key: 'reportingToId', label: 'Reporting To', required: true, sampleValue: 'EMP1001' },
-    { key: 'effectiveDate', label: 'Effective Date', required: true, sampleValue: '2026-01-01' },
-    { key: 'description', label: 'Department Purpose', required: true, sampleValue: 'Handles design and creative operations' },
-    { key: 'keyResponsibilities', label: 'Key Responsibilities', required: true, sampleValue: 'Design, Creative direction, Client handling' },
-    { key: 'employeeCapacity', label: 'Employee Capacity', required: true, sampleValue: '50', validate: (v) => (isNaN(Number(v)) ? 'Employee Capacity must be a number' : null) },
-    { key: 'location', label: 'Location', required: true, sampleValue: 'Noida - Head Office' },
-    { key: 'costCenter', label: 'Cost Center', required: true, sampleValue: 'CC-DS-1001' },
-    { key: 'probationPeriod', label: 'Probation Period (Months)', sampleValue: '3' },
-    { key: 'departmentEmail', label: 'Department Email', sampleValue: 'designstudio@designhouse.co.in' },
-    { key: 'budgetOwner', label: 'Budget Owner', sampleValue: 'EMP1050' },
-    { key: 'assistantCoHead', label: 'Assistant / Co-Head', sampleValue: 'EMP1040' },
+    { key: 'effectiveDate', label: 'Effective Date', required: true, sampleValue: '2026-01-01', validate: (v) => (isNaN(Date.parse(String(v))) ? 'Effective Date must be a valid date (YYYY-MM-DD)' : null) },
+    { key: 'description', label: 'Department Purpose', sampleValue: 'Handles design and creative operations' },
+    { key: 'keyResponsibilities', label: 'Key Responsibilities', sampleValue: 'Design, Creative direction, Client handling' },
+    { key: 'employeeCapacity', label: 'Employee Capacity', sampleValue: '50', validate: (v) => (!v || (/^\d+$/.test(String(v)) && Number(v) > 0) ? null : 'Employee Capacity must be a positive whole number') },
+    { key: 'costCenter', label: 'Cost Center', sampleValue: 'CC-DS-1001' },
+    { key: 'probationPeriod', label: 'Probation Period (Months)', sampleValue: '3', validate: (v) => (!v || (/^\d+$/.test(String(v)) && Number(v) <= 24) ? null : 'Probation Period must be 0-24 months') },
+    { key: 'departmentEmail', label: 'Department Email', sampleValue: 'designstudio@yourcompany.com', validate: (v) => (!v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v)) ? null : 'Must be a valid email address') },
     { key: 'workingDays', label: 'Working Days', sampleValue: 'Monday - Saturday' },
     { key: 'defaultShift', label: 'Default Shift', sampleValue: 'General Shift (09:30 AM - 06:30 PM)' },
     { key: 'departmentKeywords', label: 'Department Keywords', sampleValue: 'Design, Creative, Interior' },
-    { key: 'budgetStr', label: 'Budget (FY 25-26)', required: true, sampleValue: '₹ 1.5 Cr' },
 ];
 
 export default function DepartmentsPage() {
@@ -173,38 +163,31 @@ export default function DepartmentsPage() {
     };
 
     const handleImportDepartments = async (rows: DepartmentRow[]) => {
-        await Promise.all(
-            rows.map((row) =>
-                fetch('/api/departments/bulk-import-row', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: row.name,
-                        code: row.code,
-                        branchId: row.branchId,
-                        departmentType: row.departmentType,
-                        businessUnit: row.businessUnit,
-                        isActive: row.isActive?.toLowerCase() === 'active',
-                        hodEmployeeId: row.hodEmployeeId,
-                        reportingToId: row.reportingToId,
-                        effectiveDate: row.effectiveDate,
-                        description: row.description,
-                        keyResponsibilities: row.keyResponsibilities,
-                        employeeCapacity: row.employeeCapacity,
-                        location: row.location,
-                        costCenter: row.costCenter,
-                        probationPeriod: row.probationPeriod,
-                        departmentEmail: row.departmentEmail,
-                        budgetOwner: row.budgetOwner,
-                        assistantCoHead: row.assistantCoHead,
-                        workingDays: row.workingDays,
-                        defaultShift: row.defaultShift,
-                        departmentKeywords: row.departmentKeywords,
-                        budgetStr: row.budgetStr,
-                    }),
-                })
-            )
+        const results = await Promise.allSettled(
+            rows.map((row) => createDepartment({
+                name: row.name,
+                code: sanitizeDepartmentCode(row.code || ''),
+                departmentType: row.departmentType,
+                isActive: row.isActive?.toLowerCase() === 'active',
+                effectiveDate: row.effectiveDate,
+                description: row.description,
+                keyResponsibilities: row.keyResponsibilities,
+                employeeCapacity: row.employeeCapacity ? Number(row.employeeCapacity) : undefined,
+                costCenter: row.costCenter,
+                probationPeriodMonths: row.probationPeriod ? Number(row.probationPeriod) : undefined,
+                departmentEmail: row.departmentEmail,
+                workingDays: row.workingDays,
+                defaultShift: row.defaultShift,
+                departmentKeywords: row.departmentKeywords ? row.departmentKeywords.split(',').map((k) => k.trim()).filter(Boolean) : [],
+            }))
         );
+        const failed = results.filter((r) => r.status === 'rejected');
+        if (failed.length > 0) {
+            const firstError = (failed[0] as PromiseRejectedResult).reason?.response?.data?.message || 'Unknown error';
+            toast.error(`${failed.length} of ${rows.length} department(s) failed to import. First error: ${firstError}`);
+        } else {
+            toast.success(`${rows.length} department(s) imported successfully.`);
+        }
         await fetchDepartments();
     };
 

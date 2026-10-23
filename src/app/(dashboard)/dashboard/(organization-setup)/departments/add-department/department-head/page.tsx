@@ -6,19 +6,20 @@ import { PageHeader } from '@/components/ui/page-header';
 import { useDepartmentForm } from '@/context/DepartmentFormContext';
 import {
     Building2, ChevronRight, User, Calendar, Users, CheckCircle2,
-    HelpCircle, Eye, MapPin, Building, Briefcase, UserCheck, ChevronDown,
+    HelpCircle, Eye, Building, Briefcase, UserCheck, ChevronDown,
     X, Save, ArrowRight, ArrowLeft,
     ShieldCheck, Map, Lightbulb
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { ApiSearchableSelect } from '@/components/common/ApiSearchableSelect';
+import { isValidDepartmentEmail, isValidProbationPeriod } from '@/lib/departmentValidation';
 
 const steps = [
     { num: 1, label: 'Basic Information', status: 'completed', link: '/dashboard/departments/add-department/basic-info' },
     { num: 2, label: 'Department Head', status: 'active', link: '/dashboard/departments/add-department/department-head' },
-    { num: 3, label: 'Description & Settings', status: 'pending', link: '/dashboard/departments/add-department/description' },
-    { num: 4, label: 'Review & Create', status: 'pending', link: '/dashboard/departments/add-department/review' },
+    { num: 3, label: 'Description & Settings', status: 'pending', link: '/dashboard/departments/add-department/description-settings' },
+    { num: 4, label: 'Review & Create', status: 'pending', link: '/dashboard/departments/add-department/review-department-details' },
 ];
 
 const inputCls = 'mt-1 h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-[12px] text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500';
@@ -74,10 +75,16 @@ export default function AddDepartmentHead() {
 
     const handleNext = (e: React.MouseEvent) => {
         e.preventDefault();
-        // Just checking effectiveDate and businessUnit as they are required fields mapped to formData.
-        // Also checking hodEmployeeId and reportingToId if they are treated as required.
         if (!formData.effectiveDate || !formData.businessUnit) {
             toast.error('Please fill in all required fields to proceed.');
+            return;
+        }
+        if (!isValidDepartmentEmail(formData.departmentEmail)) {
+            toast.error('Department Email is not a valid email address.');
+            return;
+        }
+        if (!isValidProbationPeriod(formData.probationPeriodMonths)) {
+            toast.error('Probation Period must be a number of months between 0 and 24.');
             return;
         }
         navigate.push('/dashboard/departments/add-department/description-settings');
@@ -138,7 +145,7 @@ export default function AddDepartmentHead() {
                         {/* Department Leadership Card */}
                         <Card title={<><ShieldCheck size={16} className="text-indigo-600 mr-1" /> Department Leadership</>}>
                             <div className="grid grid-cols-1 gap-x-5 gap-y-3 sm:grid-cols-3 mt-1">
-                                <Field title="Department Head (HOD)" required>
+                                <Field title="Department Head (HOD)" helpText="Can be assigned later">
                                     <div className="mt-1">
                                         <ApiSearchableSelect
                                             apiType="employee"
@@ -150,7 +157,7 @@ export default function AddDepartmentHead() {
                                     </div>
                                 </Field>
 
-                                <Field title="Reporting To" required>
+                                <Field title="Reporting To" helpText="Can be assigned later">
                                     <div className="mt-1">
                                         <ApiSearchableSelect
                                             apiType="employee"
@@ -162,18 +169,28 @@ export default function AddDepartmentHead() {
                                     </div>
                                 </Field>
 
-                                {/* No assistantHodId in default form data, but we can add it if needed, or omit for now */}
+                                <Field title="Assistant / Co-Head" helpText="Optional">
+                                    <div className="mt-1">
+                                        <ApiSearchableSelect
+                                            apiType="employee"
+                                            value={formData.assistantCoHeadId}
+                                            onChange={(val) => updateFormData({ assistantCoHeadId: val })}
+                                            onLabelChange={(label) => updateMeta({ assistantCoHeadName: label })}
+                                            placeholder="Select Assistant / Co-Head"
+                                        />
+                                    </div>
+                                </Field>
 
                                 <Field title="Effective Date" required helpText="From when this department will be active">
                                     <input type="date" value={formData.effectiveDate} onChange={e => updateFormData({ effectiveDate: e.target.value })} className={inputCls} />
                                 </Field>
 
                                 <Field title="Probation Period (Months)" helpText="For new employees in this department">
-                                    <input type="text" defaultValue="3" className={inputCls} />
+                                    <input type="text" inputMode="numeric" value={formData.probationPeriodMonths} onChange={e => updateFormData({ probationPeriodMonths: e.target.value.replace(/[^0-9]/g, '') })} className={inputCls} placeholder="e.g. 3" />
                                 </Field>
 
                                 <Field title="Department Email" helpText="Official email for this department">
-                                    <input type="text" defaultValue="designstudio@designhouse.co.in" className={inputCls} />
+                                    <input type="email" value={formData.departmentEmail} onChange={e => updateFormData({ departmentEmail: e.target.value })} className={inputCls} placeholder="e.g. designstudio@yourcompany.com" />
                                 </Field>
                             </div>
                         </Card>
@@ -181,7 +198,7 @@ export default function AddDepartmentHead() {
                         {/* Location & Cost Center Card */}
                         <Card title={<><Map size={16} className="text-indigo-600 mr-1" /> Location & Cost Center</>}>
                             <div className="grid grid-cols-1 gap-x-5 gap-y-3 sm:grid-cols-3 mt-1">
-                                <Field title="Location" required helpText="Primary">
+                                <Field title="Location" helpText="Defaults to Head Office if left blank">
                                     <div className="mt-1">
                                         <ApiSearchableSelect
                                             apiType="branch"
@@ -193,8 +210,8 @@ export default function AddDepartmentHead() {
                                     </div>
                                 </Field>
 
-                                <Field title="Cost Center" required helpText="Unique cost center code">
-                                    <input type="text" className={inputCls} placeholder="e.g. CC-101" />
+                                <Field title="Cost Center" helpText="Optional">
+                                    <input type="text" value={formData.costCenter} onChange={e => updateFormData({ costCenter: e.target.value })} className={inputCls} placeholder="e.g. CC-101" />
                                 </Field>
 
                                 <Field title="Business Unit" required helpText="Select business unit">
@@ -203,6 +220,7 @@ export default function AddDepartmentHead() {
                                             apiType="business-unit"
                                             value={formData.businessUnit}
                                             onChange={(val) => updateFormData({ businessUnit: val })}
+                                            onLabelChange={(label) => updateMeta({ businessUnitName: label })}
                                             placeholder="Select Business Unit"
                                         />
                                     </div>
@@ -268,7 +286,7 @@ export default function AddDepartmentHead() {
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-2 items-start text-[10.5px]">
                                     <div className="text-zinc-400"><Briefcase size={13} /></div>
                                     <div className="text-zinc-500 font-medium">Business Unit</div>
-                                    <div className="font-semibold text-zinc-800">{formData.businessUnit || '-'}</div>
+                                    <div className="font-semibold text-zinc-800">{formData._meta?.businessUnitName || formData.businessUnit || '-'}</div>
                                 </div>
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-2 items-start text-[10.5px]">
                                     <div className="text-zinc-400"><User size={13} /></div>
@@ -283,21 +301,15 @@ export default function AddDepartmentHead() {
                                 </div>
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-2 items-start text-[10.5px]">
-                                    <div className="text-zinc-400"><MapPin size={13} /></div>
-                                    <div className="text-zinc-500 font-medium">Location</div>
-                                    <div className="font-semibold text-zinc-800">Noida - Head Office</div>
-                                </div>
-
-                                <div className="grid grid-cols-[20px_110px_1fr] gap-x-2 items-start text-[10.5px]">
                                     <div className="text-zinc-400"><Users size={13} /></div>
                                     <div className="text-zinc-500 font-medium">Employee Capacity</div>
-                                    <div className="font-semibold text-zinc-800">50</div>
+                                    <div className="font-semibold text-zinc-800">{formData.employeeCapacity || '-'}</div>
                                 </div>
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-2 items-start text-[10.5px]">
                                     <div className="text-zinc-400"><Calendar size={13} /></div>
                                     <div className="text-zinc-500 font-medium">Effective From</div>
-                                    <div className="font-semibold text-zinc-800">01 May 2025</div>
+                                    <div className="font-semibold text-zinc-800">{formData.effectiveDate ? new Date(formData.effectiveDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</div>
                                 </div>
                             </div>
                         </Card>

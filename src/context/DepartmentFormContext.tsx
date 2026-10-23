@@ -2,13 +2,19 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
+export interface DepartmentDocumentFile {
+  name: string;
+  url: string;
+}
+
 export interface DepartmentFormData {
   _id?: string;
   name: string;
   code: string;
   branchId: string;
   hodEmployeeId: string;
-  reportingToId: string; // Not strictly in Department model, maybe handled separately or ignored if not in model
+  reportingToId: string;
+  assistantCoHeadId: string;
   description: string;
   isActive: boolean;
   departmentType: string;
@@ -19,34 +25,49 @@ export interface DepartmentFormData {
   employeeCapacity: string;
   workingDays: string;
   defaultShift: string;
-  documents?: File[];
+  costCenter: string;
+  probationPeriodMonths: string;
+  departmentEmail: string;
+  // Comma-separated, same pattern as keyResponsibilities — split into an array only when
+  // submitting to the API (see review-department-details).
+  departmentKeywords: string;
+  documents: DepartmentDocumentFile[];
   _meta?: {
     branchName?: string;
     hodName?: string;
     reportingToName?: string;
+    assistantCoHeadName?: string;
     budgetOwnerName?: string;
+    businessUnitName?: string;
   };
 }
 
-const defaultFormData: DepartmentFormData = {
+// A fresh "today" each time a new Add Department form is opened, not a constant baked in
+// at module-load time (which would go stale the moment the server/bundle was built).
+const buildDefaultFormData = (): DepartmentFormData => ({
   name: '',
   code: '',
   branchId: '',
   hodEmployeeId: '',
   reportingToId: '',
+  assistantCoHeadId: '',
   description: '',
   isActive: true,
   departmentType: '',
   businessUnit: '',
   budgetOwnerId: '',
-  effectiveDate: '',
+  effectiveDate: new Date().toISOString().slice(0, 10),
   keyResponsibilities: '',
   employeeCapacity: '',
   workingDays: 'Monday - Saturday',
   defaultShift: 'General Shift (09:30 AM - 06:30 PM)',
+  costCenter: '',
+  probationPeriodMonths: '',
+  departmentEmail: '',
+  departmentKeywords: '',
   documents: [],
   _meta: {},
-};
+});
 
 interface DepartmentFormContextType {
   formData: DepartmentFormData;
@@ -59,7 +80,7 @@ interface DepartmentFormContextType {
 const DepartmentFormContext = createContext<DepartmentFormContextType | undefined>(undefined);
 
 export function DepartmentFormProvider({ children }: { children: ReactNode }) {
-  const [formData, setFormData] = useState<DepartmentFormData>(defaultFormData);
+  const [formData, setFormData] = useState<DepartmentFormData>(buildDefaultFormData);
 
   const updateFormData = (data: Partial<DepartmentFormData>) => {
     setFormData((prev) => ({ ...prev, ...data }));
@@ -76,7 +97,7 @@ export function DepartmentFormProvider({ children }: { children: ReactNode }) {
   };
 
   const resetForm = () => {
-    setFormData(defaultFormData);
+    setFormData(buildDefaultFormData());
   };
 
   return (
