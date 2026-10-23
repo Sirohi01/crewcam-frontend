@@ -167,7 +167,7 @@ function FiltersBar({
 }
 
 // ─── Table ──────────────────────────────────────────────────────────────────
-function RequisitionsTable({ rows, onToggleStar, onDelete }: { rows: any[]; onToggleStar: (id: string) => void; onDelete: (id: string) => void; }) {
+function RequisitionsTable({ rows, onToggleStar, onDelete, onPostJob }: { rows: any[]; onToggleStar: (id: string) => void; onDelete: (id: string) => void; onPostJob: (id: string) => void; }) {
   if (rows.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-10">
@@ -213,14 +213,9 @@ function RequisitionsTable({ rows, onToggleStar, onDelete }: { rows: any[]; onTo
                 <td className="py-1.5 px-3 text-center text-[10px] text-zinc-600 whitespace-nowrap">{r.locationBranchId?.name || r.location || 'N/A'}</td>
                 <td className="py-1.5 px-3">
                   <div className="flex items-center text-center justify-center gap-2">
-                    {/* <img
-                    src={`https://ui-avatars.com/api/?name=${r.requestedBy?.firstName || 'User'}+${r.requestedBy?.lastName || ''}&background=random`}
-                    alt="avatar"
-                    className="w-7 h-7 rounded-full object-cover border border-zinc-100 shrink-0"
-                  /> */}
                     <div className="text-center whitespace-nowrap">
                       <p className="text-[10px] font-semibold text-zinc-900 leading-tight">{r.requestedBy?.firstName} {r.requestedBy?.lastName}</p>
-                      <p className="text-[10px] text-zinc-400 leading-tight">{r.designation || 'N/A'}</p>
+                      <p className="text-[10px] text-zinc-400 leading-tight">{r.designationId?.name || r.designation || 'N/A'}</p>
                     </div>
                   </div>
                 </td>
@@ -238,6 +233,9 @@ function RequisitionsTable({ rows, onToggleStar, onDelete }: { rows: any[]; onTo
                     <Link href={`/dashboard/hiring/manpower/${r._id || r.id}/edit`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
                       <Pencil size={13} />
                     </Link>
+                    <button title="Post Job" onClick={() => { if (confirm('Are you sure you want to post this job?')) onPostJob(r._id || r.id); }} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-emerald-200 hover:text-emerald-600 transition-colors">
+                      <Send size={13} />
+                    </button>
                     <button onClick={() => { if (confirm('Are you sure you want to delete this requisition?')) onDelete(r._id || r.id); }} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-rose-200 hover:text-rose-600 transition-colors">
                       <Trash2 size={13} />
                     </button>
@@ -378,7 +376,9 @@ export default function JobRequisitionsPage() {
       queryClient.invalidateQueries({ queryKey: ['manpower-requests'] });
       queryClient.invalidateQueries({ queryKey: ['manpower-request-stats'] });
     },
-    onError: () => toast.error('Failed to delete requisition')
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Failed to delete requisition');
+    }
   });
 
   const activeCount = [
@@ -407,6 +407,15 @@ export default function JobRequisitionsPage() {
       return next;
     });
   };
+
+  const postMutation = useMutation({
+    mutationFn: (id: string) => api.put(`/hiring/manpower-request/${id}/status`, { recruitmentStatus: 'Posted' }),
+    onSuccess: () => {
+      toast.success('Job posted successfully');
+      queryClient.invalidateQueries({ queryKey: ['manpower-requests'] });
+    },
+    onError: () => toast.error('Failed to post job')
+  });
 
   // The backend might return paginated { data, meta } or just an array.
   const rows = Array.isArray(requisitionsData) ? requisitionsData : requisitionsData?.data || [];
@@ -451,7 +460,7 @@ export default function JobRequisitionsPage() {
               <Loader2 className="animate-spin w-8 h-8" />
             </div>
           ) : (
-            <RequisitionsTable rows={displayRows} onToggleStar={toggleStar} onDelete={(id) => deleteMutation.mutate(id)} />
+            <RequisitionsTable rows={displayRows} onToggleStar={toggleStar} onDelete={(id) => deleteMutation.mutate(id)} onPostJob={(id) => postMutation.mutate(id)} />
           )}
 
           <TableFooter

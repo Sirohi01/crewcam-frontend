@@ -1,18 +1,18 @@
 'use client';
 
+import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  AlertTriangle, BadgeCheck, Briefcase, Building2, CalendarDays, Clock, Cpu, FileText,
-  Flag, Gift, GraduationCap, Heart, IndianRupee, ListChecks, MapPin, Pencil, ShieldCheck,
-  Tag, Target, User, UserMinus, Users, Wallet, Zap,
+  AlertTriangle, Briefcase, Building2, CalendarDays, CheckCircle2, Clock,
+  Cpu, FileText, Flag, Gift, GraduationCap, Heart, IndianRupee,
+  ListChecks, MapPin, Pencil, ShieldCheck, Tag, Target, Trash2, User, UserMinus, Users,
+  Wallet, Zap,
 } from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
+import { toast } from 'react-hot-toast';
 import { openFileUrl } from '@/lib/fileUrls';
-
-const PALETTE = ['bg-indigo-100 text-indigo-600', 'bg-violet-100 text-violet-600', 'bg-emerald-100 text-emerald-600', 'bg-blue-100 text-blue-600', 'bg-amber-100 text-amber-600', 'bg-rose-100 text-rose-600'];
 
 function value(text: any) {
   if (text === undefined || text === null || text === '') return '-';
@@ -33,45 +33,50 @@ function formatDateTime(date: any) {
 }
 
 const STATUS_BADGE: Record<string, string> = {
-  Pending: 'bg-amber-100 text-amber-700',
-  Approved: 'bg-emerald-100 text-emerald-700',
-  Rejected: 'bg-rose-100 text-rose-700',
-  'In Progress': 'bg-indigo-100 text-indigo-700',
-  'On Hold': 'bg-zinc-100 text-zinc-700',
-  Completed: 'bg-emerald-100 text-emerald-700',
+  Pending: 'bg-amber-50 text-amber-600 border border-amber-200/60',
+  Approved: 'bg-emerald-50 text-emerald-600 border border-emerald-200/60',
+  Rejected: 'bg-rose-50 text-rose-600 border border-rose-200/60',
+  'In Progress': 'bg-indigo-50 text-indigo-600 border border-indigo-200/60',
+  'On Hold': 'bg-zinc-100 text-zinc-600 border border-zinc-200',
+  Completed: 'bg-emerald-50 text-emerald-600 border border-emerald-200/60',
 };
 
-function MiniCard({ icon: Icon, label, value: val, cls, badge }: { icon: any; label: string; value: React.ReactNode; cls: string; badge?: boolean }) {
+function Card({
+  title,
+  action,
+  children,
+  className = '',
+}: {
+  title?: string;
+  action?: React.ReactNode;
+  children?: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="flex items-center gap-2.5 rounded-lg border border-zinc-100 bg-white p-2.5 dark:border-zinc-800 dark:bg-zinc-950">
-      <div className={`h-8 w-8 rounded-md flex items-center justify-center shrink-0 ${cls}`}><Icon size={15} /></div>
-      <div className="min-w-0">
-        <p className="text-[10px] uppercase tracking-wide text-zinc-400">{label}</p>
-        {badge ? (
-          <span className={`inline-block mt-0.5 rounded-full px-2 py-0.5 text-[11px] font-md ${STATUS_BADGE[String(val)] || 'bg-zinc-100 text-zinc-700'}`}>{val}</span>
-        ) : (
-          <p className="text-sm font-md text-zinc-900 dark:text-zinc-100 truncate">{val}</p>
-        )}
-      </div>
+    <div className={`rounded-[2px] border border-zinc-200 bg-white shadow-sm ${className}`}>
+      {title && (
+        <div className="flex items-center justify-between gap-2 border-b border-zinc-100 px-2.5 py-1.5">
+          <h3 className="text-[12px] font-bold text-zinc-800">{title}</h3>
+          {action}
+        </div>
+      )}
+      <div className="px-2.5 pb-2.5 pt-2">{children}</div>
     </div>
   );
 }
 
-function NoteCard({ icon: Icon, label, cls, children }: { icon: any; label: string; cls: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-lg border border-zinc-100 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="flex items-center gap-2 mb-1.5">
-        <div className={`h-6 w-6 rounded-md flex items-center justify-center shrink-0 ${cls}`}><Icon size={12} /></div>
-        <p className="text-xs font-md text-zinc-700 dark:text-zinc-300">{label}</p>
-      </div>
-      <div className="text-xs text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap leading-relaxed">{children}</div>
-    </div>
-  );
-}
+const tabs = ['Overview', 'Core Details', 'Requirement Notes', 'Approval & Status'];
 
 export default function ManpowerRequestDetail({ id }: { id: string }) {
+  const router = useRouter();
+  const [tab, setTab] = useState('Overview');
   const qc = useQueryClient();
-  const { data: request, isLoading } = useQuery({ queryKey: ['manpower-request', id], queryFn: async () => (await api.get(`/hiring/manpower-request/${id}`)).data });
+
+  const { data: request, isLoading } = useQuery({
+    queryKey: ['manpower-request', id],
+    queryFn: async () => (await api.get(`/hiring/manpower-request/${id}`)).data,
+  });
+
   const generatePdf = useMutation({
     mutationFn: async () => (await api.post(`/hiring/manpower-request/${id}/generate-pdf`)).data,
     onSuccess: (payload) => {
@@ -80,100 +85,488 @@ export default function ManpowerRequestDetail({ id }: { id: string }) {
     },
   });
 
-  if (isLoading) return <div className="p-6 text-sm text-zinc-500">Loading manpower request...</div>;
-  if (!request) return <div className="p-6 text-sm text-zinc-500">Manpower request not found.</div>;
+  const deleteMutation = useMutation({
+    mutationFn: async () => (await api.delete(`/hiring/manpower-request/${id}`)).data,
+    onSuccess: () => {
+      toast.success('Requisition deleted successfully');
+      qc.invalidateQueries({ queryKey: ['manpower-requests'] });
+      qc.invalidateQueries({ queryKey: ['manpower-request-stats'] });
+      router.push('/dashboard/hiring/manpower');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Failed to delete requisition');
+    },
+  });
 
-  const coreDetails: Array<[any, string, any, boolean?]> = [
-    [Building2, 'Department', value(request.departmentId)],
-    [Briefcase, 'Position / Job Title', request.jobTitle || request.designation || '-'],
-    [MapPin, 'Work Location', value(request.locationBranchId) !== '-' ? value(request.locationBranchId) : request.workLocation || '-'],
-    [User, 'Reporting To', value(request.reportingTo)],
-    [User, 'Requested By', value(request.requestedBy)],
-    [Users, 'Positions', request.numberOfPositions ?? '-'],
-    [Clock, 'Employment Type', request.employmentTypes?.join(', ') || request.employmentType || '-'],
-    [Flag, 'Reason for Hiring', request.hiringReasons?.join(', ') || request.reasonForHiring || '-'],
-    [Zap, 'Priority', request.priority || '-'],
-    [IndianRupee, 'Salary Range', request.salaryCtcMin || request.salaryCtcMax ? `${request.salaryCtcMin || '-'} to ${request.salaryCtcMax || '-'}` : '-'],
-    [Wallet, 'Budget CTC', request.budgetCTC ?? '-'],
-    [CalendarDays, 'Request Date', formatDate(request.requestDate)],
-    [CalendarDays, 'Required Joining Date', formatDate(request.requiredJoiningDate)],
-    [AlertTriangle, 'Urgent Requirement', request.isUrgent ? 'Yes' : 'No'],
-    [BadgeCheck, 'Recruitment Status', request.recruitmentStatus || request.status || '-', true],
-  ];
+  if (isLoading) return <div className="p-8 text-center text-xs font-medium text-zinc-500">Loading manpower request details...</div>;
+  if (!request) return <div className="p-8 text-center text-xs font-medium text-zinc-500">Manpower request record not found.</div>;
 
-  const requirementNotes: Array<[any, string, any]> = [
-    [FileText, 'Detailed Justification', request.detailedJustification || '-'],
-    ...(request.replacementName ? [[UserMinus, 'Replacement Employee', request.replacementName] as [any, string, any]] : []),
-    [FileText, 'Job Description Summary', request.jobDescriptionSummary || '-'],
-    [Target, 'KRA Report', request.kraReport || '-'],
-    [ListChecks, 'Key Responsibilities', request.keyResponsibilities?.length ? request.keyResponsibilities.join('\n') : '-'],
-    [GraduationCap, 'Qualification Requirement', request.qualificationReq || '-'],
-    [BadgeCheck, 'Experience Requirement', request.experienceReq || '-'],
-    [Cpu, 'Technical Skills', request.technicalSkills || '-'],
-    [Heart, 'Soft Skills', request.softSkills || '-'],
-    [Gift, 'Benefits', request.benefits?.length ? request.benefits.join(', ') : '-'],
-    [Gift, 'Other Benefits', request.otherBenefits || '-'],
-  ];
+  const departmentName = value(request.departmentId);
+  const positionTitle = request.jobTitle || request.designationId?.name || request.designation || 'Position';
+  const locationText = value(request.locationBranchId) !== '-' ? value(request.locationBranchId) : request.workLocation || '-';
+  const reportingToName = value(request.reportingTo);
+  const requestedByName = value(request.requestedBy);
+  const approvedByName = value(request.approvedBy);
+  const employmentTypeText = request.employmentTypes?.join(', ') || request.employmentType || '-';
+  const hiringReasonText = request.hiringReasons?.join(', ') || request.reasonForHiring || '-';
+  const salaryRangeText = request.salaryCtcMin || request.salaryCtcMax ? `${request.salaryCtcMin || '-'} to ${request.salaryCtcMax || '-'}` : '-';
+  const requestIdShort = String((request as any)._id || id).slice(-8).toUpperCase();
+  const currentStatus = request.status || 'Pending';
 
-  const approvalDetails: Array<[any, string, any, boolean?]> = [
-    [BadgeCheck, 'Status', request.status || '-', true],
-    [User, 'Approved By', value(request.approvedBy)],
-    [CalendarDays, 'Approval Date', formatDate(request.approvalDate)],
-    [CalendarDays, 'Request Received On', formatDate(request.requestReceivedOn)],
-    [CalendarDays, 'Recruitment Start Date', formatDate(request.recruitmentStartDate)],
-    [ShieldCheck, 'Declaration Accepted', request.declarationAccepted ? 'Yes' : 'No'],
-    ...(request.status === 'Rejected' && request.rejectionReason ? [[AlertTriangle, 'Rejection Reason', request.rejectionReason] as [any, string, any]] : []),
-  ];
+  const showAll = tab === 'Overview';
+  const showCore = showAll || tab === 'Core Details';
+  const showNotes = showAll || tab === 'Requirement Notes';
+  const showApproval = showAll || tab === 'Approval & Status';
 
   return (
-    <div className="mx-auto max-w-[1300px] space-y-3 pb-10">
-      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-zinc-200 pb-2 dark:border-zinc-800">
-        <div>
-          <p className="text-[11px] font-md uppercase tracking-wider text-indigo-600">Hiring process · Step 1</p>
-          <h1 className="mt-1 text-lg font-md leading-tight">Manpower Requisition Details</h1>
-          <p className="text-xs text-zinc-500">View the source requisition record before candidate intake.</p>
+    <div className="font-sans">
+      <div className="mx-auto max-w-[1500px] space-y-2 p-1">
+        {/* Header */}
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h1 className="text-xl font-bold text-zinc-900">Manpower Requisition Details</h1>
+            <p className="mt-0.5 flex items-center gap-1.5 text-[10.5px] text-zinc-500">
+              <span>Hiring Process</span> <span>›</span> <span>Step 1</span> <span>›</span>
+              <span className="font-semibold text-zinc-700">Manpower Requisition Details</span>
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Link
+              href="/dashboard/hiring/manpower"
+              className="flex items-center gap-1.5 rounded-[2px] border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50"
+            >
+              Back
+            </Link>
+            <Link
+              href={`/dashboard/hiring/manpower/${id}/edit`}
+              className="flex items-center gap-1.5 rounded-[2px] border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50"
+            >
+              <Pencil size={13} /> Edit
+            </Link>
+            <button
+              type="button"
+              disabled={deleteMutation.isPending}
+              onClick={() => {
+                if (confirm('Are you sure you want to delete this requisition? This will permanently remove it from the database.')) {
+                  deleteMutation.mutate();
+                }
+              }}
+              className="flex items-center gap-1.5 rounded-[2px] border border-rose-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-rose-600 shadow-sm hover:bg-rose-50 disabled:opacity-50"
+            >
+              <Trash2 size={13} /> {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </button>
+            <button
+              type="button"
+              disabled={generatePdf.isPending}
+              onClick={() => generatePdf.mutate()}
+              className="flex items-center gap-1.5 rounded-[2px] bg-indigo-600 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50"
+            >
+              <FileText size={13} /> {generatePdf.isPending ? 'Generating...' : 'Generate PDF'}
+            </button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          {request.status === 'Pending' && <Button variant="outline" size="sm" asChild><Link href={`/dashboard/hiring/manpower/${id}/edit`}><Pencil size={13} className="mr-1.5" />Edit</Link></Button>}
-          <Button size="sm" disabled={generatePdf.isPending} onClick={() => generatePdf.mutate()} className="bg-indigo-600 hover:bg-indigo-700"><FileText size={13} className="mr-1.5" />Generate PDF</Button>
+
+        {/* Profile / Requisition Banner */}
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-[3fr_1fr]">
+          <div className="grid grid-cols-[auto_1fr] gap-x-4 rounded-[2px] border border-zinc-200 bg-white p-2.5 shadow-sm">
+            <div className="row-span-2 shrink-0 text-center">
+              <span className="grid h-16 w-16 place-items-center rounded-[2px] bg-indigo-50 text-indigo-600">
+                <Briefcase size={26} />
+              </span>
+              <span className={`mt-1.5 inline-block rounded-[2px] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${STATUS_BADGE[currentStatus] || 'bg-zinc-100 text-zinc-700'}`}>
+                {currentStatus}
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-start gap-4">
+              <div className="min-w-[220px] flex-1">
+                <p className="flex items-center gap-1.5 text-[15px] font-bold text-zinc-900">
+                  {positionTitle}
+                  {request.isUrgent && (
+                    <span className="rounded-[2px] bg-rose-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-rose-600 border border-rose-100">
+                      Urgent
+                    </span>
+                  )}
+                </p>
+                <p className="mt-0.5 flex items-center gap-1.5 text-[11.5px] text-zinc-600">
+                  <span>{departmentName}</span>
+                  <span className="text-zinc-300">•</span>
+                  <span>{locationText}</span>
+                  <span className="rounded-[2px] bg-blue-50 px-2 py-0.5 text-[9.5px] font-semibold text-blue-600">
+                    {request.recruitmentStatus || request.status || 'Active'}
+                  </span>
+                </p>
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10.5px] text-zinc-500">
+                  <span className="flex items-center gap-1"><User size={11} className="text-zinc-400" /> Reporting to: <strong className="font-semibold text-zinc-700">{reportingToName}</strong></span>
+                  <span className="flex items-center gap-1"><User size={11} className="text-zinc-400" /> Requested by: <strong className="font-semibold text-zinc-700">{requestedByName}</strong></span>
+                  <span className="flex items-center gap-1"><Users size={11} className="text-zinc-400" /> Positions: <strong className="font-semibold text-zinc-700">{request.numberOfPositions ?? '-'}</strong></span>
+                </div>
+              </div>
+
+              <div className="shrink-0 space-y-1 text-[10.5px]">
+                <div className="flex items-center gap-6"><span className="text-zinc-400">Request ID</span><span className="ml-auto font-semibold text-zinc-800">{requestIdShort}</span></div>
+                <div className="flex items-center gap-6"><span className="text-zinc-400">Request Date</span><span className="ml-auto font-semibold text-zinc-800">{formatDate(request.requestDate)}</span></div>
+                <div className="flex items-center gap-6"><span className="text-zinc-400">Priority</span><span className="ml-auto font-semibold text-zinc-800">{request.priority || '-'}</span></div>
+              </div>
+            </div>
+
+            <div className="mt-1.5 grid grid-cols-2 gap-2 border-t border-zinc-100 pt-1.5 text-[10.5px] leading-tight sm:grid-cols-3 lg:grid-cols-6">
+              <div><p className="text-zinc-400 leading-tight">Total Positions</p><p className="font-semibold leading-tight text-zinc-800">{request.numberOfPositions ?? '-'}</p></div>
+              <div><p className="text-zinc-400 leading-tight">Employment Type</p><p className="font-semibold leading-tight text-zinc-800">{employmentTypeText}</p></div>
+              <div><p className="text-zinc-400 leading-tight">Reason for Hiring</p><p className="font-semibold leading-tight text-zinc-800">{hiringReasonText}</p></div>
+              <div><p className="text-zinc-400 leading-tight">Salary Range</p><p className="font-semibold leading-tight text-zinc-800">{salaryRangeText}</p></div>
+              <div><p className="text-zinc-400 leading-tight">Budget CTC</p><p className="font-semibold leading-tight text-zinc-800">{request.budgetCTC ?? '-'}</p></div>
+              <div><p className="text-zinc-400 leading-tight">Required Joining</p><p className="font-semibold leading-tight text-zinc-800">{formatDate(request.requiredJoiningDate)}</p></div>
+            </div>
+          </div>
+
+          <div className="flex flex-col justify-between rounded-[2px] border border-zinc-200 bg-white p-2.5 shadow-sm">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-indigo-600">Requisition Status</span>
+                <span className={`rounded-[2px] px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-wide ${STATUS_BADGE[currentStatus] || 'bg-zinc-100 text-zinc-700'}`}>
+                  {currentStatus}
+                </span>
+              </div>
+              <div className="mt-1.5 h-1.5 overflow-hidden rounded-[2px] bg-zinc-100">
+                <div
+                  className={`h-full rounded-[2px] ${currentStatus === 'Approved' ? 'bg-emerald-500 w-full' : currentStatus === 'Rejected' ? 'bg-rose-500 w-full' : 'bg-indigo-600 w-1/2'}`}
+                />
+              </div>
+              <div className="mt-2 space-y-1 text-[10.5px]">
+                <div className="flex items-center justify-between text-zinc-500">
+                  <span>Recruitment Status</span>
+                  <span className="font-semibold text-zinc-800">{request.recruitmentStatus || request.status || '-'}</span>
+                </div>
+                <div className="flex items-center justify-between text-zinc-500">
+                  <span>Urgent Requirement</span>
+                  <span className={`font-semibold ${request.isUrgent ? 'text-rose-600' : 'text-zinc-800'}`}>{request.isUrgent ? 'Yes' : 'No'}</span>
+                </div>
+                <div className="flex items-center justify-between text-zinc-500">
+                  <span>Declaration</span>
+                  <span className="font-semibold text-zinc-800">{request.declarationAccepted ? 'Accepted' : 'No'}</span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-2 border-t border-zinc-100 pt-1.5 text-[10px] text-zinc-400">
+              <p>Last Updated: <span className="font-semibold text-zinc-700">{formatDateTime((request as any).updatedAt)}</span></p>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex items-center gap-4 overflow-x-auto rounded-[2px] border border-zinc-200 bg-white px-3 py-1.5">
+          {tabs.map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTab(t)}
+              className={`whitespace-nowrap border-b-2 py-1 text-[11px] font-semibold transition-colors ${tab === t ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+
+        {/* Main Content Area */}
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-[3fr_1fr]">
+          <div className="space-y-2">
+            {/* Core Details & Job Description */}
+            {showCore && (
+              <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+                <Card title="Core Details">
+                  <div className="grid grid-cols-2 gap-y-2 gap-x-3 text-[10.5px]">
+                    <div><p className="text-zinc-400">Department</p><p className="font-semibold text-zinc-800">{departmentName}</p></div>
+                    <div><p className="text-zinc-400">Position / Job Title</p><p className="font-semibold text-zinc-800">{positionTitle}</p></div>
+                    <div><p className="text-zinc-400">Work Location</p><p className="font-semibold text-zinc-800">{locationText}</p></div>
+                    <div><p className="text-zinc-400">Reporting To</p><p className="font-semibold text-zinc-800">{reportingToName}</p></div>
+                    <div><p className="text-zinc-400">Requested By</p><p className="font-semibold text-zinc-800">{requestedByName}</p></div>
+                    <div><p className="text-zinc-400">Positions</p><p className="font-semibold text-zinc-800">{request.numberOfPositions ?? '-'}</p></div>
+                    <div><p className="text-zinc-400">Employment Type</p><p className="font-semibold text-zinc-800">{employmentTypeText}</p></div>
+                    <div><p className="text-zinc-400">Reason for Hiring</p><p className="font-semibold text-zinc-800">{hiringReasonText}</p></div>
+                    <div><p className="text-zinc-400">Priority</p><p className="font-semibold text-zinc-800">{request.priority || '-'}</p></div>
+                    <div><p className="text-zinc-400">Salary Range</p><p className="font-semibold text-zinc-800">{salaryRangeText}</p></div>
+                    <div><p className="text-zinc-400">Budget CTC</p><p className="font-semibold text-zinc-800">{request.budgetCTC ?? '-'}</p></div>
+                    <div><p className="text-zinc-400">Request Date</p><p className="font-semibold text-zinc-800">{formatDate(request.requestDate)}</p></div>
+                    <div><p className="text-zinc-400">Required Joining Date</p><p className="font-semibold text-zinc-800">{formatDate(request.requiredJoiningDate)}</p></div>
+                    <div><p className="text-zinc-400">Urgent Requirement</p><p className="font-semibold text-zinc-800">{request.isUrgent ? 'Yes' : 'No'}</p></div>
+                    <div><p className="text-zinc-400">Recruitment Status</p><p className="font-semibold text-zinc-800">{request.recruitmentStatus || request.status || '-'}</p></div>
+                  </div>
+                </Card>
+
+                <Card title="Job Description Summary">
+                  <div className="space-y-2 text-[10.5px]">
+                    <div>
+                      <p className="text-zinc-400 mb-1">Job Description Summary</p>
+                      <p className="leading-relaxed text-zinc-700 whitespace-pre-wrap bg-zinc-50/70 p-2 rounded-[2px] border border-zinc-100">
+                        {request.jobDescriptionSummary || '-'}
+                      </p>
+                    </div>
+                    {request.detailedJustification && (
+                      <div className="border-t border-zinc-100 pt-2">
+                        <p className="text-zinc-400 mb-1">Detailed Justification</p>
+                        <p className="leading-relaxed text-zinc-700 whitespace-pre-wrap bg-zinc-50/70 p-2 rounded-[2px] border border-zinc-100">
+                          {request.detailedJustification}
+                        </p>
+                      </div>
+                    )}
+                    {request.replacementName && (
+                      <div className="flex items-center justify-between border-t border-zinc-100 pt-1.5">
+                        <span className="text-zinc-400">Replacement Employee</span>
+                        <span className="font-semibold text-zinc-800">{request.replacementName}</span>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </div>
+            )}
+
+            {/* Requirement Notes: Skills, Qualifications, Responsibilities, Benefits */}
+            {showNotes && (
+              <>
+                <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+                  <Card title="Skills & Competencies">
+                    <div className="space-y-2.5 text-[10.5px]">
+                      <div>
+                        <p className="text-zinc-400 mb-1">Technical Skills</p>
+                        {request.technicalSkills ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {String(request.technicalSkills)
+                              .split(/[,、\n]+/)
+                              .map((s: string) => s.trim())
+                              .filter(Boolean)
+                              .map((s: string) => (
+                                <span key={s} className="rounded-[2px] bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-700">
+                                  {s}
+                                </span>
+                              ))}
+                          </div>
+                        ) : (
+                          <p className="font-semibold text-zinc-800">-</p>
+                        )}
+                      </div>
+
+                      <div className="border-t border-zinc-100 pt-2">
+                        <p className="text-zinc-400 mb-1">Soft Skills</p>
+                        {request.softSkills ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {String(request.softSkills)
+                              .split(/[,、\n]+/)
+                              .map((s: string) => s.trim())
+                              .filter(Boolean)
+                              .map((s: string) => (
+                                <span key={s} className="rounded-[2px] bg-zinc-50 border border-zinc-200/70 px-2 py-0.5 text-[10px] font-medium text-zinc-700">
+                                  {s}
+                                </span>
+                              ))}
+                          </div>
+                        ) : (
+                          <p className="font-semibold text-zinc-800">-</p>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card title="Qualifications & Experience">
+                    <div className="space-y-2 text-[10.5px]">
+                      <div>
+                        <p className="text-zinc-400">Experience Requirement</p>
+                        <p className="mt-0.5 font-semibold text-zinc-800">{request.experienceReq || '-'}</p>
+                      </div>
+                      <div className="border-t border-zinc-100 pt-2">
+                        <p className="text-zinc-400">Qualification Requirement</p>
+                        <p className="mt-0.5 font-semibold text-zinc-800">{request.qualificationReq || '-'}</p>
+                      </div>
+                      {!request.detailedJustification && (
+                        <div className="border-t border-zinc-100 pt-2">
+                          <p className="text-zinc-400">Detailed Justification</p>
+                          <p className="mt-0.5 text-zinc-800">{request.detailedJustification || '-'}</p>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+
+                <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+                  <Card title="Key Responsibilities & KRA">
+                    <div className="space-y-2 text-[10.5px]">
+                      <div>
+                        <p className="text-zinc-400 mb-1">Key Responsibilities</p>
+                        {request.keyResponsibilities?.length ? (
+                          <ul className="list-disc space-y-0.5 pl-4 text-zinc-700 leading-relaxed">
+                            {request.keyResponsibilities.map((item: string, i: number) => (
+                              <li key={i}>{item}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="font-semibold text-zinc-800">{request.keyResponsibilities || '-'}</p>
+                        )}
+                      </div>
+                      <div className="border-t border-zinc-100 pt-2">
+                        <p className="text-zinc-400 mb-0.5">KRA Report</p>
+                        <p className="leading-relaxed text-zinc-700 whitespace-pre-wrap">{request.kraReport || '-'}</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card title="Compensation & Benefits">
+                    <div className="space-y-2 text-[10.5px]">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <p className="text-zinc-400">Salary Range</p>
+                          <p className="font-semibold text-zinc-800">{salaryRangeText}</p>
+                        </div>
+                        <div>
+                          <p className="text-zinc-400">Budget CTC</p>
+                          <p className="font-semibold text-zinc-800">{request.budgetCTC ?? '-'}</p>
+                        </div>
+                      </div>
+
+                      <div className="border-t border-zinc-100 pt-2">
+                        <p className="text-zinc-400 mb-1">Benefits</p>
+                        {request.benefits?.length ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {request.benefits.map((b: string, i: number) => (
+                              <span key={i} className="rounded-[2px] bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 border border-emerald-100">
+                                {b}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="font-semibold text-zinc-800">{request.benefits || '-'}</p>
+                        )}
+                      </div>
+
+                      <div className="border-t border-zinc-100 pt-2">
+                        <p className="text-zinc-400">Other Benefits</p>
+                        <p className="mt-0.5 font-semibold text-zinc-800">{request.otherBenefits || '-'}</p>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Sidebar / Right Details Column */}
+          <div className="space-y-2">
+            {showApproval && (
+              <Card title="Approval & Status">
+                <div className="space-y-1.5 text-[10.5px]">
+                  <div className="flex items-center justify-between border-b border-zinc-100 pb-1.5">
+                    <span className="text-zinc-400">Status</span>
+                    <span className={`rounded-[2px] px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-wide ${STATUS_BADGE[currentStatus] || 'bg-zinc-100 text-zinc-700'}`}>
+                      {currentStatus}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-400">Approved By</span>
+                    <span className="font-semibold text-zinc-800">{approvedByName}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-400">Approval Date</span>
+                    <span className="font-semibold text-zinc-800">{formatDate(request.approvalDate)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-400">Request Received On</span>
+                    <span className="font-semibold text-zinc-800">{formatDate(request.requestReceivedOn)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-400">Recruitment Start Date</span>
+                    <span className="font-semibold text-zinc-800">{formatDate(request.recruitmentStartDate)}</span>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-zinc-100 pt-1.5">
+                    <span className="text-zinc-400">Declaration Accepted</span>
+                    <span className={`font-semibold ${request.declarationAccepted ? 'text-emerald-600' : 'text-zinc-700'}`}>
+                      {request.declarationAccepted ? 'Yes' : 'No'}
+                    </span>
+                  </div>
+                  {request.status === 'Rejected' && request.rejectionReason && (
+                    <div className="mt-2 rounded-[2px] bg-rose-50 p-2 border border-rose-200 text-rose-700">
+                      <p className="font-bold text-[10px]">Rejection Reason:</p>
+                      <p className="mt-0.5 text-[10.5px] leading-snug">{request.rejectionReason}</p>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            )}
+
+            <Card title="Quick Actions">
+              <div className="space-y-1.5">
+                <button
+                  type="button"
+                  disabled={generatePdf.isPending}
+                  onClick={() => generatePdf.mutate()}
+                  className="w-full flex items-center justify-center gap-1.5 rounded-[2px] bg-indigo-600 py-1.5 text-[10.5px] font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm"
+                >
+                  <FileText size={12} /> {generatePdf.isPending ? 'Generating PDF...' : 'Generate PDF'}
+                </button>
+                <Link
+                  href={`/dashboard/hiring/manpower/${id}/edit`}
+                  className="w-full flex items-center justify-center gap-1.5 rounded-[2px] border border-zinc-200 bg-white py-1.5 text-[10.5px] font-semibold text-zinc-700 hover:bg-zinc-50 shadow-sm"
+                >
+                  <Pencil size={12} /> Edit Requisition
+                </Link>
+                <button
+                  type="button"
+                  disabled={deleteMutation.isPending}
+                  onClick={() => {
+                    if (confirm('Are you sure you want to delete this requisition? This will permanently remove it from the database.')) {
+                      deleteMutation.mutate();
+                    }
+                  }}
+                  className="w-full flex items-center justify-center gap-1.5 rounded-[2px] border border-rose-200 bg-white py-1.5 text-[10.5px] font-semibold text-rose-600 hover:bg-rose-50 shadow-sm disabled:opacity-50"
+                >
+                  <Trash2 size={12} /> {deleteMutation.isPending ? 'Deleting...' : 'Delete Requisition'}
+                </button>
+                <Link
+                  href="/dashboard/hiring/manpower"
+                  className="w-full flex items-center justify-center gap-1.5 rounded-[2px] border border-zinc-200 bg-white py-1.5 text-[10.5px] font-semibold text-zinc-700 hover:bg-zinc-50 shadow-sm"
+                >
+                  Back to Requisitions
+                </Link>
+              </div>
+            </Card>
+
+            <Card title="Requisition Audit">
+              <div className="space-y-1.5 text-[10px] text-zinc-500">
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-1"><Clock size={11} className="text-zinc-400" /> Created On</span>
+                  <span className="font-medium text-zinc-700">{formatDateTime((request as any).createdAt)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-1"><Clock size={11} className="text-zinc-400" /> Last Updated</span>
+                  <span className="font-medium text-zinc-700">{formatDateTime((request as any).updatedAt)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-1"><Tag size={11} className="text-zinc-400" /> Request ID</span>
+                  <span className="font-mono font-medium text-zinc-700">{requestIdShort}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-1"><ShieldCheck size={11} className="text-zinc-400" /> Approved By</span>
+                  <span className="font-medium text-zinc-700">{approvedByName}</span>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        {/* Footer Meta Strip */}
+        <div className="rounded-[2px] border border-zinc-200 bg-white px-3 py-2 shadow-sm flex flex-wrap items-center gap-x-6 gap-y-1.5 text-[10.5px] text-zinc-500">
+          <span className="flex items-center gap-1.5">
+            <Clock size={12} className="text-zinc-400" /> Created On: <strong className="font-semibold text-zinc-700">{formatDateTime((request as any).createdAt)}</strong>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Clock size={12} className="text-zinc-400" /> Last Updated: <strong className="font-semibold text-zinc-700">{formatDateTime((request as any).updatedAt)}</strong>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Tag size={12} className="text-zinc-400" /> Request ID: <strong className="font-semibold text-zinc-700">{requestIdShort}</strong>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <ShieldCheck size={12} className="text-zinc-400" /> Approved By: <strong className="font-semibold text-zinc-700">{approvedByName}</strong>
+          </span>
         </div>
       </div>
-
-      <Card className="border-zinc-200 shadow-sm dark:border-zinc-800">
-        <div className="flex items-center gap-2 px-3 pt-3"><FileText size={14} className="text-indigo-600" /><p className="text-sm font-md">Core Details</p></div>
-        <CardContent className="grid gap-2 p-3 sm:grid-cols-2 md:grid-cols-3">
-          {coreDetails.map(([Icon, label, val, badge], i) => (
-            <MiniCard key={label} icon={Icon} label={label} value={val} badge={badge} cls={PALETTE[i % PALETTE.length]} />
-          ))}
-        </CardContent>
-      </Card>
-
-      <Card className="border-zinc-200 shadow-sm dark:border-zinc-800">
-        <div className="flex items-center gap-2 px-3 pt-3"><FileText size={14} className="text-indigo-600" /><p className="text-sm font-md">Requirement Notes</p></div>
-        <CardContent className="grid gap-2 p-3 md:grid-cols-2">
-          {requirementNotes.map(([Icon, label, val], i) => (
-            <NoteCard key={label} icon={Icon} label={label} cls={PALETTE[i % PALETTE.length]}>{val}</NoteCard>
-          ))}
-        </CardContent>
-      </Card>
-
-      <Card className="border-zinc-200 shadow-sm dark:border-zinc-800">
-        <div className="flex items-center gap-2 px-3 pt-3"><ShieldCheck size={14} className="text-indigo-600" /><p className="text-sm font-md">Approval & Status</p></div>
-        <CardContent className="grid gap-2 p-3 sm:grid-cols-2 md:grid-cols-3">
-          {approvalDetails.map(([Icon, label, val, badge], i) => (
-            <MiniCard key={label} icon={Icon} label={label} value={val} badge={badge} cls={PALETTE[i % PALETTE.length]} />
-          ))}
-        </CardContent>
-      </Card>
-
-      <Card className="border-zinc-200 shadow-sm dark:border-zinc-800">
-        <CardContent className="flex flex-wrap items-center gap-x-6 gap-y-2 p-3 text-xs text-zinc-500">
-          <span className="flex items-center gap-1.5"><Clock size={13} /> Created On <span className="font-md text-zinc-700 dark:text-zinc-300">{formatDateTime((request as any).createdAt)}</span></span>
-          <span className="flex items-center gap-1.5"><Clock size={13} /> Last Updated <span className="font-md text-zinc-700 dark:text-zinc-300">{formatDateTime((request as any).updatedAt)}</span></span>
-          <span className="flex items-center gap-1.5"><Tag size={13} /> Request ID <span className="font-md text-zinc-700 dark:text-zinc-300">{String((request as any)._id).slice(-8).toUpperCase()}</span></span>
-          <span className="flex items-center gap-1.5"><ShieldCheck size={13} /> Approved By <span className="font-md text-zinc-700 dark:text-zinc-300">{value(request.approvedBy)}</span></span>
-        </CardContent>
-      </Card>
     </div>
   );
 }

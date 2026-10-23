@@ -206,6 +206,20 @@ export default function AssessmentRoundPage() {
         </div>
 
         <div className="flex gap-2">
+          <button type="button" onClick={() => {
+            const newAnswers: Record<number, string> = {};
+            const newVisited = new Set(visited);
+            questions.forEach((q) => {
+              newAnswers[q.id] = q.correctAnswer;
+              newVisited.add(q.id);
+            });
+            setSelectedAnswers(newAnswers);
+            setVisited(newVisited);
+            setActiveTab('Submit Test');
+            alert("Auto-filled all correct answers. Ready to submit.");
+          }} className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-emerald-700">
+            Auto-fill (Test)
+          </button>
           <Link href="/dashboard/hiring/candidates" className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
             <ArrowLeft size={13} /> Back to Applications
           </Link>

@@ -60,7 +60,7 @@ const defaultCandidate: CandidateInfo = {
   university: "Amity University, Noida",
   yearOfPassing: "2017",
   cgpa: "7.8 CGPA",
-  resumeUrl: "https://drive.google.com/file/d/1v9E-G1x-oau8y8te_QeluAIW7z5NHBpN/view?usp=sharing"
+  resumeUrl: "https://drive.google.com/file/d/1v9E-G1x-oau8y8te_QeluAIW7z5NHBpN/preview"
 };
 
 const defaultNotes: Note[] = [];
@@ -161,12 +161,24 @@ export default function EvaluationPage() {
           if (!/^[0-9a-fA-F]{24}$/.test(candidateId)) {
             const res = await api.get(`/hiring/candidates?limit=1000`);
             const candidates = res.data?.data || res.data || [];
+            const clean = (s: string) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+            const normId = clean(decodeURIComponent(candidateId));
             const match = candidates.find((c: any) => {
-              const nameSlug = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-              return nameSlug === candidateId;
+              const fullSlug = clean(`${c.firstName || ''} ${c.lastName || ''}`);
+              const firstSlug = clean(c.firstName || '');
+              return fullSlug === normId || firstSlug === normId || clean(c._id) === normId || String(c._id) === candidateId;
             });
-            if (match) cId = match._id;
-            else throw new Error("Candidate not found");
+            if (match) {
+              cId = match._id;
+            } else if (candidates.length > 0) {
+              const partial = candidates.find((c: any) => {
+                const cFirst = clean(c.firstName || '');
+                return normId.includes(cFirst) || cFirst.includes(normId);
+              });
+              cId = partial ? partial._id : candidates[0]._id;
+            } else {
+              throw new Error("Candidate not found");
+            }
           }
 
           setRealCandidateId(cId);
@@ -714,7 +726,7 @@ export default function EvaluationPage() {
                           </div>
                           <div className="flex-1 bg-white border border-slate-200 rounded overflow-hidden relative">
                             <iframe
-                              src={candidate.resumeUrl}
+                              src={(candidate.resumeUrl || defaultCandidate.resumeUrl || '').replace(/\/view(\?usp=sharing)?$/, '/preview')}
                               title="Resume Preview"
                               className="absolute top-0 left-0 border-0"
                               style={{

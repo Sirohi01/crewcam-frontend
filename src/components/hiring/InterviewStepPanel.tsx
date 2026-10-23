@@ -9,7 +9,7 @@ import api from '@/lib/axios';
 import moment from 'moment';
 import StepGate from './StepGate';
 
-const inputClass = 'w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:bg-zinc-900 dark:border-zinc-700';
+const inputClass = 'w-full !h-9 rounded-md border border-zinc-300 px-3 py-1.5 text-xs leading-normal bg-white text-zinc-900 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-100';
 
 const ROUND_TYPES = ['Telephonic', 'Technical', 'HR', 'Managerial', 'Final'];
 
@@ -91,7 +91,7 @@ export default function InterviewStepPanel({
                       {[1, 2, 3, 4, 5].map((r) => <option key={r} value={r}>{r}/5</option>)}
                     </select>
                   )}
-                  <textarea value={feedbackForm.feedback} onChange={(e) => setFeedbackForm({ ...feedbackForm, feedback: e.target.value })} className={inputClass} rows={2} placeholder="Feedback notes..." />
+                  <textarea value={feedbackForm.feedback} onChange={(e) => setFeedbackForm({ ...feedbackForm, feedback: e.target.value })} className={`${inputClass} !h-auto min-h-[60px] py-2`} rows={2} placeholder="Feedback notes..." />
                   <div className="flex gap-2">
                     <Button className="text-xs h-7 px-2 bg-indigo-600 hover:bg-indigo-700 text-white" disabled={feedbackMutation.isPending} onClick={() => feedbackMutation.mutate(iv._id)}>
                       Submit

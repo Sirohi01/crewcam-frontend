@@ -79,6 +79,9 @@ const ApiSelect = forwardRef<HTMLSelectElement, ApiSelectProps>(
           {...props}
         >
           <option value="">{placeholderText}</option>
+          {Boolean(props.value) && !options.some((opt: any) => String(config.value(opt)) === String(props.value)) && (
+            <option value={props.value}>Selected ({String(props.value).slice(-6)})</option>
+          )}
           {options.map((opt: any) => (
             <option key={opt._id} value={config.value(opt)}>
               {config.label(opt)}
