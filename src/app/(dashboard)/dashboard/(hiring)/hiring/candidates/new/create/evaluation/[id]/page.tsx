@@ -44,8 +44,8 @@ export default function HODReviewTab() {
   const defaultStrengths = screeningData?.matchedSkills || aiData?.strengths || parsedResume?.skills || [];
   const defaultConcerns = screeningData?.missingSkills || aiData?.weaknesses || aiData?.missingSkills || [];
 
-  const [strengths, setStrengths] = React.useState(defaultStrengths.length > 0 ? defaultStrengths : ['Relevant Experience', 'Leadership Skills']);
-  const [concerns, setConcerns] = React.useState(defaultConcerns.length > 0 ? defaultConcerns : ['No concerns highlighted']);
+  const [strengths, setStrengths] = React.useState<string[]>(defaultStrengths.length > 0 ? defaultStrengths : ['Relevant Experience', 'Leadership Skills']);
+  const [concerns, setConcerns] = React.useState<string[]>(defaultConcerns.length > 0 ? defaultConcerns : ['No concerns highlighted']);
 
   React.useEffect(() => {
     if (screeningData?.matchedSkills?.length > 0) {
@@ -78,8 +78,8 @@ export default function HODReviewTab() {
     }
   };
 
-  const removeStrength = (s: string) => setStrengths(strengths.filter(item => item !== s));
-  const removeConcern = (c: string) => setConcerns(concerns.filter(item => item !== c));
+  const removeStrength = (s: string) => setStrengths(strengths.filter((item: string) => item !== s));
+  const removeConcern = (c: string) => setConcerns(concerns.filter((item: string) => item !== c));
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
