@@ -4,32 +4,23 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, Smartphone, Monitor, Globe, Trash2, Loader2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuthStore } from '@/store/authStore';
+import api from '@/lib/axios';
 
 export default function SessionsPage() {
-  const token = useAuthStore(state => state.token);
   const queryClient = useQueryClient();
 
   const { data: sessions, isLoading } = useQuery({
     queryKey: ['sessions'],
     queryFn: async () => {
-      const res = await fetch('http://localhost:8000/api/v1/settings/sessions', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error('Failed to fetch sessions');
-      return res.json();
+      const res = await api.get('/settings/sessions');
+      return res.data;
     },
-    enabled: !!token
   });
 
   const revokeMutation = useMutation({
     mutationFn: async (sessionId: string) => {
-      const res = await fetch(`http://localhost:8000/api/v1/settings/sessions/${sessionId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error('Failed to revoke session');
-      return res.json();
+      const res = await api.delete(`/settings/sessions/${sessionId}`);
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sessions'] });

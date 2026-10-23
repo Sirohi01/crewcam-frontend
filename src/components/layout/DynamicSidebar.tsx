@@ -157,6 +157,7 @@ export default function DynamicSidebar() {
     if (loginType === 'employee') {
       filteredItems = filteredItems.filter(item => !ADMIN_EXCLUSIVE_SECTIONS.has(item.section));
     }
+    // const filteredItems = items.filter(item => !EXCLUDED_LABELS.has(item.label));
 
     let merged = [...STATIC_PEOPLE_ITEMS, ...filteredItems];
 
@@ -339,7 +340,7 @@ export default function DynamicSidebar() {
 
         {/* Nav */}
         <div className="sidebar-scroll flex-1 overflow-y-auto py-2">
-          <div className="px-2 space-y-4">
+          <div className="px-2 space-y-2">
 
             {sections.map((group) => {
               const isSectionOpen = openSection === group.section || group.section === 'WORKSPACE';

@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { TrendingUp, Target, Star, CheckCircle, FileSignature } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
+import api from '@/lib/axios';
 
 export default function PMSPage() {
-  const token = useAuthStore(state => state.token);
   const user = useAuthStore(state => state.user);
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'my-appraisals' | 'team-appraisals' | 'kras'>('my-appraisals');
@@ -17,49 +17,35 @@ export default function PMSPage() {
   const { data: myAppraisals, isLoading: isMyLoading } = useQuery({
     queryKey: ['my-appraisals'],
     queryFn: async () => {
-      const res = await fetch('http://localhost:8000/api/v1/pms/appraisals/my', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error('Failed to fetch my appraisals');
-      return res.json();
+      const res = await api.get('/pms/appraisals/my');
+      return res.data;
     },
-    enabled: !!token && activeTab === 'my-appraisals'
+    enabled: activeTab === 'my-appraisals'
   });
 
   const { data: teamAppraisals, isLoading: isTeamLoading } = useQuery({
     queryKey: ['team-appraisals'],
     queryFn: async () => {
-      const res = await fetch('http://localhost:8000/api/v1/pms/appraisals/team', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error('Failed to fetch team appraisals');
-      return res.json();
+      const res = await api.get('/pms/appraisals/team');
+      return res.data;
     },
-    enabled: !!token && activeTab === 'team-appraisals'
+    enabled: activeTab === 'team-appraisals'
   });
 
   const { data: kras, isLoading: isKrasLoading } = useQuery({
     queryKey: ['kras'],
     queryFn: async () => {
-      const res = await fetch('http://localhost:8000/api/v1/pms/kras/my', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error('Failed to fetch KRAs');
-      return res.json();
+      const res = await api.get('/pms/kras/my');
+      return res.data;
     },
-    enabled: !!token && activeTab === 'kras'
+    enabled: activeTab === 'kras'
   });
 
   // Mutations
   const submitAppraisalMutation = useMutation({
     mutationFn: async (payload: any) => {
-      const res = await fetch('http://localhost:8000/api/v1/pms/appraisals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) throw new Error('Failed to submit appraisal');
-      return res.json();
+      const res = await api.post('/pms/appraisals', payload);
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-appraisals'] });
@@ -70,13 +56,8 @@ export default function PMSPage() {
 
   const reviewAppraisalMutation = useMutation({
     mutationFn: async ({ id, payload }: { id: string, payload: any }) => {
-      const res = await fetch(`http://localhost:8000/api/v1/pms/appraisals/${id}/review`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) throw new Error('Failed to review appraisal');
-      return res.json();
+      const res = await api.put(`/pms/appraisals/${id}/review`, payload);
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['team-appraisals'] });

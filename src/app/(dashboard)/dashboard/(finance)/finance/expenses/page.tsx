@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Receipt, CheckCircle, Clock, XCircle, Banknote } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
+import api from '@/lib/axios';
 
 export default function ExpensesPage() {
-  const token = useAuthStore(state => state.token);
   const user = useAuthStore(state => state.user);
   const queryClient = useQueryClient();
 
@@ -17,24 +17,15 @@ export default function ExpensesPage() {
   const { data: expenses, isLoading } = useQuery({
     queryKey: ['expenses'],
     queryFn: async () => {
-      const res = await fetch('http://localhost:8000/api/v1/finance/expenses', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error('Failed to fetch expenses');
-      return res.json();
+      const res = await api.get('/finance/expenses');
+      return res.data;
     },
-    enabled: !!token
   });
 
   const submitExpenseMutation = useMutation({
     mutationFn: async (payload: any) => {
-      const res = await fetch('http://localhost:8000/api/v1/finance/expenses', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) throw new Error('Failed to submit expense');
-      return res.json();
+      const res = await api.post('/finance/expenses', payload);
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
@@ -45,13 +36,8 @@ export default function ExpensesPage() {
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status, approverComments }: { id: string, status: string, approverComments: string }) => {
-      const res = await fetch(`http://localhost:8000/api/v1/finance/expenses/${id}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ status, approverComments })
-      });
-      if (!res.ok) throw new Error('Failed to update expense status');
-      return res.json();
+      const res = await api.put(`/finance/expenses/${id}/status`, { status, approverComments });
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });

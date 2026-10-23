@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { FileSignature, CheckCircle, XCircle, FileText } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
+import api from '@/lib/axios';
 
 export default function AgreementsPage() {
-  const token = useAuthStore(state => state.token);
   const user = useAuthStore(state => state.user);
   const queryClient = useQueryClient();
 
@@ -17,24 +17,15 @@ export default function AgreementsPage() {
   const { data: agreements, isLoading } = useQuery({
     queryKey: ['agreements'],
     queryFn: async () => {
-      const res = await fetch('http://localhost:8000/api/v1/finance/agreements', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error('Failed to fetch agreements');
-      return res.json();
+      const res = await api.get('/finance/agreements');
+      return res.data;
     },
-    enabled: !!token
   });
 
   const createAgreementMutation = useMutation({
     mutationFn: async (payload: any) => {
-      const res = await fetch('http://localhost:8000/api/v1/finance/agreements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) throw new Error('Failed to create agreement');
-      return res.json();
+      const res = await api.post('/finance/agreements', payload);
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agreements'] });
@@ -46,13 +37,8 @@ export default function AgreementsPage() {
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string, status: string }) => {
-      const res = await fetch(`http://localhost:8000/api/v1/finance/agreements/${id}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ status })
-      });
-      if (!res.ok) throw new Error('Failed to update status');
-      return res.json();
+      const res = await api.put(`/finance/agreements/${id}/status`, { status });
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agreements'] });

@@ -2,44 +2,27 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShieldAlert, ShieldCheck, QrCode, Loader2 } from 'lucide-react';
-import { useAuthStore } from '@/store/authStore';
+import { ShieldAlert, ShieldCheck, Loader2 } from 'lucide-react';
+import api from '@/lib/axios';
 import { useQuery, useMutation } from '@tanstack/react-query';
 
 export default function SecurityPage() {
-  const token = useAuthStore(state => state.token);
-  const user = useAuthStore(state => state.user);
-
   const [isSettingUp, setIsSettingUp] = useState(false);
   const [tokenInput, setTokenInput] = useState('');
 
   const { data: setupData, refetch: getSetupData, isFetching: isFetchingSetup } = useQuery({
     queryKey: ['setup2fa'],
     queryFn: async () => {
-      const res = await fetch('http://localhost:8000/api/v1/auth/2fa/setup', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Failed to setup 2FA');
-      }
-      return res.json();
+      const res = await api.post('/auth/2fa/setup');
+      return res.data;
     },
     enabled: false // Only fetch when they click "Enable 2FA"
   });
 
   const enableMutation = useMutation({
     mutationFn: async (otpToken: string) => {
-      const res = await fetch('http://localhost:8000/api/v1/auth/2fa/enable', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ token: otpToken })
-      });
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Failed to verify token');
-      }
-      return res.json();
+      const res = await api.post('/auth/2fa/enable', { token: otpToken });
+      return res.data;
     },
     onSuccess: () => {
       alert('2FA has been successfully enabled!');
@@ -47,29 +30,21 @@ export default function SecurityPage() {
       window.location.reload(); // Reload to update state
     },
     onError: (error: any) => {
-      alert(error.message);
+      alert(error.response?.data?.message || 'Failed to verify token');
     }
   });
 
   const disableMutation = useMutation({
     mutationFn: async (otpToken: string) => {
-      const res = await fetch('http://localhost:8000/api/v1/auth/2fa/disable', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ token: otpToken })
-      });
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Failed to verify token');
-      }
-      return res.json();
+      const res = await api.post('/auth/2fa/disable', { token: otpToken });
+      return res.data;
     },
     onSuccess: () => {
       alert('2FA has been disabled.');
       window.location.reload(); // Reload to update state
     },
     onError: (error: any) => {
-      alert(error.message);
+      alert(error.response?.data?.message || 'Failed to verify token');
     }
   });
 
