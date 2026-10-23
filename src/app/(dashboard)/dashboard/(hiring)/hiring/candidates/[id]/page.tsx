@@ -226,15 +226,59 @@ export default function CandidateDetailsPage() {
   
   // Extract data from applicationDetails (the AI parsed data)
   const appDetails = applicationDetails || {};
+  const parsedResume = appDetails.parsedResume || candidateData.parsedResume || {};
+  const aiScreening = appDetails.aiScreening || appDetails.aiScreeningData || {};
+  
   const currentCtc = appDetails.currentCTC || 'N/A';
   const expectedCtc = appDetails.expectedCTC || 'N/A';
   const experience = appDetails.totalExperience ? `${appDetails.totalExperience} Years` : 'N/A';
   const location = appDetails.currentLocation || appDetails.location || 'N/A';
   const noticePeriod = appDetails.noticePeriod || 'N/A';
   
+  const candidateSkills = parsedResume.skills || aiScreening.strengths || ['No skills found in resume'];
+  const candidateExperience = parsedResume.experience || [];
+  const candidateEducation = parsedResume.education || [];
+  
+  // Real documents would come from candidate attachments, fallback to uploaded resume
+  const candidateDocuments = candidateData.resumeUrl ? [
+    { name: 'Resume / CV', date: new Date(candidateData.createdAt).toLocaleDateString('en-GB') }
+  ] : [];
+
+  const candidateAiInsights = aiScreening.metrics ? [
+    { label: 'Skills Match', value: `${aiScreening.metrics.skillsMatch || 0}%` },
+    { label: 'Experience Match', value: `${aiScreening.metrics.experienceMatch || 0}%` },
+    { label: 'Education Match', value: `${aiScreening.metrics.educationMatch || 0}%` },
+  ] : [];
+
+  const candidateTimeline = [
+    { title: 'Application Received', by: source || 'Direct', date: new Date(candidateData.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) },
+  ];
+
+  const formatStatus = (s: string) => {
+    const map: Record<string, string> = {
+      'AI_SCREENING': 'AI Screening',
+      'HOD_APPROVAL': 'HOD Approval',
+      'INTERVIEW_SCHEDULED': 'Interview Scheduled',
+      'SHORTLISTED': 'Shortlisted'
+    };
+    return map[s] || s;
+  };
+  
   // Use the name slug for links to keep the URL consistent
-  const candidateSlug = `${firstName || ''} ${lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-  const stageSteps = getPipelineSteps(status, candidateSlug);
+  const candidateSlug = `${firstName || ''} ${lastName || ''}`.trim().toLowerCase().replace(/\s+/g, '-');
+  
+  let finalStatus = status;
+  try {
+    if (typeof window !== 'undefined') {
+      const aiMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
+      const rounds = aiMap[candidateData._id] || aiMap[candidateData.id] || aiMap[candidateSlug] || 0;
+      if (rounds >= 5) finalStatus = 'Offered';
+    }
+  } catch(e) {}
+
+  const displayStatus = formatStatus(finalStatus);
+  const targetCandidateId = candidateData._id || candidateData.id || id;
+  const stageSteps = getPipelineSteps(finalStatus, targetCandidateId);
 
   return (
     <div className="font-sans">
@@ -274,7 +318,7 @@ export default function CandidateDetailsPage() {
                   {firstName.charAt(0)}{lastName ? lastName.charAt(0) : ''}
                 </span>
               )}
-              <span className="mt-1.5 inline-block rounded-[2px] bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-600 uppercase tracking-wide">{status}</span>
+              <span className="mt-1.5 inline-block rounded-[2px] bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-600 uppercase tracking-wide">{displayStatus}</span>
             </div>
 
             <div className="flex flex-wrap items-start gap-4">
@@ -286,7 +330,7 @@ export default function CandidateDetailsPage() {
                 </p>
                 <p className="mt-0.5 flex items-center gap-1.5 text-[11.5px] text-zinc-600">
                   {jobRole}
-                  <span className="rounded-[2px] bg-blue-50 px-2 py-0.5 text-[9.5px] font-semibold text-blue-600">{status}</span>
+                  <span className="rounded-[2px] bg-blue-50 px-2 py-0.5 text-[9.5px] font-semibold text-blue-600">{displayStatus}</span>
                 </p>
                 <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10.5px] text-zinc-500">
                   <span className="flex items-center gap-1"><Phone size={11} className="text-zinc-400" /> {phone}</span>
@@ -348,7 +392,7 @@ export default function CandidateDetailsPage() {
                   <div><p className="text-zinc-400">Applied For</p><p className="font-semibold text-zinc-800">{jobRole}</p></div>
                   <div><p className="text-zinc-400">Department</p><p className="font-semibold text-zinc-800">{departmentName}</p></div>
                   <div><p className="text-zinc-400">Applied On</p><p className="font-semibold text-zinc-800">{appliedDate}</p></div>
-                  <div><p className="text-zinc-400">Current Stage</p><p className="font-semibold text-zinc-800">{status}</p></div>
+                  <div><p className="text-zinc-400">Current Stage</p><p className="font-semibold text-zinc-800">{displayStatus}</p></div>
                   <div><p className="text-zinc-400">Application Source</p><p className="font-semibold text-zinc-800">{source || 'Manual Entry'}</p></div>
                 </div>
               </Card>
@@ -383,7 +427,7 @@ export default function CandidateDetailsPage() {
                   })}
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-2 rounded-[2px] bg-zinc-50 px-2.5 py-2 text-[10.5px]">
-                  <div><p className="text-zinc-400">Status</p><p className="font-semibold text-zinc-800">{status}</p></div>
+                  <div><p className="text-zinc-400">Status</p><p className="font-semibold text-zinc-800">{displayStatus}</p></div>
                 </div>
               </Card>
             </div>
@@ -391,30 +435,31 @@ export default function CandidateDetailsPage() {
             <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
               <Card title="Key Skills">
                 <div className="flex flex-wrap gap-1.5">
-                  {skills.map((s) => (
+                  {candidateSkills.map((s: string) => (
                     <span key={s} className="rounded-[2px] bg-zinc-100 px-2 py-1 text-[10.5px] font-medium text-zinc-700">{s}</span>
                   ))}
-                  <span className="rounded-[2px] bg-indigo-50 px-2 py-1 text-[10.5px] font-semibold text-indigo-600">+5 More</span>
                 </div>
               </Card>
 
               <Card title="Experience Summary">
                 <div className="space-y-1.5">
-                  {experienceHistory.map((e) => (
-                    <div key={e.role} className="flex items-start gap-2">
+                  {candidateExperience.length > 0 ? candidateExperience.map((e: any, i: number) => (
+                    <div key={i} className="flex items-start gap-2">
                       <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-[2px] bg-indigo-500" />
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center justify-between gap-1">
-                          <p className="text-[11px] font-semibold text-zinc-800">{e.role}</p>
-                          <p className="text-[9.5px] text-zinc-400">{e.period}</p>
+                          <p className="text-[11px] font-semibold text-zinc-800">{e.role || e.title}</p>
+                          <p className="text-[9.5px] text-zinc-400">{e.period || e.duration}</p>
                         </div>
                         <p className="text-[10px] text-zinc-500">{e.company}</p>
-                        <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[10px] text-zinc-500">
-                          {e.points.map((p) => <li key={p}>{p}</li>)}
-                        </ul>
+                        {e.points && <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[10px] text-zinc-500">
+                          {e.points.map((p: string, idx: number) => <li key={idx}>{p}</li>)}
+                        </ul>}
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <p className="text-zinc-500 text-xs">No experience history extracted.</p>
+                  )}
                 </div>
               </Card>
             </div>
@@ -422,35 +467,41 @@ export default function CandidateDetailsPage() {
             <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
               <Card title="Education" action={<Link href="#" className="text-[10px] font-semibold text-indigo-600 hover:text-indigo-700">View All Education</Link>}>
                 <div className="space-y-2">
-                  {education.map((e) => (
-                    <div key={e.degree} className="flex items-start gap-2">
+                  {candidateEducation.length > 0 ? candidateEducation.map((e: any, i: number) => (
+                    <div key={i} className="flex items-start gap-2">
                       <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[2px] bg-indigo-50 text-indigo-600"><GraduationCap size={13} /></span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[10.5px] font-semibold text-zinc-800">{e.degree}</p>
-                        <p className="truncate text-[9.5px] text-zinc-400">{e.school}</p>
+                        <p className="truncate text-[10.5px] font-semibold text-zinc-800">{e.degree || e.course}</p>
+                        <p className="truncate text-[9.5px] text-zinc-400">{e.school || e.institution}</p>
                       </div>
                       <div className="shrink-0 text-right">
-                        <p className="text-[9px] text-zinc-400">{e.period}</p>
+                        <p className="text-[9px] text-zinc-400">{e.period || e.duration || e.year}</p>
                         <span className="text-[9px] font-semibold text-emerald-600">Verified</span>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <p className="text-zinc-500 text-xs">No education details extracted.</p>
+                  )}
                 </div>
               </Card>
 
               <Card title="Documents" action={<Link href="#" className="text-[10px] font-semibold text-indigo-600 hover:text-indigo-700">View All Documents</Link>}>
                 <div className="space-y-1">
-                  {documents.map((d) => (
-                    <div key={d.name} className="flex items-center gap-2">
+                  {candidateDocuments.length > 0 ? candidateDocuments.map((d: any, i: number) => (
+                    <div key={i} className="flex items-center gap-2">
                       <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[2px] bg-zinc-100 text-zinc-500"><File size={13} /></span>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[10.5px] font-semibold text-zinc-800">{d.name}</p>
                         <p className="text-[9px] text-zinc-400">{d.date}</p>
                       </div>
                       <span className="shrink-0 rounded-[2px] bg-emerald-50 px-1.5 py-0.5 text-[8.5px] font-semibold text-emerald-600">Verified</span>
-                      <Download size={13} className="shrink-0 text-zinc-400" />
+                      {candidateData.resumeUrl ? (
+                         <a href={candidateData.resumeUrl} target="_blank" rel="noreferrer"><Download size={13} className="shrink-0 text-indigo-600 cursor-pointer" /></a>
+                      ) : <Download size={13} className="shrink-0 text-zinc-400" />}
                     </div>
-                  ))}
+                  )) : (
+                    <p className="text-zinc-500 text-xs">No documents uploaded.</p>
+                  )}
                 </div>
               </Card>
 
@@ -503,13 +554,15 @@ export default function CandidateDetailsPage() {
           <div className="space-y-2">
             <Card title="AI Candidate Insights" action={<span className="rounded-[2px] bg-indigo-50 px-1.5 py-0.5 text-[9px] font-bold text-indigo-600">Beta</span>}>
               <div className="space-y-1">
-                {aiInsights.map((i) => (
+                {candidateAiInsights.length > 0 ? candidateAiInsights.map((i: any) => (
                   <div key={i.label} className="flex items-center gap-2">
                     <span className="grid h-6 w-6 shrink-0 place-items-center rounded-[2px] bg-indigo-50 text-indigo-600"><Sparkles size={12} /></span>
                     <span className="min-w-0 flex-1 truncate text-[10.5px] text-zinc-700">{i.label}</span>
                     <span className="shrink-0 text-[10.5px] font-bold text-zinc-800">{i.value}</span>
                   </div>
-                ))}
+                )) : (
+                  <p className="text-zinc-500 text-xs text-center py-2">No AI insights generated yet.</p>
+                )}
               </div>
               <div className="mt-2 rounded-[2px] bg-indigo-50/60 px-2.5 py-2">
                 <div className="mb-1 flex items-center justify-between">
@@ -549,9 +602,9 @@ export default function CandidateDetailsPage() {
 
             <Card title="Activity Timeline" action={<Link href="#" className="text-[10px] font-semibold text-indigo-600 hover:text-indigo-700">View All</Link>}>
               <div className="space-y-0">
-                {activityTimeline.map((a, i) => (
-                  <div key={a.title} className="relative flex gap-2.5 pb-2.5 last:pb-0">
-                    {i < activityTimeline.length - 1 && <span className="absolute left-[3.5px] top-3 h-full w-px bg-zinc-200" />}
+                {candidateTimeline.map((a: any, i: number) => (
+                  <div key={i} className="relative flex gap-2.5 pb-2.5 last:pb-0">
+                    {i < candidateTimeline.length - 1 && <span className="absolute left-[3.5px] top-3 h-full w-px bg-zinc-200" />}
                     <span className="relative z-10 mt-1 h-2 w-2 shrink-0 rounded-[2px] bg-indigo-600" />
                     <div className="min-w-0 flex-1">
                       <p className="text-[10.5px] font-semibold text-zinc-800">{a.title}</p>

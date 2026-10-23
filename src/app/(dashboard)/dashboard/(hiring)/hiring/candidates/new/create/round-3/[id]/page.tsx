@@ -57,6 +57,10 @@ export default function InterviewUI() {
   const [isSaving, setIsSaving] = React.useState(false);
   const [interviewId, setInterviewId] = React.useState<string | null>(null);
 
+  const [notes, setNotes] = React.useState('');
+  const [attachments, setAttachments] = React.useState<any[]>([]);
+  const [isUploading, setIsUploading] = React.useState(false);
+
   const [timeLeft, setTimeLeft] = React.useState(totalSeconds);
   const [warnings, setWarnings] = React.useState(0);
   const [isForceExited, setIsForceExited] = React.useState(false);
@@ -73,14 +77,14 @@ export default function InterviewUI() {
   const handleManualOverride = async (idx: number, verdict: string) => {
     try {
       const updatedQuestions = [...activeQuestions];
-      const prevAnalysis = updatedQuestions[idx].answerAnalysis || { reasoning: '' };
-      updatedQuestions[idx].answerAnalysis = { ...prevAnalysis, verdict };
+      updatedQuestions[idx] = { ...updatedQuestions[idx], manualOverride: verdict };
       setActiveQuestions(updatedQuestions);
 
       if (interviewId) {
         const dbQuestions = updatedQuestions.map(q => ({
           question: q.text,
           transcript: q.transcript || answers[updatedQuestions.indexOf(q)] || '',
+          manualOverride: q.manualOverride,
           answerAnalysis: q.answerAnalysis
         }));
         await api.put(`/hiring/interviews/${interviewId}/questions`, { questions: dbQuestions });
@@ -98,7 +102,7 @@ export default function InterviewUI() {
       const updatedActiveQuestions = activeQuestions.map((q: any, idx: number) => ({
         ...q,
         answerAnalysis: {
-          verdict: answers[idx]?.length > 50 ? 'adequate' : (answers[idx]?.length > 0 ? 'weak' : 'no_answer'),
+          verdict: 'no_answer',
           reasoning: q.insight
         }
       }));
@@ -107,6 +111,7 @@ export default function InterviewUI() {
       const dbQuestions = updatedActiveQuestions.map((q: any, idx: number) => ({
         question: q.text,
         transcript: answers[idx] || '',
+        manualOverride: q.manualOverride || undefined,
         answerAnalysis: q.answerAnalysis
       }));
       await api.put(`/hiring/interviews/${interviewId}/questions`, { questions: dbQuestions });
@@ -205,6 +210,8 @@ export default function InterviewUI() {
       }
 
       setInterviewId(activeInterview._id);
+      setNotes(activeInterview.notes || '');
+      setAttachments(activeInterview.attachments || []);
 
       if (activeInterview.interviewQuestions && activeInterview.interviewQuestions.length > 0) {
         const mappedQuestions = activeInterview.interviewQuestions.map((q: any) => ({
@@ -218,7 +225,7 @@ export default function InterviewUI() {
       } else {
         // Trigger AI Generation based on Candidate Experience and JD
         try {
-          const genRes = await api.post(`/hiring/interviews/${activeInterview._id}/generate-questions`);
+          const genRes = await api.post(`/ai/hiring/interviews/${activeInterview._id}/generate-questions`);
           const generatedQuestions = genRes.data.questions || [];
 
           if (generatedQuestions.length > 0) {
@@ -286,7 +293,25 @@ export default function InterviewUI() {
       }
 
       if (interviewId) {
-        await api.put(`/hiring/interviews/${interviewId}/feedback`, { status: 'Completed', rating: 0, feedback: 'Completed via AI Round 3' });
+        toast.loading('Analyzing responses with AI...', { id: 'ai-eval' });
+        try {
+          const evalRes = await api.post(`/ai/hiring/interviews/${interviewId}/evaluate-text`);
+          if (evalRes.data && evalRes.data.questions) {
+             const mapped = evalRes.data.questions.map((q: any) => ({
+                ...q,
+                category: 'Managerial',
+                text: q.question,
+                insight: q.answerAnalysis?.reasoning || 'Evaluates candidate response.'
+             }));
+             setActiveQuestions(mapped);
+          }
+          await api.put(`/hiring/interviews/${interviewId}/feedback`, { status: 'Completed', rating: 0, feedback: 'Completed via AI Round 3' });
+          toast.success('Interview Completed!', { id: 'ai-eval' });
+        } catch (err) {
+          console.error(err);
+          toast.error('AI evaluation failed, using fallback.', { id: 'ai-eval' });
+          await api.put(`/hiring/interviews/${interviewId}/feedback`, { status: 'Completed', rating: 0, feedback: 'Completed via AI Round 3' });
+        }
       }
       setIsCompleted(true);
       setActiveTab('AI Questions');
@@ -317,16 +342,20 @@ export default function InterviewUI() {
       setIsSaving(true);
       const updatedActiveQuestions = activeQuestions.map((q: any, idx: number) => ({
         ...q,
-        answerAnalysis: {
-          verdict: idx === currentQuestionIndex ? (currentAns.length > 50 ? 'adequate' : 'weak') : (q.answerAnalysis?.verdict || 'no_answer'),
+        answerAnalysis: idx === currentQuestionIndex ? {
+          verdict: 'no_answer',
           reasoning: q.insight
-        }
+        } : (q.answerAnalysis || {
+          verdict: 'no_answer',
+          reasoning: q.insight
+        })
       }));
       setActiveQuestions(updatedActiveQuestions);
       
       const dbQuestions = updatedActiveQuestions.map((q: any, idx: number) => ({
         question: q.text,
         transcript: answers[idx] || '',
+        manualOverride: q.manualOverride,
         answerAnalysis: q.answerAnalysis
       }));
 
@@ -379,8 +408,37 @@ export default function InterviewUI() {
             totalExperience: appDetails.totalExperience || '',
             expectedCTC: appDetails.expectedCTC || '',
             noticePeriod: appDetails.noticePeriod || '',
-            resumeUrl: data.resumeUrl
+            resumeUrl: data.resumeUrl,
+            profileImageUrl: data.profileImageUrl,
+            createdAt: data.createdAt
           });
+
+          // Check if interview is already created/completed
+          try {
+            const intRes = await api.get(`/hiring/interviews/${cId}`);
+            const activeInterview = (intRes.data || []).find((i: any) => i.roundType === 'Managerial');
+            if (activeInterview) {
+              setInterviewId(activeInterview._id);
+              setNotes(activeInterview.notes || '');
+              setAttachments(activeInterview.attachments || []);
+              
+              if (activeInterview.status === 'Completed' && activeInterview.interviewQuestions?.length > 0) {
+                const mappedQuestions = activeInterview.interviewQuestions.map((q: any) => ({
+                  ...q,
+                  category: 'Managerial',
+                  text: q.question,
+                  insight: q.answerAnalysis?.reasoning || 'Evaluates candidate response.'
+                }));
+                setActiveQuestions(mappedQuestions);
+                setAnswers(mappedQuestions.map((q: any) => q.transcript || ''));
+                setIsCompleted(true);
+                setActiveTab('AI Questions');
+                setHasStarted(true);
+              }
+            }
+          } catch (e) {
+            console.error("Failed to load interview status", e);
+          }
         } catch (err) {
           console.error(err);
           toast.error('Failed to load candidate details');
@@ -442,6 +500,33 @@ export default function InterviewUI() {
                 End Exam & Next Round <StopCircle className="w-3 h-3 ml-1" />
               </button>
             )}
+            {isCompleted && (
+              (() => {
+                const scorePercent = Math.round(activeQuestions.reduce((acc: number, q: any) => {
+                  const effectiveVerdict = q.manualOverride || q.answerAnalysis?.verdict;
+                  if (effectiveVerdict === 'strong') return acc + 100;
+                  if (effectiveVerdict === 'adequate') return acc + 75;
+                  if (effectiveVerdict === 'weak') return acc + 35;
+                  return acc;
+                }, 0) / Math.max(activeQuestions.length, 1));
+                const isPassing = scorePercent >= 60;
+                
+                if (!isPassing) return null;
+                
+                return (
+                  <button onClick={() => {
+                    try {
+                      const storedMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
+                      storedMap[candidateId] = Math.max(storedMap[candidateId] || 0, 3);
+                      localStorage.setItem('ai_completed_rounds_map', JSON.stringify(storedMap));
+                    } catch (e) {}
+                    router.push(`/dashboard/hiring/candidates/new/create/round-4/${candidateId}`);
+                  }} className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-colors">
+                    Proceed to Next Round &rarr;
+                  </button>
+                );
+              })()
+            )}
           </div>
         </div>
         <div className="h-[1px] bg-zinc-200 w-full mb-2 shrink-0"></div>
@@ -451,7 +536,12 @@ export default function InterviewUI() {
           {/* Profile Card */}
           <div className="xl:col-span-2 p-4 bg-white rounded-xl border border-zinc-200 shadow-sm">
             <div className="flex flex-col md:flex-row items-start gap-5 w-full">
-              <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Candidate" className="h-20 w-20 rounded-lg object-cover border border-zinc-200 shadow-sm shrink-0" />
+              <img 
+                src={candidate.profileImageUrl || "https://i.pravatar.cc/150?u=a042581f4e29026704d"} 
+                onError={(e: any) => { e.target.src = "https://i.pravatar.cc/150?u=a042581f4e29026704d"; }}
+                alt="Candidate" 
+                className="h-20 w-20 rounded-lg object-cover border border-zinc-200 shadow-sm shrink-0" 
+              />
               <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
                 {/* Col 1 */}
                 <div className="flex flex-col gap-2">
@@ -520,7 +610,7 @@ export default function InterviewUI() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-zinc-600 flex items-center gap-1.5"><Clock size={12} className="text-indigo-600" /> Applied On</span>
-                <span className="font-bold text-zinc-900">15 Jun 2026, 11:32 AM</span>
+                <span className="font-bold text-zinc-900">{candidate.createdAt ? new Date(candidate.createdAt).toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '15 Jun 2026, 11:32 AM'}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-zinc-600 flex items-center gap-1.5"><HelpCircle size={12} className="text-indigo-600" /> Current Stage</span>
@@ -638,10 +728,23 @@ export default function InterviewUI() {
                       <div className="w-px h-4 bg-zinc-300 mx-1" />
                       <button className="p-1 hover:bg-zinc-200 rounded text-zinc-600"><Link2 size={13} /></button>
                       <button className="p-1 hover:bg-zinc-200 rounded text-zinc-600"><Code size={13} /></button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newAnswers = [...answers];
+                          newAnswers[currentQuestionIndex] = "This is an automatically generated correct answer for testing purposes. It demonstrates a deep understanding of the topic and provides structured points to ensure the candidate meets all requirements and exhibits strong problem-solving skills in this scenario.";
+                          setAnswers(newAnswers);
+                        }}
+                        className="ml-auto px-2 py-1 text-[10px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 rounded hover:bg-indigo-100 transition-colors disabled:opacity-50"
+                        disabled={!hasStarted || isCompleted}
+                      >
+                        Auto Fill Answer
+                      </button>
                     </div>
                     <textarea
-                      className="flex-1 w-full resize-none p-3 text-[12px] text-zinc-800 outline-none min-h-[150px]"
-                      placeholder="Type your answer here..."
+                      disabled={!hasStarted || isCompleted}
+                      className="flex-1 w-full resize-none p-3 text-[12px] text-zinc-800 outline-none min-h-[150px] disabled:bg-zinc-50 disabled:opacity-75 disabled:cursor-not-allowed"
+                      placeholder={hasStarted ? "Type your answer here..." : "Click 'Start Test' to begin..."}
                       value={answers[currentQuestionIndex]}
                       onBlur={handleSaveAnswer}
                       onChange={(e) => {
@@ -888,12 +991,14 @@ export default function InterviewUI() {
                       </p>
                       <div className="bg-white border border-zinc-200 rounded p-3 flex flex-col gap-2 mt-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-zinc-800">AI Evaluation Result</span>
-                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${q.answerAnalysis?.verdict === 'adequate' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                            q.answerAnalysis?.verdict === 'weak' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
-                              'bg-zinc-100 text-zinc-600 border border-zinc-200'
-                            }`}>
-                            {q.answerAnalysis?.verdict?.toUpperCase() || 'NO_ANSWER'}
+                          <span className="text-[10px] font-bold text-zinc-800">Final Verdict</span>
+                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
+                            (q.manualOverride || q.answerAnalysis?.verdict) === 'strong' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' :
+                            (q.manualOverride || q.answerAnalysis?.verdict) === 'adequate' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                            (q.manualOverride || q.answerAnalysis?.verdict) === 'weak' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                            'bg-zinc-100 text-zinc-600 border border-zinc-200'
+                          }`}>
+                            {(q.manualOverride || q.answerAnalysis?.verdict)?.toUpperCase() || 'NO_ANSWER'}
                           </span>
                         </div>
                         <p className="text-[10px] text-zinc-600 leading-relaxed">
@@ -904,10 +1009,10 @@ export default function InterviewUI() {
                           <span className="text-[9px] text-zinc-500">Need to override AI score?</span>
                           <select
                             className="text-[9px] border border-zinc-200 rounded px-2 py-1 bg-zinc-50 focus:outline-none"
-                            value={q.answerAnalysis?.verdict || ''}
+                            value={q.manualOverride || ''}
                             onChange={(e) => handleManualOverride(idx, e.target.value)}
                           >
-                            <option>Select Manual Rating</option>
+                            <option value="">Select Manual Rating</option>
                             <option value="strong">Strongly Meets</option>
                             <option value="adequate">Meets Requirements</option>
                             <option value="weak">Below Requirements</option>
@@ -918,15 +1023,100 @@ export default function InterviewUI() {
                   </div>
                 ))
               )}
+              {isCompleted && (
+                <div className="flex justify-end mt-4">
+                  <button 
+                    onClick={() => setActiveTab('Score')}
+                    className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[12px] rounded-lg shadow-sm"
+                  >
+                    View Final Score &rarr;
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {(activeTab === 'Notes' || activeTab === 'Attachments') && (
-          <div className="mt-4 p-8 rounded-xl border border-dashed border-zinc-200 bg-white shadow-sm flex flex-col items-center justify-center text-center">
-            <FileText className="text-zinc-300 w-8 h-8 mb-2" />
-            <h3 className="text-[13px] font-bold text-zinc-900">{activeTab}</h3>
-            <p className="text-[11px] text-zinc-500 mt-1 max-w-sm">This section is coming soon. You will be able to manage {activeTab.toLowerCase()} here.</p>
+        {activeTab === 'Notes' && (
+          <div className="mt-4 p-5 rounded-xl border border-zinc-100 bg-white shadow-sm flex flex-col gap-4">
+            <h3 className="text-[14px] font-bold text-zinc-900">Interview Notes</h3>
+            <p className="text-[11px] text-zinc-500">Add private notes about the candidate's performance. These will not be visible to the candidate.</p>
+            <textarea
+              className="w-full h-32 p-3 text-[12px] border border-zinc-200 rounded-lg focus:outline-none focus:border-indigo-500"
+              placeholder="Type your notes here..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
+            <div className="flex justify-end">
+              <button
+                onClick={async () => {
+                  if (!interviewId) return;
+                  try {
+                    await api.put(`/hiring/interviews/${interviewId}/feedback`, { notes });
+                    toast.success('Notes saved successfully');
+                  } catch (e) {
+                    toast.error('Failed to save notes');
+                  }
+                }}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] rounded-md shadow-sm"
+              >
+                Save Notes
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'Attachments' && (
+          <div className="mt-4 p-5 rounded-xl border border-zinc-100 bg-white shadow-sm flex flex-col gap-4">
+            <h3 className="text-[14px] font-bold text-zinc-900">Attachments</h3>
+            <p className="text-[11px] text-zinc-500">Upload code snippets, portfolios, or take-home assignment files.</p>
+            <div className="flex items-center gap-3">
+              <input 
+                type="file"
+                id="attachment-upload"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file || !interviewId) return;
+                  try {
+                    setIsUploading(true);
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    const res = await api.post('/upload', formData, {
+                      headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    const newAtt = { name: file.name, url: res.data.url || res.data.secure_url || res.data };
+                    const updated = [...attachments, newAtt];
+                    setAttachments(updated);
+                    await api.put(`/hiring/interviews/${interviewId}/feedback`, { attachments: updated });
+                    toast.success('Attachment uploaded successfully');
+                  } catch (err) {
+                    console.error(err);
+                    toast.error('Failed to upload attachment');
+                  } finally {
+                    setIsUploading(false);
+                    e.target.value = '';
+                  }
+                }}
+              />
+              <label htmlFor="attachment-upload" className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-bold text-[11px] rounded-md border border-zinc-300 cursor-pointer">
+                {isUploading ? 'Uploading...' : 'Upload File'}
+              </label>
+            </div>
+            <div className="flex flex-col gap-2 mt-4">
+              {attachments.length === 0 ? (
+                 <p className="text-[11px] text-zinc-500 italic">No attachments added yet.</p>
+              ) : (
+                 attachments.map((att, i) => (
+                   <div key={i} className="flex items-center justify-between p-3 border border-zinc-200 rounded-lg bg-zinc-50">
+                     <div className="flex items-center gap-2">
+                       <FileText size={14} className="text-zinc-500" />
+                       <a href={att.url} target="_blank" rel="noreferrer" className="text-[12px] font-bold text-indigo-600 hover:underline">{att.name}</a>
+                     </div>
+                   </div>
+                 ))
+              )}
+            </div>
           </div>
         )}
 
@@ -937,23 +1127,52 @@ export default function InterviewUI() {
             <p className="text-[12px] text-zinc-500 max-w-md mb-6">
               The candidate's score is calculated based on the AI Evaluation verdicts and any manual overrides applied.
             </p>
-            <div className="flex items-center justify-center w-32 h-32 rounded-full border-[8px] border-emerald-500 text-emerald-600 font-bold text-3xl mb-8 shadow-sm">
-              {Math.round((activeQuestions.filter((q: any) => q.answerAnalysis?.verdict === 'adequate' || q.answerAnalysis?.verdict === 'strong').length / Math.max(activeQuestions.length, 1)) * 100)}%
-            </div>
-            <button
-              onClick={() => {
-                toast.success('Candidate scheduled for Next Round!');
-                try {
-                  const storedMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
-                  storedMap[candidateId] = Math.max(storedMap[candidateId] || 0, 3);
-                  localStorage.setItem('ai_completed_rounds_map', JSON.stringify(storedMap));
-                } catch (e) {}
-                router.push(`/dashboard/hiring/candidates/new/create/round-4/${candidateId}`);
-              }}
-              className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[13px] rounded-lg shadow-md transition-colors"
-            >
-              Schedule Next Round &rarr;
-            </button>
+            {(() => {
+              const scorePercent = Math.round(activeQuestions.reduce((acc: number, q: any) => {
+                const effectiveVerdict = q.manualOverride || q.answerAnalysis?.verdict;
+                if (effectiveVerdict === 'strong') return acc + 100;
+                if (effectiveVerdict === 'adequate') return acc + 75;
+                if (effectiveVerdict === 'weak') return acc + 35;
+                return acc;
+              }, 0) / Math.max(activeQuestions.length, 1));
+              const isPassing = scorePercent >= 60;
+              return (
+                <>
+                  <div className={`flex items-center justify-center w-32 h-32 rounded-full border-[8px] font-bold text-3xl mb-4 shadow-sm ${isPassing ? 'border-emerald-500 text-emerald-600' : 'border-rose-500 text-rose-600'}`}>
+                    {scorePercent}%
+                  </div>
+                  <div className={`px-4 py-1 rounded-full font-bold text-[12px] mb-8 ${isPassing ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                    {isPassing ? 'PASSED' : 'FAILED'}
+                  </div>
+                  {isPassing ? (
+                    <button 
+                      onClick={() => {
+                        toast.success('Candidate scheduled for Next Round!');
+                        try {
+                          const storedMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
+                          storedMap[candidateId] = Math.max(storedMap[candidateId] || 0, 3);
+                          localStorage.setItem('ai_completed_rounds_map', JSON.stringify(storedMap));
+                        } catch (e) {}
+                        router.push(`/dashboard/hiring/candidates/new/create/round-4/${candidateId}`);
+                      }}
+                      className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[13px] rounded-lg shadow-md transition-colors"
+                    >
+                      Schedule Next Round &rarr;
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => {
+                        toast.success('Candidate Rejected.');
+                        router.push('/dashboard/hiring/candidates');
+                      }}
+                      className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[13px] rounded-lg shadow-md transition-colors"
+                    >
+                      Reject Candidate
+                    </button>
+                  )}
+                </>
+              );
+            })()}
           </div>
         )}
 

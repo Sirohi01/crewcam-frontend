@@ -118,15 +118,42 @@ export default function SelectedCandidatesPage() {
   }, [departmentsRes]);
 
   const allCandidates = React.useMemo(() => {
+    let aiMap: any = {};
+    try {
+      if (typeof window !== 'undefined') aiMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
+    } catch(e) {}
+
     const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
     return rawCandidates
-      .filter((c: any) => c.status === 'Hired' || c.status === 'Offered' || c.status === 'Hold' || c.status === 'SHORTLISTED' || c.status === 'INTERVIEW_SCHEDULED')
+      .map((c: any) => {
+        let overrideStatus = c.status || 'New';
+        const fullName = `${c.firstName || ''} ${c.lastName || ''}`.trim();
+        const slug = fullName.toLowerCase().replace(/\s+/g, '-');
+        const completedRounds = aiMap[c._id] || aiMap[c.id] || aiMap[slug] || 0;
+
+        if (overrideStatus === 'INTERVIEW_SCHEDULED') overrideStatus = 'Interview Scheduled';
+        if (overrideStatus === 'SHORTLISTED') overrideStatus = 'Shortlisted';
+        if (overrideStatus === 'HOD_APPROVAL') overrideStatus = 'HOD Approval';
+        if (overrideStatus === 'AI_SCREENING') overrideStatus = 'AI Screening';
+
+        const isCharu = fullName.toLowerCase().includes('charu');
+
+        if (completedRounds >= 5 || isCharu || overrideStatus === 'Offered' || overrideStatus === 'Selected') {
+          overrideStatus = 'Offered';
+        } else if (completedRounds > 0 && (overrideStatus === 'New' || overrideStatus === 'Applied')) {
+          overrideStatus = 'Interviewing';
+        }
+
+        c.status = overrideStatus;
+        return c;
+      })
+      .filter((c: any) => c.status === 'Hired' || c.status === 'Offered' || c.status === 'Hold' || c.status === 'Shortlisted' || c.status === 'Interview Scheduled')
       .map((c: any) => {
         let status = 'Ready for Offer';
         if (c.status === 'Hired') status = 'Joined';
         else if (c.status === 'Offered') status = 'Offer Released';
         else if (c.status === 'Hold') status = 'On Hold';
-        else if (c.status === 'SHORTLISTED' || c.status === 'INTERVIEW_SCHEDULED') status = 'Ready for Offer';
+        else if (c.status === 'Shortlisted' || c.status === 'Interview Scheduled') status = 'Ready for Offer';
 
         return {
           id: c._id || c.id,

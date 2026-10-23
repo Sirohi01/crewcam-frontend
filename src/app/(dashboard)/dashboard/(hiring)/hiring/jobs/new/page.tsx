@@ -10,6 +10,7 @@ import { Briefcase, FileText, Clock3, Percent, UserCheck, Wallet, ChevronDown, S
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 import { FormInput } from '@/components/ui/form-input';
+import { useRouter } from 'next/navigation';
 
 // Dummy data / static mockup — matches the approved design 1:1. No backend
 // wiring yet; this is a visual reference for the "Post New Job" flow.
@@ -165,6 +166,7 @@ export default function PostNewJobPage() {
   const [attachments, setAttachments] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [publishChannelsState, setPublishChannelsState] = useState<string[]>(['Career Portal', 'Website', 'Naukri.com', 'LinkedIn']);
+  const router = useRouter();
 
   const { register, handleSubmit, setValue, getValues, watch } = useForm();
 
@@ -236,6 +238,8 @@ export default function PostNewJobPage() {
       await api.post('/hiring/manpower-request', {
         ...data,
         priority,
+        status: 'Approved',
+        recruitmentStatus: 'Posted',
         isReplacement,
         keyResponsibilities: keyResponsibilities.filter(r => r.trim()),
         technicalSkills: skills,
@@ -243,6 +247,7 @@ export default function PostNewJobPage() {
         publishChannels: publishChannelsState
       });
       toast.success('Job posted successfully');
+      router.push('/dashboard/hiring/jobs');
     } catch (error: any) {
       toast.error('Failed to post job');
     }

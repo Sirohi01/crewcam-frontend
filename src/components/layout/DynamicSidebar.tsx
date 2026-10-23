@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Users, Building2, Settings, LogOut, Briefcase, UserCog, Plug, Palette,
   Shield, ShieldCheck, Clock, Calendar, MessageSquare, Scale, TrendingUp, UserPlus, IndianRupee,
   Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList, LucideIcon, ChevronRight, ChevronDown,
-  LayoutGrid, User, GraduationCap, ShieldAlert,
+  LayoutGrid, User, GraduationCap, ShieldAlert, PlusSquare, CheckCircle2,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
@@ -18,7 +18,7 @@ const ICONS: Record<string, LucideIcon> = {
   LayoutDashboard, Users, Building2, Settings, LogOut, Briefcase, UserCog, Plug, Palette,
   Shield, ShieldCheck, Clock, Calendar, MessageSquare, Scale, TrendingUp, UserPlus, IndianRupee,
   Receipt, FileSignature, ListTree, Wallet, Circle, Sparkles, ClipboardList, LayoutGrid, User, GraduationCap,
-  ShieldAlert,
+  ShieldAlert, PlusSquare, CheckCircle2
 };
 
 interface SidebarItem {
@@ -57,7 +57,7 @@ const STATIC_RECRUITMENT_ITEMS: SidebarItem[] = [
   { _id: 'r1', section: 'WORKSPACE', label: 'HR Dashboard', href: '/dashboard/hr-dashboard', icon: 'LayoutDashboard', order: 2.01, parent: 'Requirement' },
   { _id: 'r2', section: 'WORKSPACE', label: 'Job Requisition', href: '/dashboard/hiring/manpower', icon: 'Briefcase', order: 2.02, parent: 'Requirement' },
   { _id: 'r3', section: 'WORKSPACE', label: 'Job Opening', href: '/dashboard/hiring/job-opening', icon: 'ListTree', order: 2.03, parent: 'Requirement' },
-  { _id: 'r3b', section: 'WORKSPACE', label: 'Post New Job', href: '/dashboard/hiring/jobs/new', icon: 'PlusSquare', order: 2.04, parent: 'Requirement' },
+  { _id: 'r3b', section: 'WORKSPACE', label: 'New Job', href: '/dashboard/hiring/jobs', icon: 'PlusSquare', order: 2.04, parent: 'Requirement' },
 
   { _id: 'r4e', section: 'WORKSPACE', label: 'Job Applications', href: '/dashboard/hiring/applications', icon: 'FileText', order: 2.05, parent: 'Requirement' },
   // { _id: 'r4', section: 'WORKSPACE', label: 'Review and Edit', href: '/dashboard/hiring/candidates/new/create/review-and-edit', icon: 'FileSignature', order: 2.06, parent: 'Requirement', subParent: 'Job Application' },
@@ -84,6 +84,17 @@ const STATIC_RECRUITMENT_ITEMS: SidebarItem[] = [
   { _id: 'r15', section: 'WORKSPACE', label: 'Offers', href: '/dashboard/offers', icon: 'FileSignature', order: 2.21, parent: 'Requirement' },
   { _id: 'r16', section: 'WORKSPACE', label: 'Onboarding', href: '/dashboard/onboarding', icon: 'UserPlus', order: 2.22, parent: 'Requirement' },
   { _id: 'r17', section: 'WORKSPACE', label: 'Reports Analytics', href: '/dashboard/report-analytics', icon: 'TrendingUp', order: 2.23, parent: 'Requirement' },
+];
+
+const STATIC_RECRUITMENT_PROCESS_ITEMS: SidebarItem[] = [
+  { _id: 'rp1', section: 'Recruitment Process', label: 'Recruitment Dashboard', href: '/dashboard/hr-dashboard', icon: 'LayoutDashboard', order: 1 },
+  { _id: 'rp2', section: 'Recruitment Process', label: 'Job Requisition', href: '/dashboard/hiring/manpower', icon: 'Briefcase', order: 2 },
+  { _id: 'rp3', section: 'Recruitment Process', label: 'New Job', href: '/dashboard/hiring/jobs', icon: 'PlusSquare', order: 3 },
+  { _id: 'rp4', section: 'Recruitment Process', label: 'Candidate', href: '/dashboard/hiring/candidates', icon: 'UserPlus', order: 4 },
+  { _id: 'rp5', section: 'Recruitment Process', label: 'Candidate Pipeline', href: '/dashboard/hiring/pipeline', icon: 'ListTree', order: 6 },
+  { _id: 'rp6', section: 'Recruitment Process', label: 'Interviews', href: '/dashboard/hiring/interviews/list', icon: 'MessageSquare', order: 7 },
+  { _id: 'rp7', section: 'Recruitment Process', label: 'Interview Statistics', href: '/dashboard/report-analytics', icon: 'TrendingUp', order: 8 },
+  { _id: 'rp4b', section: 'Recruitment Process', label: 'Selected Candidate', href: '/dashboard/hiring/candidates/selected', icon: 'CheckCircle2', order: 9 },
 ];
 
 export default function DynamicSidebar() {
@@ -167,6 +178,8 @@ export default function DynamicSidebar() {
       });
     }
 
+    merged = [...merged, ...STATIC_RECRUITMENT_PROCESS_ITEMS];
+
     return merged.sort((a: SidebarItem, b: SidebarItem) => a.order - b.order);
   }, [items, isLoading, roleScope]);
 
@@ -202,6 +215,7 @@ export default function DynamicSidebar() {
     'Workspace',
     'Company Setup',
     'Organization Setup',
+    'Recruitment Process',
     'Employee Master',
     'Hiring Process',
     'Accounts Department',
@@ -325,7 +339,7 @@ export default function DynamicSidebar() {
 
         {/* Nav */}
         <div className="sidebar-scroll flex-1 overflow-y-auto py-2">
-          <div className="px-2 space-y-4">
+          <div className="px-2 space-y-1">
 
             {sections.map((group) => {
               const isSectionOpen = openSection === group.section || group.section === 'WORKSPACE';
@@ -341,7 +355,7 @@ export default function DynamicSidebar() {
                           setOpenSection(isSectionOpen ? null : group.section);
                         }
                       }}
-                      className={`w-full flex items-center py-1.5 font-bold uppercase tracking-wider transition-colors ${isSidebarOpen ? 'justify-between px-2 text-[10px]' : 'justify-center mx-auto text-[12px]'}`}
+                      className={`w-full flex items-center py-1.5 font-bold uppercase tracking-wider transition-colors ${isSidebarOpen ? 'justify-between px-2 text-[12px]' : 'justify-center mx-auto text-[12px]'}`}
                       style={{
                         color: isSectionOpen ? '#fde68a' : '#a5b4fc',
                         height: isSidebarOpen ? 'auto' : '36px',

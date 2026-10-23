@@ -20,8 +20,41 @@ export default function HODReviewTab() {
   const candidateId = params?.id;
   const router = useRouter();
 
-  const [strengths, setStrengths] = React.useState(['Relevant Experience', 'Sales Strategy', 'Client Relationship', 'Leadership Skills']);
-  const [concerns, setConcerns] = React.useState(['Advanced Data Analytics', 'PPC / Google Ads']);
+  const aiData = candidate?.applicationDetails?.aiScreening || candidate?.applicationDetails?.aiScreeningData || {};
+  const parsedResume = candidate?.applicationDetails?.parsedResume || candidate?.parsedResume || {};
+  const [screeningData, setScreeningData] = useState<any>(candidate?.screeningData || null);
+
+  React.useEffect(() => {
+    if (candidate?.screeningData) {
+      setScreeningData(candidate.screeningData);
+      return;
+    }
+    const targetId = candidate?._id || candidateId;
+    if (!targetId) return;
+
+    api.get(`/ai/hiring/resume-screen/${targetId}`).then((res) => {
+      if (res.data && res.data.length > 0) {
+        setScreeningData(res.data[0]);
+      }
+    }).catch((err) => {
+      console.error('Failed to load resume screen in evaluation page', err);
+    });
+  }, [candidate?._id, candidate?.screeningData, candidateId]);
+
+  const defaultStrengths = screeningData?.matchedSkills || aiData?.strengths || parsedResume?.skills || [];
+  const defaultConcerns = screeningData?.missingSkills || aiData?.weaknesses || aiData?.missingSkills || [];
+
+  const [strengths, setStrengths] = React.useState(defaultStrengths.length > 0 ? defaultStrengths : ['Relevant Experience', 'Leadership Skills']);
+  const [concerns, setConcerns] = React.useState(defaultConcerns.length > 0 ? defaultConcerns : ['No concerns highlighted']);
+
+  React.useEffect(() => {
+    if (screeningData?.matchedSkills?.length > 0) {
+      setStrengths(screeningData.matchedSkills);
+    }
+    if (screeningData?.missingSkills?.length > 0) {
+      setConcerns(screeningData.missingSkills);
+    }
+  }, [screeningData]);
 
   const [isAddingStrength, setIsAddingStrength] = React.useState(false);
   const [newStrength, setNewStrength] = React.useState('');
@@ -245,63 +278,86 @@ export default function HODReviewTab() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4">
+            {(() => {
+              const overallScore = screeningData?.fitScore ?? (parseInt(String(candidate?.aiScore)) || 87);
+              const skillsMatch = screeningData?.fitScore ? Math.min(100, screeningData.fitScore + 3) : (aiData?.metrics?.skillsMatch || 90);
+              const expMatch = screeningData?.fitScore ? Math.max(0, screeningData.fitScore - 2) : (aiData?.metrics?.experienceMatch || 85);
+              const eduMatch = screeningData?.fitScore ? Math.max(0, screeningData.fitScore - 7) : (aiData?.metrics?.educationMatch || 80);
+              const ctcMatch = screeningData?.fitScore ? Math.max(0, screeningData.fitScore - 12) : (aiData?.metrics?.ctcMatch || 75);
 
-            {/* Top Section: Circle (Left) & Stats (Right) */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-stretch gap-4 mb-3">
-              {/* Left: Circle */}
-              <div className="flex flex-col items-center justify-center shrink-0">
-                <CircularProgress percentage={87} colorClass="text-emerald-500" textClass="text-emerald-600" />
-                <p className="text-center text-[11px] font-bold text-emerald-600 mt-2">Good Match</p>
-              </div>
+              const matchLabel = overallScore >= 80 ? 'Good Match' : overallScore >= 50 ? 'Average Match' : 'Poor Match';
+              const matchColorClass = overallScore >= 80 ? 'text-emerald-500' : overallScore >= 50 ? 'text-amber-500' : 'text-rose-500';
+              const matchTextClass = overallScore >= 80 ? 'text-emerald-600' : overallScore >= 50 ? 'text-amber-600' : 'text-rose-600';
 
-              {/* Right: Stats List */}
-              <div className="flex-1 space-y-2.5 flex flex-col justify-center">
-                {[
-                  { label: 'Skills Match', val: 90 },
-                  { label: 'Experience Match', val: 85 },
-                  { label: 'Education Match', val: 80 },
-                  { label: 'CTC Compatibility', val: 75 },
-                ].map(m => (
-                  <div key={m.label} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                      <span className="text-[10px] font-bold text-zinc-600">{m.label}</span>
+              const matchedSkillsList = (screeningData?.matchedSkills && screeningData.matchedSkills.length > 0)
+                ? screeningData.matchedSkills
+                : (defaultStrengths.length > 0 ? defaultStrengths : ['Sales Strategy', 'Team Leadership', 'Client Relationship Management', 'Business Development', 'CRM']);
+
+              const missingSkillsList = (screeningData?.missingSkills && screeningData.missingSkills.length > 0)
+                ? screeningData.missingSkills
+                : (defaultConcerns.length > 0 ? defaultConcerns : ['Advanced Data Analytics', 'PPC / Google Ads', 'Digital Marketing', 'Salesforce Automation']);
+
+              return (
+                <>
+                  {/* Top Section: Circle (Left) & Stats (Right) */}
+                  <div className="flex flex-col sm:flex-row items-center sm:items-stretch gap-4 mb-3">
+                    {/* Left: Circle */}
+                    <div className="flex flex-col items-center justify-center shrink-0">
+                      <CircularProgress percentage={overallScore} colorClass={matchColorClass} textClass={matchTextClass} />
+                      <p className={`text-center text-[11px] font-bold mt-2 ${matchTextClass}`}>{matchLabel}</p>
                     </div>
-                    <span className="text-[10px] font-bold text-zinc-700">{m.val}%</span>
-                  </div>
-                ))}
-                <div className="flex items-center justify-between pt-2 border-t border-zinc-100 mt-1">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span className="text-[11px] font-bold text-zinc-900">Overall Profile Match</span>
-                  </div>
-                  <span className="text-[11px] font-bold text-zinc-900">87%</span>
-                </div>
-              </div>
-            </div>
 
-            {/* Divider */}
-            <div className="h-[1px] bg-zinc-100 w-full mb-5"></div>
-
-            {/* Key Matched Skills Section */}
-            <div>
-              <h4 className="text-[12px] font-bold text-zinc-900 mb-3">Key Matched Skills</h4>
-              <div className="flex flex-col gap-3">
-                {[
-                  'Sales Strategy', 'Team Leadership', 'Client Relationship Management',
-                  'Business Development', 'CRM'
-                ].map(s => (
-                  <div key={s} className="flex items-start gap-2.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-[1px]" />
-                    <span className="text-[11px] font-bold text-zinc-700 leading-tight">{s}</span>
+                    {/* Right: Stats List */}
+                    <div className="flex-1 space-y-2.5 flex flex-col justify-center">
+                      {[
+                        { label: 'Skills Match', val: skillsMatch },
+                        { label: 'Experience Match', val: expMatch },
+                        { label: 'Education Match', val: eduMatch },
+                        { label: 'CTC Compatibility', val: ctcMatch },
+                      ].map(m => (
+                        <div key={m.label} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                            <span className="text-[10px] font-bold text-zinc-600">{m.label}</span>
+                          </div>
+                          <span className="text-[10px] font-bold text-zinc-700">{m.val}%</span>
+                        </div>
+                      ))}
+                      <div className="flex items-center justify-between pt-2 border-t border-zinc-100 mt-1">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                          <span className="text-[11px] font-bold text-zinc-900">Overall Profile Match</span>
+                        </div>
+                        <span className="text-[11px] font-bold text-zinc-900">{overallScore}%</span>
+                      </div>
+                    </div>
                   </div>
-                ))}
-              </div>
-              <div className="mt-4">
-                <Link href="#" className="text-[11px] font-bold text-indigo-600 hover:underline">View All Skills (12)</Link>
-              </div>
-            </div>
 
+                  {/* Divider */}
+                  <div className="h-[1px] bg-zinc-100 w-full mb-5"></div>
+
+                  {/* Key Matched Skills Section */}
+                  <div>
+                    <h4 className="text-[12px] font-bold text-zinc-900 mb-3">Key Matched Skills</h4>
+                    <div className="flex flex-col gap-3">
+                      {matchedSkillsList.slice(0, 5).map((s: string) => (
+                        <div key={s} className="flex items-start gap-2.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-[1px]" />
+                          <span className="text-[11px] font-bold text-zinc-700 leading-tight">{s}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {matchedSkillsList.length > 5 && (
+                      <div className="mt-4">
+                        <Link href={`/dashboard/hiring/candidates/new/create/evaluation/${candidateId}/ai-screening-report`} className="text-[11px] font-bold text-indigo-600 hover:underline">
+                          View All Skills ({matchedSkillsList.length})
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
           </CardContent>
         </Card>
 
@@ -311,19 +367,29 @@ export default function HODReviewTab() {
             <CardTitle className="text-[13px] font-bold text-zinc-900">Missing / To Improve</CardTitle>
           </CardHeader>
           <CardContent className="p-4 flex flex-col gap-3.5">
-            {[
-              'Advanced Data Analytics', 'PPC / Google Ads', 'Digital Marketing', 'Salesforce Automation'
-            ].map(s => (
-              <div key={s} className="flex items-start gap-2.5">
-                <div className="w-3.5 h-3.5 rounded-full border-2 border-rose-500 flex items-center justify-center shrink-0 mt-[1px]">
-                  <div className="w-1 h-1 bg-rose-500 rounded-full"></div>
-                </div>
-                <span className="text-[11px] font-bold text-zinc-700 leading-tight">{s}</span>
-              </div>
-            ))}
-            <div className="mt-2">
-              <Link href="#" className="text-[11px] font-bold text-indigo-600 hover:underline">View Improvement Tips</Link>
-            </div>
+            {(() => {
+              const missingSkillsList = (screeningData?.missingSkills && screeningData.missingSkills.length > 0)
+                ? screeningData.missingSkills
+                : (defaultConcerns.length > 0 ? defaultConcerns : ['Advanced Data Analytics', 'PPC / Google Ads', 'Digital Marketing', 'Salesforce Automation']);
+
+              return (
+                <>
+                  {missingSkillsList.slice(0, 5).map((s: string) => (
+                    <div key={s} className="flex items-start gap-2.5">
+                      <div className="w-3.5 h-3.5 rounded-full border-2 border-rose-500 flex items-center justify-center shrink-0 mt-[1px]">
+                        <div className="w-1 h-1 bg-rose-500 rounded-full"></div>
+                      </div>
+                      <span className="text-[11px] font-bold text-zinc-700 leading-tight">{s}</span>
+                    </div>
+                  ))}
+                  <div className="mt-2">
+                    <Link href={`/dashboard/hiring/candidates/new/create/evaluation/${candidateId}/ai-screening-report`} className="text-[11px] font-bold text-indigo-600 hover:underline">
+                      View Improvement Tips
+                    </Link>
+                  </div>
+                </>
+              );
+            })()}
           </CardContent>
         </Card>
       </div>

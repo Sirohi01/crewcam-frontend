@@ -79,10 +79,115 @@ export default function ReviewPage() {
   const [resumeUrl, setResumeUrl] = React.useState('');
   const [profileImageUrl, setProfileImageUrl] = React.useState('');
   const [isUploadingImage, setIsUploadingImage] = React.useState(false);
+  const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
   const imageInputRef = React.useRef<HTMLInputElement>(null);
 
   const params = useParams() as { id: string };
   const candidateId = params?.id;
+
+  const validateForm = (): { isValid: boolean; errors: Record<string, string>; firstKey?: string } => {
+    const errs: Record<string, string> = {};
+
+    // 1. Full Name
+    if (!candidate.fullName || !candidate.fullName.trim()) {
+      errs.fullName = 'Full Name is required';
+    }
+
+    // 2. Email Address
+    if (!candidate.email || !candidate.email.trim()) {
+      errs.email = 'Email Address is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(candidate.email.trim())) {
+      errs.email = 'Please enter a valid email address';
+    }
+
+    // 3. Mobile Number
+    if (!candidate.mobile || !candidate.mobile.trim()) {
+      errs.mobile = 'Mobile Number is required';
+    } else {
+      const digits = candidate.mobile.replace(/\D/g, '');
+      if (digits.length < 10) {
+        errs.mobile = 'Mobile Number must be at least 10 digits';
+      }
+    }
+
+    // 4. Current Location
+    if (!candidate.currentLocation || !candidate.currentLocation.trim()) {
+      errs.currentLocation = 'Current Location is required';
+    }
+
+    // 5. Manpower Request
+    if (!candidate.manpowerRequestId || !candidate.manpowerRequestId.trim()) {
+      errs.manpowerRequestId = 'Manpower Request is required';
+    }
+
+    // 6. Position Applied For
+    if (!candidate.appliedFor || !candidate.appliedFor.trim()) {
+      errs.appliedFor = 'Position Applied For is required';
+    }
+
+    // 7. Department
+    if (!candidate.department || !candidate.department.trim()) {
+      errs.department = 'Department is required';
+    }
+
+    // 8. Employment Type
+    if (!candidate.employmentType || !candidate.employmentType.trim()) {
+      errs.employmentType = 'Employment Type is required';
+    }
+
+    // 9. Total Experience
+    if (!candidate.totalExperience || !candidate.totalExperience.trim()) {
+      errs.totalExperience = 'Total Experience is required';
+    }
+
+    // 10. Relevant Experience
+    if (!candidate.relevantExperience || !candidate.relevantExperience.trim()) {
+      errs.relevantExperience = 'Relevant Experience is required';
+    }
+
+    // 11. Current CTC
+    if (!candidate.currentCTC || !candidate.currentCTC.trim()) {
+      errs.currentCTC = 'Current CTC is required';
+    }
+
+    // 12. Expected CTC
+    if (!candidate.expectedCTC || !candidate.expectedCTC.trim()) {
+      errs.expectedCTC = 'Expected CTC is required';
+    }
+
+    // 13. Notice Period
+    if (!candidate.noticePeriod || !candidate.noticePeriod.trim()) {
+      errs.noticePeriod = 'Notice Period is required';
+    }
+
+    // 14. Highest Qualification
+    if (!candidate.highestQualification || !candidate.highestQualification.trim()) {
+      errs.highestQualification = 'Highest Qualification is required';
+    }
+
+    // 15. University / Board
+    if (!candidate.university || !candidate.university.trim()) {
+      errs.university = 'University / Board is required';
+    }
+
+    // 16. Year of Passing
+    if (!candidate.yearOfPassing || !candidate.yearOfPassing.trim()) {
+      errs.yearOfPassing = 'Year of Passing is required';
+    }
+
+    // 17. Percentage / CGPA
+    if (!candidate.cgpa || !candidate.cgpa.trim()) {
+      errs.cgpa = 'Percentage / CGPA is required';
+    }
+
+    const errorKeys = Object.keys(errs);
+    return {
+      isValid: errorKeys.length === 0,
+      errors: errs,
+      firstKey: errorKeys[0]
+    };
+  };
 
   React.useEffect(() => {
     if (candidateId) {
@@ -93,12 +198,24 @@ export default function ReviewPage() {
           if (!/^[0-9a-fA-F]{24}$/.test(candidateId)) {
             const res = await api.get(`/hiring/candidates?limit=1000`);
             const candidates = res.data?.data || res.data || [];
+            const clean = (s: string) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+            const normId = clean(decodeURIComponent(candidateId));
             const match = candidates.find((c: any) => {
-              const nameSlug = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-              return nameSlug === candidateId;
+              const fullSlug = clean(`${c.firstName || ''} ${c.lastName || ''}`);
+              const firstSlug = clean(c.firstName || '');
+              return fullSlug === normId || firstSlug === normId || clean(c._id) === normId || String(c._id) === candidateId;
             });
-            if (match) cId = match._id;
-            else throw new Error("Candidate not found");
+            if (match) {
+              cId = match._id;
+            } else if (candidates.length > 0) {
+              const partial = candidates.find((c: any) => {
+                const cFirst = clean(c.firstName || '');
+                return normId.includes(cFirst) || cFirst.includes(normId);
+              });
+              cId = partial ? partial._id : candidates[0]._id;
+            } else {
+              throw new Error("Candidate not found");
+            }
           }
 
           const res = await api.get(`/hiring/candidates/${cId}`);
@@ -160,6 +277,23 @@ export default function ReviewPage() {
   }, [candidateId]);
 
   const handleSubmitApplication = async () => {
+    const { isValid, errors: validationErrors, firstKey } = validateForm();
+    if (!isValid) {
+      setErrors(validationErrors);
+      const missingCount = Object.keys(validationErrors).length;
+      toast.error(`Please fill in all mandatory fields (${missingCount} field${missingCount > 1 ? 's' : ''} missing)`);
+      if (firstKey) {
+        const el = document.getElementById(`field-${firstKey}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          const inputEl = el.querySelector('input, select') as HTMLElement;
+          inputEl?.focus?.();
+        }
+      }
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       let cId = candidateId;
       if (!/^[0-9a-fA-F]{24}$/.test(candidateId)) {
@@ -169,13 +303,17 @@ export default function ReviewPage() {
         if (match) cId = match._id;
       }
 
+      const fullNameClean = candidate.fullName.trim();
+      const firstPart = fullNameClean.split(' ')[0] || '';
+      const restPart = fullNameClean.split(' ').slice(1).join(' ') || '.';
+
       await api.put(`/hiring/candidates/${cId}`, {
         manpowerRequestId: candidate.manpowerRequestId,
-        firstName: candidate.fullName.split(' ')[0] || '',
-        lastName: candidate.fullName.split(' ').slice(1).join(' ') || '.',
-        email: candidate.email,
-        phone: candidate.mobile,
-        jobRole: candidate.appliedFor,
+        firstName: firstPart,
+        lastName: restPart,
+        email: candidate.email.trim(),
+        phone: candidate.mobile.trim(),
+        jobRole: candidate.appliedFor.trim(),
         departmentId: candidate.department,
         resumeUrl,
         profileImageUrl,
@@ -188,6 +326,8 @@ export default function ReviewPage() {
       router.push(`/dashboard/hiring/candidates/new/create/submit-application/${candidateId}`);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to update candidate');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -237,6 +377,13 @@ export default function ReviewPage() {
       [field]: value
     }));
     setHasUnsavedChanges(true);
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
   };
 
   // Experience handlers
@@ -367,9 +514,10 @@ export default function ReviewPage() {
             </button>
             <button
               onClick={handleSubmitApplication}
-              className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors"
+              disabled={isSubmitting}
+              className="flex items-center justify-center h-8 px-4 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors disabled:opacity-50"
             >
-              Submit Application &rarr;
+              {isSubmitting ? 'Submitting...' : 'Submit Application \u2192'}
             </button>
           </div>
         </div>
@@ -525,6 +673,19 @@ export default function ReviewPage() {
               {/* All Form Sections Stacked (no tabs) */}
               <div className="flex-1 overflow-visible lg:overflow-y-auto p-4 pt-0 space-y-4" id="form-scrollable-area">
 
+                {/* Validation Error Banner */}
+                {Object.keys(errors).length > 0 && (
+                  <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-md flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <div className="text-[11px] text-rose-800">
+                      <p className="font-bold">Cannot submit: Please fill in all mandatory fields marked with an asterisk (*)</p>
+                      <p className="mt-0.5 text-[10px] text-rose-600 leading-snug">
+                        Missing or invalid: {Object.values(errors).join(' • ')}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Category 1: Personal Information */}
                 <div className="space-y-1.5" id="personal-info-block">
                   <div className="flex items-center justify-between">
@@ -534,41 +695,61 @@ export default function ReviewPage() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5" id="field-fullName">
                       <label className="text-[10px] font-semibold text-indigo-950">Full Name <span className="text-rose-500">*</span></label>
                       <input
                         type="text"
                         value={candidate.fullName}
                         onChange={(e) => handleInputChange('fullName', e.target.value)}
-                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
+                          errors.fullName
+                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                        }`}
                       />
+                      {errors.fullName && <p className="text-[9.5px] font-medium text-rose-500">{errors.fullName}</p>}
                     </div>
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5" id="field-email">
                       <label className="text-[10px] font-semibold text-indigo-950">Email Address <span className="text-rose-500">*</span></label>
                       <input
                         type="email"
                         value={candidate.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
-                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
+                          errors.email
+                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                        }`}
                       />
+                      {errors.email && <p className="text-[9.5px] font-medium text-rose-500">{errors.email}</p>}
                     </div>
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5" id="field-mobile">
                       <label className="text-[10px] font-semibold text-indigo-950">Mobile Number <span className="text-rose-500">*</span></label>
                       <input
                         type="text"
                         value={candidate.mobile}
                         onChange={(e) => handleInputChange('mobile', e.target.value)}
-                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
+                          errors.mobile
+                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                        }`}
                       />
+                      {errors.mobile && <p className="text-[9.5px] font-medium text-rose-500">{errors.mobile}</p>}
                     </div>
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5" id="field-currentLocation">
                       <label className="text-[10px] font-semibold text-indigo-950">Current Location <span className="text-rose-500">*</span></label>
                       <input
                         type="text"
                         value={candidate.currentLocation}
                         onChange={(e) => handleInputChange('currentLocation', e.target.value)}
-                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
+                          errors.currentLocation
+                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                        }`}
                       />
+                      {errors.currentLocation && <p className="text-[9.5px] font-medium text-rose-500">{errors.currentLocation}</p>}
                     </div>
                     <div className="space-y-0.5">
                       <label className="text-[10px] font-semibold text-indigo-950">Preferred Location</label>
@@ -606,63 +787,93 @@ export default function ReviewPage() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2 mt-3">
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5" id="field-manpowerRequestId">
                       <label className="text-[10px] font-semibold text-indigo-950">Manpower Request (Requisition) <span className="text-rose-500">*</span></label>
                       <ApiSelect
                         apiType="manpower-request"
                         value={candidate.manpowerRequestId}
                         onChange={(e: any) => handleInputChange('manpowerRequestId', e.target.value)}
-                        className="w-full px-1.5 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none"
+                        className={`w-full px-1.5 h-8 text-xs rounded focus:outline-none ${
+                          errors.manpowerRequestId
+                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500'
+                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                        }`}
                       />
+                      {errors.manpowerRequestId && <p className="text-[9.5px] font-medium text-rose-500">{errors.manpowerRequestId}</p>}
                     </div>
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5" id="field-appliedFor">
                       <label className="text-[10px] font-semibold text-indigo-950">Position Applied For <span className="text-rose-500">*</span></label>
                       <input
                         type="text"
                         value={candidate.appliedFor}
                         onChange={(e) => handleInputChange('appliedFor', e.target.value)}
-                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
+                          errors.appliedFor
+                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                        }`}
                       />
+                      {errors.appliedFor && <p className="text-[9.5px] font-medium text-rose-500">{errors.appliedFor}</p>}
                     </div>
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5" id="field-department">
                       <label className="text-[10px] font-semibold text-indigo-950">Department <span className="text-rose-500">*</span></label>
                       <ApiSelect
                         apiType="department"
                         value={candidate.department}
                         onChange={(e: any) => handleInputChange('department', e.target.value)}
-                        className="w-full px-1.5 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none"
+                        className={`w-full px-1.5 h-8 text-xs rounded focus:outline-none ${
+                          errors.department
+                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500'
+                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                        }`}
                         placeholderText="Select Department"
                       />
+                      {errors.department && <p className="text-[9.5px] font-medium text-rose-500">{errors.department}</p>}
                     </div>
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5" id="field-employmentType">
                       <label className="text-[10px] font-semibold text-indigo-950">Employment Type <span className="text-rose-500">*</span></label>
                       <select
                         value={candidate.employmentType}
                         onChange={(e) => handleInputChange('employmentType', e.target.value)}
-                        className="w-full px-1.5 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className={`w-full px-1.5 h-8 text-xs rounded focus:outline-none transition-colors ${
+                          errors.employmentType
+                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500'
+                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                        }`}
                       >
                         <option value="Full Time">Full Time</option>
                         <option value="Contract">Contract</option>
                         <option value="Internship">Internship</option>
                       </select>
+                      {errors.employmentType && <p className="text-[9.5px] font-medium text-rose-500">{errors.employmentType}</p>}
                     </div>
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5" id="field-totalExperience">
                       <label className="text-[10px] font-semibold text-indigo-950">Total Experience (Years) <span className="text-rose-500">*</span></label>
                       <input
                         type="text"
                         value={candidate.totalExperience}
                         onChange={(e) => handleInputChange('totalExperience', e.target.value)}
-                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
+                          errors.totalExperience
+                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                        }`}
                       />
+                      {errors.totalExperience && <p className="text-[9.5px] font-medium text-rose-500">{errors.totalExperience}</p>}
                     </div>
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5" id="field-relevantExperience">
                       <label className="text-[10px] font-semibold text-indigo-950">Relevant Experience (Years) <span className="text-rose-500">*</span></label>
                       <input
                         type="text"
                         value={candidate.relevantExperience}
                         onChange={(e) => handleInputChange('relevantExperience', e.target.value)}
-                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
+                          errors.relevantExperience
+                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                        }`}
                       />
+                      {errors.relevantExperience && <p className="text-[9.5px] font-medium text-rose-500">{errors.relevantExperience}</p>}
                     </div>
                     <div className="space-y-0.5">
                       <label className="text-[10px] font-semibold text-indigo-950">Current Company</label>
@@ -673,43 +884,59 @@ export default function ReviewPage() {
                         className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
                       />
                     </div>
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5" id="field-currentCTC">
                       <label className="text-[10px] font-semibold text-indigo-950">Current CTC (INR) <span className="text-rose-500">*</span></label>
                       <div className="relative">
                         <input
                           type="text"
                           value={candidate.currentCTC}
                           onChange={(e) => handleInputChange('currentCTC', e.target.value)}
-                          className="w-full pl-6 pr-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                          className={`w-full pl-6 pr-2 h-8 text-xs rounded focus:outline-none transition-colors ${
+                            errors.currentCTC
+                              ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                              : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                          }`}
                         />
                         <span className="text-[10px] font-semibold text-indigo-900 absolute left-2 top-1/2 -translate-y-1/2">₹</span>
                       </div>
+                      {errors.currentCTC && <p className="text-[9.5px] font-medium text-rose-500">{errors.currentCTC}</p>}
                     </div>
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5" id="field-expectedCTC">
                       <label className="text-[10px] font-semibold text-indigo-950">Expected CTC (INR) <span className="text-rose-500">*</span></label>
                       <div className="relative">
                         <input
                           type="text"
                           value={candidate.expectedCTC}
                           onChange={(e) => handleInputChange('expectedCTC', e.target.value)}
-                          className="w-full pl-6 pr-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                          className={`w-full pl-6 pr-2 h-8 text-xs rounded focus:outline-none transition-colors ${
+                            errors.expectedCTC
+                              ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                              : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                          }`}
                         />
                         <span className="text-[10px] font-semibold text-indigo-900 absolute left-2 top-1/2 -translate-y-1/2">₹</span>
                       </div>
+                      {errors.expectedCTC && <p className="text-[9.5px] font-medium text-rose-500">{errors.expectedCTC}</p>}
                     </div>
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5" id="field-noticePeriod">
                       <label className="text-[10px] font-semibold text-indigo-950">Notice Period <span className="text-rose-500">*</span></label>
                       <select
                         value={candidate.noticePeriod}
                         onChange={(e) => handleInputChange('noticePeriod', e.target.value)}
-                        className="w-full px-1.5 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className={`w-full px-1.5 h-8 text-xs rounded focus:outline-none transition-colors ${
+                          errors.noticePeriod
+                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500'
+                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                        }`}
                       >
+                        <option value="">Select Notice Period</option>
                         <option value="Immediate">Immediate</option>
                         <option value="15 Days">15 Days</option>
                         <option value="30 Days">30 Days</option>
                         <option value="60 Days">60 Days</option>
                         <option value="90 Days">90 Days</option>
                       </select>
+                      {errors.noticePeriod && <p className="text-[9.5px] font-medium text-rose-500">{errors.noticePeriod}</p>}
                     </div>
                   </div>
                 </div>
@@ -723,41 +950,61 @@ export default function ReviewPage() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5" id="field-highestQualification">
                       <label className="text-[10px] font-semibold text-indigo-950">Highest Qualification <span className="text-rose-500">*</span></label>
                       <input
                         type="text"
                         value={candidate.highestQualification}
                         onChange={(e) => handleInputChange('highestQualification', e.target.value)}
-                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
+                          errors.highestQualification
+                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                        }`}
                       />
+                      {errors.highestQualification && <p className="text-[9.5px] font-medium text-rose-500">{errors.highestQualification}</p>}
                     </div>
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5" id="field-university">
                       <label className="text-[10px] font-semibold text-indigo-950">University / Board <span className="text-rose-500">*</span></label>
                       <input
                         type="text"
                         value={candidate.university}
                         onChange={(e) => handleInputChange('university', e.target.value)}
-                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
+                          errors.university
+                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                        }`}
                       />
+                      {errors.university && <p className="text-[9.5px] font-medium text-rose-500">{errors.university}</p>}
                     </div>
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5" id="field-yearOfPassing">
                       <label className="text-[10px] font-semibold text-indigo-950">Year of Passing <span className="text-rose-500">*</span></label>
                       <input
                         type="text"
                         value={candidate.yearOfPassing}
                         onChange={(e) => handleInputChange('yearOfPassing', e.target.value)}
-                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
+                          errors.yearOfPassing
+                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                        }`}
                       />
+                      {errors.yearOfPassing && <p className="text-[9.5px] font-medium text-rose-500">{errors.yearOfPassing}</p>}
                     </div>
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5" id="field-cgpa">
                       <label className="text-[10px] font-semibold text-indigo-950">Percentage / CGPA <span className="text-rose-500">*</span></label>
                       <input
                         type="text"
                         value={candidate.cgpa}
                         onChange={(e) => handleInputChange('cgpa', e.target.value)}
-                        className="w-full px-2 h-8 text-xs bg-slate-50 border border-slate-200 rounded focus:bg-white focus:border-indigo-500 focus:outline-none "
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
+                          errors.cgpa
+                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                        }`}
                       />
+                      {errors.cgpa && <p className="text-[9.5px] font-medium text-rose-500">{errors.cgpa}</p>}
                     </div>
                   </div>
 
@@ -975,9 +1222,10 @@ export default function ReviewPage() {
 
                   <button
                     onClick={handleSubmitApplication}
-                    className="flex-1 sm:flex-none justify-center px-3 h-8 text-xs bg-indigo-600 text-white rounded font-semibold hover:bg-indigo-700 shadow-xs hover:shadow-md transition-all flex items-center gap-1"
+                    disabled={isSubmitting}
+                    className="flex-1 sm:flex-none justify-center px-3 h-8 text-xs bg-indigo-600 text-white rounded font-semibold hover:bg-indigo-700 shadow-xs hover:shadow-md transition-all flex items-center gap-1 disabled:opacity-50"
                   >
-                    Save Progress
+                    {isSubmitting ? 'Submitting...' : 'Submit Application \u2192'}
                   </button>
 
                 </div>

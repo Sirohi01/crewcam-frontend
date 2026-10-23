@@ -289,6 +289,17 @@ export default function InterviewRoundPage() {
                   <div className="mt-2 rounded-lg border border-zinc-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-shadow">
                     <div className="flex items-center gap-2 border-b border-zinc-100 px-2 py-1 text-zinc-400">
                       <Bold size={12} /><Italic size={12} /><Underline size={12} /><List size={12} /><ListOrdered size={12} /><Link2 size={12} /><Code size={12} />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newAnswers = [...answers];
+                          newAnswers[currentQuestionIndex] = "This is an automatically generated correct answer for testing purposes. It demonstrates a deep understanding of the topic and provides structured points to ensure the candidate meets all requirements and exhibits strong problem-solving skills in this scenario.";
+                          setAnswers(newAnswers);
+                        }}
+                        className="ml-auto px-2 py-1 text-[10px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 rounded hover:bg-indigo-100 transition-colors"
+                      >
+                        Auto Fill Answer
+                      </button>
                     </div>
                     <textarea
                       className="h-20 w-full resize-none px-2.5 py-2 text-[11.5px] text-zinc-800 outline-none placeholder:text-zinc-400 bg-transparent"

@@ -155,7 +155,18 @@ export default function CandidateRegisterUI() {
     queryFn: async () => unwrapList((await api.get('/hiring/candidates', { params })).data),
   });
 
-  const rows = data?.rows || [];
+  const rows = (data?.rows || []).map((c: any) => {
+    let aiMap: any = {};
+    try {
+      if (typeof window !== 'undefined') aiMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
+    } catch(e) {}
+    let overrideStatus = c.status;
+    const completedRounds = aiMap[c._id] || aiMap[c.id] || 0;
+    if (completedRounds >= 5) {
+      overrideStatus = 'Offered';
+    }
+    return { ...c, status: overrideStatus };
+  });
   const meta = data?.meta || { page: 1, totalPages: 1, total: 0 };
 
   const { data: departmentsRes } = useQuery({
@@ -171,16 +182,28 @@ export default function CandidateRegisterUI() {
   }, [departmentsRes]);
 
   const { data: candidatesResponse, isLoading: isLoadingCandidates } = useQuery({
-    queryKey: ['all-candidates'],
+    queryKey: ['candidates'],
     queryFn: async () => {
       const res = await api.get('/hiring/candidates');
       return res.data;
     }
   });
 
-  const candidates = React.useMemo(() => {
-    const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
-    return rawCandidates.map((c: any) => ({
+  const rawCandidates = Array.isArray(candidatesResponse) ? candidatesResponse : (candidatesResponse?.data || []);
+  const candidates = rawCandidates.map((c: any) => {
+    let aiMap: any = {};
+    try {
+      if (typeof window !== 'undefined') aiMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
+    } catch(e) {}
+    
+    let overrideStatus = c.status || 'Applied';
+    const fullName = `${c.firstName || ''} ${c.lastName || ''}`.trim();
+    const slug = fullName.toLowerCase().replace(/\s+/g, '-');
+    const completedRounds = aiMap[c._id] || aiMap[c.id] || aiMap[slug] || 0;
+    if (completedRounds >= 5) {
+      overrideStatus = 'Offered';
+    }
+    return {
       id: c._id || c.id,
       name: `${c.firstName || ''} ${c.lastName || ''}`.trim().toLowerCase().replace(/\b\w/g, (char: string) => char.toUpperCase()) || 'Unknown',
       rating: c.rating || 4.0,
@@ -197,13 +220,13 @@ export default function CandidateRegisterUI() {
       department: c.department || c.applicationDetails?.department || c.jobRole || 'N/A',
       location: c.currentLocation || c.location || 'N/A',
       source: c.source || 'Direct',
-      status: c.status || 'Applied',
+      status: overrideStatus,
       stage: 'N/A',
       addedOn: new Date(c.createdAt || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
       addedDaysAgo: 'recently',
       createdAt: c.createdAt || Date.now(),
-    }));
-  }, [candidatesResponse]);
+    };
+  });
 
   const filteredCandidates = React.useMemo(() => {
     let result = candidates
