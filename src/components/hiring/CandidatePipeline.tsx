@@ -66,7 +66,7 @@ export default function CandidatePipeline() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const { data: candidates, isLoading } = useQuery<any[]>({
+  const { data: candidates, isLoading } = useQuery<any>({
     queryKey: ['candidates'],
     queryFn: async () => (await api.get('/hiring/candidates')).data
   });
@@ -156,7 +156,7 @@ export default function CandidatePipeline() {
         {/* Stage Cards */}
         {STAGES.map(stage => {
           const config = STAGE_CONFIG[stage];
-          const count = filteredCandidates.filter(c => mapStatusToStage(c.status) === stage).length;
+          const count = filteredCandidates.filter((c: any) => mapStatusToStage(c.status) === stage).length;
           const Icon = config.icon;
 
           return (
@@ -226,7 +226,7 @@ export default function CandidatePipeline() {
         ) : (
           STAGES.map((stage) => {
             const config = STAGE_CONFIG[stage];
-            const rows = filteredCandidates.filter((candidate) => mapStatusToStage(candidate.status) === stage);
+            const rows = filteredCandidates.filter((candidate: any) => mapStatusToStage(candidate.status) === stage);
             const Icon = config.icon;
 
             return (
@@ -260,7 +260,7 @@ export default function CandidatePipeline() {
                       </p>
                     </div>
                   ) : (
-                    rows.map((candidate) => (
+                    rows.map((candidate: any) => (
                       <article
                         key={candidate._id}
                         className="group flex flex-col rounded-[4px] border border-slate-200 bg-white p-3 shadow-sm hover:border-[#0d3c68]/30 transition-all"

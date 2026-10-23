@@ -18,6 +18,7 @@ interface Question {
   insight: string;
   question?: string;
   transcript?: string;
+  manualOverride?: string;
   answerAnalysis?: {
     verdict: string;
     reasoning: string;

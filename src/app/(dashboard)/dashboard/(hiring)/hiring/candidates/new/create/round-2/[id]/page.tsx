@@ -12,7 +12,15 @@ import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
 
-const DUMMY_QUESTIONS = [
+interface Round2Question {
+  category: string;
+  text: string;
+  insight: string;
+  manualOverride?: string;
+  [key: string]: any;
+}
+
+const DUMMY_QUESTIONS: Round2Question[] = [
   { category: 'Time Management', text: 'How do you prioritize multiple tasks when working under tight deadlines?', insight: 'This evaluates your ability to manage stress and organize tasks efficiently.' },
   { category: 'Leadership & People Management', text: 'Describe a situation where you had to manage a low-performing team. What steps did you take to improve their performance and what was the outcome?', insight: 'This question evaluates your leadership style, ability to motivate teams, problem-solving skills, and focus on results.' },
   { category: 'Technical - Data Analysis', text: 'You are given a large sales dataset with millions of records. How would you design a reliable and efficient data pipeline to process, clean, and analyze this data for reporting insights?', insight: 'This question evaluates your understanding of data engineering concepts, ETL/ELT pipeline design, data processing tools, and scalability.' },
@@ -37,7 +45,7 @@ export default function InterviewUI() {
   const [isConnecting, setIsConnecting] = React.useState(false);
   const [isOffline, setIsOffline] = React.useState(false);
   const [timeElapsed, setTimeElapsed] = React.useState(0);
-  const [activeQuestions, setActiveQuestions] = React.useState(DUMMY_QUESTIONS);
+  const [activeQuestions, setActiveQuestions] = React.useState<Round2Question[]>(DUMMY_QUESTIONS);
 
   const [activeTab, setActiveTab] = React.useState('Interview');
   const [isCompleted, setIsCompleted] = React.useState(false);
@@ -557,7 +565,7 @@ export default function InterviewUI() {
                     )}
                     <div className="flex flex-col">
                       <span className="text-[11px] font-bold text-zinc-900">{user?.firstName || 'Current'} {user?.lastName || 'User'}</span>
-                      <span className="text-[9px] text-zinc-500">{user?.jobTitle || 'Interviewer'}</span>
+                      <span className="text-[9px] text-zinc-500">{(user as any)?.jobTitle || 'Interviewer'}</span>
                     </div>
                   </div>
                 </div>
