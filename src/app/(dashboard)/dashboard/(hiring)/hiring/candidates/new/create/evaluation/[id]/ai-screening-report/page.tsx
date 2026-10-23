@@ -48,7 +48,7 @@ export default function AIScreeningReportTab() {
             {/* Top Section: Circle (Left) & Stats (Right) */}
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 pr-0 lg:pr-4">
               {/* Left: Circle */}
-              <div className="flex flex-col items-center justify-center shrink-0 bg-zinc-50 p-6 rounded-2xl border border-zinc-100">
+              <div className="flex flex-col items-center justify-center shrink-0 bg-zinc-50 p-6 rounded-lg border border-zinc-100">
                 <CircularProgress percentage={overallScore} colorClass={matchColorClass} textClass={matchTextClass} />
                 <p className={`text-center text-[13px] font-bold mt-3 ${matchTextClass}`}>{matchLabel}</p>
                 <p className="text-center text-[11px] font-medium text-zinc-500 mt-1">Based on Role Requirements</p>

@@ -552,7 +552,7 @@ export default function HiringRegisterShell({ stepId }: { stepId: string }) {
       )}
       {selectedRecord && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity">
-          <div className="flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl border border-slate-200 ring-1 ring-black/5 animate-in zoom-in-95 duration-200">
+          <div className="flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl border border-slate-200 ring-1 ring-black/5 animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-6 py-5">
               <div>
 

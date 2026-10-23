@@ -205,7 +205,7 @@ export default function LiveInterviewSession({ interviewId }: { interviewId: str
         <ArrowLeft size={13} /> Back to interview prep
       </Link>
 
-      <div className="rounded-2xl border border-zinc-200 bg-gradient-to-br from-white to-indigo-50/40 shadow-sm dark:border-zinc-800 dark:from-zinc-900 dark:to-indigo-950/10 p-5">
+      <div className="rounded-lg border border-zinc-200 bg-gradient-to-br from-white to-indigo-50/40 shadow-sm dark:border-zinc-800 dark:from-zinc-900 dark:to-indigo-950/10 p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <Avatar name={candidateName} src={candidate.profileImageUrl} />

@@ -114,7 +114,7 @@ export default function InterviewQuestionsPage({ interviewId }: { interviewId: s
 
       <div className="space-y-2.5">
         {questions.length === 0 && (
-          <div className="py-16 px-6 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50 dark:border-zinc-800 dark:bg-zinc-900/50 mt-4">
+          <div className="py-16 px-6 text-center border-2 border-dashed border-slate-200 rounded-lg bg-slate-50/50 dark:border-zinc-800 dark:bg-zinc-900/50 mt-4">
             <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
               <Lightbulb size={24} />
             </div>
@@ -155,7 +155,7 @@ export default function InterviewQuestionsPage({ interviewId }: { interviewId: s
                       <Trash2 size={14} /> <span className="hidden sm:inline">Remove</span>
                     </button>
                   </div>
-                  
+
                   {isExpanded && q.suggestedAnswer && (
                     <div className="mt-5 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-800 p-4 relative">
                       <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-400 rounded-l-xl"></div>

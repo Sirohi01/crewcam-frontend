@@ -129,11 +129,11 @@ export default function JobsPage() {
     const total = activeJobs.length;
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
+
     const todayCount = activeJobs.filter((a: any) => new Date(a.createdAt) >= todayStart).length;
     const openCount = activeJobs.filter((a: any) => a.status === 'Open' || a.status === 'Approved').length;
     const pendingCount = activeJobs.filter((a: any) => a.status === 'Pending' || a.status === 'Pending Approval').length;
-    
+
     return [
       { label: 'Total Jobs', value: total.toString(), sub1: 'All posted jobs', bg: 'bg-indigo-50', color: 'text-indigo-600', icon: Briefcase },
       { label: 'Open Jobs', value: openCount.toString(), sub1: 'Active jobs', bg: 'bg-emerald-50', color: 'text-emerald-600', icon: Globe },
@@ -441,22 +441,20 @@ export default function JobsPage() {
                   {visibleCols.positions && <td className="px-3 py-2 font-bold text-zinc-800 text-center">{app.positions}</td>}
                   {visibleCols.priority && (
                     <td className="px-3 py-2 text-center">
-                      <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${
-                        app.priority === 'High' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
-                        app.priority === 'Low' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                        'bg-amber-50 text-amber-600 border border-amber-100'
-                      }`}>
+                      <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${app.priority === 'High' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
+                          app.priority === 'Low' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                            'bg-amber-50 text-amber-600 border border-amber-100'
+                        }`}>
                         {app.priority}
                       </span>
                     </td>
                   )}
                   {visibleCols.status && (
                     <td className="px-3 py-2 text-center">
-                      <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${
-                        app.status === 'Approved' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                        app.status === 'Closed' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
-                        'bg-blue-50 text-blue-600 border border-blue-100'
-                      }`}>
+                      <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold ${app.status === 'Approved' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                          app.status === 'Closed' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
+                            'bg-blue-50 text-blue-600 border border-blue-100'
+                        }`}>
                         {app.status}
                       </span>
                     </td>
@@ -523,7 +521,7 @@ export default function JobsPage() {
       {/* ── Confirm Delete Dialog ── */}
       {confirmDeleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
             {/* Header */}
             <div className="flex items-center gap-3 px-6 pt-6 pb-4">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100">

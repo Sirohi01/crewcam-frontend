@@ -147,11 +147,11 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
 
   return (
     <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-1 pb-8">
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm flex flex-col">
+      <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm flex flex-col">
         <div className="border-b border-slate-100 bg-white px-5 py-5 text-slate-900">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex min-w-0 items-center gap-4">
-              <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200">
+              <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-lg bg-slate-100 ring-1 ring-slate-200">
                 {candidatePhotoUrl ? <img src={candidatePhotoUrl} alt={`${candidate.firstName} ${candidate.lastName}`} className="h-full w-full object-cover" /> : <UserRound size={26} />}
               </div>
               <div className="min-w-0">
@@ -192,8 +192,8 @@ export default function CandidateWorkflow({ candidateId }: { candidateId: string
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`whitespace-nowrap px-4 py-2.5 text-[13px] font-semibold transition-colors border-b-2 ${activeTab === tab
-                  ? 'border-[#0e4778] text-[#0e4778]'
-                  : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
+                ? 'border-[#0e4778] text-[#0e4778]'
+                : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
                 }`}
             >
               {tab}

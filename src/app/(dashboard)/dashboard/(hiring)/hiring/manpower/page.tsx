@@ -88,7 +88,7 @@ function SummaryCards({ stats }: { stats: any }) {
   return (
     <section className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
       {dynamicSummary.map((item) => (
-        <Card key={item.key} className="rounded-2xl border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <Card key={item.key} className="rounded-lg border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
           <CardContent className="flex items-center gap-3 p-3.5">
             <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${item.bg} ${item.color}`}>
               {item.icon}
@@ -121,7 +121,7 @@ function FiltersBar({
   activeCount: number; onClear: () => void;
 }) {
   return (
-    <Card className="rounded-2xl border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+    <Card className="rounded-lg border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
       <CardContent className="p-2 space-y-2">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
@@ -439,7 +439,7 @@ export default function JobRequisitionsPage() {
         activeCount={activeCount} onClear={handleClear}
       />
 
-      <Card className="rounded-2xl border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+      <Card className="rounded-lg border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
         <CardContent className="p-2">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-zinc-200 pb-2">
             <h3 className="text-[11px] font-semibold text-zinc-900">{totalEntries} Requisitions Found</h3>

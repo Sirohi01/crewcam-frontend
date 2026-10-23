@@ -124,20 +124,20 @@ export default function NewApplicationsPage() {
     let aiMap: any = {};
     try {
       if (typeof window !== 'undefined') aiMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
-    } catch(e) {}
+    } catch (e) { }
 
     const fullName = `${c.firstName || ''} ${c.lastName || ''}`.trim();
     const slug = fullName.toLowerCase().replace(/\s+/g, '-');
     const rounds = aiMap[c._id] || aiMap[c.id] || aiMap[slug] || 0;
-    
+
     let overrideStatus = c.status || 'New';
-    
+
     // Format enum statuses
     if (overrideStatus === 'INTERVIEW_SCHEDULED') overrideStatus = 'Interview Scheduled';
     if (overrideStatus === 'SHORTLISTED') overrideStatus = 'Shortlisted';
     if (overrideStatus === 'HOD_APPROVAL') overrideStatus = 'HOD Approval';
     if (overrideStatus === 'AI_SCREENING') overrideStatus = 'AI Screening';
-    
+
     const isCharu = fullName.toLowerCase().includes('charu');
 
     if (rounds >= 5 || isCharu || overrideStatus === 'Offered' || overrideStatus === 'Selected') {
@@ -625,7 +625,7 @@ export default function NewApplicationsPage() {
       {/* ── Confirm Delete Dialog ── */}
       {confirmDeleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
             {/* Header */}
             <div className="flex items-center gap-3 px-6 pt-6 pb-4">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100">
