@@ -19,6 +19,7 @@ export default function JdLibraryPage() {
   const [modalItem, setModalItem] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null);
   const [form, setForm] = useState(empty);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const fetchData = async () => {
     setLoading(true);
@@ -35,9 +36,10 @@ export default function JdLibraryPage() {
 
   useEffect(() => { fetchData(); }, []);
 
-  const openCreate = () => { setError(''); setForm(empty); setModalItem(null); setModal(true); };
+  const openCreate = () => { setError(''); setFieldErrors({}); setForm(empty); setModalItem(null); setModal(true); };
   const openEdit = (item: any) => {
     setError('');
+    setFieldErrors({});
     setForm({
       title: item.title || '', designation: item.designation || '',
       jobDescriptionSummary: item.jobDescriptionSummary || '',
@@ -51,6 +53,12 @@ export default function JdLibraryPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const next: Record<string, string> = {};
+    if (!form.title.trim()) next.title = 'Title is required.';
+    if (!form.jobDescriptionSummary.trim()) next.jobDescriptionSummary = 'Job Description Summary is required.';
+    setFieldErrors(next);
+    if (Object.keys(next).length > 0) return;
+
     setSaving(true);
     setError('');
     try {
@@ -133,9 +141,9 @@ export default function JdLibraryPage() {
 
       {modal && (
         <Modal title={`${modalItem ? 'Edit' : 'Create'} JD Template`} onClose={() => setModal(false)} onSubmit={submit} busy={saving}>
-          <Input label="Title" placeholder="e.g. Frontend Developer Template" value={form.title} onChange={(e: any) => setForm({ ...form, title: e.target.value })} required />
+          <Input label="Title" placeholder="e.g. Frontend Developer Template" value={form.title} onChange={(e: any) => { setForm({ ...form, title: e.target.value }); setFieldErrors((p) => ({ ...p, title: '' })); }} error={fieldErrors.title} />
           <Input label="Designation" placeholder="e.g. Senior Software Engineer" value={form.designation} onChange={(e: any) => setForm({ ...form, designation: e.target.value })} />
-          <TextArea label="Job Description Summary" placeholder="e.g. Looking for an experienced frontend developer to build responsive web applications..." value={form.jobDescriptionSummary} onChange={(e: any) => setForm({ ...form, jobDescriptionSummary: e.target.value })} required />
+          <TextArea label="Job Description Summary" placeholder="e.g. Looking for an experienced frontend developer to build responsive web applications..." value={form.jobDescriptionSummary} onChange={(e: any) => { setForm({ ...form, jobDescriptionSummary: e.target.value }); setFieldErrors((p) => ({ ...p, jobDescriptionSummary: '' })); }} error={fieldErrors.jobDescriptionSummary} />
           <TextArea label="Key Responsibilities — one per line" placeholder="e.g. Develop and maintain UI components&#10;Collaborate with cross-functional teams" value={form.keyResponsibilitiesText} onChange={(e: any) => setForm({ ...form, keyResponsibilitiesText: e.target.value })} />
           <TextArea label="Qualification Requirement" placeholder="e.g. Bachelor's degree in Computer Science or equivalent" value={form.qualificationReq} onChange={(e: any) => setForm({ ...form, qualificationReq: e.target.value })} />
           <TextArea label="Experience Requirement" placeholder="e.g. 3-5 years of experience in React.js" value={form.experienceReq} onChange={(e: any) => setForm({ ...form, experienceReq: e.target.value })} />
@@ -184,20 +192,22 @@ function ConfirmModal({ title, children, onCancel, onConfirm, busy }: any) {
   );
 }
 
-function Input({ label, ...props }: any) {
+function Input({ label, error, ...props }: any) {
   return (
     <div className="space-y-1.5">
       <label className="block text-xs font-md text-zinc-700 dark:text-zinc-300">{label}</label>
-      <input className="w-full border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-transparent" {...props} />
+      <input className={`w-full border rounded-lg text-sm px-3.5 py-2 focus:outline-none focus:ring-2 bg-transparent ${error ? 'border-rose-400 bg-rose-50/40 focus:ring-rose-500/20 focus:border-rose-500' : 'border-zinc-200 dark:border-zinc-700 focus:ring-indigo-500/20 focus:border-indigo-500'}`} {...props} />
+      {error && <p className="text-[11px] text-rose-500 font-medium">{error}</p>}
     </div>
   );
 }
 
-function TextArea({ label, ...props }: any) {
+function TextArea({ label, error, ...props }: any) {
   return (
     <div className="space-y-1.5">
       <label className="block text-xs font-md text-zinc-700 dark:text-zinc-300">{label}</label>
-      <textarea className="w-full border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm px-3.5 py-2 h-20 resize-y focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-transparent" {...props} />
+      <textarea className={`w-full border rounded-lg text-sm px-3.5 py-2 h-20 resize-y focus:outline-none focus:ring-2 bg-transparent ${error ? 'border-rose-400 bg-rose-50/40 focus:ring-rose-500/20 focus:border-rose-500' : 'border-zinc-200 dark:border-zinc-700 focus:ring-indigo-500/20 focus:border-indigo-500'}`} {...props} />
+      {error && <p className="text-[11px] text-rose-500 font-medium">{error}</p>}
     </div>
   );
 }

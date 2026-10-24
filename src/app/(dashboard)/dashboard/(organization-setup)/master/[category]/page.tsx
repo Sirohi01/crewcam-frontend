@@ -63,6 +63,7 @@ export default function MasterDataCategoryPage() {
   const [modalItem, setModalItem] = useState<any | null>(null);
   const [deleteItem, setDeleteItem] = useState<any | null>(null);
   const [formData, setFormData] = useState(initialForm);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -102,6 +103,7 @@ export default function MasterDataCategoryPage() {
     setFormData(initialForm);
     setModalItem({});
     setError('');
+    setFieldErrors({});
   };
 
   const openEdit = (item: any) => {
@@ -115,11 +117,22 @@ export default function MasterDataCategoryPage() {
     });
     setModalItem(item);
     setError('');
+    setFieldErrors({});
   };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!active) return;
+
+    const nextErrors: Record<string, string> = {};
+    if (!formData.name.trim()) nextErrors.name = 'Name is required.';
+    if (active.fields.includes('defaultDays')) {
+      if (!formData.defaultDays.trim()) nextErrors.defaultDays = 'Default Days is required.';
+      else if (!/^\d+$/.test(formData.defaultDays.trim())) nextErrors.defaultDays = 'Must be a whole number.';
+    }
+    setFieldErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
     setSaving(true);
     setError('');
     try {
@@ -271,11 +284,11 @@ export default function MasterDataCategoryPage() {
             <span className="font-md block mb-0.5">Tip:</span> Add values like: <span className="font-medium">{active.example}</span>
           </div>
           <div className="space-y-4">
-            <Input label="Name" placeholder={active.example ? `e.g. ${active.example.split(',')[0].trim()}` : "Enter name"} value={formData.name} onChange={(e: any) => setFormData({ ...formData, name: e.target.value })} required />
+            <Input label="Name" placeholder={active.example ? `e.g. ${active.example.split(',')[0].trim()}` : "Enter name"} value={formData.name} onChange={(e: any) => { setFormData({ ...formData, name: e.target.value }); setFieldErrors((p) => ({ ...p, name: '' })); }} error={fieldErrors.name} />
             {active.fields.includes('code') && <Input label="Code / Abbreviation" placeholder="Enter short code" value={formData.code} onChange={(e: any) => setFormData({ ...formData, code: e.target.value })} />}
             {active.fields.includes('level') && <Input label="Level / Tier" placeholder="e.g. 1, 2, Entry" value={formData.level} onChange={(e: any) => setFormData({ ...formData, level: e.target.value })} />}
             {active.fields.includes('category') && <Input label="Category" placeholder="e.g. General, Special" value={formData.category} onChange={(e: any) => setFormData({ ...formData, category: e.target.value })} />}
-            {active.fields.includes('defaultDays') && <Input label="Default Days per Year" placeholder="e.g. 12" type="number" min={0} value={formData.defaultDays} onChange={(e: any) => setFormData({ ...formData, defaultDays: e.target.value })} required />}
+            {active.fields.includes('defaultDays') && <Input label="Default Days per Year" placeholder="e.g. 12" type="number" min={0} value={formData.defaultDays} onChange={(e: any) => { setFormData({ ...formData, defaultDays: e.target.value }); setFieldErrors((p) => ({ ...p, defaultDays: '' })); }} error={fieldErrors.defaultDays} />}
             {active.fields.includes('description') && <Textarea label="Description / Notes" placeholder="Enter details..." value={formData.description} onChange={(e: any) => setFormData({ ...formData, description: e.target.value })} />}
           </div>
         </Modal>
@@ -341,11 +354,12 @@ function ConfirmModal({ title, children, onCancel, onConfirm, busy }: any) {
   );
 }
 
-function Input({ label, className = "", ...props }: any) {
+function Input({ label, className = "", error, ...props }: any) {
   return (
     <div className="space-y-1.5">
       <label className="block text-xs font-md text-zinc-700 dark:text-zinc-300">{label}</label>
-      <input className={`w-full border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white dark:bg-zinc-900 shadow-sm transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${className}`} {...props} />
+      <input className={`w-full border rounded-lg text-sm px-3.5 py-2 focus:outline-none focus:ring-2 bg-white dark:bg-zinc-900 shadow-sm transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${error ? 'border-rose-400 bg-rose-50/40 focus:ring-rose-500/20 focus:border-rose-500' : 'border-zinc-200 dark:border-zinc-700 focus:ring-indigo-500/20 focus:border-indigo-500'} ${className}`} {...props} />
+      {error && <p className="text-[11px] text-rose-500 font-medium">{error}</p>}
     </div>
   );
 }

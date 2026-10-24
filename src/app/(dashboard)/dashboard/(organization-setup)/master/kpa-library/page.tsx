@@ -16,6 +16,7 @@ export default function KpaLibraryPage() {
   const [modalItem, setModalItem] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null);
   const [form, setForm] = useState(empty);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const fetchData = async () => {
     setLoading(true);
@@ -32,9 +33,10 @@ export default function KpaLibraryPage() {
 
   useEffect(() => { fetchData(); }, []);
 
-  const openCreate = () => { setError(''); setForm(empty); setModalItem(null); setModal(true); };
+  const openCreate = () => { setError(''); setFieldErrors({}); setForm(empty); setModalItem(null); setModal(true); };
   const openEdit = (item: any) => {
     setError('');
+    setFieldErrors({});
     setForm({
       title: item.title || '', designation: item.designation || '',
       kraReport: item.kraReport || '', kpisText: (item.kpis || []).join('\n'),
@@ -45,6 +47,12 @@ export default function KpaLibraryPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const next: Record<string, string> = {};
+    if (!form.title.trim()) next.title = 'Title is required.';
+    if (!form.kraReport.trim()) next.kraReport = 'KRA Report is required.';
+    setFieldErrors(next);
+    if (Object.keys(next).length > 0) return;
+
     setSaving(true);
     setError('');
     try {
@@ -127,9 +135,9 @@ export default function KpaLibraryPage() {
 
       {modal && (
         <Modal title={`${modalItem ? 'Edit' : 'Create'} KPA Template`} onClose={() => setModal(false)} onSubmit={submit} busy={saving}>
-          <Input label="Title" value={form.title} onChange={(e: any) => setForm({ ...form, title: e.target.value })} placeholder="e.g., Frontend Developer KRA" required />
+          <Input label="Title" value={form.title} onChange={(e: any) => { setForm({ ...form, title: e.target.value }); setFieldErrors((p) => ({ ...p, title: '' })); }} placeholder="e.g., Frontend Developer KRA" error={fieldErrors.title} />
           <Input label="Designation" value={form.designation} onChange={(e: any) => setForm({ ...form, designation: e.target.value })} placeholder="e.g., Frontend Developer, SDE I" />
-          <TextArea label="KRA Report" value={form.kraReport} onChange={(e: any) => setForm({ ...form, kraReport: e.target.value })} placeholder="e.g., Deliver high-quality UI components and ensure seamless user experience." required />
+          <TextArea label="KRA Report" value={form.kraReport} onChange={(e: any) => { setForm({ ...form, kraReport: e.target.value }); setFieldErrors((p) => ({ ...p, kraReport: '' })); }} placeholder="e.g., Deliver high-quality UI components and ensure seamless user experience." error={fieldErrors.kraReport} />
           <TextArea label="KPIs — one per line" value={form.kpisText} onChange={(e: any) => setForm({ ...form, kpisText: e.target.value })} placeholder={"e.g.,\n- 95% on-time feature delivery\n- Maintain < 2 bugs per release\n- 90% code coverage"} />
         </Modal>
       )}
@@ -174,20 +182,22 @@ function ConfirmModal({ title, children, onCancel, onConfirm, busy }: any) {
   );
 }
 
-function Input({ label, ...props }: any) {
+function Input({ label, error, ...props }: any) {
   return (
     <div className="space-y-1.5">
       <label className="block text-xs font-md text-zinc-700 dark:text-zinc-300">{label}</label>
-      <input className="w-full border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-transparent" {...props} />
+      <input className={`w-full border rounded-lg text-sm px-3.5 py-2 focus:outline-none focus:ring-2 bg-transparent ${error ? 'border-rose-400 bg-rose-50/40 focus:ring-rose-500/20 focus:border-rose-500' : 'border-zinc-200 dark:border-zinc-700 focus:ring-indigo-500/20 focus:border-indigo-500'}`} {...props} />
+      {error && <p className="text-[11px] text-rose-500 font-medium">{error}</p>}
     </div>
   );
 }
 
-function TextArea({ label, ...props }: any) {
+function TextArea({ label, error, ...props }: any) {
   return (
     <div className="space-y-1.5">
       <label className="block text-xs font-md text-zinc-700 dark:text-zinc-300">{label}</label>
-      <textarea className="w-full border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm px-3.5 py-2 h-20 resize-y focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-transparent" {...props} />
+      <textarea className={`w-full border rounded-lg text-sm px-3.5 py-2 h-20 resize-y focus:outline-none focus:ring-2 bg-transparent ${error ? 'border-rose-400 bg-rose-50/40 focus:ring-rose-500/20 focus:border-rose-500' : 'border-zinc-200 dark:border-zinc-700 focus:ring-indigo-500/20 focus:border-indigo-500'}`} {...props} />
+      {error && <p className="text-[11px] text-rose-500 font-medium">{error}</p>}
     </div>
   );
 }

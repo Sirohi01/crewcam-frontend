@@ -10,14 +10,15 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 
 export function ReportingAndMappingCard() {
-    const { formData, updateFormData } = useDivisionForm();
+    const { formData, updateFormData, fieldErrors } = useDivisionForm();
 
     const { data: departmentsRes } = useQuery({
-        queryKey: ['departments'],
+        queryKey: ['departments', 'division-reporting-mapping'],
         queryFn: () => api.get('/companies/departments').then(res => res.data)
     });
-    
-    const departmentOptions = (departmentsRes?.data || []).map((d: any) => ({
+
+    const departmentList = Array.isArray(departmentsRes?.data) ? departmentsRes.data : [];
+    const departmentOptions = departmentList.map((d: any) => ({
         label: d.name,
         value: d._id
     }));
@@ -27,7 +28,7 @@ export function ReportingAndMappingCard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Section - Form Fields */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4 lg:grid-cols-1 xl:grid-cols-2 lg:content-start">
-                    <Field title="Report To (BU Head / Owner)" required helpText="Reporting manager for this division">
+                    <Field title="Report To (BU Head / Owner)" required helpText="Reporting manager for this division" error={fieldErrors.reportToId}>
                         <div className="mt-1">
                             <ApiSearchableSelect
                                 apiType="employee"
@@ -37,7 +38,7 @@ export function ReportingAndMappingCard() {
                             />
                         </div>
                     </Field>
-                    
+
                     <div className="block">
                         <span className={labelCls}>Linked Departments</span>
                         <div className="mt-1">
@@ -55,28 +56,28 @@ export function ReportingAndMappingCard() {
                 {/* Right Section - Hierarchy Diagram */}
                 <div className="flex flex-col items-center justify-center pt-2 lg:pt-0">
                     <span className={`${labelCls} mb-4 block w-full text-center`}>Division Placement</span>
-                    
+
                     <div className="flex flex-col items-center">
                         {/* Business Unit Node */}
                         <div className="px-6 py-1.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-600 text-[11px] font-semibold w-40 text-center">
                             Business Unit
                         </div>
-                        
+
                         {/* Arrow Down */}
                         <div className="h-4 border-l border-zinc-300 w-px"></div>
                         <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[5px] border-l-transparent border-r-transparent border-t-zinc-300 -mt-px"></div>
                         <div className="h-2 w-px"></div>
-                        
+
                         {/* Division (New) Node */}
                         <div className="px-6 py-1.5 rounded bg-blue-50 border border-blue-200 text-blue-600 text-[11px] font-semibold w-40 text-center shadow-sm">
                             Division (New)
                         </div>
-                        
+
                         {/* Arrow Down */}
                         <div className="h-4 border-l border-zinc-300 w-px"></div>
                         <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[5px] border-l-transparent border-r-transparent border-t-zinc-300 -mt-px"></div>
                         <div className="h-2 w-px"></div>
-                        
+
                         {/* Departments Node */}
                         <div className="px-6 py-1.5 rounded bg-purple-50 border border-purple-200 text-purple-600 text-[11px] font-semibold w-40 text-center">
                             Departments

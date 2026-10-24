@@ -34,6 +34,10 @@ export default function AddDepartmentHead() {
         navigate.push('/dashboard/departments/add-department/description-settings');
     };
 
+    const clearError = (field: string) => {
+        setErrors((prev) => (prev[field] ? { ...prev, [field]: '' } : prev));
+    };
+
     const handleSaveDraft = () => {
         localStorage.setItem('departmentFormDraft', JSON.stringify(formData));
         toast.success('Draft saved successfully!');
@@ -102,15 +106,15 @@ export default function AddDepartmentHead() {
                                 </Field>
 
                                 <Field title="Effective Date" required helpText="From when this department will be active" error={errors.effectiveDate}>
-                                    <input type="date" value={formData.effectiveDate} onChange={e => updateFormData({ effectiveDate: e.target.value })} className={fieldCls(Boolean(errors.effectiveDate))} />
+                                    <input type="date" value={formData.effectiveDate} onChange={e => { updateFormData({ effectiveDate: e.target.value }); clearError('effectiveDate'); }} className={fieldCls(Boolean(errors.effectiveDate))} />
                                 </Field>
 
                                 <Field title="Probation Period (Months)" helpText="For new employees in this department" error={errors.probationPeriodMonths}>
-                                    <input type="text" inputMode="numeric" value={formData.probationPeriodMonths} onChange={e => updateFormData({ probationPeriodMonths: e.target.value.replace(/[^0-9]/g, '') })} className={fieldCls(Boolean(errors.probationPeriodMonths))} placeholder="e.g. 3" />
+                                    <input type="text" inputMode="numeric" value={formData.probationPeriodMonths} onChange={e => { updateFormData({ probationPeriodMonths: e.target.value.replace(/[^0-9]/g, '') }); clearError('probationPeriodMonths'); }} className={fieldCls(Boolean(errors.probationPeriodMonths))} placeholder="e.g. 3" />
                                 </Field>
 
                                 <Field title="Department Email" helpText="Official email for this department" error={errors.departmentEmail}>
-                                    <input type="email" value={formData.departmentEmail} onChange={e => updateFormData({ departmentEmail: e.target.value })} className={fieldCls(Boolean(errors.departmentEmail))} placeholder="e.g. designstudio@yourcompany.com" />
+                                    <input type="email" value={formData.departmentEmail} onChange={e => { updateFormData({ departmentEmail: e.target.value }); clearError('departmentEmail'); }} className={fieldCls(Boolean(errors.departmentEmail))} placeholder="e.g. designstudio@yourcompany.com" />
                                 </Field>
                             </div>
                         </Card>
@@ -139,7 +143,7 @@ export default function AddDepartmentHead() {
                                         <ApiSearchableSelect
                                             apiType="business-unit"
                                             value={formData.businessUnit}
-                                            onChange={(val) => updateFormData({ businessUnit: val })}
+                                            onChange={(val) => { updateFormData({ businessUnit: val }); clearError('businessUnit'); }}
                                             onLabelChange={(label) => updateMeta({ businessUnitName: label })}
                                             placeholder="Select Business Unit"
                                         />

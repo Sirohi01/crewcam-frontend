@@ -3,34 +3,36 @@
 import React from 'react';
 import { FileText } from 'lucide-react';
 import { useDivisionForm } from '@/context/DivisionFormContext';
-import { Card, Field, inputCls, textareaCls } from './FormHelpers';
+import { Card, Field, inputCls, textareaCls, fieldCls } from './FormHelpers';
 
 export function AdditionalDetailsCard() {
-    const { formData, updateFormData } = useDivisionForm();
+    const { formData, updateFormData, fieldErrors } = useDivisionForm();
 
     return (
         <Card title={<><FileText size={16} className="text-indigo-600 mr-1" /> Additional Details</>}>
             <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-3">
                 {/* Row 1 */}
-                <Field title="Total Employees (Approx.)">
+                <Field title="Total Employees (Approx.)" error={fieldErrors.totalEmployees}>
                     <input
                         type="text"
+                        inputMode="numeric"
                         value={formData.totalEmployees}
-                        onChange={e => updateFormData({ totalEmployees: e.target.value })}
-                        className={inputCls}
+                        onChange={e => updateFormData({ totalEmployees: e.target.value.replace(/[^0-9]/g, '') })}
+                        className={fieldCls(inputCls, Boolean(fieldErrors.totalEmployees))}
                         placeholder="Enter approx. number"
                     />
                 </Field>
-                <Field title="Total Departments (Approx.)">
+                <Field title="Total Departments (Approx.)" error={fieldErrors.totalDepartments}>
                     <input
                         type="text"
+                        inputMode="numeric"
                         value={formData.totalDepartments}
-                        onChange={e => updateFormData({ totalDepartments: e.target.value })}
-                        className={inputCls}
+                        onChange={e => updateFormData({ totalDepartments: e.target.value.replace(/[^0-9]/g, '') })}
+                        className={fieldCls(inputCls, Boolean(fieldErrors.totalDepartments))}
                         placeholder="Enter approx. number"
                     />
                 </Field>
-                <Field title="Budget (FY 25-26) (₹)" helpText="Estimated annual budget for this division">
+                <Field title="Budget (FY 25-26) (₹)" helpText="Estimated annual budget for this division" error={fieldErrors.budget}>
                     <div className="relative flex items-center">
                         <div className="absolute left-0 top-1 bottom-0 flex items-center justify-center w-8 bg-zinc-50 border border-zinc-200 border-r-0 rounded-l-md text-zinc-500 text-[12px] h-[30px] font-medium mt-[2px]">
                             ₹
@@ -39,7 +41,7 @@ export function AdditionalDetailsCard() {
                             type="text"
                             value={formData.budget}
                             onChange={e => updateFormData({ budget: e.target.value })}
-                            className={`${inputCls} pl-10`}
+                            className={`${fieldCls(inputCls, Boolean(fieldErrors.budget))} pl-10`}
                             placeholder="Enter budget amount"
                         />
                     </div>

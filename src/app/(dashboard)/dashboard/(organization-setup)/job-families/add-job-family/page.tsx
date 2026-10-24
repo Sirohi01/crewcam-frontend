@@ -103,11 +103,13 @@ function Field({
   label,
   required,
   helper,
+  error,
   children,
 }: {
   label: string;
   required?: boolean;
   helper?: string;
+  error?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -116,12 +118,17 @@ function Field({
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       {children}
-      {helper && (
+      {error ? (
+        <p className="mt-1 text-[10px] font-semibold text-red-500">{error}</p>
+      ) : helper ? (
         <p className="mt-1 text-[10px] text-zinc-400">{helper}</p>
-      )}
+      ) : null}
     </div>
   );
 }
+
+const fieldInputCls = (hasError?: boolean) =>
+  `h-8 w-full rounded-md border px-2.5 text-[11px] font-medium text-[#101743] outline-none ${hasError ? 'border-red-400 bg-red-50/40' : 'border-[#e0e4eb]'}`;
 
 function AddJobFamilyContent() {
   const router = useRouter();
@@ -138,6 +145,7 @@ function AddJobFamilyContent() {
     businessUnitId: '',
     keyResponsibilities: '',
   });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const { data: allJobFamilies = [] } = useQuery({
     queryKey: ['jobFamilies'],
@@ -199,8 +207,13 @@ function AddJobFamilyContent() {
   });
 
   const handleSubmit = () => {
-    if (!formData.name || !formData.code) {
-      toast.error('Name and Code are required');
+    const next: Record<string, string> = {};
+    if (!formData.name.trim()) next.name = 'Job Family Name is required.';
+    if (!formData.code.trim()) next.code = 'Family Code is required.';
+    else if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(formData.code.trim())) next.code = 'Use letters, numbers, - or _ only.';
+    setFieldErrors(next);
+    if (Object.keys(next).length > 0) {
+      toast.error('Please fix the highlighted fields before saving.');
       return;
     }
     const payload = { ...formData };
@@ -270,21 +283,21 @@ function AddJobFamilyContent() {
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <Field label="Job Family Name" required helper="e.g., Information Technology">
+            <Field label="Job Family Name" required helper="e.g., Information Technology" error={fieldErrors.name}>
               <input
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => { setFormData({ ...formData, name: e.target.value }); setFieldErrors((p) => ({ ...p, name: '' })); }}
                 placeholder="Information Technology"
-                className="h-8 w-full rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
+                className={fieldInputCls(Boolean(fieldErrors.name))}
               />
             </Field>
 
-            <Field label="Family Code" required helper="e.g., IT">
+            <Field label="Family Code" required helper="e.g., IT" error={fieldErrors.code}>
               <input
                 value={formData.code}
-                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                onChange={(e) => { setFormData({ ...formData, code: e.target.value }); setFieldErrors((p) => ({ ...p, code: '' })); }}
                 placeholder="IT"
-                className="h-8 w-full rounded-md border border-[#e0e4eb] px-2.5 text-[11px] font-medium text-[#101743] outline-none"
+                className={fieldInputCls(Boolean(fieldErrors.code))}
               />
             </Field>
 

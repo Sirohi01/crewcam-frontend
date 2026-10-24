@@ -22,7 +22,7 @@ export default function AddDivisionPageWrapper() {
 }
 
 function AddDivisionPage() {
-  const { formData, updateFormData } = useDivisionForm();
+  const { formData, updateFormData, setFieldErrors } = useDivisionForm();
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get('editId');
@@ -61,12 +61,25 @@ function AddDivisionPage() {
     }
   }, [editId]);
 
+  const validate = (): boolean => {
+    const next: Record<string, string> = {};
+    if (!formData.name.trim()) next.name = 'Division Name is required.';
+    if (!formData.code.trim()) next.code = 'Division Code is required.';
+    else if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(formData.code.trim())) next.code = 'Use letters, numbers, - or _ only.';
+    if (formData.totalEmployees && !/^\d+$/.test(formData.totalEmployees)) next.totalEmployees = 'Must be a whole number.';
+    if (formData.totalDepartments && !/^\d+$/.test(formData.totalDepartments)) next.totalDepartments = 'Must be a whole number.';
+    if (formData.budget && !/^\d+(\.\d+)?$/.test(formData.budget.trim())) next.budget = 'Must be a number.';
+
+    setFieldErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
   const handleSave = async () => {
-    if (!formData.name || !formData.code) {
-      toast.error('Name and Code are required');
+    if (!validate()) {
+      toast.error('Please fix the highlighted fields before saving.');
       return;
     }
-    
+
     try {
       setIsSaving(true);
       

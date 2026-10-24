@@ -16,15 +16,21 @@ const selectCls = `${inputCls} appearance-none`;
 const labelCls = 'text-[11px] font-semibold text-zinc-700';
 const helpTextCls = 'text-[10px] text-zinc-400 mt-1 leading-tight';
 
-function Field({ title, required, children, helpText }: { title: string; required?: boolean; children: React.ReactNode; helpText?: string }) {
+function Field({ title, required, children, helpText, error }: { title: string; required?: boolean; children: React.ReactNode; helpText?: string; error?: string }) {
     return (
         <label className="block">
             <span className={labelCls}>{title}{required && <b className="text-rose-500"> *</b>}</span>
             {children}
-            {helpText && <p className={helpTextCls}>{helpText}</p>}
+            {error ? (
+                <p className="text-[10px] text-rose-500 font-medium mt-1">{error}</p>
+            ) : helpText ? (
+                <p className={helpTextCls}>{helpText}</p>
+            ) : null}
         </label>
     );
 }
+
+const fieldCls = (base: string, hasError?: boolean) => hasError ? base.replace('border-zinc-200', 'border-rose-400 bg-rose-50/40') : base;
 
 function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
     return (
@@ -63,6 +69,7 @@ export default function AddNewBusinessUnitPage() {
     const [isUploading, setIsUploading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [employees, setEmployees] = useState<any[]>([]);
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         const fetchEmployees = async () => {
@@ -112,6 +119,7 @@ export default function AddNewBusinessUnitPage() {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+        setFieldErrors(prev => (prev[name] ? { ...prev, [name]: '' } : prev));
     };
 
     const handleIconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,9 +146,24 @@ export default function AddNewBusinessUnitPage() {
         }
     };
 
+    const validate = (): boolean => {
+        const next: Record<string, string> = {};
+        if (!formData.name.trim()) next.name = 'Business Unit Name is required.';
+        if (!formData.code.trim()) next.code = 'BU Code is required.';
+        else if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(formData.code.trim())) next.code = 'Use letters, numbers, - or _ only.';
+        if (!formData.type) next.type = 'Business Unit Type is required.';
+        if (!formData.status) next.status = 'Status is required.';
+        if (formData.totalEmployees && (!/^\d+$/.test(formData.totalEmployees) || Number(formData.totalEmployees) < 0)) next.totalEmployees = 'Must be a positive whole number.';
+        if (formData.totalDepartments && (!/^\d+$/.test(formData.totalDepartments) || Number(formData.totalDepartments) < 0)) next.totalDepartments = 'Must be a positive whole number.';
+        if (formData.annualBudget && !/^\d+(\.\d+)?$/.test(formData.annualBudget.trim())) next.annualBudget = 'Must be a number.';
+
+        setFieldErrors(next);
+        return Object.keys(next).length === 0;
+    };
+
     const handleSubmit = async () => {
-        if (!formData.name || !formData.code || !formData.type || !formData.status) {
-            toast.error('Please fill all mandatory fields');
+        if (!validate()) {
+            toast.error('Please fix the highlighted fields before saving.');
             return;
         }
 
@@ -219,11 +242,11 @@ export default function AddNewBusinessUnitPage() {
                         <div>
                             <SectionHeader icon={<Building className="w-4 h-4" />} title="Business Unit Information" />
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
-                                <Field title="Business Unit Name" required>
-                                    <input type="text" name="name" value={formData.name} onChange={handleChange} className={inputCls} placeholder="Enter business unit name" />
+                                <Field title="Business Unit Name" required error={fieldErrors.name}>
+                                    <input type="text" name="name" value={formData.name} onChange={handleChange} className={fieldCls(inputCls, Boolean(fieldErrors.name))} placeholder="Enter business unit name" />
                                 </Field>
-                                <Field title="BU Code" required helpText="Short code (e.g., BU-RI)">
-                                    <input type="text" name="code" value={formData.code} onChange={handleChange} className={inputCls} placeholder="Enter unique BU code" />
+                                <Field title="BU Code" required helpText="Short code (e.g., BU-RI)" error={fieldErrors.code}>
+                                    <input type="text" name="code" value={formData.code} onChange={handleChange} className={fieldCls(inputCls, Boolean(fieldErrors.code))} placeholder="Enter unique BU code" />
                                 </Field>
                                 <Field title="Head / Owner" helpText="Person responsible for this BU">
                                     <div className="relative">
@@ -244,9 +267,9 @@ export default function AddNewBusinessUnitPage() {
                                 <Field title="Parent Business Unit" helpText="Enter the parent business unit">
                                     <input type="text" name="parent" value={formData.parent} onChange={handleChange} className={inputCls} placeholder="Enter parent BU (if any)" />
                                 </Field>
-                                <Field title="Business Unit Type" required helpText="Select the appropriate category">
+                                <Field title="Business Unit Type" required helpText="Select the appropriate category" error={fieldErrors.type}>
                                     <div className="relative">
-                                        <select name="type" value={formData.type} onChange={handleChange} className={selectCls}>
+                                        <select name="type" value={formData.type} onChange={handleChange} className={fieldCls(selectCls, Boolean(fieldErrors.type))}>
                                             <option value="Retail Interiors">Retail Interiors</option>
                                             <option value="Design & Planning">Design & Planning</option>
                                             <option value="Display Solutions">Display Solutions</option>
@@ -255,9 +278,9 @@ export default function AddNewBusinessUnitPage() {
                                         <ChevronRight className="w-3.5 h-3.5 absolute right-2.5 top-[18px] rotate-90 text-zinc-400 pointer-events-none" />
                                     </div>
                                 </Field>
-                                <Field title="Status" required helpText="Choose current status">
+                                <Field title="Status" required helpText="Choose current status" error={fieldErrors.status}>
                                     <div className="relative">
-                                        <select name="status" value={formData.status} onChange={handleChange} className={selectCls}>
+                                        <select name="status" value={formData.status} onChange={handleChange} className={fieldCls(selectCls, Boolean(fieldErrors.status))}>
                                             <option value="Active">Active</option>
                                             <option value="Inactive">Inactive</option>
                                         </select>
@@ -288,11 +311,11 @@ export default function AddNewBusinessUnitPage() {
                                 <Field title="Established On">
                                     <input type="date" name="establishedOn" value={formData.establishedOn} onChange={handleChange} className={inputCls} placeholder="Select date" />
                                 </Field>
-                                <Field title="Total Employees (Approx.)">
-                                    <input type="number" name="totalEmployees" value={formData.totalEmployees} onChange={handleChange} className={inputCls} placeholder="Enter approx. number" />
+                                <Field title="Total Employees (Approx.)" error={fieldErrors.totalEmployees}>
+                                    <input type="number" min={0} name="totalEmployees" value={formData.totalEmployees} onChange={handleChange} className={fieldCls(inputCls, Boolean(fieldErrors.totalEmployees))} placeholder="Enter approx. number" />
                                 </Field>
-                                <Field title="Total Departments (Approx.)">
-                                    <input type="number" name="totalDepartments" value={formData.totalDepartments} onChange={handleChange} className={inputCls} placeholder="Enter approx. number" />
+                                <Field title="Total Departments (Approx.)" error={fieldErrors.totalDepartments}>
+                                    <input type="number" min={0} name="totalDepartments" value={formData.totalDepartments} onChange={handleChange} className={fieldCls(inputCls, Boolean(fieldErrors.totalDepartments))} placeholder="Enter approx. number" />
                                 </Field>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -309,19 +332,14 @@ export default function AddNewBusinessUnitPage() {
                         <div>
                             <SectionHeader icon={<DollarSign className="w-4 h-4" />} title="Budget & Financial Details (Optional)" />
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                                <Field title="Annual Budget (FY 25-26)" helpText="Enter budget amount">
+                                <Field title="Annual Budget (FY 25-26)" helpText="Enter budget amount" error={fieldErrors.annualBudget}>
                                     <div className="relative">
                                         <span className="absolute left-2.5 top-[10px] text-zinc-500 text-[11px]">₹</span>
-                                        <input type="text" name="annualBudget" value={formData.annualBudget} onChange={handleChange} className={`${inputCls} pl-7`} placeholder="Enter annual budget" />
+                                        <input type="text" name="annualBudget" value={formData.annualBudget} onChange={handleChange} className={`${fieldCls(inputCls, Boolean(fieldErrors.annualBudget))} pl-7`} placeholder="Enter annual budget" />
                                     </div>
                                 </Field>
-                                <Field title="Cost Centers" helpText="Link one or more cost centers">
-                                    <div className="relative">
-                                        <select name="costCenters" value={formData.costCenters} onChange={handleChange} className={selectCls}>
-                                            <option value="">Select cost centers</option>
-                                        </select>
-                                        <ChevronRight className="w-3.5 h-3.5 absolute right-2.5 top-[18px] rotate-90 text-zinc-400 pointer-events-none" />
-                                    </div>
+                                <Field title="Cost Centers" helpText="Comma separated cost center codes">
+                                    <input type="text" name="costCenters" value={formData.costCenters} onChange={handleChange} className={inputCls} placeholder="e.g. CC-101, CC-102" />
                                 </Field>
                                 <Field title="Financial Owner" helpText="Person responsible for financials">
                                     <div className="relative">

@@ -2,12 +2,12 @@
 
 import React from 'react';
 import { FileText, User, LayoutList, Calendar as CalendarIcon, ChevronDown } from 'lucide-react';
-import { Card, Field, SelectField, inputCls, textareaCls } from '@/components/divisions/FormHelpers';
+import { Card, Field, SelectField, inputCls, textareaCls, fieldCls } from '@/components/divisions/FormHelpers';
 import { ApiSearchableSelect } from '@/components/common/ApiSearchableSelect';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 
-export default function DesignationFormCards({ formData, setFormData }: { formData?: any, setFormData?: any }) {
+export default function DesignationFormCards({ formData, setFormData, errors = {} }: { formData?: any, setFormData?: any, errors?: Record<string, string> }) {
   const handleChange = (field: string) => (e: any) => {
     if (setFormData) {
       if (field === 'isActive') {
@@ -50,11 +50,11 @@ export default function DesignationFormCards({ formData, setFormData }: { formDa
 
         {/* Row 1 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-1 gap-y-1 mt-2">
-          <Field title="Designation Name" required helpText="e.g., Senior Manager">
-            <input type="text" className={inputCls} placeholder="Enter designation name" value={formData?.name || ''} onChange={handleChange('name')} />
+          <Field title="Designation Name" required helpText="e.g., Senior Manager" error={errors.name}>
+            <input type="text" className={fieldCls(inputCls, Boolean(errors.name))} placeholder="Enter designation name" value={formData?.name || ''} onChange={handleChange('name')} />
           </Field>
-          <Field title="Short Code" required helpText="e.g., SR. MGR (10 characters)">
-            <input type="text" className={inputCls} placeholder="Enter short code" maxLength={10} value={formData?.code || ''} onChange={handleChange('code')} />
+          <Field title="Short Code" required helpText="e.g., SR. MGR (10 characters)" error={errors.code}>
+            <input type="text" className={fieldCls(inputCls, Boolean(errors.code))} placeholder="Enter short code" maxLength={10} value={formData?.code || ''} onChange={handleChange('code')} />
           </Field>
           <Field title="Job Grade" required>
             <select className={inputCls} value={formData?.jobGrade || ''} onChange={handleChange('jobGrade')}>

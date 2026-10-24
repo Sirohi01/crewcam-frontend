@@ -3,36 +3,36 @@
 import React from 'react';
 import { Building2 } from 'lucide-react';
 import { useDivisionForm } from '@/context/DivisionFormContext';
-import { Card, Field, SelectField, inputCls, textareaCls } from './FormHelpers';
+import { Card, Field, SelectField, inputCls, textareaCls, fieldCls } from './FormHelpers';
 import { ApiSearchableSelect } from '@/components/common/ApiSearchableSelect';
 
 export function DivisionInformationCard() {
-    const { formData, updateFormData } = useDivisionForm();
+    const { formData, updateFormData, fieldErrors } = useDivisionForm();
 
     return (
         <Card title={<><Building2 size={16} className="text-indigo-600 mr-1" /> Division Information</>}>
             <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-3">
                 {/* Row 1 */}
-                <Field title="Division Name" required helpText="e.g., Interior Division">
+                <Field title="Division Name" required helpText="e.g., Interior Division" error={fieldErrors.name}>
                     <input
                         type="text"
                         value={formData.name}
                         onChange={e => updateFormData({ name: e.target.value })}
-                        className={inputCls}
+                        className={fieldCls(inputCls, Boolean(fieldErrors.name))}
                         placeholder="Enter division name"
                     />
                 </Field>
-                <Field title="Division Code" required helpText="e.g., DIV-ID (max 10 characters)">
+                <Field title="Division Code" required helpText="e.g., DIV-ID (max 10 characters)" error={fieldErrors.code}>
                     <input
                         type="text"
                         value={formData.code}
                         onChange={e => updateFormData({ code: e.target.value })}
-                        className={inputCls}
+                        className={fieldCls(inputCls, Boolean(fieldErrors.code))}
                         placeholder="Enter short code"
                         maxLength={10}
                     />
                 </Field>
-                <Field title="Business Unit" required helpText="Choose the BU this division belongs to">
+                <Field title="Business Unit" required helpText="Choose the BU this division belongs to" error={fieldErrors.businessUnit}>
                     <div className="mt-1">
                         <ApiSearchableSelect
                             apiType="business-unit"
@@ -44,7 +44,7 @@ export function DivisionInformationCard() {
                 </Field>
 
                 {/* Row 2 */}
-                <Field title="Head / Owner" required helpText="Person responsible for this division">
+                <Field title="Head / Owner" required helpText="Person responsible for this division" error={fieldErrors.headEmployeeId}>
                     <div className="mt-1">
                         <ApiSearchableSelect
                             apiType="employee"

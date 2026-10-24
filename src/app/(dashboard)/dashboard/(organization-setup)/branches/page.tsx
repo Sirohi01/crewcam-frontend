@@ -1,103 +1,16 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { Download, Plus, ChevronRight, Search, Check, Eye, Edit2, Users, ChevronDown, ChevronLeft, MapPin, Briefcase, Trash2, Network, Building2, ShieldCheck, X, Navigation } from 'lucide-react';
+import { Download, Plus, ChevronRight, Search, Check, Eye, Edit2, Users, ChevronDown, ChevronLeft, MapPin, Briefcase, Trash2, Network, Building2, ShieldCheck } from 'lucide-react';
 import api from '@/lib/axios';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
-import { geocodeAddress } from '@/lib/geocode';
-import { usePincodeLookup } from '@/hooks/usePincodeLookup';
-import { Loader2 } from 'lucide-react';
-
-// ---- DUMMY / MOCK DATA (used as fallback when the API is unavailable) ----
-const MOCK_BRANCHES = [
-    {
-        _id: 'br1',
-        name: 'Head Office – Noida',
-        code: 'BR001',
-        isRegisteredOffice: true,
-        businessUnit: { name: 'Projects' },
-        head: { firstName: 'Amit', lastName: 'Verma', designation: 'Head – Projects', avatarUrl: 'https://i.pravatar.cc/150?u=br1' },
-        city: 'Noida',
-        state: 'Uttar Pradesh',
-        totalEmployees: 124,
-        totalDepartments: 5,
-        activePositions: 12,
-        status: 'Active',
-    },
-    {
-        _id: 'br2',
-        name: 'Bengaluru Branch',
-        code: 'BR002',
-        isRegisteredOffice: false,
-        businessUnit: { name: 'Design & Build' },
-        head: { firstName: 'Rahul', lastName: 'Nair', designation: 'Branch Manager', avatarUrl: 'https://i.pravatar.cc/150?u=br2' },
-        city: 'Bengaluru',
-        state: 'Karnataka',
-        totalEmployees: 68,
-        totalDepartments: 4,
-        activePositions: 8,
-        status: 'Active',
-    },
-    {
-        _id: 'br3',
-        name: 'Mumbai Branch',
-        code: 'BR003',
-        isRegisteredOffice: false,
-        businessUnit: { name: 'Interior Solutions' },
-        head: { firstName: 'Neha', lastName: 'Joshi', designation: 'Branch Manager', avatarUrl: 'https://i.pravatar.cc/150?u=br3' },
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        totalEmployees: 56,
-        totalDepartments: 3,
-        activePositions: 6,
-        status: 'Active',
-    },
-    {
-        _id: 'br4',
-        name: 'Delhi Branch',
-        code: 'BR004',
-        isRegisteredOffice: false,
-        businessUnit: { name: 'Projects' },
-        head: { firstName: 'Sandeep', lastName: 'Singh', designation: 'Branch Manager', avatarUrl: 'https://i.pravatar.cc/150?u=br4' },
-        city: 'New Delhi',
-        state: 'Delhi',
-        totalEmployees: 44,
-        totalDepartments: 3,
-        activePositions: 5,
-        status: 'Active',
-    },
-    {
-        _id: 'br5',
-        name: 'Hyderabad Branch',
-        code: 'BR005',
-        isRegisteredOffice: false,
-        businessUnit: { name: 'Retail Solutions' },
-        head: { firstName: 'Karthik', lastName: 'Reddy', designation: 'Branch Manager', avatarUrl: 'https://i.pravatar.cc/150?u=br5' },
-        city: 'Hyderabad',
-        state: 'Telangana',
-        totalEmployees: 22,
-        totalDepartments: 2,
-        activePositions: 3,
-        status: 'Active',
-    },
-];
-
-const MOCK_BUSINESS_UNITS = [
-    { _id: 'bu1', name: 'Projects' },
-    { _id: 'bu2', name: 'Design & Build' },
-    { _id: 'bu3', name: 'Interior Solutions' },
-    { _id: 'bu4', name: 'Retail Solutions' },
-];
-// ---------------------------------------------------------------------------
 
 export default function ManageBranchPage() {
     const router = useRouter();
     const filterRef = useRef<HTMLDivElement>(null);
 
     const [branchesData, setBranchesData] = useState<any[]>([]);
-    const [businessUnitsData, setBusinessUnitsData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const [searchQuery, setSearchQuery] = useState('');
@@ -114,167 +27,15 @@ export default function ManageBranchPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
 
-    // Modal state
-    const [modal, setModal] = useState<boolean>(false);
-    const [modalItem, setModalItem] = useState<any>(null);
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState('');
-    const [detecting, setDetecting] = useState(false);
-    const { lookupPincode, loadingPincode } = usePincodeLookup();
-
-    const emptyBranch = {
-        name: '', code: '', location: '', address: '', pincode: '', city: '', state: '', country: 'India',
-        contactPerson: '', contactPhone: '', contactEmail: '', lat: undefined as number | undefined, lng: undefined as number | undefined
-    };
-    const [branchData, setBranchData] = useState(emptyBranch);
-
     const openCreate = () => {
-        setError('');
-        setBranchData(emptyBranch);
-        // setModalItem(null);
-        // setModal(true);
-        router.push("/dashboard/branches/add-new-branch")
-    };
-
-    const openEdit = (item: any) => {
-        setError('');
-        setBranchData({
-            name: item.name || '',
-            code: item.code || '',
-            location: item.location || '',
-            address: item.address || '',
-            pincode: item.pincode || '',
-            city: item.city || (item.location ? item.location.split(',')[0] : ''),
-            state: item.state || (item.location ? item.location.split(',')[1] || '' : ''),
-            country: item.country || 'India',
-            contactPerson: item.contactPerson || item.headName || '',
-            contactPhone: item.contactPhone || '',
-            contactEmail: item.contactEmail || '',
-            lat: item.lat,
-            lng: item.lng
-        });
-        setModalItem(item);
-        setModal(true);
-    };
-
-    const handleDetectLocation = async () => {
-        const queries = [
-            [branchData.address, branchData.city, branchData.state, branchData.pincode, branchData.country].filter(Boolean).join(', '),
-            [branchData.city, branchData.state, branchData.pincode, branchData.country].filter(Boolean).join(', '),
-            [branchData.city, branchData.state, branchData.country].filter(Boolean).join(', '),
-        ].filter(q => q.length > 0);
-
-        if (queries.length === 0) {
-            setError('Please enter address details to fetch coordinates.');
-            return;
-        }
-        setDetecting(true);
-        try {
-            const coords = await geocodeAddress(queries);
-            if (coords) {
-                setBranchData((prev) => ({ ...prev, lat: coords.lat, lng: coords.lng }));
-                setError('');
-            } else {
-                setError('Could not find coordinates for this address. Try simplifying it.');
-            }
-        } catch (err: any) {
-            setError(err.message || 'Could not fetch coordinates');
-        } finally {
-            setDetecting(false);
-        }
-    };
-
-    const handlePincodeChange = async (e: any) => {
-        const val = e.target.value.replace(/\D/g, '');
-        setBranchData((prev) => ({ ...prev, pincode: val }));
-        if (val.length === 6) {
-            lookupPincode(val, (loc) => {
-                setBranchData((prev) => ({
-                    ...prev,
-                    city: loc.city || prev.city,
-                    state: loc.state || prev.state,
-                    country: loc.country || prev.country
-                }));
-            });
-        }
-    };
-
-    const submit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setSaving(true);
-        setError('');
-        try {
-            const targetId = modalItem?.id || modalItem?._id;
-            if (targetId) {
-                // Try the new nested companies route first, fall back to the legacy route
-                try {
-                    await api.put(`/companies/branches/${targetId}`, branchData);
-                } catch {
-                    await api.put(`/branches/${targetId}`, branchData);
-                }
-                toast.success('Branch updated successfully');
-            } else {
-                try {
-                    await api.post('/companies/branches', branchData);
-                } catch {
-                    await api.post('/branches', branchData);
-                }
-                toast.success('Branch created successfully');
-            }
-            setModal(false);
-
-            let response;
-            try {
-                response = await api.get('/companies/branches');
-            } catch {
-                response = await api.get('/branches');
-            }
-            if (response.data?.data && response.data.data.length > 0) {
-                setBranchesData(response.data.data);
-            }
-        } catch (e: any) {
-            console.error('Save branch failed, using optimistic state update:', e);
-            const updatedItem = {
-                _id: modalItem?.id || modalItem?._id || `br_${Date.now()}`,
-                name: branchData.name,
-                code: branchData.code,
-                city: branchData.city || 'Noida',
-                state: branchData.state || 'Uttar Pradesh',
-                location: `${branchData.city || 'Noida'}, ${branchData.state || 'Uttar Pradesh'}`,
-                status: 'Active',
-                totalEmployees: modalItem?.employees || 0,
-                totalDepartments: 0,
-                activePositions: 0,
-                head: { firstName: branchData.contactPerson || 'Branch', lastName: 'Head', designation: 'Branch Manager' },
-                businessUnit: { name: 'Projects' }
-            };
-
-            setBranchesData((prev) => {
-                const exists = prev.some((b) => b._id === updatedItem._id);
-                if (exists) {
-                    return prev.map((b) => (b._id === updatedItem._id ? { ...b, ...updatedItem } : b));
-                }
-                return [updatedItem, ...prev];
-            });
-
-            toast.success(modalItem ? 'Branch updated successfully' : 'Branch created successfully');
-            setModal(false);
-        } finally {
-            setSaving(false);
-        }
+        router.push("/dashboard/branches/add-new-branch");
     };
 
     // Fetch branches
     useEffect(() => {
         const fetchBranches = async () => {
             try {
-                // Try the new nested companies route first, fall back to the legacy route
-                let response;
-                try {
-                    response = await api.get('/companies/branches');
-                } catch {
-                    response = await api.get('/branches');
-                }
+                const response = await api.get('/companies/branches');
                 const data = response.data?.data || response.data || [];
                 setBranchesData(data);
             } catch (error) {
@@ -285,28 +46,7 @@ export default function ManageBranchPage() {
                 setIsLoading(false);
             }
         };
-        const fetchBusinessUnits = async () => {
-            try {
-                // Try the new nested companies route, then the legacy route, then master-data
-                let response;
-                try {
-                    response = await api.get('/companies/business-units');
-                } catch {
-                    try {
-                        response = await api.get('/business-units');
-                    } catch {
-                        response = await api.get('/master-data/business-units');
-                    }
-                }
-                const data = response.data?.data || response.data || [];
-                setBusinessUnitsData(data);
-            } catch (error) {
-                console.error('Error fetching business units:', error);
-                setBusinessUnitsData([]);
-            }
-        };
         fetchBranches();
-        fetchBusinessUnits();
     }, []);
 
     // Close dropdowns on outside click
@@ -326,12 +66,7 @@ export default function ManageBranchPage() {
         if (!confirm('Are you sure you want to delete this branch?')) return;
 
         try {
-            // Try the new nested companies route first, fall back to the legacy route
-            try {
-                await api.delete(`/companies/branches/${id}`);
-            } catch {
-                await api.delete(`/branches/${id}`);
-            }
+            await api.delete(`/companies/branches/${id}`);
             setBranchesData((prev) => prev.filter((b) => b._id !== id));
             toast.success('Branch deleted successfully');
         } catch (error: any) {
@@ -703,152 +438,6 @@ export default function ManageBranchPage() {
                     </div>
                 </div>
             </div>
-
-            {/* ADD / EDIT BRANCH MODAL */}
-            {modal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden border border-zinc-200">
-                        <div className="px-4 py-3 border-b border-zinc-100 flex justify-between items-center shrink-0">
-                            <h2 className="text-sm font-bold text-zinc-900">{modalItem ? 'Edit Branch' : 'Add New Branch'}</h2>
-                            <button type="button" onClick={() => setModal(false)} className="text-zinc-400 hover:text-zinc-600 p-1 rounded-md">
-                                <X className="w-4 h-4" />
-                            </button>
-                        </div>
-                        <form onSubmit={submit} className="flex flex-col flex-1 overflow-hidden">
-                            <div className="overflow-y-auto flex-1 px-4 py-3 space-y-3">
-                                {error && <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">{error}</div>}
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="space-y-1">
-                                        <label className="block text-xs font-semibold text-zinc-700">Branch Name *</label>
-                                        <input
-                                            required
-                                            type="text"
-                                            value={branchData.name}
-                                            onChange={(e) => setBranchData((prev) => ({ ...prev, name: e.target.value }))}
-                                            className="w-full border border-zinc-200 rounded-md text-xs px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
-                                            placeholder="e.g. Noida Branch"
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="block text-xs font-semibold text-zinc-700">Branch Code *</label>
-                                        <input
-                                            required
-                                            type="text"
-                                            value={branchData.code}
-                                            onChange={(e) => setBranchData((prev) => ({ ...prev, code: e.target.value }))}
-                                            className="w-full border border-zinc-200 rounded-md text-xs px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
-                                            placeholder="e.g. BR001"
-                                        />
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <label className="block text-xs font-semibold text-zinc-700">Pincode</label>
-                                        <div className="relative">
-                                            <input
-                                                type="text"
-                                                value={branchData.pincode}
-                                                onChange={handlePincodeChange}
-                                                className="w-full border border-zinc-200 rounded-md text-xs px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
-                                                placeholder="6-digit pincode"
-                                            />
-                                            {loadingPincode && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 animate-spin" />}
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="block text-xs font-semibold text-zinc-700">City</label>
-                                        <input
-                                            type="text"
-                                            value={branchData.city}
-                                            onChange={(e) => setBranchData((prev) => ({ ...prev, city: e.target.value }))}
-                                            className="w-full border border-zinc-200 rounded-md text-xs px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
-                                            placeholder="City name"
-                                        />
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <label className="block text-xs font-semibold text-zinc-700">State</label>
-                                        <input
-                                            type="text"
-                                            value={branchData.state}
-                                            onChange={(e) => setBranchData((prev) => ({ ...prev, state: e.target.value }))}
-                                            className="w-full border border-zinc-200 rounded-md text-xs px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
-                                            placeholder="State name"
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="block text-xs font-semibold text-zinc-700">Country</label>
-                                        <input
-                                            type="text"
-                                            value={branchData.country}
-                                            onChange={(e) => setBranchData((prev) => ({ ...prev, country: e.target.value }))}
-                                            className="w-full border border-zinc-200 rounded-md text-xs px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
-                                        />
-                                    </div>
-
-                                    <div className="col-span-2 space-y-1">
-                                        <label className="block text-xs font-semibold text-zinc-700">Address</label>
-                                        <input
-                                            type="text"
-                                            value={branchData.address}
-                                            onChange={(e) => setBranchData((prev) => ({ ...prev, address: e.target.value }))}
-                                            className="w-full border border-zinc-200 rounded-md text-xs px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
-                                            placeholder="Street address"
-                                        />
-                                    </div>
-
-                                    <div className="col-span-2">
-                                        <button
-                                            type="button"
-                                            onClick={handleDetectLocation}
-                                            disabled={detecting}
-                                            className="flex items-center justify-center gap-1.5 text-xs font-semibold border border-indigo-200 text-indigo-600 px-3 py-2 rounded-md hover:bg-indigo-50 transition-colors disabled:opacity-50 w-full"
-                                        >
-                                            <Navigation className="w-3 h-3" />
-                                            {detecting ? 'Fetching...' : branchData.lat != null ? `Coordinates captured (${branchData.lat.toFixed(4)}, ${branchData.lng!.toFixed(4)})` : 'Fetch Coordinates from Address'}
-                                        </button>
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <label className="block text-xs font-semibold text-zinc-700">Contact Person / Head</label>
-                                        <input
-                                            type="text"
-                                            value={branchData.contactPerson}
-                                            onChange={(e) => setBranchData((prev) => ({ ...prev, contactPerson: e.target.value }))}
-                                            className="w-full border border-zinc-200 rounded-md text-xs px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
-                                            placeholder="Name"
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="block text-xs font-semibold text-zinc-700">Contact Phone</label>
-                                        <input
-                                            type="text"
-                                            value={branchData.contactPhone}
-                                            onChange={(e) => setBranchData((prev) => ({ ...prev, contactPhone: e.target.value }))}
-                                            className="w-full border border-zinc-200 rounded-md text-xs px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
-                                            placeholder="Phone number"
-                                        />
-                                    </div>
-
-                                    <div className="col-span-2 space-y-1">
-                                        <label className="block text-xs font-semibold text-zinc-700">Contact Email</label>
-                                        <input
-                                            type="email"
-                                            value={branchData.contactEmail}
-                                            onChange={(e) => setBranchData((prev) => ({ ...prev, contactEmail: e.target.value }))}
-                                            className="w-full border border-zinc-200 rounded-md text-xs px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
-                                            placeholder="Email address"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="px-4 py-2.5 border-t border-zinc-100 flex justify-end gap-3 shrink-0">
-                                <button type="button" className="h-8 px-4 text-xs border border-zinc-200 rounded-md font-semibold text-zinc-700 hover:bg-zinc-50" onClick={() => setModal(false)}>Cancel</button>
-                                <button type="submit" disabled={saving} className="h-8 px-4 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-semibold">{saving ? 'Saving...' : 'Save Branch'}</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

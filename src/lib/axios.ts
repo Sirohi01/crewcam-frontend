@@ -20,14 +20,42 @@ api.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+// Access token cookie lives 1 day; the refresh token lives 30. Without this, every
+// 401 (including the access token simply expiring mid-session) forced a full
+// logout even though a valid refresh token was sitting right there unused —
+// that read as "logs out frequently". Now a 401 is answered with one silent
+// refresh-and-retry before giving up and sending the user back to login.
+let refreshInFlight: Promise<boolean> | null = null;
+
+const refreshSession = () => {
+  if (!refreshInFlight) {
+    refreshInFlight = api
+      .post('/auth/refresh', { portal: 'employer' })
+      .then(() => true)
+      .catch(() => false)
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+  return refreshInFlight;
+};
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401 && typeof window !== 'undefined') {
-      // Only force a logout+redirect when a previously authenticated session was
-      // rejected (expired/invalid token). Pre-auth calls like a failed login or
-      // 2FA attempt also return 401 and must be left for the caller to handle.
+  async (error) => {
+    const { config, response } = error;
+    if (response?.status === 401 && typeof window !== 'undefined') {
+      // Only attempt recovery when a previously authenticated session was rejected
+      // (expired/invalid token). Pre-auth calls like a failed login or 2FA attempt
+      // also return 401 and must be left for the caller to handle.
       if (useAuthStore.getState().isAuthenticated) {
+        if (config && !config._retriedAfterRefresh && !config.url?.includes('/auth/refresh')) {
+          config._retriedAfterRefresh = true;
+          const refreshed = await refreshSession();
+          if (refreshed) {
+            return api(config);
+          }
+        }
         useAuthStore.getState().logout();
         window.location.href = '/login';
       }

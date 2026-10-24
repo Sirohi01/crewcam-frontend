@@ -67,6 +67,10 @@ export default function AddDepartmentDescriptionSettings() {
         navigate.push('/dashboard/departments/add-department/review-department-details');
     };
 
+    const clearError = (field: string) => {
+        setErrors((prev) => (prev[field] ? { ...prev, [field]: '' } : prev));
+    };
+
     const handleSaveDraft = () => {
         localStorage.setItem('departmentFormDraft', JSON.stringify(formData));
         toast.success('Draft saved successfully!');
@@ -101,7 +105,7 @@ export default function AddDepartmentDescriptionSettings() {
                                 <Field title="Department Purpose" required error={errors.description}>
                                     <div className="relative mt-1">
                                         <textarea
-                                            value={formData.description} onChange={e => updateFormData({ description: e.target.value })}
+                                            value={formData.description} onChange={e => { updateFormData({ description: e.target.value }); clearError('description'); }}
                                             className={`${fieldCls(Boolean(errors.description))} h-[70px] py-2 leading-relaxed resize-none`}
                                             placeholder="e.g. Oversees all operations related to design and branding"
                                             maxLength={300}
@@ -113,7 +117,7 @@ export default function AddDepartmentDescriptionSettings() {
                                 <Field title="Key Responsibilities" helpText="(comma separated)" required error={errors.keyResponsibilities}>
                                     <div className="relative mt-1">
                                         <textarea
-                                            value={formData.keyResponsibilities} onChange={e => updateFormData({ keyResponsibilities: e.target.value })}
+                                            value={formData.keyResponsibilities} onChange={e => { updateFormData({ keyResponsibilities: e.target.value }); clearError('keyResponsibilities'); }}
                                             className={`${fieldCls(Boolean(errors.keyResponsibilities))} h-[70px] py-2 leading-relaxed resize-none`}
                                             placeholder="e.g. UI/UX Design, Branding, User Research"
                                             maxLength={500}
@@ -124,7 +128,7 @@ export default function AddDepartmentDescriptionSettings() {
 
                                 <Field title="Employee Capacity" required helpText="Maximum number of employees" error={errors.employeeCapacity}>
                                     <div className="relative w-full">
-                                        <input type="text" inputMode="numeric" value={formData.employeeCapacity} onChange={e => updateFormData({ employeeCapacity: e.target.value.replace(/[^0-9]/g, '') })} className={`${fieldCls(Boolean(errors.employeeCapacity))} pr-8`} placeholder="e.g. 50" />
+                                        <input type="text" inputMode="numeric" value={formData.employeeCapacity} onChange={e => { updateFormData({ employeeCapacity: e.target.value.replace(/[^0-9]/g, '') }); clearError('employeeCapacity'); }} className={`${fieldCls(Boolean(errors.employeeCapacity))} pr-8`} placeholder="e.g. 50" />
                                         <Users size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
                                     </div>
                                 </Field>

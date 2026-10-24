@@ -35,6 +35,7 @@ import api from "@/lib/axios";
 import { geocodeAddress } from "@/lib/geocode";
 import { toast } from "react-hot-toast";
 import { usePincodeLookup } from "@/hooks/usePincodeLookup";
+import { ApiSearchableSelect } from "@/components/common/ApiSearchableSelect";
 
 const WEEK_DAYS = [
   { key: "mon", label: "Mon" },
@@ -101,7 +102,9 @@ export function AddNewBranchComponent({ providedId, isViewMode }: { providedId?:
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(!!editId);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [employees, setEmployees] = useState<any[]>([]);
+  const [divisions, setDivisions] = useState<{ _id: string; name: string }[]>([]);
   const [detecting, setDetecting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -165,11 +168,22 @@ export function AddNewBranchComponent({ providedId, isViewMode }: { providedId?:
         console.error("Failed to fetch employees", err);
       }
     };
+    const fetchDivisions = async () => {
+      try {
+        const res = await api.get("/divisions");
+        setDivisions(res.data?.data || res.data || []);
+      } catch (err) {
+        console.error("Failed to fetch divisions", err);
+      }
+    };
     fetchEmployees();
+    fetchDivisions();
   }, []);
 
-  const set = (key: string, value: string | number | undefined) =>
+  const set = (key: string, value: string | number | undefined) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+    setFieldErrors((prev) => (prev[key] ? { ...prev, [key]: "" } : prev));
+  };
 
   const toggleDay = (key: string) => {
     setForm((prev) => ({
@@ -202,15 +216,22 @@ export function AddNewBranchComponent({ providedId, isViewMode }: { providedId?:
   };
 
   const handlePincodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, '');
+    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
     set("pincode", val);
 
     if (val.length === 6) {
-      lookupPincode(val, (loc) => {
-        set("city", loc.city || form.city);
-        set("state", loc.state || form.state);
-        set("country", loc.country || form.country);
-      });
+      lookupPincode(
+        val,
+        (loc) => {
+          if (loc.city) set("city", loc.city);
+          if (loc.state) set("state", loc.state);
+          if (loc.country) set("country", loc.country);
+          if (!loc.city && !loc.state) {
+            toast.error("Pincode lookup didn't return a city/state — please fill them in manually.");
+          }
+        },
+        (errorMsg) => toast.error(errorMsg)
+      );
     }
   };
 
@@ -243,14 +264,29 @@ export function AddNewBranchComponent({ providedId, isViewMode }: { providedId?:
     }
   };
 
+  const validate = (): boolean => {
+    const next: Record<string, string> = {};
+    if (!form.name.trim()) next.name = "Branch Name is required.";
+    if (!form.code.trim()) next.code = "Branch Code is required.";
+    if (!form.businessUnit) next.businessUnit = "Business Unit is required.";
+    if (!form.branchHead) next.branchHead = "Branch Head is required.";
+    if (!form.address.trim()) next.address = "Address Line 1 is required.";
+    if (!form.pincode.trim()) next.pincode = "Pincode is required.";
+    else if (!/^\d{4,10}$/.test(form.pincode.trim())) next.pincode = "Pincode must be numeric.";
+    if (!form.country) next.country = "Country is required.";
+    if (!form.city) next.city = "City is required.";
+    if (form.contactPhone && form.contactPhone.length !== 10) next.contactPhone = "Phone number must be exactly 10 digits.";
+    if (form.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail)) next.contactEmail = "Please enter a valid email address.";
+    if (form.website && !/^https?:\/\/.+\..+/.test(form.website)) next.website = "Website must start with http:// or https://";
+
+    setFieldErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.code) {
-      toast.error("Branch Name and Branch Code are required.");
-      return;
-    }
-    if (form.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail)) {
-      toast.error("Please enter a valid email address.");
+    if (!validate()) {
+      toast.error("Please fix the highlighted fields before saving.");
       return;
     }
     setSaving(true);
@@ -288,18 +324,10 @@ export function AddNewBranchComponent({ providedId, isViewMode }: { providedId?:
       };
 
       if (editId) {
-        try {
-          await api.put(`/companies/branches/${editId}`, payload);
-        } catch {
-          await api.put(`/branches/${editId}`, payload);
-        }
+        await api.put(`/companies/branches/${editId}`, payload);
         toast.success("Branch updated successfully");
       } else {
-        try {
-          await api.post("/companies/branches", payload);
-        } catch {
-          await api.post("/branches", payload);
-        }
+        await api.post("/companies/branches", payload);
         toast.success("Branch created successfully");
       }
       router.push("/dashboard/branches");
@@ -367,18 +395,20 @@ export function AddNewBranchComponent({ providedId, isViewMode }: { providedId?:
                   <SectionHeader icon={<Building2 className="h-4 w-4 text-white" />} title="Branch Information" />
 
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                    <FormField label="Branch Name" required>
+                    <FormField label="Branch Name" required error={fieldErrors.name}>
                       <FormInput
                         required
+                        error={fieldErrors.name}
                         value={form.name}
                         onChange={(e) => set("name", e.target.value)}
                         placeholder="Enter Branch Name"
                       />
                     </FormField>
 
-                    <FormField label="Branch Code" required>
+                    <FormField label="Branch Code" required error={fieldErrors.code}>
                       <FormInput
                         required
+                        error={fieldErrors.code}
                         value={form.code}
                         onChange={(e) => set("code", e.target.value)}
                         placeholder="Enter Unique Branch Code"
@@ -396,39 +426,43 @@ export function AddNewBranchComponent({ providedId, isViewMode }: { providedId?:
                     </FormField>
 
                     <FormField label="Parent Branch">
-                      <FormSelect
+                      <ApiSearchableSelect
+                        apiType="branch"
                         value={form.parentBranch}
-                        onChange={(e) => set("parentBranch", e.target.value)}
-                        options={[{ label: "Select Parent Branch (if any)", value: "" }]} // Placeholder for actual API data
+                        onChange={(val) => set("parentBranch", val)}
+                        placeholder="Select Parent Branch (if any)"
                       />
                     </FormField>
 
-                    <FormField label="Business Unit" required>
-                      <FormSelect
+                    <FormField label="Business Unit" required error={fieldErrors.businessUnit}>
+                      <ApiSearchableSelect
+                        apiType="business-unit"
                         value={form.businessUnit}
-                        onChange={(e) => set("businessUnit", e.target.value)}
-                        options={[{ label: "Select business unit", value: "" }]}
+                        onChange={(val) => set("businessUnit", val)}
+                        placeholder="Select business unit"
                       />
                     </FormField>
 
                     <FormField label="Division">
-                      <FormSelect
+                      <SearchableSelect
                         value={form.division}
-                        onChange={(e) => set("division", e.target.value)}
-                        options={[{ label: "Select division", value: "" }]}
+                        onChange={(val) => set("division", val)}
+                        options={divisions.map((d) => d.name)}
+                        placeholder="Select division"
                       />
                     </FormField>
 
                     <FormField label="Cost Center">
-                      <FormSelect
+                      <FormInput
                         value={form.costCenter}
                         onChange={(e) => set("costCenter", e.target.value)}
-                        options={[{ label: "Select cost center", value: "" }]}
+                        placeholder="e.g. CC-101"
                       />
                     </FormField>
 
-                    <FormField label="Branch Head" required>
+                    <FormField label="Branch Head" required error={fieldErrors.branchHead}>
                       <FormSelect
+                        error={fieldErrors.branchHead}
                         value={form.branchHead}
                         onChange={(e) => set("branchHead", e.target.value)}
                         options={[
@@ -466,8 +500,9 @@ export function AddNewBranchComponent({ providedId, isViewMode }: { providedId?:
                   <SectionHeader icon={<MapPin className="h-4 w-4 text-white" />} title="Location Information" />
 
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                    <FormField label="Address Line 1" required>
+                    <FormField label="Address Line 1" required error={fieldErrors.address}>
                       <FormInput
+                        error={fieldErrors.address}
                         value={form.address}
                         onChange={(e) => set("address", e.target.value)}
                         placeholder="Enter address line 1"
@@ -482,24 +517,28 @@ export function AddNewBranchComponent({ providedId, isViewMode }: { providedId?:
                       />
                     </FormField>
 
-                    <FormField label="Pincode" required>
+                    <FormField label="Pincode" required error={fieldErrors.pincode}>
                       <div className="relative">
                         <FormInput
+                          error={fieldErrors.pincode}
                           value={form.pincode}
                           onChange={handlePincodeChange}
-                          placeholder="Enter pincode"
+                          placeholder="Enter 6-digit pincode"
+                          inputMode="numeric"
+                          maxLength={6}
                         />
                         {loadingPincode && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 animate-spin" />}
                       </div>
                     </FormField>
 
-                    <FormField label="Country" required>
+                    <FormField label="Country" required error={fieldErrors.country}>
                       <SearchableSelect
                         value={form.country}
                         onChange={(val) => set("country", val)}
                         placeholder="Select Country"
                         options={["India", "United States", "United Kingdom", "Canada", "Australia", "Singapore", "United Arab Emirates", "Germany"]}
                         disabled={isView}
+                        error={fieldErrors.country}
                       />
                     </FormField>
 
@@ -513,13 +552,14 @@ export function AddNewBranchComponent({ providedId, isViewMode }: { providedId?:
                       />
                     </FormField>
 
-                    <FormField label="City" required>
+                    <FormField label="City" required error={fieldErrors.city}>
                       <SearchableSelect
                         value={form.city}
                         onChange={(val) => set("city", val)}
                         placeholder="Select City"
                         options={["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Ahmedabad", "Chennai", "Kolkata", "Surat", "Pune", "Jaipur", "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", "Bhopal", "Visakhapatnam", "Patna", "Vadodara"]}
                         disabled={isView}
+                        error={fieldErrors.city}
                       />
                     </FormField>
 
@@ -531,8 +571,8 @@ export function AddNewBranchComponent({ providedId, isViewMode }: { providedId?:
                       />
                     </FormField>
 
-                    <FormField label="Phone Number">
-                      <div className="flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 overflow-hidden">
+                    <FormField label="Phone Number" error={fieldErrors.contactPhone}>
+                      <div className={`flex items-center gap-2 rounded-md border px-3 focus-within:ring-1 overflow-hidden ${fieldErrors.contactPhone ? 'border-rose-400 bg-rose-50/40 focus-within:border-rose-500 focus-within:ring-rose-500' : 'border-zinc-200 focus-within:border-indigo-500 focus-within:ring-indigo-500'}`}>
                         <Phone className="h-4 w-4 text-zinc-400 shrink-0" />
                         <FormInput
                           value={form.contactPhone}
@@ -547,8 +587,8 @@ export function AddNewBranchComponent({ providedId, isViewMode }: { providedId?:
                       </div>
                     </FormField>
 
-                    <FormField label="Email">
-                      <div className="flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 overflow-hidden">
+                    <FormField label="Email" error={fieldErrors.contactEmail}>
+                      <div className={`flex items-center gap-2 rounded-md border px-3 focus-within:ring-1 overflow-hidden ${fieldErrors.contactEmail ? 'border-rose-400 bg-rose-50/40 focus-within:border-rose-500 focus-within:ring-rose-500' : 'border-zinc-200 focus-within:border-indigo-500 focus-within:ring-indigo-500'}`}>
                         <Mail className="h-4 w-4 text-zinc-400 shrink-0" />
                         <FormInput
                           type="email"
@@ -562,8 +602,8 @@ export function AddNewBranchComponent({ providedId, isViewMode }: { providedId?:
                       </div>
                     </FormField>
 
-                    <FormField label="Website">
-                      <div className="flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 overflow-hidden">
+                    <FormField label="Website" error={fieldErrors.website}>
+                      <div className={`flex items-center gap-2 rounded-md border px-3 focus-within:ring-1 overflow-hidden ${fieldErrors.website ? 'border-rose-400 bg-rose-50/40 focus-within:border-rose-500 focus-within:ring-rose-500' : 'border-zinc-200 focus-within:border-indigo-500 focus-within:ring-indigo-500'}`}>
                         <Globe className="h-4 w-4 text-zinc-400 shrink-0" />
                         <FormInput
                           type="url"
@@ -761,7 +801,7 @@ function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }
   );
 }
 
-function SearchableSelect({ value, onChange, options, placeholder, disabled }: { value: string, onChange: (val: string) => void, options: string[], placeholder: string, disabled?: boolean }) {
+function SearchableSelect({ value, onChange, options, placeholder, disabled, error }: { value: string, onChange: (val: string) => void, options: string[], placeholder: string, disabled?: boolean, error?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -792,7 +832,7 @@ function SearchableSelect({ value, onChange, options, placeholder, disabled }: {
   return (
     <div className="relative" ref={dropdownRef}>
       <div
-        className={`flex w-full cursor-pointer h-9 items-center justify-between rounded-md border border-slate-200 bg-white px-3 text-[13px] ${disabled ? 'opacity-70 cursor-not-allowed bg-slate-50' : ''}`}
+        className={`flex w-full cursor-pointer h-9 items-center justify-between rounded-md border bg-white px-3 text-[13px] ${error ? 'border-rose-400 bg-rose-50/40' : 'border-slate-200'} ${disabled ? 'opacity-70 cursor-not-allowed bg-slate-50' : ''}`}
         onClick={() => !disabled && setIsOpen(!isOpen)}
       >
         <span className={value ? "text-zinc-900 truncate" : "text-zinc-400"}>{value || placeholder}</span>

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import {
     Upload, Download, Plus, ChevronRight, Search, Filter,
     Users, UserCircle, IndianRupee, UserPlus, CheckCircle2, ChevronDown, ChevronLeft, MoreVertical,
-    FileText, Lightbulb, MapPin, Briefcase, Info, Pencil, Trash2
+    FileText, Lightbulb, MapPin, Briefcase, Info, Pencil, Trash2, X
 } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 import BulkUploadModal, { ColumnConfig } from '@/components/upload/bulkUploadModal';
@@ -67,8 +67,34 @@ const jobGrades = [
     { level: '09', levelBg: 'bg-teal-50', levelText: 'text-teal-700', name: 'Grade 9 - General Manager', desc: 'Business unit leadership', code: 'JG-09', payRange: '₹2,50,000-₹4,00,000', designations: 2, employees: 12 },
 ];
 
+type SortKey = 'level-asc' | 'level-desc' | 'name-asc' | 'pay-asc' | 'pay-desc';
+
+const SORT_LABELS: Record<SortKey, string> = {
+    'level-asc': 'Grade Level (Low - High)',
+    'level-desc': 'Grade Level (High - Low)',
+    'name-asc': 'Grade Name (A - Z)',
+    'pay-asc': 'Pay Range (Low - High)',
+    'pay-desc': 'Pay Range (High - Low)',
+};
+
+// Levels are stored as a leading number or range like "10", "7-6", "5-4" — rank by the first number.
+const parseLevelRank = (level: string) => {
+    const n = parseInt(String(level ?? '').split('-')[0], 10);
+    return Number.isNaN(n) ? 0 : n;
+};
+
+const parsePayMin = (payRange: string) => {
+    const match = String(payRange ?? '').replace(/[₹,]/g, '').match(/-?\d+/);
+    return match ? parseInt(match[0], 10) : 0;
+};
+
 export default function JobGradesPage() {
     const [showImportModal, setShowImportModal] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+    const [showFilters, setShowFilters] = useState(false);
+    const [sortBy, setSortBy] = useState<SortKey>('level-asc');
+    const [showSortMenu, setShowSortMenu] = useState(false);
     const router = useRouter();
     const queryClient = useQueryClient();
 
@@ -96,6 +122,9 @@ export default function JobGradesPage() {
     // Map backend data to UI format with default styles
     const mappedGrades = apiJobGrades.map((jg: any, index: number) => {
         const template = jobGrades[index % jobGrades.length];
+        const payRange = (jg.payRangeMin || jg.payRangeMax)
+            ? `₹${jg.payRangeMin || '0'} - ₹${jg.payRangeMax || '0'}`
+            : (jg.payRange || '—');
         return {
             _id: jg._id,
             level: jg.level || template.level,
@@ -104,7 +133,7 @@ export default function JobGradesPage() {
             name: jg.name,
             desc: jg.description || template.desc,
             code: jg.code,
-            payRange: template.payRange,
+            payRange,
             designations: 0,
             employees: 0,
             isActive: jg.isActive
@@ -112,6 +141,24 @@ export default function JobGradesPage() {
     });
 
     const activeCount = apiJobGrades.filter((jg: any) => jg.isActive).length;
+
+    const filteredGrades = mappedGrades.filter((jg: any) => {
+        const term = searchTerm.trim().toLowerCase();
+        const matchesSearch = !term || jg.name?.toLowerCase().includes(term) || jg.code?.toLowerCase().includes(term);
+        const matchesStatus = statusFilter === 'all' || (statusFilter === 'active' ? jg.isActive : !jg.isActive);
+        return matchesSearch && matchesStatus;
+    });
+
+    const sortedGrades = [...filteredGrades].sort((a: any, b: any) => {
+        switch (sortBy) {
+            case 'level-desc': return parseLevelRank(b.level) - parseLevelRank(a.level);
+            case 'name-asc': return (a.name || '').localeCompare(b.name || '');
+            case 'pay-asc': return parsePayMin(a.payRange) - parsePayMin(b.payRange);
+            case 'pay-desc': return parsePayMin(b.payRange) - parsePayMin(a.payRange);
+            case 'level-asc':
+            default: return parseLevelRank(a.level) - parseLevelRank(b.level);
+        }
+    });
 
     // We can also override topCards dynamically if we want, but keeping it mostly original as requested.
     const dynamicCards = [
@@ -184,14 +231,69 @@ export default function JobGradesPage() {
                             <h2 className="text-[13px] font-bold text-zinc-800 flex items-center gap-2">Job Grades List</h2>
                             <div className="flex items-center gap-2">
                                 <div className="relative">
-                                    <FormInput variant="search" type="text" placeholder="Search job grades..." className="pl-2.5 pr-7 h-8 w-48" />
+                                    <FormInput
+                                        variant="search"
+                                        type="text"
+                                        placeholder="Search job grades..."
+                                        className="pl-2.5 pr-7 h-8 w-48"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
                                     <Search className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                                 </div>
-                                <button className="flex items-center gap-1.5 h-8 px-2.5 border border-zinc-200 rounded-md text-[11px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
-                                    <Filter className="w-3.5 h-3.5" /> Filters
-                                </button>
-                                <div className="flex items-center gap-1.5 h-8 px-2.5 border border-zinc-200 rounded-md text-[11px] font-semibold text-zinc-700 cursor-pointer hover:bg-zinc-50 transition-colors">
-                                    Sort by: Grade Level (Low - High) <ChevronDown className="w-3.5 h-3.5" />
+                                <div className="relative">
+                                    <button
+                                        onClick={() => { setShowFilters((v) => !v); setShowSortMenu(false); }}
+                                        className={`flex items-center gap-1.5 h-8 px-2.5 border rounded-md text-[11px] font-semibold transition-colors ${statusFilter !== 'all' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'border-zinc-200 text-zinc-700 hover:bg-zinc-50'}`}
+                                    >
+                                        <Filter className="w-3.5 h-3.5" /> Filters{statusFilter !== 'all' ? ' (1)' : ''}
+                                    </button>
+                                    {showFilters && (
+                                        <div className="absolute right-0 top-9 z-20 w-56 rounded-lg border border-zinc-200 bg-white p-3 shadow-lg">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-[11px] font-semibold text-zinc-700">Filter by Status</span>
+                                                <button onClick={() => setShowFilters(false)} className="text-zinc-400 hover:text-zinc-600">
+                                                    <X className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                            <select
+                                                value={statusFilter}
+                                                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+                                                className="w-full h-8 px-2 text-[11px] border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                            >
+                                                <option value="all">All Statuses</option>
+                                                <option value="active">Active</option>
+                                                <option value="inactive">Inactive</option>
+                                            </select>
+                                            <button
+                                                onClick={() => setStatusFilter('all')}
+                                                className="mt-2 w-full h-7 text-[10.5px] font-semibold text-zinc-500 border border-zinc-200 rounded-md hover:bg-zinc-50 transition-colors"
+                                            >
+                                                Clear Filter
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="relative">
+                                    <button
+                                        onClick={() => { setShowSortMenu((v) => !v); setShowFilters(false); }}
+                                        className="flex items-center gap-1.5 h-8 px-2.5 border border-zinc-200 rounded-md text-[11px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
+                                    >
+                                        Sort by: {SORT_LABELS[sortBy]} <ChevronDown className="w-3.5 h-3.5" />
+                                    </button>
+                                    {showSortMenu && (
+                                        <div className="absolute right-0 top-9 z-20 w-56 rounded-lg border border-zinc-200 bg-white py-1 shadow-lg">
+                                            {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
+                                                <button
+                                                    key={key}
+                                                    onClick={() => { setSortBy(key); setShowSortMenu(false); }}
+                                                    className={`w-full text-left px-3 py-1.5 text-[11px] font-medium hover:bg-zinc-50 transition-colors ${sortBy === key ? 'text-indigo-600 font-semibold' : 'text-zinc-700'}`}
+                                                >
+                                                    {SORT_LABELS[key]}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -201,22 +303,22 @@ export default function JobGradesPage() {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="border-b border-zinc-100 bg-zinc-50/50">
-                                        <th className="py-2 px-2.5 text-[10px] font-semibold text-zinc-500 uppercase">Grade Level</th>
-                                        <th className="py-2 px-2.5 text-[10px] font-semibold text-zinc-500 uppercase">Grade Name</th>
-                                        <th className="py-2 px-2.5 text-[10px] font-semibold text-zinc-500 uppercase">Code</th>
-                                        <th className="py-2 px-2.5 text-[10px] font-semibold text-zinc-500 uppercase">Pay Range (Monthly)</th>
-                                        <th className="py-2 px-2.5 text-[10px] font-semibold text-zinc-500 uppercase text-center">Mapped Designations</th>
-                                        <th className="py-2 px-2.5 text-[10px] font-semibold text-zinc-500 uppercase text-center">Employees</th>
-                                        <th className="py-2 px-2.5 text-[10px] font-semibold text-zinc-500 uppercase text-center">Status</th>
-                                        <th className="py-2 px-2.5 text-[10px] font-semibold text-zinc-500 uppercase text-center">Actions</th>
+                                        <th className="py-2 px-3 text-[10px] font-semibold text-zinc-500 uppercase whitespace-nowrap">Grade Level</th>
+                                        <th className="py-2 px-3 text-[10px] font-semibold text-zinc-500 uppercase">Grade Name</th>
+                                        <th className="py-2 px-3 text-[10px] font-semibold text-zinc-500 uppercase whitespace-nowrap">Code</th>
+                                        <th className="py-2 px-3 text-[10px] font-semibold text-zinc-500 uppercase whitespace-nowrap">Pay Range (Monthly)</th>
+                                        <th className="py-2 px-3 text-[10px] font-semibold text-zinc-500 uppercase text-center whitespace-nowrap">Mapped Designations</th>
+                                        <th className="py-2 px-3 text-[10px] font-semibold text-zinc-500 uppercase text-center whitespace-nowrap">Employees</th>
+                                        <th className="py-2 px-3 text-[10px] font-semibold text-zinc-500 uppercase text-center whitespace-nowrap">Status</th>
+                                        <th className="py-2 px-3 text-[10px] font-semibold text-zinc-500 uppercase text-center whitespace-nowrap">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-[11px]">
                                     {isLoading ? (
                                         <tr><td colSpan={8} className="py-4 text-center text-zinc-500">Loading...</td></tr>
-                                    ) : mappedGrades.length === 0 ? (
-                                        <tr><td colSpan={8} className="py-4 text-center text-zinc-500">No job grades found.</td></tr>
-                                    ) : mappedGrades.map((jg: any, idx: number) => (
+                                    ) : sortedGrades.length === 0 ? (
+                                        <tr><td colSpan={8} className="py-4 text-center text-zinc-500">{mappedGrades.length === 0 ? 'No job grades found.' : 'No job grades match your search or filters.'}</td></tr>
+                                    ) : sortedGrades.map((jg: any, idx: number) => (
                                         <tr key={jg._id} className="border-b border-zinc-50 hover:bg-zinc-50 transition-colors">
                                             <td className="py-1.5 px-3 text-center w-14">
                                                 <div className={`w-full py-1.5 rounded font-semibold text-[10px] flex items-center justify-center ${jg.levelBg} ${jg.levelText}`}>
@@ -229,15 +331,15 @@ export default function JobGradesPage() {
                                                     <span className="text-[10px] text-zinc-500">{jg.desc}</span>
                                                 </div>
                                             </td>
-                                            <td className="py-1.5 px-2">
-                                                <span className="inline-flex items-center px-1 py-0.5 rounded-md text-blue-600 bg-blue-50 text-[9px] font-semibold border border-blue-100">
+                                            <td className="py-1.5 px-3 whitespace-nowrap">
+                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-blue-600 bg-blue-50 text-[9px] font-semibold border border-blue-100">
                                                     {jg.code}
                                                 </span>
                                             </td>
-                                            <td className="py-1.5 px-2 font-semibold text-zinc-800">{jg.payRange}</td>
-                                            <td className="py-1.5 px-2 text-center font-semibold text-zinc-800">{jg.designations}</td>
-                                            <td className="py-1.5 px-2 text-center font-semibold text-zinc-800">{jg.employees}</td>
-                                            <td className="py-1.5 px-2 text-center">
+                                            <td className="py-1.5 px-3 font-semibold text-zinc-800 whitespace-nowrap">{jg.payRange}</td>
+                                            <td className="py-1.5 px-3 text-center font-semibold text-zinc-800 whitespace-nowrap">{jg.designations}</td>
+                                            <td className="py-1.5 px-3 text-center font-semibold text-zinc-800 whitespace-nowrap">{jg.employees}</td>
+                                            <td className="py-1.5 px-3 text-center whitespace-nowrap">
                                                 <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold border ${jg.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
                                                     {jg.isActive ? 'Active' : 'Inactive'}
                                                 </span>
@@ -290,7 +392,7 @@ export default function JobGradesPage() {
                 <div className="xl:col-span-3 flex flex-col gap-2 h-full">
 
                     {/* Grade Structure Overview */}
-                    <div className="bg-white border border-zinc-200 shadow-sm rounded-xl p-3 2xl:p-5 flex-1 flex flex-col">
+                    <div className="bg-white border border-zinc-200 shadow-sm rounded-xl p-3 2xl:p-3 flex-1 flex flex-col">
                         <h2 className="text-[14px] font-bold text-zinc-800 mb-3 flex items-center gap-2">Grade Structure Overview</h2>
                         <div className="flex items-center gap-3 mb-4">
                             <div className="w-28 h-28 shrink-0">
@@ -354,7 +456,7 @@ export default function JobGradesPage() {
                     </div>
 
                     {/* Quick Actions Card */}
-                    <div className="bg-white border border-zinc-200 shadow-sm rounded-xl p-6 2xl:p-6 flex-1 flex flex-col justify-center">
+                    <div className="bg-white border border-zinc-200 shadow-sm rounded-xl p-3 flex-1 flex flex-col justify-center">
                         <h2 className="text-[14px] font-bold text-zinc-800 mb-2 flex items-center gap-2">Quick Actions</h2>
                         <div className="grid grid-cols-2 gap-3">
                             <button className="flex items-center gap-2 p-2.5 border border-zinc-200 rounded-lg text-[11px] font-semibold text-indigo-600 hover:bg-indigo-50 transition-colors justify-center whitespace-nowrap">
@@ -373,7 +475,7 @@ export default function JobGradesPage() {
                     </div>
 
                     {/* Note */}
-                    <div className="bg-white border border-zinc-200 shadow-sm rounded-xl p-5 2xl:p-6 flex-1 flex flex-col justify-center">
+                    <div className="bg-white border border-zinc-200 shadow-sm rounded-xl p-3 flex-1 flex flex-col justify-center">
                         <h2 className="text-[14px] font-bold text-zinc-800 mb-3 flex items-center gap-1.5">
                             <Info className="w-4 h-4 text-indigo-600" /> Note
                         </h2>

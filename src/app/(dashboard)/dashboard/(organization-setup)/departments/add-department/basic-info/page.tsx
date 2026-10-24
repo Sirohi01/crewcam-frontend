@@ -31,6 +31,12 @@ export default function BasicInformation() {
         router.push('/dashboard/departments/add-department/department-head');
     };
 
+    // Clears a single field's error as soon as it changes, instead of leaving the red
+    // border up until the next full validation pass.
+    const clearError = (field: string) => {
+        setErrors((prev) => (prev[field] ? { ...prev, [field]: '' } : prev));
+    };
+
     const handleSaveDraft = () => {
         localStorage.setItem('departmentFormDraft', JSON.stringify(formData));
         toast.success('Draft saved successfully!');
@@ -74,10 +80,10 @@ export default function BasicInformation() {
                         <Card title={<><span className="flex items-center justify-center bg-blue-600 text-white rounded-full w-4 h-4 text-[9px]">1</span> Basic Information</>}>
                             <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-2 lg:grid-cols-3 mt-0.5">
                                 <Field title="Department Name" required helpText="e.g. Design Studio" error={errors.name}>
-                                    <input type="text" value={formData.name} onChange={e => updateFormData({ name: e.target.value })} className={fieldCls(Boolean(errors.name))} placeholder="e.g. Design Studio" />
+                                    <input type="text" value={formData.name} onChange={e => { updateFormData({ name: e.target.value }); clearError('name'); }} className={fieldCls(Boolean(errors.name))} placeholder="e.g. Design Studio" />
                                 </Field>
                                 <Field title="Department Code" required helpText="Auto generated" error={errors.code}>
-                                    <input type="text" value={formData.code} onChange={e => updateFormData({ code: sanitizeDepartmentCode(e.target.value) })} className={fieldCls(Boolean(errors.code))} placeholder="e.g. DSGN" maxLength={10} />
+                                    <input type="text" value={formData.code} onChange={e => { updateFormData({ code: sanitizeDepartmentCode(e.target.value) }); clearError('code'); }} className={fieldCls(Boolean(errors.code))} placeholder="e.g. DSGN" maxLength={10} />
                                 </Field>
 
                                 <Field title="Parent Department" helpText="Select parent department (if any)">
@@ -91,14 +97,14 @@ export default function BasicInformation() {
                                         />
                                     </div>
                                 </Field>
-                                <SelectField title="Department Type" value={formData.departmentType} onChange={e => updateFormData({ departmentType: e.target.value })} required options={['Core Department', 'Support', 'Admin', 'Other']} helpText="Core / Support / Admin / Other" error={errors.departmentType} />
+                                <SelectField title="Department Type" value={formData.departmentType} onChange={e => { updateFormData({ departmentType: e.target.value }); clearError('departmentType'); }} required options={['Core Department', 'Support', 'Admin', 'Other']} helpText="Core / Support / Admin / Other" error={errors.departmentType} />
 
                                 <Field title="Business Unit" required helpText="Select business unit" error={errors.businessUnit}>
                                     <div className="mt-1">
                                         <ApiSearchableSelect
                                             apiType="business-unit"
                                             value={formData.businessUnit}
-                                            onChange={(val) => updateFormData({ businessUnit: val })}
+                                            onChange={(val) => { updateFormData({ businessUnit: val }); clearError('businessUnit'); }}
                                             onLabelChange={(label) => updateMeta({ businessUnitName: label })}
                                             placeholder="Select Business Unit"
                                         />
@@ -146,7 +152,7 @@ export default function BasicInformation() {
                                 </Field>
 
                                 <Field title="Effective Date" required helpText="From when this department will be active" error={errors.effectiveDate}>
-                                    <input type="date" value={formData.effectiveDate} onChange={e => updateFormData({ effectiveDate: e.target.value })} className={fieldCls(Boolean(errors.effectiveDate))} />
+                                    <input type="date" value={formData.effectiveDate} onChange={e => { updateFormData({ effectiveDate: e.target.value }); clearError('effectiveDate'); }} className={fieldCls(Boolean(errors.effectiveDate))} />
                                 </Field>
                             </div>
                         </Card>
@@ -180,7 +186,7 @@ export default function BasicInformation() {
 
                                 <Field title="Employee Capacity" helpText="Maximum number of employees" error={errors.employeeCapacity}>
                                     <div className="relative w-full sm:w-1/2">
-                                        <input type="text" inputMode="numeric" value={formData.employeeCapacity} onChange={e => updateFormData({ employeeCapacity: e.target.value.replace(/[^0-9]/g, '') })} className={`${fieldCls(Boolean(errors.employeeCapacity))} pr-8`} placeholder="e.g. 50" />
+                                        <input type="text" inputMode="numeric" value={formData.employeeCapacity} onChange={e => { updateFormData({ employeeCapacity: e.target.value.replace(/[^0-9]/g, '') }); clearError('employeeCapacity'); }} className={`${fieldCls(Boolean(errors.employeeCapacity))} pr-8`} placeholder="e.g. 50" />
                                         <Users size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
                                     </div>
                                 </Field>

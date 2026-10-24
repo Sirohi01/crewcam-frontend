@@ -35,6 +35,7 @@ function AddSubDepartmentForm() {
   const [loadingData, setLoadingData] = useState(!!editId);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [businessUnits, setBusinessUnits] = useState<any[]>([]);
 
   const [form, setForm] = useState<FormData>({
@@ -95,10 +96,18 @@ function AddSubDepartmentForm() {
     setForm(prev => ({ ...prev, [field]: value }));
   };
 
+  const validate = (): boolean => {
+    const next: Partial<Record<keyof FormData, string>> = {};
+    if (!form.parentDepartmentId) next.parentDepartmentId = 'Please select a parent department.';
+    if (!form.name.trim()) next.name = 'Sub department name is required.';
+    if (!form.code.trim()) next.code = 'Sub department code is required.';
+    else if (!/^[A-Z0-9][A-Z0-9_-]*$/.test(form.code.trim())) next.code = 'Use letters, numbers, - or _ only, starting with a letter or number.';
+    setFieldErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
   const handleSave = async () => {
-    if (!form.parentDepartmentId) { setError('Please select a parent department.'); return; }
-    if (!form.name.trim()) { setError('Sub department name is required.'); return; }
-    if (!form.code.trim()) { setError('Sub department code is required.'); return; }
+    if (!validate()) { setError('Please fix the highlighted fields before saving.'); return; }
     setError('');
     try {
       setSaving(true);
@@ -181,9 +190,9 @@ function AddSubDepartmentForm() {
               <div className="relative">
                 <select
                   value={form.parentDepartmentId}
-                  onChange={e => handleChange('parentDepartmentId', e.target.value)}
+                  onChange={e => { handleChange('parentDepartmentId', e.target.value); setFieldErrors(f => ({ ...f, parentDepartmentId: undefined })); }}
                   disabled={loadingDepts}
-                  className="w-full rounded-lg border border-zinc-200 bg-white pl-3 pr-8 py-2 text-[12px] text-zinc-800 shadow-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors appearance-none disabled:opacity-60"
+                  className={`w-full rounded-lg border bg-white pl-3 pr-8 py-2 text-[12px] text-zinc-800 shadow-sm outline-none focus:ring-2 transition-colors appearance-none disabled:opacity-60 ${fieldErrors.parentDepartmentId ? 'border-rose-400 focus:border-rose-400 focus:ring-rose-100' : 'border-zinc-200 focus:border-indigo-400 focus:ring-indigo-100'}`}
                 >
                   <option value="">{loadingDepts ? 'Loading...' : '-- Select Parent Department --'}</option>
                   {departments.map(dept => (
@@ -194,18 +203,22 @@ function AddSubDepartmentForm() {
                   ? <Loader2 size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 animate-spin pointer-events-none" />
                   : <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />}
               </div>
-              <p className="text-[11px] text-zinc-500 mt-1">{loadingDepts ? 'Loading from database...' : `${departments.length} department(s) available`}</p>
+              {fieldErrors.parentDepartmentId ? (
+                <p className="text-[11px] text-rose-500 font-medium mt-1">{fieldErrors.parentDepartmentId}</p>
+              ) : (
+                <p className="text-[11px] text-zinc-500 mt-1">{loadingDepts ? 'Loading from database...' : `${departments.length} department(s) available`}</p>
+              )}
             </div>
 
             <div>
               <label className="block text-[12px] font-medium text-zinc-700 mb-1">Sub Department Name <span className="text-rose-500">*</span></label>
-              <input type="text" value={form.name} onChange={e => handleChange('name', e.target.value)} placeholder="e.g. Interior Design" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] text-zinc-800 shadow-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors" />
-              <p className="text-[11px] text-zinc-500 mt-1">Enter sub department name</p>
+              <input type="text" value={form.name} onChange={e => { handleChange('name', e.target.value); setFieldErrors(f => ({ ...f, name: undefined })); }} placeholder="e.g. Interior Design" className={`w-full rounded-lg border bg-white px-3 py-2 text-[12px] text-zinc-800 shadow-sm outline-none focus:ring-2 transition-colors ${fieldErrors.name ? 'border-rose-400 focus:border-rose-400 focus:ring-rose-100' : 'border-zinc-200 focus:border-indigo-400 focus:ring-indigo-100'}`} />
+              <p className={`text-[11px] mt-1 ${fieldErrors.name ? 'text-rose-500 font-medium' : 'text-zinc-500'}`}>{fieldErrors.name || 'Enter sub department name'}</p>
             </div>
             <div>
               <label className="block text-[12px] font-medium text-zinc-700 mb-1">Sub Department Code <span className="text-rose-500">*</span></label>
-              <input type="text" value={form.code} onChange={e => handleChange('code', e.target.value.toUpperCase())} placeholder="e.g. INT-DSN" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[12px] text-zinc-800 shadow-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors" />
-              <p className="text-[11px] text-zinc-500 mt-1">Unique code for this sub department</p>
+              <input type="text" value={form.code} onChange={e => { handleChange('code', e.target.value.toUpperCase()); setFieldErrors(f => ({ ...f, code: undefined })); }} placeholder="e.g. INT-DSN" className={`w-full rounded-lg border bg-white px-3 py-2 text-[12px] text-zinc-800 shadow-sm outline-none focus:ring-2 transition-colors ${fieldErrors.code ? 'border-rose-400 focus:border-rose-400 focus:ring-rose-100' : 'border-zinc-200 focus:border-indigo-400 focus:ring-indigo-100'}`} />
+              <p className={`text-[11px] mt-1 ${fieldErrors.code ? 'text-rose-500 font-medium' : 'text-zinc-500'}`}>{fieldErrors.code || 'Unique code for this sub department'}</p>
             </div>
             <div>
               <label className="block text-[12px] font-medium text-zinc-700 mb-1">Short Name</label>

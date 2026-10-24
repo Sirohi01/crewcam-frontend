@@ -16,6 +16,7 @@ function DesignationFormContent() {
   const editId = searchParams.get('editId');
   const queryClient = useQueryClient();
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     name: '',
     code: '',
@@ -102,8 +103,14 @@ function DesignationFormContent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name) {
-      toast.error('Designation name is required');
+    const next: Record<string, string> = {};
+    if (!formData.name.trim()) next.name = 'Designation Name is required.';
+    if (!formData.code.trim()) next.code = 'Short Code is required.';
+    else if (!/^[A-Za-z0-9][A-Za-z0-9_. -]*$/.test(formData.code.trim())) next.code = 'Use letters, numbers, spaces, - . or _ only.';
+
+    setErrors(next);
+    if (Object.keys(next).length > 0) {
+      toast.error('Please fix the highlighted fields before saving.');
       return;
     }
     saveMutation.mutate(formData);
@@ -154,7 +161,7 @@ function DesignationFormContent() {
         <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-2">
           {/* Left Column (Main Form Area) */}
           <div className="flex-1 min-w-0">
-            <DesignationFormCards formData={formData} setFormData={setFormData} />
+            <DesignationFormCards formData={formData} setFormData={setFormData} errors={errors} />
           </div>
 
           {/* Right Column (Sidebar Area) */}
