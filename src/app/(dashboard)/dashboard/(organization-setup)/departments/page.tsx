@@ -31,8 +31,9 @@ const compositionData = [
     { name: 'Support Staff', value: 2, color: '#8b5cf6', percent: '4%' },
 ];
 
+// Recent department activity has no backend source yet (no per-department audit-log
+// endpoint exists) — kept as an explicit empty list rather than fabricated entries.
 const activities: any[] = [];
-const generateMockActivities = (deptName: string) => [];
 
 const MicroLineChart = ({ color }: { color: string }) => {
     const chartId = color.replace('#', '');
@@ -124,7 +125,7 @@ export default function DepartmentsPage() {
         (d.code || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const activeDeptActivities = activeDept ? generateMockActivities(activeDept.name) : activities;
+    const activeDeptActivities = activities;
 
     const dynamicCards = [
         { title: 'TOTAL DEPARTMENTS', value: departments.length.toString(), subtitle: 'All departments', color: '#3b82f6', isChart: true, linkText: 'View all' },
@@ -621,11 +622,11 @@ export default function DepartmentsPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
-                                    {activeDeptActivities.length === 0 && activities.length === 0 ? (
+                                    {activities.length === 0 ? (
                                         <tr>
                                             <td colSpan={3} className="py-8 text-center text-slate-500 text-[11px]">No activity logs found.</td>
                                         </tr>
-                                    ) : [...activeDeptActivities, ...activities, ...activeDeptActivities].map((act: any, i: number) => (
+                                    ) : activities.map((act: any, i: number) => (
                                         <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                                             <td className="py-3 px-3 text-slate-800 font-medium">{act.text}</td>
                                             <td className="py-3 px-3">

@@ -37,7 +37,7 @@ export default function InitEditDepartment() {
           probationPeriodMonths: data.probationPeriodMonths != null ? String(data.probationPeriodMonths) : '',
           departmentEmail: data.departmentEmail || '',
           departmentKeywords: Array.isArray(data.departmentKeywords) ? data.departmentKeywords.join(', ') : '',
-          documents: Array.isArray(data.documents) ? data.documents.map((d: any) => ({ name: d.name, url: d.url })) : [],
+          documents: Array.isArray(data.documents) ? data.documents.map((d: any) => ({ name: d.name, url: d.url, size: d.size })) : [],
           _id: data._id
         });
         router.push('/dashboard/departments/add-department/basic-info');

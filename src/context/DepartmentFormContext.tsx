@@ -5,6 +5,7 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 export interface DepartmentDocumentFile {
   name: string;
   url: string;
+  size?: number;
 }
 
 export interface DepartmentFormData {

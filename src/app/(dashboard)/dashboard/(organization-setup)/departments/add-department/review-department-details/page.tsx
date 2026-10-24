@@ -13,29 +13,12 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getDepartmentFormErrors } from '@/lib/departmentValidation';
+import { Card, WizardStepper, buildWizardSteps } from '@/components/departments/FormPrimitives';
 
-const steps = [
-    { num: 1, label: 'Basic Information', status: 'completed' },
-    { num: 2, label: 'Department Head', status: 'completed' },
-    { num: 3, label: 'Description & Settings', status: 'completed' },
-    { num: 4, label: 'Review & Create', status: 'active' },
-];
-
-function Card({
-    title, action, children, className = '',
-}: { title?: React.ReactNode; action?: React.ReactNode; children?: React.ReactNode; className?: string }) {
-    return (
-        <div className={`rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden ${className}`}>
-            {title && (
-                <div className="flex items-center justify-between gap-2 px-3 pt-3 pb-2 border-b border-zinc-50">
-                    <h3 className="text-[13px] font-bold text-zinc-800 flex items-center gap-2">{title}</h3>
-                    {action}
-                </div>
-            )}
-            <div className="px-3 pb-3 pt-2">{children}</div>
-        </div>
-    );
-}
+const formatFileSize = (bytes?: number) => {
+    if (!bytes) return '';
+    return bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
 
 function InfoRow({ label, value, valueClass = '', vertical = false }: { label: string; value: React.ReactNode; valueClass?: string, vertical?: boolean }) {
     if (vertical) {
@@ -64,7 +47,7 @@ export default function ReviewDepartmentDetails() {
         // must not be able to submit something the per-step "Next" buttons would have blocked.
         const errors = getDepartmentFormErrors(formData);
         if (errors.length > 0) {
-            toast.error(errors[0]);
+            toast.error(`${errors[0]} Use "Edit All Details" to fix it.`);
             return;
         }
 
@@ -117,49 +100,29 @@ export default function ReviewDepartmentDetails() {
                 <div className="grid grid-cols-1 xl:grid-cols-7 gap-2">
 
                     {/* Left Content Area */}
-                    <div className=" xl:col-span-5 space-y-2">
+                    <div className="xl:col-span-5 space-y-2 min-w-0">
 
-                        {/* Stepper Card */}
-                        <div className="bg-white rounded-xl border border-zinc-200 shadow-sm py-4 px-2">
-                            <div className="flex items-center justify-between relative w-full mx-auto">
-                                <div className="absolute left-[8%] right-[8%] top-[14px] h-[2px] bg-zinc-200 -z-0"></div>
-                                <div className="flex w-full justify-between z-10">
-                                    {steps.map((step, idx) => (
-                                        <div key={idx} className="flex flex-col items-center gap-2 bg-white px-2">
-                                            <div className={`w-[28px] h-[28px] rounded-full flex items-center justify-center text-[11px] font-bold transition-colors z-10
-                        ${step.status === 'completed' ? 'bg-white' :
-                                                    step.status === 'active' ? 'border-2 border-indigo-600 bg-indigo-600 text-white shadow-[0_0_0_3px_rgba(79,70,229,0.15)]' :
-                                                        'border-2 border-zinc-100 text-zinc-400 bg-zinc-50'}`}>
-                                                {step.status === 'completed' ? <CheckCircle2 className="w-7 h-7 text-emerald-500 bg-white rounded-full" strokeWidth={1.5} /> : step.num}
-                                            </div>
-                                            <span className={`text-[10px] font-bold ${step.status === 'active' ? 'text-indigo-600' : step.status === 'completed' ? 'text-zinc-500' : 'text-zinc-400'}`}>
-                                                {step.label}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
+                        <WizardStepper steps={buildWizardSteps('review-department-details')} onNavigate={router.push} />
 
                         {/* Title & Edit Button */}
-                        <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-4 flex items-start justify-between">
+                        <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-4 flex flex-wrap items-start justify-between gap-2">
                             <div>
                                 <h2 className="text-[16px] font-bold text-zinc-900">Review Department Details</h2>
                                 <p className="text-[12px] text-zinc-500 font-medium mt-1">Please review all the information below. You can go back and edit if needed.</p>
                             </div>
-                            <button type="button" onClick={() => router.push('/dashboard/departments/add-department/basic-info')} className="flex items-center gap-1.5 px-3 py-1.5 border border-zinc-200 rounded-lg text-[11px] font-bold text-indigo-700 hover:bg-zinc-50 transition-colors shadow-sm">
+                            <button type="button" onClick={() => router.push('/dashboard/departments/add-department/basic-info')} className="flex items-center gap-1.5 px-3 py-1.5 border border-zinc-200 rounded-lg text-[11px] font-bold text-blue-700 hover:bg-zinc-50 transition-colors shadow-sm">
                                 <Edit size={12} /> Edit All Details
                             </button>
                         </div>
 
                         {/* Details Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                             {/* Basic Information */}
-                            <Card title={<><Info size={14} className="text-indigo-600" /> Basic Information</>}>
+                            <Card title={<><Info size={14} className="text-blue-600" /> Basic Information</>}>
                                 <div className="mt-1">
                                     <InfoRow label="Department Name" value={formData.name || '-'} />
                                     <InfoRow label="Department Code" value={formData.code || '-'} />
-                                    <InfoRow label="Location" value={formData._meta?.branchName || formData.branchId || '-'} />
+                                    <InfoRow label="Parent Department" value={formData._meta?.branchName || formData.branchId || '-'} />
                                     <InfoRow label="Department Type" value={formData.departmentType || 'Core Department'} />
                                     <InfoRow label="Business Unit" value={formData._meta?.businessUnitName || formData.businessUnit || '-'} />
                                     <InfoRow label="Status" value={<span className={`px-1.5 py-0.5 rounded ${formData.isActive ? 'bg-emerald-100/60 text-emerald-600' : 'bg-rose-100/60 text-rose-600'} text-[10px] font-bold`}>{formData.isActive ? 'Active' : 'Inactive'}</span>} />
@@ -216,17 +179,18 @@ export default function ReviewDepartmentDetails() {
                                             <div className="text-[11px] text-zinc-500">No documents uploaded.</div>
                                         )}
                                         {formData.documents && formData.documents.map((file, idx) => (
-                                            <div key={idx} className="flex items-center justify-between text-[11px]">
+                                            <div key={idx} className="flex items-center justify-between text-[11px] gap-2">
                                                 <a href={file.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-rose-500 overflow-hidden hover:underline">
                                                     <FileText size={14} className="fill-rose-50 shrink-0" />
                                                     <span className="text-zinc-700 font-semibold truncate">{file.name}</span>
                                                 </a>
+                                                {file.size ? <span className="text-zinc-500 font-medium shrink-0">{formatFileSize(file.size)}</span> : null}
                                             </div>
                                         ))}
                                     </div>
                                     <div className="mt-4 pt-3 border-t border-zinc-100 flex justify-between items-center text-[11px]">
                                         <span className="font-bold text-zinc-800">Total Files</span>
-                                        <span className="bg-indigo-50 text-indigo-600 font-bold px-2 py-0.5 rounded text-[10px]">{formData.documents?.length || 0} Files</span>
+                                        <span className="bg-blue-50 text-blue-600 font-bold px-2 py-0.5 rounded text-[10px]">{formData.documents?.length || 0} Files</span>
                                     </div>
                                 </div>
                             </Card>
@@ -235,16 +199,16 @@ export default function ReviewDepartmentDetails() {
                     </div>
 
                     {/* Right Sidebar Area */}
-                    <div className="space-y-2 xl:col-span-2">
+                    <div className="space-y-2 xl:col-span-2 min-w-0">
 
                         {/* Preview Card */}
-                        <Card title={<><Eye size={14} className="text-indigo-600 mr-2" /> {formData._id ? 'Edit Preview' : 'Department Preview'}</>}>
+                        <Card title={<><Eye size={14} className="text-blue-600 mr-2" /> {formData._id ? 'Edit Preview' : 'Department Preview'}</>}>
                             <div className="flex items-start gap-3 mt-1 mb-4">
-                                <div className="w-12 h-12 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-lg font-bold shrink-0 shadow-md shadow-indigo-600/20">
+                                <div className="w-12 h-12 rounded-lg bg-blue-600 text-white flex items-center justify-center text-lg font-bold shrink-0 shadow-md shadow-blue-600/20">
                                     {formData.code || 'DS'}
                                 </div>
                                 <div>
-                                    <h3 className="text-[14px] font-bold text-zinc-900 leading-tight">{formData.name || 'Design Studio'}</h3>
+                                    <h3 className="text-[14px] font-bold text-zinc-900 leading-tight">{formData.name || 'Department Name'}</h3>
                                     <div className="flex items-center gap-1.5 mt-1.5">
                                         <span className={`px-1.5 py-[2px] rounded ${formData.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'} text-[9px] font-bold border uppercase tracking-wider`}>{formData.isActive ? 'Active' : 'Inactive'}</span>
                                     </div>
@@ -257,25 +221,25 @@ export default function ReviewDepartmentDetails() {
                             <div className="space-y-4 border-t border-zinc-100 pt-4">
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
                                     <div className="text-zinc-400 mt-0.5"><Building size={14} /></div>
-                                    <div className="text-zinc-500 font-medium">Location</div>
-                                    <div className="font-semibold text-zinc-800">{formData._meta?.branchName || formData.branchId || '-'}</div>
+                                    <div className="text-zinc-500 font-medium">Parent Department</div>
+                                    <div className="font-semibold text-zinc-800 truncate">{formData._meta?.branchName || formData.branchId || '-'}</div>
                                 </div>
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
                                     <div className="text-zinc-400 mt-0.5"><Briefcase size={14} /></div>
                                     <div className="text-zinc-500 font-medium">Business Unit</div>
-                                    <div className="font-semibold text-zinc-800">{formData._meta?.businessUnitName || formData.businessUnit || '-'}</div>
+                                    <div className="font-semibold text-zinc-800 truncate">{formData._meta?.businessUnitName || formData.businessUnit || '-'}</div>
                                 </div>
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px] mt-1">
                                     <div className="text-zinc-400 mt-0.5"><User size={14} /></div>
                                     <div className="text-zinc-500 font-medium">Department Head</div>
-                                    <div className="font-semibold text-zinc-800">{formData._meta?.hodName || formData.hodEmployeeId || '-'}</div>
+                                    <div className="font-semibold text-zinc-800 truncate">{formData._meta?.hodName || formData.hodEmployeeId || '-'}</div>
                                 </div>
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px] mt-0.5">
                                     <div className="text-zinc-400 mt-0.5"><UserCheck size={14} /></div>
                                     <div className="text-zinc-500 font-medium">Reporting To</div>
-                                    <div className="font-semibold text-zinc-800">{formData._meta?.reportingToName || formData.reportingToId || '-'}</div>
+                                    <div className="font-semibold text-zinc-800 truncate">{formData._meta?.reportingToName || formData.reportingToId || '-'}</div>
                                 </div>
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
@@ -294,8 +258,8 @@ export default function ReviewDepartmentDetails() {
 
                         {/* What's Next Card */}
                         <div className="rounded-xl border border-zinc-200 bg-white shadow-sm p-4 mt-2 relative overflow-hidden">
-                            <div className="flex items-center gap-2 text-indigo-600 mb-2">
-                                <Sparkles size={16} className="fill-indigo-100" />
+                            <div className="flex items-center gap-2 text-blue-600 mb-2">
+                                <Sparkles size={16} className="fill-blue-100" />
                                 <h3 className="font-bold text-[14px] text-zinc-900">What&apos;s Next?</h3>
                             </div>
                             <p className="text-[11px] text-zinc-500 mb-4 font-medium leading-relaxed">
@@ -310,16 +274,16 @@ export default function ReviewDepartmentDetails() {
                                     'View department analytics'
                                 ].map((item, i) => (
                                     <div key={i} className="flex items-start gap-2.5 text-[11px]">
-                                        <Check size={14} className="text-indigo-600 shrink-0 mt-[1px]" strokeWidth={2.5} />
+                                        <Check size={14} className="text-blue-600 shrink-0 mt-[1px]" strokeWidth={2.5} />
                                         <span className="text-zinc-700 font-medium">{item}</span>
                                     </div>
                                 ))}
                             </div>
 
                             <div className="absolute right-0 -bottom-2 w-28 h-28 opacity-80 pointer-events-none z-0 flex items-end justify-end">
-                                <div className="bg-indigo-50/50 rounded-tl-[40px] w-full h-full flex items-center justify-center p-4">
+                                <div className="bg-blue-50/50 rounded-tl-[40px] w-full h-full flex items-center justify-center p-4">
                                     <div className="relative">
-                                        <ClipboardList size={40} className="text-indigo-200" strokeWidth={1.5} />
+                                        <ClipboardList size={40} className="text-blue-200" strokeWidth={1.5} />
                                         <CheckCircle2 size={18} className="text-emerald-500 absolute -bottom-1 -right-1 bg-white rounded-full fill-emerald-50 border-2 border-white" />
                                     </div>
                                 </div>
@@ -331,15 +295,15 @@ export default function ReviewDepartmentDetails() {
             </div>
 
             {/* Bottom Footer Actions */}
-            <div className="pb-2 px-2 flex items-center justify-between shadow-sm w-[71.5%] mt-auto pt-2">
+            <div className="mt-auto pb-2 px-2 pt-2 flex flex-wrap items-center justify-between gap-2 shadow-sm w-full xl:w-[calc(71.428%+0.5rem)]">
                 <Link href="/dashboard/departments/add-department/description-settings" className="flex items-center justify-center h-8 px-4 rounded-lg text-[12px] font-bold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
                     <ArrowLeft size={14} className="mr-1.5" /> Back: Description & Settings
                 </Link>
                 <div className="flex items-center gap-3">
-                    <button type="button" onClick={handleSaveDraft} className="flex items-center justify-center gap-2 h-8 px-4 rounded-lg text-[12px] font-bold text-indigo-700 border border-indigo-200 bg-white hover:bg-indigo-50 shadow-sm transition-colors">
+                    <button type="button" onClick={handleSaveDraft} className="flex items-center justify-center gap-2 h-8 px-4 rounded-lg text-[12px] font-bold text-blue-700 border border-blue-200 bg-white hover:bg-blue-50 shadow-sm transition-colors">
                         <Save size={14} /> Save Draft
                     </button>
-                    <button onClick={handleCreate} type="button" className="flex items-center justify-center gap-2 h-8 px-6 rounded-lg text-[12px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_2px_10px_rgba(79,70,229,0.2)] transition-colors">
+                    <button onClick={handleCreate} type="button" className="flex items-center justify-center gap-2 h-8 px-6 rounded-lg text-[12px] font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-[0_2px_10px_rgba(37,99,235,0.2)] transition-colors">
                         <CheckCircle size={14} /> {formData._id ? 'Update Department' : 'Create Department'}
                     </button>
                 </div>

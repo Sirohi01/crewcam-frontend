@@ -1,83 +1,33 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/ui/page-header';
 import { useDepartmentForm } from '@/context/DepartmentFormContext';
-import { Building2, User, Calendar, Users, CheckCircle2, HelpCircle, Eye, MapPin, Building, Briefcase, UserCheck, ChevronDown, Save, ArrowRight } from 'lucide-react';
+import { Building2, User, Calendar, Users, CheckCircle2, HelpCircle, Eye, Building, Briefcase, UserCheck, ChevronDown, Save, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { ApiSearchableSelect } from '@/components/common/ApiSearchableSelect';
 import { isValidEmployeeCapacity, sanitizeDepartmentCode } from '@/lib/departmentValidation';
-
-const steps = [
-    { num: 1, label: 'Basic Information', status: 'active' },
-    { num: 2, label: 'Department Head', status: 'pending' },
-    { num: 3, label: 'Description & Settings', status: 'pending' },
-    { num: 4, label: 'Review & Create', status: 'pending' },
-];
-
-const inputCls = 'mt-1 h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-[12px] text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500';
-const selectCls = `${inputCls} appearance-none`;
-const labelCls = 'text-[11px] font-semibold text-zinc-700';
-const helpTextCls = 'text-[10px] text-zinc-400 mt-1 leading-tight';
-
-function Field({
-    title, required, children, helpText
-}: { title: string; required?: boolean; children: React.ReactNode; helpText?: string }) {
-    return (
-        <label className="block">
-            <span className={labelCls}>{title}{required && <b className="text-rose-500"> *</b>}</span>
-            {children}
-            {helpText && <p className={helpTextCls}>{helpText}</p>}
-        </label>
-    );
-}
-
-function SelectField({ title, required, options, helpText, value, onChange }: { title: string; required?: boolean; options: string[]; helpText?: string; value?: string; onChange?: (e: any) => void }) {
-    return (
-        <Field title={title} required={required} helpText={helpText}>
-            <div className="relative">
-                <select className={selectCls} value={value} onChange={onChange || (() => { })}>
-                    <option value="" disabled>Select {title}</option>
-                    {options.map((o) => <option key={o} value={o}>{o}</option>)}
-                </select>
-                <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-            </div>
-        </Field>
-    );
-}
-
-function Card({
-    title, action, children, className = '',
-}: { title?: React.ReactNode; action?: React.ReactNode; children?: React.ReactNode; className?: string }) {
-    return (
-        <div className={`rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden ${className}`}>
-            {title && (
-                <div className="flex items-center justify-between gap-2 px-3 pt-2.5">
-                    <h3 className="text-[13px] font-bold text-zinc-800 flex items-center gap-2">{title}</h3>
-                    {action}
-                </div>
-            )}
-            <div className="px-3 pb-3 pt-1">{children}</div>
-        </div>
-    );
-}
+import { Field, SelectField, Card, fieldCls, WizardStepper, buildWizardSteps } from '@/components/departments/FormPrimitives';
 
 export default function BasicInformation() {
     const { formData, updateFormData, updateMeta } = useDepartmentForm();
     const router = useRouter();
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     const handleNext = (e: React.MouseEvent) => {
         e.preventDefault();
-        if (!formData.name || !formData.code || !formData.departmentType || !formData.businessUnit || !formData.effectiveDate) {
-            toast.error('Please fill in all required fields to proceed.');
-            return;
-        }
-        if (!isValidEmployeeCapacity(formData.employeeCapacity)) {
-            toast.error('Employee Capacity must be a positive whole number.');
-            return;
-        }
+        const next: Record<string, string> = {};
+        if (!formData.name.trim()) next.name = 'Department Name is required.';
+        if (!formData.code.trim()) next.code = 'Department Code is required.';
+        if (!formData.departmentType.trim()) next.departmentType = 'Department Type is required.';
+        if (!formData.businessUnit.trim()) next.businessUnit = 'Business Unit is required.';
+        if (!formData.effectiveDate) next.effectiveDate = 'Effective Date is required.';
+        if (!isValidEmployeeCapacity(formData.employeeCapacity)) next.employeeCapacity = 'Must be a positive whole number.';
+
+        setErrors(next);
+        if (Object.keys(next).length > 0) return;
         router.push('/dashboard/departments/add-department/department-head');
     };
 
@@ -116,54 +66,34 @@ export default function BasicInformation() {
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
 
                     {/* Left Content Area (Forms) */}
-                    <div className="xl:col-span-2 space-y-2">
+                    <div className="xl:col-span-2 space-y-2 min-w-0">
 
-                        {/* Stepper Card */}
-                        <div className="bg-white rounded-xl border border-zinc-200 shadow-sm py-4 px-2">
-                            <div className="flex items-center justify-between relative w-full mx-auto">
-                                <div className="absolute left-[8%] right-[8%] top-[14px] h-[2px] bg-zinc-200 -z-0"></div>
-                                <div className="flex w-full justify-between z-10">
-                                    {steps.map((step, idx) => (
-                                        <div key={idx} className="flex flex-col items-center gap-2 bg-white px-2">
-                                            <div className={`w-[28px] h-[28px] rounded-full flex items-center justify-center text-[11px] font-bold border-2 transition-colors z-10
-                        ${step.status === 'completed' ? 'border-indigo-100 text-indigo-600 bg-indigo-50' :
-                                                    step.status === 'active' ? 'border-indigo-600 bg-indigo-600 text-white shadow-[0_0_0_3px_rgba(79,70,229,0.15)]' :
-                                                        'border-zinc-100 text-zinc-400 bg-zinc-50'}`}>
-                                                {step.status === 'completed' ? <CheckCircle2 className="w-4 h-4" strokeWidth={3} /> : step.num}
-                                            </div>
-                                            <span className={`text-[10px] font-bold ${step.status === 'active' ? 'text-indigo-600' : step.status === 'completed' ? 'text-indigo-600' : 'text-zinc-400'}`}>
-                                                {step.label}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
+                        <WizardStepper steps={buildWizardSteps('basic-info')} onNavigate={router.push} />
 
-                        {/* Section 1: Basic Information */}
-                        <Card title={<><span className="flex items-center justify-center bg-indigo-600 text-white rounded-full w-4 h-4 text-[9px]">1</span> Basic Information</>}>
-                            <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-3 mt-0.5 ">
-                                <Field title="Department Name" required helpText="e.g. Design Studio">
-                                    <input type="text" value={formData.name} onChange={e => updateFormData({ name: e.target.value })} className={inputCls} placeholder="e.g. Design Studio" />
+                        {/* Basic Information */}
+                        <Card title={<><span className="flex items-center justify-center bg-blue-600 text-white rounded-full w-4 h-4 text-[9px]">1</span> Basic Information</>}>
+                            <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-2 lg:grid-cols-3 mt-0.5">
+                                <Field title="Department Name" required helpText="e.g. Design Studio" error={errors.name}>
+                                    <input type="text" value={formData.name} onChange={e => updateFormData({ name: e.target.value })} className={fieldCls(Boolean(errors.name))} placeholder="e.g. Design Studio" />
                                 </Field>
-                                <Field title="Department Code" required helpText="Auto generated">
-                                    <input type="text" value={formData.code} onChange={e => updateFormData({ code: sanitizeDepartmentCode(e.target.value) })} className={inputCls} placeholder="e.g. DSGN" maxLength={10} />
+                                <Field title="Department Code" required helpText="Auto generated" error={errors.code}>
+                                    <input type="text" value={formData.code} onChange={e => updateFormData({ code: sanitizeDepartmentCode(e.target.value) })} className={fieldCls(Boolean(errors.code))} placeholder="e.g. DSGN" maxLength={10} />
                                 </Field>
 
-                                <Field title="Parent Branch / Department" helpText="Select branch or parent">
+                                <Field title="Parent Department" helpText="Select parent department (if any)">
                                     <div className="mt-1">
                                         <ApiSearchableSelect
                                             apiType="branch"
                                             value={formData.branchId}
                                             onChange={(val) => updateFormData({ branchId: val })}
                                             onLabelChange={(label) => updateMeta({ branchName: label })}
-                                            placeholder="Select Branch / Parent"
+                                            placeholder="Select parent department"
                                         />
                                     </div>
                                 </Field>
-                                <SelectField title="Department Type" value={formData.departmentType} onChange={e => updateFormData({ departmentType: e.target.value })} required options={['Core Department', 'Support', 'Admin', 'Other']} helpText="Core / Support / Admin / Other" />
+                                <SelectField title="Department Type" value={formData.departmentType} onChange={e => updateFormData({ departmentType: e.target.value })} required options={['Core Department', 'Support', 'Admin', 'Other']} helpText="Core / Support / Admin / Other" error={errors.departmentType} />
 
-                                <Field title="Business Unit" required helpText="Select business unit">
+                                <Field title="Business Unit" required helpText="Select business unit" error={errors.businessUnit}>
                                     <div className="mt-1">
                                         <ApiSearchableSelect
                                             apiType="business-unit"
@@ -178,7 +108,7 @@ export default function BasicInformation() {
                                 <Field title="Status" required helpText="Active departments are visible in system">
                                     <div className="relative">
                                         <div className="absolute left-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-emerald-500 z-10 pointer-events-none shadow-sm"></div>
-                                        <select value={formData.isActive ? 'Active' : 'Inactive'} onChange={e => updateFormData({ isActive: e.target.value === 'Active' })} className={`${selectCls} pl-7 text-zinc-900 font-medium`}>
+                                        <select value={formData.isActive ? 'Active' : 'Inactive'} onChange={e => updateFormData({ isActive: e.target.value === 'Active' })} className={`${fieldCls(false, 'select')} pl-7 text-zinc-900 font-medium`}>
                                             <option value="Active">Active</option>
                                             <option value="Inactive">Inactive</option>
                                         </select>
@@ -188,10 +118,10 @@ export default function BasicInformation() {
                             </div>
                         </Card>
 
-                        {/* Section 2: Department Head */}
-                        <Card title={<><span className="flex items-center justify-center bg-indigo-600 text-white rounded-full w-4 h-4 text-[9px]">2</span> Department Head</>}>
-                            <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-3 mt-0.5">
-                                <Field title="Department Head (HOD)">
+                        {/* Department Head */}
+                        <Card title={<><span className="flex items-center justify-center bg-blue-600 text-white rounded-full w-4 h-4 text-[9px]">2</span> Department Head</>}>
+                            <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-2 lg:grid-cols-3 mt-0.5">
+                                <Field title="Department Head (HOD)" helpText="Can be assigned later">
                                     <div className="mt-1">
                                         <ApiSearchableSelect
                                             apiType="employee"
@@ -215,21 +145,22 @@ export default function BasicInformation() {
                                     </div>
                                 </Field>
 
-                                <Field title="Effective Date" required helpText="From when this department will be active">
-                                    <input type="date" value={formData.effectiveDate} onChange={e => updateFormData({ effectiveDate: e.target.value })} className={inputCls} />
+                                <Field title="Effective Date" required helpText="From when this department will be active" error={errors.effectiveDate}>
+                                    <input type="date" value={formData.effectiveDate} onChange={e => updateFormData({ effectiveDate: e.target.value })} className={fieldCls(Boolean(errors.effectiveDate))} />
                                 </Field>
                             </div>
                         </Card>
 
-                        {/* Section 3: Description & Settings */}
-                        <Card title={<><span className="flex items-center justify-center bg-indigo-600 text-white rounded-full w-4 h-4 text-[9px]">3</span> Description & Settings</>}>
+                        {/* Description & Settings */}
+                        <Card title={<><span className="flex items-center justify-center bg-blue-600 text-white rounded-full w-4 h-4 text-[9px]">3</span> Description & Settings</>}>
                             <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-2 mt-0.5">
                                 <Field title="Department Purpose">
                                     <div className="relative">
                                         <textarea
                                             value={formData.description} onChange={e => updateFormData({ description: e.target.value })}
-                                            className={`${inputCls} h-[70px] py-2 leading-relaxed`}
+                                            className={`${fieldCls(false)} h-[70px] py-2 leading-relaxed`}
                                             placeholder="e.g. Oversees all operations related to design and branding"
+                                            maxLength={300}
                                         />
                                         <div className="absolute bottom-1.5 left-2.5 text-[9px] text-zinc-400 font-medium">{formData.description.length} / 300</div>
                                     </div>
@@ -239,16 +170,17 @@ export default function BasicInformation() {
                                     <div className="relative">
                                         <textarea
                                             value={formData.keyResponsibilities} onChange={e => updateFormData({ keyResponsibilities: e.target.value })}
-                                            className={`${inputCls} h-[70px] py-2 leading-relaxed`}
+                                            className={`${fieldCls(false)} h-[70px] py-2 leading-relaxed`}
                                             placeholder="e.g. UI/UX Design, Branding, User Research"
+                                            maxLength={500}
                                         />
-                                        <div className="absolute bottom-1.5 left-2.5 text-[9px] text-zinc-400 font-medium">{formData.keyResponsibilities.length} / 300</div>
+                                        <div className="absolute bottom-1.5 left-2.5 text-[9px] text-zinc-400 font-medium">{formData.keyResponsibilities.length} / 500</div>
                                     </div>
                                 </Field>
 
-                                <Field title="Employee Capacity" helpText="Maximum number of employees">
+                                <Field title="Employee Capacity" helpText="Maximum number of employees" error={errors.employeeCapacity}>
                                     <div className="relative w-full sm:w-1/2">
-                                        <input type="text" inputMode="numeric" value={formData.employeeCapacity} onChange={e => updateFormData({ employeeCapacity: e.target.value.replace(/[^0-9]/g, '') })} className={`${inputCls} pr-8`} placeholder="e.g. 50" />
+                                        <input type="text" inputMode="numeric" value={formData.employeeCapacity} onChange={e => updateFormData({ employeeCapacity: e.target.value.replace(/[^0-9]/g, '') })} className={`${fieldCls(Boolean(errors.employeeCapacity))} pr-8`} placeholder="e.g. 50" />
                                         <Users size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
                                     </div>
                                 </Field>
@@ -258,12 +190,12 @@ export default function BasicInformation() {
                     </div>
 
                     {/* Right Sidebar Area */}
-                    <div className="space-y-2">
+                    <div className="space-y-2 min-w-0">
 
                         {/* Preview Card */}
-                        <Card title={<><Eye size={14} className="text-indigo-600 mr-2" /> {formData._id ? 'Edit Preview' : 'Department Preview'}</>}>
+                        <Card title={<><Eye size={14} className="text-blue-600 mr-2" /> {formData._id ? 'Edit Preview' : 'Department Preview'}</>}>
                             <div className="flex items-start gap-3 mt-1 mb-4">
-                                <div className="min-w-10 w-auto px-1 h-10 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-lg font-semibold shrink-0 shadow-sm shadow-indigo-600/20">
+                                <div className="min-w-10 w-auto px-1 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center text-lg font-semibold shrink-0 shadow-sm shadow-blue-600/20">
                                     {formData.code || 'DS'}
                                 </div>
                                 <div>
@@ -282,25 +214,25 @@ export default function BasicInformation() {
                             <div className="space-y-4 border-t border-zinc-100 pt-4">
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
                                     <div className="text-zinc-400 mt-0.5"><Building size={14} /></div>
-                                    <div className="text-zinc-500 font-medium">Location</div>
-                                    <div className="font-semibold text-zinc-800">{formData._meta?.branchName || formData.branchId || '-'}</div>
+                                    <div className="text-zinc-500 font-medium">Parent Department</div>
+                                    <div className="font-semibold text-zinc-800 truncate">{formData._meta?.branchName || formData.branchId || '-'}</div>
                                 </div>
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
                                     <div className="text-zinc-400 mt-0.5"><Briefcase size={14} /></div>
                                     <div className="text-zinc-500 font-medium">Business Unit</div>
-                                    <div className="font-semibold text-zinc-800">{formData._meta?.businessUnitName || formData.businessUnit || '-'}</div>
+                                    <div className="font-semibold text-zinc-800 truncate">{formData._meta?.businessUnitName || formData.businessUnit || '-'}</div>
                                 </div>
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px] mt-1">
                                     <div className="text-zinc-400 mt-0.5"><User size={14} /></div>
                                     <div className="text-zinc-500 font-medium">Department Head</div>
-                                    <div className="font-semibold text-zinc-800">{formData._meta?.hodName || formData.hodEmployeeId || '-'}</div>
+                                    <div className="font-semibold text-zinc-800 truncate">{formData._meta?.hodName || formData.hodEmployeeId || '-'}</div>
                                 </div>
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px] mt-1">
                                     <div className="text-zinc-400 mt-0.5"><UserCheck size={14} /></div>
                                     <div className="text-zinc-500 font-medium">Reporting To</div>
-                                    <div className="font-semibold text-zinc-800">{formData._meta?.reportingToName || formData.reportingToId || '-'}</div>
+                                    <div className="font-semibold text-zinc-800 truncate">{formData._meta?.reportingToName || formData.reportingToId || '-'}</div>
                                 </div>
 
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
@@ -312,13 +244,13 @@ export default function BasicInformation() {
                                 <div className="grid grid-cols-[20px_110px_1fr] gap-x-4 items-start text-[11px]">
                                     <div className="text-zinc-400 mt-0.5"><Calendar size={14} /></div>
                                     <div className="text-zinc-500 font-medium">Effective From</div>
-                                    <div className="font-semibold text-zinc-800">{formData.effectiveDate || '-'}</div>
+                                    <div className="font-semibold text-zinc-800">{formData.effectiveDate ? new Date(formData.effectiveDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</div>
                                 </div>
                             </div>
                         </Card>
 
                         {/* Tips Card */}
-                        <Card title={<><span className="text-indigo-600 text-[14px] mr-1">💡</span> Tips</>}>
+                        <Card title={<><span className="text-blue-600 text-[14px] mr-1">💡</span> Tips</>}>
                             <div className="space-y-2 mt-1 pb-1">
                                 {[
                                     'Use a unique and short department name',
@@ -336,12 +268,12 @@ export default function BasicInformation() {
                         </Card>
 
                         {/* Help Card */}
-                        <div className="bg-indigo-50/60 border border-zinc-200 rounded-xl p-5 flex ">
-                            <div className="pr-2">
+                        <div className="bg-blue-50/60 border border-zinc-200 rounded-xl p-5 flex flex-wrap gap-3">
+                            <div className="pr-2 flex-1 min-w-[160px]">
                                 <h4 className="text-[14px] font-bold text-zinc-900 mb-1.5">Need Help?</h4>
                                 <p className="text-[12px] text-zinc-600 mb-4 font-medium leading-relaxed">Learn more about departments in HRMS.</p>
                             </div>
-                            <button type="button" className="px-4 whitespace-nowrap mt-7 flex items-center justify-center gap-2 rounded-lg border border-indigo-200 bg-white h-9 text-[12px] font-bold text-indigo-700 hover:bg-indigo-50 shadow-sm transition-colors">
+                            <button type="button" className="px-4 whitespace-nowrap flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-white h-9 text-[12px] font-bold text-blue-700 hover:bg-blue-50 shadow-sm transition-colors">
                                 <HelpCircle size={14} /> View Guide
                             </button>
                         </div>
@@ -351,15 +283,15 @@ export default function BasicInformation() {
             </div>
 
             {/* Bottom Footer Actions */}
-            <div className="pb-2 px-2 flex items-center justify-between shadow-sm w-[67%]">
+            <div className="mt-auto pb-2 px-2 pt-2 flex flex-wrap items-center justify-between gap-2 shadow-sm w-full xl:w-[calc(66.666%+0.5rem)]">
                 <Link href="/dashboard/departments" className="flex items-center justify-center h-8 px-5 rounded-lg text-[12px] font-bold text-zinc-700 border border-zinc-200 bg-white hover:bg-zinc-50 shadow-sm transition-colors">
                     Cancel
                 </Link>
                 <div className="flex items-center gap-3">
-                    <button type="button" onClick={handleSaveDraft} className="flex items-center justify-center gap-2 h-8 px-4 rounded-lg text-[12px] font-bold text-indigo-700 border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100 shadow-sm transition-colors">
+                    <button type="button" onClick={handleSaveDraft} className="flex items-center justify-center gap-2 h-8 px-4 rounded-lg text-[12px] font-bold text-blue-700 border border-blue-200 bg-blue-50/50 hover:bg-blue-100 shadow-sm transition-colors">
                         <Save size={14} /> Save Draft
                     </button>
-                    <button type="button" onClick={handleNext} className="flex items-center justify-center gap-2 h-8 px-5 rounded-lg text-[12px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_2px_10px_rgba(79,70,229,0.2)] transition-colors">
+                    <button type="button" onClick={handleNext} className="flex items-center justify-center gap-2 h-8 px-5 rounded-lg text-[12px] font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-[0_2px_10px_rgba(37,99,235,0.2)] transition-colors">
                         Next: Department Head <ArrowRight size={14} />
                     </button>
                 </div>
