@@ -180,7 +180,7 @@ export default function JobDetailPage() {
             <Printer size={13} /> Print
           </button>
           <Link
-            href={`/dashboard/hiring/manpower/${jobId}/edit`}
+            href={`/dashboard/hiring/jobs/new?requisitionId=${jobId}`}
             className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-3.5 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors"
           >
             Edit Job

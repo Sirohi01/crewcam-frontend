@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Briefcase, FileText, Send, CheckCircle2, XCircle, Search, SlidersHorizontal,
   RotateCcw, Columns3, ArrowUpDown, ChevronDown, Eye, Pencil, MoreHorizontal,
@@ -167,7 +168,9 @@ function FiltersBar({
 }
 
 // ─── Table ──────────────────────────────────────────────────────────────────
-function RequisitionsTable({ rows, onToggleStar, onDelete, onPostJob }: { rows: any[]; onToggleStar: (id: string) => void; onDelete: (id: string) => void; onPostJob: (id: string) => void; }) {
+function RequisitionsTable({ rows, onToggleStar, onDelete }: { rows: any[]; onToggleStar: (id: string) => void; onDelete: (id: string) => void; }) {
+  const router = useRouter();
+
   if (rows.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-10">
@@ -233,7 +236,11 @@ function RequisitionsTable({ rows, onToggleStar, onDelete, onPostJob }: { rows: 
                     <Link href={`/dashboard/hiring/manpower/${r._id || r.id}/edit`} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-700 transition-colors">
                       <Pencil size={13} />
                     </Link>
-                    <button title="Post Job" onClick={() => { if (confirm('Are you sure you want to post this job?')) onPostJob(r._id || r.id); }} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-emerald-200 hover:text-emerald-600 transition-colors">
+                    <button
+                      title="Post Job"
+                      onClick={() => router.push(`/dashboard/hiring/jobs/new?requisitionId=${r._id || r.id}`)}
+                      className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-emerald-200 hover:text-emerald-600 transition-colors"
+                    >
                       <Send size={13} />
                     </button>
                     <button onClick={() => { if (confirm('Are you sure you want to delete this requisition?')) onDelete(r._id || r.id); }} className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:border-rose-200 hover:text-rose-600 transition-colors">
@@ -408,15 +415,6 @@ export default function JobRequisitionsPage() {
     });
   };
 
-  const postMutation = useMutation({
-    mutationFn: (id: string) => api.put(`/hiring/manpower-request/${id}/status`, { recruitmentStatus: 'Posted' }),
-    onSuccess: () => {
-      toast.success('Job posted successfully');
-      queryClient.invalidateQueries({ queryKey: ['manpower-requests'] });
-    },
-    onError: () => toast.error('Failed to post job')
-  });
-
   // The backend might return paginated { data, meta } or just an array.
   const rows = Array.isArray(requisitionsData) ? requisitionsData : requisitionsData?.data || [];
   const meta = requisitionsData?.meta;
@@ -460,7 +458,7 @@ export default function JobRequisitionsPage() {
               <Loader2 className="animate-spin w-8 h-8" />
             </div>
           ) : (
-            <RequisitionsTable rows={displayRows} onToggleStar={toggleStar} onDelete={(id) => deleteMutation.mutate(id)} onPostJob={(id) => postMutation.mutate(id)} />
+            <RequisitionsTable rows={displayRows} onToggleStar={toggleStar} onDelete={(id) => deleteMutation.mutate(id)} />
           )}
 
           <TableFooter

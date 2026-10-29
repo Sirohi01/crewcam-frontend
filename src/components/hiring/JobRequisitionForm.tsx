@@ -131,6 +131,9 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
       requestedBy: '',
       numberOfPositions: 1,
       employmentType: 'Full-time',
+      designationId: '',
+      jobCategory: '',
+      workMode: '',
       reasonForHiring: 'New Position',
       priority: 'Medium',
       salaryCtcMin: '',
@@ -139,7 +142,10 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
       requestDate: toDateInputValue(new Date()),
       requiredJoiningDate: '',
       isUrgent: false,
-      recruitmentStatus: 'Posted',
+      // Not "Posted" by default — a plain requisition isn't live anywhere until it's
+      // actually published via the Jobs list's "Post Job to Channels" flow, which is
+      // what sets this to Posted (see publishManpowerRequestToChannels on the backend).
+      recruitmentStatus: 'Draft',
       status: 'Pending',
       jobDescriptionSummary: '',
       detailedJustification: '',
@@ -167,7 +173,7 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
   const watchedIsUrgent = watch('isUrgent');
   const watchedTitle = watch('jobTitle');
   const watchedPositions = watch('numberOfPositions') || 1;
-  const watchedRecruitmentStatus = watch('recruitmentStatus') || 'Posted';
+  const watchedRecruitmentStatus = watch('recruitmentStatus') || 'Draft';
   const watchedDepartmentId = watch('departmentId');
   const watchedLocationBranchId = watch('locationBranchId');
   const watchedWorkLocation = watch('workLocation');
@@ -203,6 +209,9 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
         requestReceivedOn: toDateInputValue(data.requestReceivedOn),
         recruitmentStartDate: toDateInputValue(data.recruitmentStartDate),
         departmentId: data.departmentId?._id || data.departmentId || '',
+        designationId: data.designationId?._id || data.designationId || '',
+        jobCategory: data.jobCategory || '',
+        workMode: data.workMode || '',
         locationBranchId: data.locationBranchId?._id || data.locationBranchId || '',
         workLocation: data.workLocation || data.locationBranchId?.name || data.locationBranchId?.location || '',
         reportingTo: data.reportingTo?._id || data.reportingTo || '',
@@ -222,7 +231,7 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
         isUrgent: Boolean(data.isUrgent),
         declarationAccepted: Boolean(data.declarationAccepted),
         status: data.status || 'Pending',
-        recruitmentStatus: data.recruitmentStatus || data.status || 'Posted',
+        recruitmentStatus: data.recruitmentStatus || 'Draft',
         jobDescriptionSummary: data.jobDescriptionSummary || '',
         detailedJustification: data.detailedJustification || data.justification || '',
         replacementName: data.replacementName || '',
@@ -254,7 +263,7 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
         requestDate: data.requestDate ? new Date(data.requestDate) : undefined,
         requiredJoiningDate: data.requiredJoiningDate ? new Date(data.requiredJoiningDate) : undefined,
         isUrgent: Boolean(data.isUrgent),
-        recruitmentStatus: data.recruitmentStatus || 'Posted',
+        recruitmentStatus: data.recruitmentStatus || 'Draft',
         status: data.status || 'Pending',
         jobDescriptionSummary: data.jobDescriptionSummary || '',
         detailedJustification: data.detailedJustification || '',
@@ -264,6 +273,8 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
         qualificationReq: data.qualificationReq || '',
         experienceReq: data.experienceReq || '',
         otherBenefits: data.otherBenefits || '',
+        jobCategory: data.jobCategory || '',
+        workMode: data.workMode || '',
         workLocation: data.workLocation || '',
         declarationAccepted: Boolean(data.declarationAccepted),
         rejectionReason: data.rejectionReason || '',
@@ -271,6 +282,7 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
 
       // Handle ObjectId fields (omit or send valid ID, never empty string)
       if (data.departmentId && data.departmentId.trim()) payload.departmentId = data.departmentId;
+      if (data.designationId && data.designationId.trim()) payload.designationId = data.designationId;
       if (data.locationBranchId && data.locationBranchId.trim()) payload.locationBranchId = data.locationBranchId;
       if (data.reportingTo && data.reportingTo.trim()) payload.reportingTo = data.reportingTo;
       if (data.requestedBy && data.requestedBy.trim()) payload.requestedBy = data.requestedBy;
@@ -595,6 +607,39 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
                         <option value="Part-time">Part-time</option>
                         <option value="Contract">Contract</option>
                         <option value="Internship">Internship</option>
+                      </select>
+                    </FormField>
+
+                    <FormField label="Designation (Role)">
+                      <Controller
+                        name="designationId"
+                        control={control}
+                        render={({ field }) => (
+                          <ApiSelect
+                            apiType="designation"
+                            placeholderText="Select Designation"
+                            className={selectCls}
+                            value={field.value || ''}
+                            onChange={(e) => field.onChange(e.target.value)}
+                          />
+                        )}
+                      />
+                    </FormField>
+
+                    <FormField label="Job Category">
+                      <select {...register('jobCategory')} className={selectCls}>
+                        <option value="">Select Category</option>
+                        <option value="Full Time">Full Time</option>
+                        <option value="Internship">Internship</option>
+                      </select>
+                    </FormField>
+
+                    <FormField label="Work Mode">
+                      <select {...register('workMode')} className={selectCls}>
+                        <option value="">Select Work Mode</option>
+                        <option value="On-site">On-site</option>
+                        <option value="Remote">Remote</option>
+                        <option value="Hybrid">Hybrid</option>
                       </select>
                     </FormField>
 

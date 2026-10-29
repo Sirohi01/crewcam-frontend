@@ -154,7 +154,9 @@ export default function DynamicSidebar() {
   const allItems = React.useMemo(() => {
     if (isLoading) return [];
     if (!items || items.length === 0 || roleScope === 'self') {
-      return [...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
+      // STATIC_PEOPLE_ITEMS is the employee self-service workspace menu (My Profile,
+      // Attendance, Leave, ...) — company admin (loginType 'employer') should never see it.
+      return loginType === 'employer' ? [] : [...STATIC_PEOPLE_ITEMS].sort((a, b) => a.order - b.order);
     }
 
     const EXCLUDED_LABELS = new Set([
@@ -192,13 +194,15 @@ export default function DynamicSidebar() {
     }
     // const filteredItems = items.filter(item => !EXCLUDED_LABELS.has(item.label));
 
-    let merged = [...STATIC_PEOPLE_ITEMS, ...filteredItems];
+    let merged = loginType === 'employer' ? [...filteredItems] : [...STATIC_PEOPLE_ITEMS, ...filteredItems];
 
     const hasRecruitment = items.some(item =>
       ['Hiring Process', 'Requirement', 'Recruitment'].includes(item.section)
     );
 
-    if (hasRecruitment) {
+    // STATIC_RECRUITMENT_ITEMS duplicates the same pages under WORKSPACE > Requirement —
+    // company admin already gets them via the Hiring Process / Recruitment Process sections.
+    if (hasRecruitment && loginType !== 'employer') {
       merged = [...merged, ...STATIC_RECRUITMENT_ITEMS];
     }
 

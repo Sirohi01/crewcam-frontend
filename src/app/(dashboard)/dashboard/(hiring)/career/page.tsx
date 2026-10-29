@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import api from '@/lib/axios';
 import {
   Download, Plus, Search, ChevronDown, Check, Eye, Trash2,
   Building2, Users, MapPin, Briefcase, Globe, Copy, ExternalLink,
@@ -151,8 +153,59 @@ const renderSourceBadge = (source?: string) => {
   }
 };
 
-// Initial realistic candidate submissions matching the approved UI mockup
-const INITIAL_CANDIDATES: any[] = [];
+const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/initials/svg?seed=';
+
+// Real Candidate statuses (see models/Candidate.ts) displayed as the three badge buckets this
+// page's UI already understands ('New' / 'Under Review' / 'Shortlisted'); anything else (e.g.
+// 'Rejected', 'Hold') passes through as-is and renders with the badge's default (rose) style.
+const CANDIDATE_STATUS_TO_LABEL: Record<string, string> = {
+  Applied: 'New',
+  AI_SCREENING: 'New',
+  HOD_APPROVAL: 'New',
+  Screening: 'Under Review',
+  Interviewing: 'Under Review',
+  INTERVIEW_SCHEDULED: 'Under Review',
+  SHORTLISTED: 'Shortlisted',
+  Offered: 'Shortlisted',
+  Hired: 'Shortlisted',
+};
+// Inverse of the above, for the "Shortlist" / "Under Review" action buttons — translates the
+// label this page shows back into a real status value the API accepts.
+const LABEL_TO_CANDIDATE_STATUS: Record<string, string> = {
+  Shortlisted: 'SHORTLISTED',
+  'Under Review': 'Screening',
+  New: 'Applied',
+};
+
+/** Adapts a real Candidate document (from GET /hiring/candidates) onto the row shape this
+ * page's (otherwise unchanged) table/modals already render, so pulling in real applicants —
+ * including ones synced in from a tenant's career site, see applicationDetails — needed no
+ * rework of the UI itself. */
+function mapCandidateDoc(doc: any) {
+  const details = doc.applicationDetails || {};
+  const name = `${doc.firstName || ''} ${doc.lastName || ''}`.trim() || 'Candidate';
+  return {
+    id: doc._id,
+    _raw: doc,
+    name,
+    email: doc.email || '',
+    phone: doc.phone || '',
+    avatar: doc.profileImageUrl || `${DEFAULT_AVATAR}${encodeURIComponent(name)}`,
+    position: doc.jobRole || '',
+    department: doc.departmentId?.name || details.department || '',
+    branch: details.currentLocation || details.location || '—',
+    experience: details.totalExperience || '—',
+    noticePeriod: details.noticePeriod || '—',
+    cvName: doc.resumeUrl ? decodeURIComponent(String(doc.resumeUrl).split('/').pop() || 'resume.pdf').split('?')[0] : 'No resume attached',
+    cvSize: '',
+    resumeUrl: doc.resumeUrl || '',
+    appliedDate: doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+    status: CANDIDATE_STATUS_TO_LABEL[doc.status] || doc.status || 'New',
+    source: doc.source || 'Career Website',
+    summary: details.summary || doc.comments || `${details.currentDesignation ? `${details.currentDesignation} at ${details.currentCompany || 'current company'}. ` : ''}${details.expectedCTC ? `Expected CTC: ${details.expectedCTC}.` : ''}`.trim(),
+    skills: Array.isArray(details.skills) ? details.skills : [],
+  };
+}
 
 const COMPANIES = [
   'Namo Gange Wellness Pvt Ltd',
@@ -169,7 +222,49 @@ const BRANCHES = [
 
 export default function CareerPage() {
   const router = useRouter();
-  const [candidates, setCandidates] = useState(INITIAL_CANDIDATES);
+  const queryClient = useQueryClient();
+
+  const { data: candidatesData, isLoading: candidatesLoading } = useQuery({
+    queryKey: ['career-candidates'],
+    queryFn: async () => (await api.get('/hiring/candidates')).data,
+  });
+  const candidates = useMemo(
+    () => ((Array.isArray(candidatesData) ? candidatesData : candidatesData?.data || []) as any[]).map(mapCandidateDoc),
+    [candidatesData]
+  );
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => (await api.delete(`/hiring/candidates/${id}`)).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['career-candidates'] }),
+    onError: (err: any) => toast.error(err?.response?.data?.message || 'Failed to delete application'),
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) =>
+      (await api.put(`/hiring/candidates/${id}/status`, { status })).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['career-candidates'] }),
+    onError: (err: any) => toast.error(err?.response?.data?.message || 'Failed to update status'),
+  });
+
+  const syncMutation = useMutation({
+    mutationFn: async () => {
+      const [jobs, applicants] = await Promise.all([
+        api.post('/hiring/manpower-request/sync-career-site').then((r) => r.data).catch((e) => ({ error: e })),
+        api.post('/hiring/candidates/sync-career-site').then((r) => r.data).catch((e) => ({ error: e })),
+      ]);
+      return { jobs, applicants };
+    },
+    onSuccess: ({ applicants, jobs }) => {
+      queryClient.invalidateQueries({ queryKey: ['career-candidates'] });
+      if (applicants?.error) {
+        toast.error(applicants.error?.response?.data?.message || 'Failed to sync candidates from your career site(s).');
+      } else {
+        toast.success(`Synced ${applicants.created || 0} new, ${applicants.updated || 0} updated candidate(s)${jobs?.created != null ? ` and ${jobs.created} new job(s)` : ''}.`);
+      }
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.message || 'Sync failed — is a career site connected under Settings → Integrations?'),
+  });
+
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [branchFilter, setBranchFilter] = useState('All Branches');
@@ -318,8 +413,7 @@ export default function CareerPage() {
 
   const handleDelete = (id: string, name: string) => {
     if (!confirm(`Are you sure you want to delete application for ${name}?`)) return;
-    setCandidates((prev) => prev.filter((c) => c.id !== id));
-    toast.success(`Application for ${name} removed`);
+    deleteMutation.mutate(id, { onSuccess: () => toast.success(`Application for ${name} removed`) });
   };
 
   const handleForwardToAddCandidate = (c: any) => {
@@ -362,13 +456,15 @@ export default function CareerPage() {
   };
 
   const handleUpdateStatus = (id: string, newStatus: string) => {
-    setCandidates((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
-    );
-    if (viewingCandidate && viewingCandidate.id === id) {
-      setViewingCandidate({ ...viewingCandidate, status: newStatus });
-    }
-    toast.success(`Candidate status updated to "${newStatus}"`);
+    const status = LABEL_TO_CANDIDATE_STATUS[newStatus] || newStatus;
+    updateStatusMutation.mutate({ id, status }, {
+      onSuccess: () => {
+        if (viewingCandidate && viewingCandidate.id === id) {
+          setViewingCandidate({ ...viewingCandidate, status: newStatus });
+        }
+        toast.success(`Candidate status updated to "${newStatus}"`);
+      },
+    });
   };
 
   const copyPortalLink = () => {
@@ -378,30 +474,7 @@ export default function CareerPage() {
 
   const handleSyncAPI = () => {
     setIsSyncing(true);
-    setTimeout(() => {
-      setIsSyncing(false);
-      const newCand = {
-        id: `cand-${Date.now().toString().slice(-4)}`,
-        name: 'Arjun Singhal',
-        email: 'arjun.s@gmail.com',
-        phone: '+91 9810987654',
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-        position: 'Backend Node.js Developer',
-        department: 'Engineering / IT',
-        branch: 'Head Office - New Delhi',
-        experience: '3.8 Yrs',
-        noticePeriod: '30d Notice',
-        cvName: 'Arjun_Singhal_CV.pdf',
-        cvSize: '1.2MB',
-        appliedDate: 'Just now',
-        status: 'New',
-        source: 'LinkedIn',
-        summary: 'Specialized in microservices architecture, RESTful API design, database indexing, and Redis caching.',
-        skills: ['Node.js', 'Express', 'MongoDB', 'Redis', 'Docker', 'REST APIs'],
-      };
-      setCandidates((prev) => [newCand, ...prev]);
-      toast.success('Successfully synchronized! 1 new inbound candidate fetched from LinkedIn Job Apply.');
-    }, 1000);
+    syncMutation.mutate(undefined, { onSettled: () => setIsSyncing(false) });
   };
 
   const handlePingAPI = () => {
@@ -440,7 +513,11 @@ export default function CareerPage() {
   };
 
   const handleDownloadCV = (c: any) => {
-    toast.success(`Downloading ${c.cvName} (${c.cvSize})...`);
+    if (!c.resumeUrl) {
+      toast.error('No resume on file for this candidate');
+      return;
+    }
+    window.open(c.resumeUrl, '_blank', 'noopener,noreferrer');
   };
 
   // Pagination
@@ -450,20 +527,25 @@ export default function CareerPage() {
     currentPage * rowsPerPage
   );
 
-  // Derived KPI Stats & Multi-Platform Hiring Channels Distribution
-  const totalApplications = 0; // Total tracked across portal
-  const newSubmissionsCount = 0;
-  const resumesReceivedCount = 0;
+  // Derived KPI Stats & Multi-Platform Hiring Channels Distribution — computed from the real
+  // candidates pulled in (mix of career-site syncs and any other source already in Candidate).
+  const todayStr = new Date().toDateString();
+  const totalApplications = candidates.length;
+  const newSubmissionsCount = candidates.filter((c: any) => new Date(c._raw?.createdAt || 0).toDateString() === todayStr).length;
+  const resumesReceivedCount = candidates.filter((c: any) => !!c.resumeUrl).length;
+
+  const countBySource = (...sources: string[]) =>
+    candidates.filter((c: any) => sources.includes(c.source)).length;
 
   // Channel Distribution Counts
-  const websiteCount = 0;
-  const linkedinCount = 0;
-  const naukriCount = 0;
-  const apnaCount = 0;
-  const indeedCount = 0;
-  const facebookCount = 0;
-  const instagramCount = 0;
-  const telegramCount = 0;
+  const websiteCount = countBySource('Career Website', 'Website', 'Career Portal');
+  const linkedinCount = countBySource('LinkedIn');
+  const naukriCount = countBySource('Naukri.com');
+  const apnaCount = countBySource('Apna');
+  const indeedCount = countBySource('Indeed');
+  const facebookCount = countBySource('Facebook');
+  const instagramCount = countBySource('Instagram');
+  const telegramCount = countBySource('Telegram');
 
   const coreCards = [
     {
@@ -991,10 +1073,16 @@ export default function CareerPage() {
               </tr>
             </thead>
             <tbody className="text-[11px]">
-              {paginatedCandidates.length === 0 ? (
+              {candidatesLoading ? (
                 <tr>
                   <td colSpan={10} className="py-8 text-center text-zinc-500 font-medium">
-                    No candidate applications match the selected criteria.
+                    Loading candidate applications...
+                  </td>
+                </tr>
+              ) : paginatedCandidates.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="py-8 text-center text-zinc-500 font-medium">
+                    No candidate applications yet — click "Sync Website API" to pull applied candidates from your connected career site(s).
                   </td>
                 </tr>
               ) : (

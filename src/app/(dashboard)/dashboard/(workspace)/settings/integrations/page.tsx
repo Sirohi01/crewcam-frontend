@@ -5,13 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Plug, Sparkles } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/axios';
+import CareerSiteConnectionCard from '@/components/settings/CareerSiteConnectionCard';
 
 const AVAILABLE_INTEGRATIONS = [
   { provider: 'SMTP', description: 'Configure custom email server for sending notifications.' },
   { provider: 'Twilio', description: 'Send SMS notifications and alerts via Twilio API.' },
   { provider: 'WhatsApp Business', description: 'Send automated updates to employees via WhatsApp.' },
   { provider: 'Slack', description: 'Send notifications and alerts to a Slack channel.' },
-  { provider: 'Stripe', description: 'Process payments and manage subscriptions.' }
+  { provider: 'Stripe', description: 'Process payments and manage subscriptions.' },
 ];
 
 export default function IntegrationsPage() {
@@ -43,6 +44,8 @@ export default function IntegrationsPage() {
           );
         })}
       </div>
+
+      <CareerSiteConnectionCard />
     </div>
   );
 }
@@ -127,7 +130,7 @@ const INTEGRATION_FIELDS: Record<string, { name: string, label: string, type: st
   'Stripe': [
     { name: 'publishableKey', label: 'Publishable Key', type: 'text' },
     { name: 'secretKey', label: 'Secret Key', type: 'password' },
-  ]
+  ],
 };
 
 function IntegrationCard({ provider, description, status }: any) {

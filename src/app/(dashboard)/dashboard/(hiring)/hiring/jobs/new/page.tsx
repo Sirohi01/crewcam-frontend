@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import ApiSelect from '@/components/common/ApiSelect';
 import { toast } from 'react-hot-toast';
 import api from '@/lib/axios';
@@ -10,7 +10,7 @@ import { Briefcase, FileText, Clock3, Percent, UserCheck, Wallet, ChevronDown, S
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 import { FormInput } from '@/components/ui/form-input';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 // Dummy data / static mockup — matches the approved design 1:1. No backend
 // wiring yet; this is a visual reference for the "Post New Job" flow.
@@ -41,6 +41,9 @@ const approvalSteps = [
 ];
 
 const skillTags = ['Communication', 'Negotiation', 'CRM'];
+// 'Website' publishes to this company's own public careers page (instant — reads
+// straight from ManpowerRequest, see careerPortalRoutes.ts). The others are live
+// outbound publishes handled by publishService.ts on the backend once submitted.
 const publishChannels = [
   { label: 'Career Portal', checked: true },
   { label: 'Website', checked: true },
@@ -50,6 +53,8 @@ const publishChannels = [
   { label: 'Indeed', checked: false },
   { label: 'Other Job Portals', checked: false },
 ];
+
+const splitCommaList = (value: string) => value.split(',').map((v) => v.trim()).filter(Boolean);
 
 const inputCls = 'mt-1 h-8 w-full rounded-none border border-zinc-200 bg-white px-2.5 text-[11.5px] text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400';
 const selectCls = `${inputCls} appearance-none`;
@@ -86,13 +91,15 @@ const SelectField = React.forwardRef<HTMLSelectElement, {
 });
 SelectField.displayName = 'SelectField';
 
-function RangeField({ title, required, unit }: { title: string; required?: boolean; unit?: string }) {
+function RangeField({
+  title, required, unit, minProps, maxProps,
+}: { title: string; required?: boolean; unit?: string; minProps?: object; maxProps?: object }) {
   return (
     <Field title={title} required={required}>
       <div className="mt-1 flex items-center gap-1.5">
-        <FormInput variant="hiring" className="mt-0" placeholder="Minimum" />
+        <FormInput variant="hiring" type="number" className="mt-0" placeholder="Minimum" {...minProps} />
         <span className="text-[10px] text-zinc-400">to</span>
-        <FormInput variant="hiring" className="mt-0" placeholder="Maximum" />
+        <FormInput variant="hiring" type="number" className="mt-0" placeholder="Maximum" {...maxProps} />
         {unit}
       </div>
     </Field>
@@ -168,7 +175,87 @@ export default function PostNewJobPage() {
   const [publishChannelsState, setPublishChannelsState] = useState<string[]>(['Career Portal', 'Website', 'Naukri.com', 'LinkedIn']);
   const router = useRouter();
 
-  const { register, handleSubmit, setValue, getValues, watch } = useForm();
+  // "Post mode": arriving from Jobs list's Post Job action (?requisitionId=...) on an
+  // already-approved requisition that doesn't have its channels decided yet, instead of
+  // creating a brand-new one. Submitting here saves any edits then publishes to whichever
+  // channels are ticked, instead of creating a second record.
+  const searchParams = useSearchParams();
+  const requisitionId = searchParams.get('requisitionId');
+  const isPostMode = Boolean(requisitionId);
+
+  const { register, control, handleSubmit, setValue, getValues, watch } = useForm();
+
+  const { data: existingRequest } = useQuery({
+    queryKey: ['manpower-request', requisitionId],
+    queryFn: async () => (await api.get(`/hiring/manpower-request/${requisitionId}`)).data,
+    enabled: isPostMode,
+  });
+
+  useEffect(() => {
+    if (!existingRequest) return;
+    const expMatch = String(existingRequest.experienceReq || '').match(/(\d+(?:\.\d+)?)\D+(\d+(?:\.\d+)?)/);
+    const fields: Record<string, any> = {
+      jobTitle: existingRequest.jobTitle,
+      jobCode: existingRequest.jobCode,
+      departmentId: existingRequest.departmentId?._id || existingRequest.departmentId,
+      designationId: existingRequest.designationId?._id || existingRequest.designationId,
+      jobCategory: existingRequest.jobCategory,
+      employmentType: existingRequest.employmentType,
+      locationBranchId: existingRequest.locationBranchId?._id || existingRequest.locationBranchId,
+      workMode: existingRequest.workMode,
+      numberOfPositions: existingRequest.numberOfPositions,
+      experienceMin: expMatch ? expMatch[1] : undefined,
+      experienceMax: expMatch ? expMatch[2] : undefined,
+      requiredJoiningDate: existingRequest.requiredJoiningDate ? String(existingRequest.requiredJoiningDate).split('T')[0] : undefined,
+      noticePeriod: existingRequest.noticePeriod,
+      salaryCtcMin: existingRequest.salaryCtcMin,
+      salaryCtcMax: existingRequest.salaryCtcMax,
+      salaryCurrency: existingRequest.salaryCurrency,
+      jobDescription: existingRequest.jobDescriptionSummary,
+      justification: existingRequest.justification || existingRequest.detailedJustification,
+      qualificationReq: existingRequest.qualificationReq,
+      preferredQualifications: Array.isArray(existingRequest.preferredQualifications) ? existingRequest.preferredQualifications.join(', ') : existingRequest.preferredQualifications,
+      certifications: Array.isArray(existingRequest.certifications) ? existingRequest.certifications.join(', ') : existingRequest.certifications,
+      languages: Array.isArray(existingRequest.languages) ? existingRequest.languages.join(', ') : existingRequest.languages,
+      whoCanApply: existingRequest.whoCanApply,
+      genderPreference: existingRequest.genderPreference,
+      relocationAssistance: existingRequest.relocationAssistance,
+      travelRequired: existingRequest.travelRequired,
+      shiftTiming: existingRequest.shiftTiming,
+      probationPeriod: existingRequest.probationPeriod,
+      otherNotes: existingRequest.otherNotes,
+      replacementReason: existingRequest.replacementReason,
+      lastWorkingDate: existingRequest.lastWorkingDate ? String(existingRequest.lastWorkingDate).split('T')[0] : undefined,
+      impact: existingRequest.impact,
+      replacedEmployeeId: existingRequest.replacedEmployeeId?._id || existingRequest.replacedEmployeeId,
+      applicationLastDate: existingRequest.applicationLastDate ? String(existingRequest.applicationLastDate).split('T')[0] : undefined,
+      applicationEmail: existingRequest.applicationEmail,
+    };
+    Object.entries(fields).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) setValue(key, value);
+    });
+    // Requisitions created from the Job Requisition form never collect a job code, so
+    // existingRequest.jobCode is undefined here — the field (readOnly) would otherwise
+    // stay permanently blank since the random-generator effect below only runs outside
+    // post mode.
+    if (!existingRequest.jobCode) {
+      setValue('jobCode', `JOB-${Math.floor(1000 + Math.random() * 9000)}`);
+    }
+    if (Array.isArray(existingRequest.keyResponsibilities) && existingRequest.keyResponsibilities.length > 0) {
+      setKeyResponsibilities(existingRequest.keyResponsibilities);
+    }
+    if (Array.isArray(existingRequest.technicalSkills) && existingRequest.technicalSkills.length > 0) {
+      setSkills(existingRequest.technicalSkills);
+    }
+    if (Array.isArray(existingRequest.publishChannels) && existingRequest.publishChannels.length > 0) {
+      setPublishChannelsState(existingRequest.publishChannels);
+    }
+    if (Array.isArray(existingRequest.attachments) && existingRequest.attachments.length > 0) {
+      setAttachments(existingRequest.attachments);
+    }
+    setIsReplacement(Boolean(existingRequest.replacedEmployeeId || existingRequest.replacementReason));
+    setPriority(existingRequest.priority || 'High');
+  }, [existingRequest, setValue]);
 
   const getArray = (res: any) => Array.isArray(res?.data) ? res.data : (res?.data?.data || []);
   const { data: deptRes } = useQuery({ queryKey: ['departments'], queryFn: () => api.get('/companies/departments') });
@@ -179,9 +266,9 @@ export default function PostNewJobPage() {
       const jobTitle = getValues('jobTitle');
       const designationId = getValues('designationId');
       const departmentId = getValues('departmentId');
-      
+
       if (!jobTitle) throw new Error("Job Title is required to generate AI content");
-      
+
       const departmentObj = activeDepartments.find((d: any) => d._id === departmentId || d.id === departmentId);
       const departmentName = departmentObj ? departmentObj.name : undefined;
 
@@ -206,8 +293,10 @@ export default function PostNewJobPage() {
   });
 
   useEffect(() => {
-    setValue('jobCode', `JOB-${Math.floor(1000 + Math.random() * 9000)}`);
-  }, [setValue]);
+    if (!isPostMode) {
+      setValue('jobCode', `JOB-${Math.floor(1000 + Math.random() * 9000)}`);
+    }
+  }, [isPostMode, setValue]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -235,18 +324,54 @@ export default function PostNewJobPage() {
 
   const onSubmit = async (data: any) => {
     try {
-      await api.post('/hiring/manpower-request', {
-        ...data,
-        priority,
-        status: 'Approved',
-        recruitmentStatus: 'Posted',
-        isReplacement,
-        keyResponsibilities: keyResponsibilities.filter(r => r.trim()),
-        technicalSkills: skills,
-        attachments,
-        publishChannels: publishChannelsState
-      });
-      toast.success('Job posted successfully');
+      const { experienceMin, experienceMax, ...rest } = data;
+      const experienceReq = experienceMin && experienceMax
+        ? `${experienceMin}-${experienceMax} Years`
+        : (experienceMin || experienceMax ? `${experienceMin || experienceMax} Years` : undefined);
+
+      let res;
+      if (isPostMode && requisitionId) {
+        // Save any edits made while choosing channels, then publish to exactly the
+        // channels ticked — reuses the existing requisition instead of creating a new one.
+        await api.put(`/hiring/manpower-request/${requisitionId}`, {
+          ...rest,
+          experienceReq,
+          priority,
+          keyResponsibilities: keyResponsibilities.filter(r => r.trim()),
+          technicalSkills: skills,
+          attachments,
+        });
+        res = await api.put(`/hiring/manpower-request/${requisitionId}/publish`, {
+          publishChannels: publishChannelsState
+        });
+      } else {
+        res = await api.post('/hiring/manpower-request', {
+          ...rest,
+          experienceReq,
+          priority,
+          status: 'Approved',
+          recruitmentStatus: 'Posted',
+          isReplacement,
+          keyResponsibilities: keyResponsibilities.filter(r => r.trim()),
+          technicalSkills: skills,
+          attachments,
+          publishChannels: publishChannelsState
+        });
+      }
+
+      const results = res.data?.publishResults || {};
+      // postJobToCareerSite already returns { success: true, skipped: true } for tenants
+      // with no external career-site configured — that's not a failure, so success===false
+      // only ever fires for a genuine push error (bad baseUrl, site rejected the job, etc.),
+      // for "website" exactly like any other channel.
+      const failed = Object.entries(results)
+        .filter(([, r]: any) => r && r.success === false)
+        .map(([channel, r]: any) => r?.error ? `${channel} (${r.error})` : channel);
+      if (failed.length > 0) {
+        toast.error(`Job posted, but publishing failed for: ${failed.join(', ')}`, { duration: 8000 });
+      } else {
+        toast.success(`Job posted to ${publishChannelsState.join(', ')}`);
+      }
       router.push('/dashboard/hiring/jobs');
     } catch (error: any) {
       toast.error('Failed to post job');
@@ -260,12 +385,12 @@ export default function PostNewJobPage() {
           <div className="space-y-1">
             {/* Header */}
             <div>
-              <h1 className="text-xl font-bold text-zinc-900">Post New Job</h1>
+              <h1 className="text-xl font-bold text-zinc-900">{isPostMode ? 'Post Job to Channels' : 'Post New Job'}</h1>
               <Breadcrumb
                 items={[
                   { label: "Recruitment", href: "/dashboard/hiring/pipeline" },
                   { label: "Job Openings", href: "/dashboard/hiring/jobs" },
-                  { label: "Post New Job" },
+                  { label: isPostMode ? 'Post Job to Channels' : 'Post New Job' },
                 ]}
               />
             </div>
@@ -278,17 +403,38 @@ export default function PostNewJobPage() {
                     <Field title="Job Title" required><FormInput variant="hiring" placeholder="Enter job title" {...register('jobTitle', { required: true })} /></Field>
                     <Field title="Job Code"><FormInput variant="hiring" className="bg-zinc-50 text-zinc-800" readOnly {...register('jobCode')} /></Field>
                     <Field title="Department" required>
-                      <ApiSelect apiType="department" className={selectCls} placeholderText="Select Department" {...register('departmentId', { required: true })} />
+                      <Controller
+                        name="departmentId"
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field }) => (
+                          <ApiSelect apiType="department" className={selectCls} placeholderText="Select Department" value={field.value || ''} onChange={(e) => field.onChange(e.target.value)} />
+                        )}
+                      />
                     </Field>
 
                     <Field title="Designation" required>
-                      <ApiSelect apiType="designation" className={selectCls} placeholderText="Select Designation" {...register('designationId', { required: true })} />
+                      <Controller
+                        name="designationId"
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field }) => (
+                          <ApiSelect apiType="designation" className={selectCls} placeholderText="Select Designation" value={field.value || ''} onChange={(e) => field.onChange(e.target.value)} />
+                        )}
+                      />
                     </Field>
                     <SelectField title="Job Category" required options={['Select Category', 'Full Time', 'Internship']} {...register('jobCategory')} />
                     <SelectField title="Employment Type" required options={['Select Employment Type', 'Permanent', 'Contract']} {...register('employmentType')} />
 
                     <Field title="Job Location" required>
-                      <ApiSelect apiType="branch" className={selectCls} placeholderText="Select Location" {...register('locationBranchId', { required: true })} />
+                      <Controller
+                        name="locationBranchId"
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field }) => (
+                          <ApiSelect apiType="branch" className={selectCls} placeholderText="Select Location" value={field.value || ''} onChange={(e) => field.onChange(e.target.value)} />
+                        )}
+                      />
                     </Field>
                     <SelectField title="Work Mode" required options={['Select Work Mode', 'On-site', 'Remote', 'Hybrid']} {...register('workMode')} />
                     <Field title="No. of Openings" required><FormInput variant="hiring" placeholder="Enter number of openings" {...register('numberOfPositions')} /></Field>
@@ -304,19 +450,19 @@ export default function PostNewJobPage() {
                           ))}
                         </div>
                       </Field>
-                      <RangeField title="Experience Required (Years)" required />
+                      <RangeField title="Experience Required (Years)" required minProps={register('experienceMin')} maxProps={register('experienceMax')} />
                     </div>
-                    <Field title="Expected Joining Date" required><FormInput variant="hiring" type="date" placeholder="Select date" /></Field>
+                    <Field title="Expected Joining Date" required><FormInput variant="hiring" type="date" placeholder="Select date" {...register('requiredJoiningDate')} /></Field>
 
-                    <SelectField title="Notice Period" options={['Select Notice Period', 'Immediate', '15 Days', '30 Days', '60 Days']} />
+                    <SelectField title="Notice Period" options={['Select Notice Period', 'Immediate', '15 Days', '30 Days', '60 Days']} {...register('noticePeriod')} />
                     <Field title="Salary Range (INR)" required>
                       <div className="mt-1 flex items-center gap-1.5">
-                        <FormInput variant="hiring" className="mt-0" placeholder="Minimum" />
+                        <FormInput variant="hiring" type="number" className="mt-0" placeholder="Minimum" {...register('salaryCtcMin', { valueAsNumber: true })} />
                         <span className="text-[10px] text-zinc-400">to</span>
-                        <FormInput variant="hiring" className="mt-0" placeholder="Maximum" />
+                        <FormInput variant="hiring" type="number" className="mt-0" placeholder="Maximum" {...register('salaryCtcMax', { valueAsNumber: true })} />
                       </div>
                     </Field>
-                    <SelectField title="Currency" options={['Per Annum', 'Per Month']} />
+                    <SelectField title="Currency" options={['Per Annum', 'Per Month']} {...register('salaryCurrency')} />
                   </div>
 
                   <div className="rounded-none border border-zinc-200">
@@ -395,8 +541,7 @@ export default function PostNewJobPage() {
               <div className="grid grid-cols-1 gap-2 lg:grid-cols-[2fr_1fr]">
                 <SectionCard number={3} title="Requirements">
                   <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-3">
-                    <SelectField title="Education" required options={['Select Minimum Education', 'Graduate', 'Post Graduate', 'MBA']} {...register('education')} />
-                    <RangeField title="Experience (Years)" required />
+                    <SelectField title="Education" required options={['Select Minimum Education', 'Graduate', 'Post Graduate', 'MBA']} {...register('qualificationReq')} />
                     <Field title="Skills Required" required>
                       <div className="mt-1 flex items-center gap-1.5">
                         <div className="relative flex-1">
@@ -430,9 +575,9 @@ export default function PostNewJobPage() {
                       )}
                     </Field>
 
-                    <SelectField title="Preferred Qualifications" options={['Select or type']} />
-                    <SelectField title="Certifications (Optional)" options={['Select or type']} />
-                    <SelectField title="Languages (Optional)" options={['Select or type']} />
+                    <Field title="Preferred Qualifications"><FormInput variant="hiring" placeholder="Comma separated, e.g. MBA, PMP" {...register('preferredQualifications', { setValueAs: splitCommaList })} /></Field>
+                    <Field title="Certifications (Optional)"><FormInput variant="hiring" placeholder="Comma separated" {...register('certifications', { setValueAs: splitCommaList })} /></Field>
+                    <Field title="Languages (Optional)"><FormInput variant="hiring" placeholder="Comma separated, e.g. English, Hindi" {...register('languages', { setValueAs: splitCommaList })} /></Field>
                   </div>
                 </SectionCard>
 
@@ -458,14 +603,14 @@ export default function PostNewJobPage() {
 
               <SectionCard number={4} title="Additional Information">
                 <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-3">
-                  <SelectField title="Who can Apply?" required options={['Select option', 'Internal Only', 'External Only', 'Both']} />
-                  <SelectField title="Gender Preference" options={['No Preference', 'Male', 'Female']} />
-                  <SelectField title="Relocation Assistance" options={['Select option', 'Yes', 'No']} />
-                  <SelectField title="Travel Required" options={['Select option', 'Yes', 'No', 'Occasional']} />
-                  <SelectField title="Shift Timings" options={['Select Shift', 'Day', 'Night', 'Rotational']} />
-                  <SelectField title="Probation Period" options={['Select Period', '3 Months', '6 Months']} />
+                  <SelectField title="Who can Apply?" required options={['Select option', 'Internal Only', 'External Only', 'Both']} {...register('whoCanApply')} />
+                  <SelectField title="Gender Preference" options={['No Preference', 'Male', 'Female']} {...register('genderPreference')} />
+                  <SelectField title="Relocation Assistance" options={['Select option', 'Yes', 'No']} {...register('relocationAssistance')} />
+                  <SelectField title="Travel Required" options={['Select option', 'Yes', 'No', 'Occasional']} {...register('travelRequired')} />
+                  <SelectField title="Shift Timings" options={['Select Shift', 'Day', 'Night', 'Rotational']} {...register('shiftTiming')} />
+                  <SelectField title="Probation Period" options={['Select Period', '3 Months', '6 Months']} {...register('probationPeriod')} />
                   <div className="sm:col-span-3">
-                    <Field title="Other Notes (Optional)"><textarea className={`${textAreaCls} mt-1 h-12`} placeholder="Any additional information" /></Field>
+                    <Field title="Other Notes (Optional)"><textarea className={`${textAreaCls} mt-1 h-12`} placeholder="Any additional information" {...register('otherNotes')} /></Field>
                   </div>
                 </div>
               </SectionCard>
@@ -474,13 +619,12 @@ export default function PostNewJobPage() {
 
           {/* Sidebar */}
           <div className="space-y-2">
-            <div className="mt-3 mb-1 flex gap-2">
-              <button type="button" className="flex flex-1 items-center justify-center gap-1.5 rounded-none border border-zinc-200 bg-white px-1 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
+            <div className="mt-3 mb-1 flex flex-col gap-2">
+              <button type="button" className="flex w-full items-center justify-center gap-1.5 rounded-none border border-zinc-200 bg-white px-2 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
                 <Save size={12} /> Save as Draft
               </button>
-              <button type="submit" form="jobForm" className="flex flex-1 items-center justify-center gap-1.5 rounded-none bg-indigo-600 px-1 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700">
-                {/* <Send size={10} />  */}
-                Submit for Approval
+              <button type="submit" form="jobForm" className="flex w-full items-center justify-center gap-1.5 rounded-none bg-indigo-600 px-2 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700">
+                {isPostMode ? 'Post to Selected Channels' : 'Submit for Approval'}
               </button>
             </div>
 
@@ -500,13 +644,13 @@ export default function PostNewJobPage() {
                   </button>
                 ))}
               </div>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => aiMutation.mutate()}
                 disabled={aiMutation.isPending}
                 className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-none border border-indigo-100 bg-indigo-50/60 py-1.5 text-[11px] font-semibold text-indigo-600 hover:bg-indigo-50 disabled:opacity-50"
               >
-                <RotateCcw size={12} className={aiMutation.isPending ? "animate-spin" : ""} /> 
+                <RotateCcw size={12} className={aiMutation.isPending ? "animate-spin" : ""} />
                 {aiMutation.isPending ? 'Generating...' : 'Regenerate All with AI'}
               </button>
             </Card>
@@ -570,8 +714,8 @@ export default function PostNewJobPage() {
                 </div>
               </div>
               <div className="space-y-1.5 mt-2">
-                <Field title="Application Last Date"><FormInput variant="hiring" type="date" placeholder="Select date" /></Field>
-                <Field title="Application Email"><FormInput variant="hiring" defaultValue="careers@company.com" /></Field>
+                <Field title="Application Last Date"><FormInput variant="hiring" type="date" placeholder="Select date" {...register('applicationLastDate')} /></Field>
+                <Field title="Application Email"><FormInput variant="hiring" defaultValue="careers@company.com" {...register('applicationEmail')} /></Field>
               </div>
             </Card>
           </div>
