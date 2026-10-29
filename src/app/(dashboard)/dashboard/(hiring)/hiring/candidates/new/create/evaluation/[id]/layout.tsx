@@ -73,7 +73,7 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
             fullName: `${data.firstName || ''} ${data.lastName || ''}`.trim().toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()),
             email: data.email || '',
             mobile: data.phone || '',
-            currentLocation: appDetails.currentLocation || '',
+            currentLocation: appDetails.currentLocation || appDetails.location || '',
             linkedin: appDetails.linkedin || '',
             appliedFor: data.jobRole || '',
             department: data.departmentId?.name || data.departmentId || '',
@@ -85,7 +85,7 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
             appliedOn: data.createdAt ? new Date(data.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date(data.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'N/A',
             source: data.source || 'Direct',
             status: data.status || 'Applied',
-            aiScore: screeningData?.fitScore ? `${screeningData.fitScore}%` : (data.applicationDetails?.overallMatchScore ? `${data.applicationDetails.overallMatchScore}%` : 'N/A'),
+            aiScore: screeningData?.fitScore ? `${screeningData.fitScore}%` : (data.applicationDetails?.matchScore != null ? `${data.applicationDetails.matchScore}%` : 'N/A'),
             candidateCode: data.candidateCode || `APP-${data._id.slice(-6).toUpperCase()}`,
             profileImageUrl: data.profileImageUrl || ''
           });
@@ -330,9 +330,13 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
 
               <div className="flex flex-col gap-4 relative z-10">
                 {[
-                  { title: 'Application Submitted', date: '15 June 2026, 11:32 AM', status: 'completed' },
-                  { title: 'AI Screening Completed', date: '15 June 2026, 12:05 PM', sub: 'Score: 87%', status: 'completed' },
-                  { title: 'HOD Review', date: '16 June 2026, 10:15 AM', sub: 'Currently in progress', status: 'active' },
+                  { title: 'Application Submitted', date: candidate?.appliedOn, status: 'completed' },
+                  // No separate "screening completed" timestamp exists for a candidate synced in
+                  // with AI screening already done elsewhere (see syncCareerSiteApplicants) — it
+                  // happened at/before submission, so the real applied date is reused rather than
+                  // showing a fabricated later time.
+                  { title: 'AI Screening Completed', date: candidate?.aiScore && candidate.aiScore !== 'N/A' ? candidate?.appliedOn : undefined, sub: candidate?.aiScore && candidate.aiScore !== 'N/A' ? `Score: ${candidate.aiScore}` : 'Pending', status: candidate?.aiScore && candidate.aiScore !== 'N/A' ? 'completed' : 'pending' },
+                  { title: 'HOD Review', sub: 'Currently in progress', status: 'active' },
                   { title: 'Interview', sub: 'Pending', status: 'pending' },
                   { title: 'Offer', sub: 'Pending', status: 'pending' },
                   { title: 'Onboarding', sub: 'Pending', status: 'pending' },

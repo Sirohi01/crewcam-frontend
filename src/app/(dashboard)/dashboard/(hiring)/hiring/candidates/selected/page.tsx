@@ -147,6 +147,8 @@ export default function SelectedCandidatesPage() {
         c.status = overrideStatus;
         return c;
       })
+      // The override block above already turns the real 'SHORTLISTED' / 'INTERVIEW_SCHEDULED'
+      // enum values into these Title Case strings before this filter runs.
       .filter((c: any) => c.status === 'Hired' || c.status === 'Offered' || c.status === 'Hold' || c.status === 'Shortlisted' || c.status === 'Interview Scheduled')
       .map((c: any) => {
         let status = 'Ready for Offer';

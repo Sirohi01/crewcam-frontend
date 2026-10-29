@@ -356,11 +356,25 @@ export default function JobRequisitionForm({ id }: { id?: string }) {
       return res.data;
     },
     onSuccess: (data) => {
+      // The AI already drafts all of these in one pass (see generateJobDescriptionAndKra) —
+      // this used to only apply 3 of the 8 fields it returns, so most of the requisition still
+      // had to be typed by hand even after "Generate JD" ran.
       if (data.jobDescriptionSummary) setValue('jobDescriptionSummary', data.jobDescriptionSummary);
-      if (data.kraReport) setValue('kraReport', data.kraReport);
       if (data.keyResponsibilities?.length) {
         setValue('keyResponsibilities', Array.isArray(data.keyResponsibilities) ? data.keyResponsibilities.join('\n') : data.keyResponsibilities);
       }
+      if (data.qualificationReq) setValue('qualificationReq', data.qualificationReq);
+      if (data.experienceReq) setValue('experienceReq', data.experienceReq);
+      if (data.technicalSkills) {
+        setValue('technicalSkills', Array.isArray(data.technicalSkills) ? data.technicalSkills.join(', ') : data.technicalSkills);
+      }
+      if (data.softSkills) {
+        setValue('softSkills', Array.isArray(data.softSkills) ? data.softSkills.join(', ') : data.softSkills);
+      }
+      const kraWithKpis = [data.kraReport, data.kpis?.length ? `KPIs:\n- ${data.kpis.join('\n- ')}` : '']
+        .filter(Boolean)
+        .join('\n\n');
+      if (kraWithKpis) setValue('kraReport', kraWithKpis);
       toast.success('AI suggestions added to form!');
     },
     onError: (err: any) => {

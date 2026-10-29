@@ -85,7 +85,10 @@ export default function CommentsHistoryTab() {
             {isLoading ? (
               <div className="text-zinc-500 text-[12px]">Loading activity...</div>
             ) : (() => {
-              const filteredLogs = auditLogs ? auditLogs.filter((log: any) => ['HIRING_STEP_TRANSITION', 'CANDIDATE_STATUS_UPDATE', 'EVALUATION_SUBMITTED', 'ADD_NOTE'].includes(log.action)) : [];
+              // 'UPDATE_CANDIDATE_STATUS' is the actual action name updateCandidateStatus logs
+              // (see hiringController.ts) — this previously filtered for 'CANDIDATE_STATUS_UPDATE'
+              // instead, so every real status change was silently dropped from this feed.
+              const filteredLogs = auditLogs ? auditLogs.filter((log: any) => ['HIRING_STEP_TRANSITION', 'UPDATE_CANDIDATE_STATUS', 'EVALUATION_SUBMITTED', 'ADD_NOTE'].includes(log.action)) : [];
               if (filteredLogs.length === 0) {
                 return <div className="text-zinc-500 text-[12px] italic">No recent activity found for this candidate.</div>;
               }
@@ -98,9 +101,9 @@ export default function CommentsHistoryTab() {
                 if (log.action === 'HIRING_STEP_TRANSITION') {
                   actionText = 'changed candidate stage';
                   descText = `Status updated to ${log.details?.after || 'Unknown'} at step ${log.details?.stepKey || 'Unknown'}`;
-                } else if (log.action === 'CANDIDATE_STATUS_UPDATE') {
+                } else if (log.action === 'UPDATE_CANDIDATE_STATUS') {
                   actionText = 'updated candidate status';
-                  descText = `Status changed to ${log.details?.after || 'Unknown'}`;
+                  descText = `Status changed to ${log.details?.newStatus || log.details?.after || 'Unknown'}`;
                 } else if (log.action === 'EVALUATION_SUBMITTED') {
                   actionText = 'submitted evaluation';
                   descText = 'Evaluation details and rating saved.';

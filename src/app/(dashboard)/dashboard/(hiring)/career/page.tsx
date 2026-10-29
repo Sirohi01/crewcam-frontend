@@ -83,8 +83,11 @@ function WebsiteIcon({ className = 'w-4 h-4' }: { className?: string }) {
   );
 }
 
-// Reusable Source Badge Renderer
-const renderSourceBadge = (source?: string) => {
+// Reusable Source Badge Renderer. For a tenant's own career website(s), `siteName` is the
+// Site Label configured in Settings → Integrations (e.g. "Main Site") so a tenant with more
+// than one connected site can tell candidates apart at a glance; `siteUrl` (that site's base
+// URL) shows on hover via the badge's title attribute instead of cluttering the row with a link.
+const renderSourceBadge = (source?: string, siteName?: string, siteUrl?: string) => {
   switch (source) {
     case 'LinkedIn':
       return (
@@ -138,9 +141,12 @@ const renderSourceBadge = (source?: string) => {
     case 'Career Website':
     case 'Website':
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+        <span
+          title={siteUrl || undefined}
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 cursor-default"
+        >
           <WebsiteIcon className="w-3 h-3 shrink-0 text-purple-600" />
-          Career Website
+          {siteName || 'Career Website'}
         </span>
       );
     default:
@@ -155,35 +161,75 @@ const renderSourceBadge = (source?: string) => {
 
 const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/initials/svg?seed=';
 
-// Real Candidate statuses (see models/Candidate.ts) displayed as the three badge buckets this
-// page's UI already understands ('New' / 'Under Review' / 'Shortlisted'); anything else (e.g.
-// 'Rejected', 'Hold') passes through as-is and renders with the badge's default (rose) style.
-const CANDIDATE_STATUS_TO_LABEL: Record<string, string> = {
-  Applied: 'New',
-  AI_SCREENING: 'New',
-  HOD_APPROVAL: 'New',
-  Screening: 'Under Review',
-  Interviewing: 'Under Review',
-  INTERVIEW_SCHEDULED: 'Under Review',
-  SHORTLISTED: 'Shortlisted',
-  Offered: 'Shortlisted',
-  Hired: 'Shortlisted',
+// Older synced candidates may still carry a raw Mongo _id as sourceSite (from before this
+// fell back to the site's own hostname instead — see shortSiteName in careerSiteSync.service.ts
+// on the backend). Re-syncing fixes it going forward; this keeps already-synced rows readable
+// in the meantime by deriving the same short hostname from sourceUrl instead of showing the id.
+const isRawObjectId = (value: string) => /^[0-9a-f]{24}$/i.test(value);
+const shortHostname = (url?: string): string => {
+  if (!url) return '';
+  try {
+    return new URL(url).hostname.replace(/^www\./i, '');
+  } catch {
+    return url;
+  }
 };
-// Inverse of the above, for the "Shortlist" / "Under Review" action buttons — translates the
-// label this page shows back into a real status value the API accepts.
-const LABEL_TO_CANDIDATE_STATUS: Record<string, string> = {
-  Shortlisted: 'SHORTLISTED',
-  'Under Review': 'Screening',
-  New: 'Applied',
+
+// Real Candidate statuses (see models/Candidate.ts) and their display label — the same
+// recruitment-process vocabulary already used elsewhere (Candidate Pipeline, HOD Evaluation),
+// so the status shown/settable here lines up with the rest of the app instead of this page's
+// own, narrower "New / Under Review / Shortlisted" set.
+const STATUS_LABELS: Record<string, string> = {
+  Applied: 'Applied',
+  AI_SCREENING: 'AI Screening',
+  Screening: 'Screening',
+  HOD_APPROVAL: 'HOD Evaluation',
+  INTERVIEW_SCHEDULED: 'Interview Scheduled',
+  Interviewing: 'Interviewing',
+  SHORTLISTED: 'Shortlisted',
+  Offered: 'Offered',
+  Hired: 'Hired',
+  Rejected: 'Rejected',
+  Hold: 'Hold',
+};
+// Same 4-color scheme this page already used (sky/amber/emerald/rose) — just bucketing every
+// real status into one of the four instead of only recognizing three label strings.
+const STATUS_BADGE_CLASS: Record<string, string> = {
+  Applied: 'bg-sky-50 text-sky-600 border-sky-200',
+  AI_SCREENING: 'bg-sky-50 text-sky-600 border-sky-200',
+  Screening: 'bg-amber-50 text-amber-700 border-amber-200',
+  HOD_APPROVAL: 'bg-amber-50 text-amber-700 border-amber-200',
+  INTERVIEW_SCHEDULED: 'bg-amber-50 text-amber-700 border-amber-200',
+  Interviewing: 'bg-amber-50 text-amber-700 border-amber-200',
+  SHORTLISTED: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+  Offered: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+  Hired: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+  Rejected: 'bg-rose-50 text-rose-600 border-rose-200',
+  Hold: 'bg-rose-50 text-rose-600 border-rose-200',
 };
 
 /** Adapts a real Candidate document (from GET /hiring/candidates) onto the row shape this
  * page's (otherwise unchanged) table/modals already render, so pulling in real applicants —
  * including ones synced in from a tenant's career site, see applicationDetails — needed no
- * rework of the UI itself. */
-function mapCandidateDoc(doc: any) {
+ * rework of the UI itself.
+ *
+ * `siteById` is this tenant's currently-connected "career-site" integrations (see
+ * CareerSiteConnectionCard), keyed by their own _id — candidates synced before this page
+ * resolved a real site name/URL have `sourceSite` stuck as that raw _id, so looking it up here
+ * against the LIVE integration always resolves to the real label/URL, with no backend resync or
+ * data migration needed. Falls back to the stored sourceSite/sourceUrl, then a short hostname,
+ * only if the integration itself was since removed. */
+function mapCandidateDoc(doc: any, siteById: Record<string, { siteKey?: string; baseUrl?: string }>) {
   const details = doc.applicationDetails || {};
   const name = `${doc.firstName || ''} ${doc.lastName || ''}`.trim() || 'Candidate';
+  const linkedSite = doc.sourceSite ? siteById[doc.sourceSite] : undefined;
+  const sourceUrl = linkedSite?.baseUrl || doc.sourceUrl || '';
+  const sourceSite =
+    linkedSite?.siteKey ||
+    (doc.sourceSite && !isRawObjectId(doc.sourceSite) ? doc.sourceSite : '') ||
+    shortHostname(sourceUrl) ||
+    doc.sourceSite ||
+    '';
   return {
     id: doc._id,
     _raw: doc,
@@ -200,8 +246,11 @@ function mapCandidateDoc(doc: any) {
     cvSize: '',
     resumeUrl: doc.resumeUrl || '',
     appliedDate: doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
-    status: CANDIDATE_STATUS_TO_LABEL[doc.status] || doc.status || 'New',
+    status: doc.status || 'Applied',
+    statusLabel: STATUS_LABELS[doc.status] || doc.status || 'Applied',
     source: doc.source || 'Career Website',
+    sourceSite,
+    sourceUrl,
     summary: details.summary || doc.comments || `${details.currentDesignation ? `${details.currentDesignation} at ${details.currentCompany || 'current company'}. ` : ''}${details.expectedCTC ? `Expected CTC: ${details.expectedCTC}.` : ''}`.trim(),
     skills: Array.isArray(details.skills) ? details.skills : [],
   };
@@ -228,9 +277,25 @@ export default function CareerPage() {
     queryKey: ['career-candidates'],
     queryFn: async () => (await api.get('/hiring/candidates')).data,
   });
+  // Same query CareerSiteConnectionCard (Settings → Integrations) uses — shared cache, no extra
+  // request if that's already loaded this session. Used only to resolve the real name/URL behind
+  // a candidate's sourceSite (see mapCandidateDoc), so this page never has to show a raw _id.
+  const { data: integrationsData } = useQuery({
+    queryKey: ['integrations'],
+    queryFn: async () => (await api.get('/settings/integrations')).data,
+  });
+  const siteById = useMemo(() => {
+    const map: Record<string, { siteKey?: string; baseUrl?: string }> = {};
+    (Array.isArray(integrationsData) ? integrationsData : []).forEach((i: any) => {
+      if (i.provider === 'career-site') {
+        map[i._id] = { siteKey: i.credentials?.siteKey, baseUrl: i.credentials?.baseUrl };
+      }
+    });
+    return map;
+  }, [integrationsData]);
   const candidates = useMemo(
-    () => ((Array.isArray(candidatesData) ? candidatesData : candidatesData?.data || []) as any[]).map(mapCandidateDoc),
-    [candidatesData]
+    () => ((Array.isArray(candidatesData) ? candidatesData : candidatesData?.data || []) as any[]).map((doc) => mapCandidateDoc(doc, siteById)),
+    [candidatesData, siteById]
   );
 
   const deleteMutation = useMutation({
@@ -281,6 +346,7 @@ export default function CareerPage() {
   const [isBranchFilterOpen, setIsBranchFilterOpen] = useState(false);
   const [isPosFilterOpen, setIsPosFilterOpen] = useState(false);
   const [isSourceFilterOpen, setIsSourceFilterOpen] = useState(false);
+  const [isModalStatusOpen, setIsModalStatusOpen] = useState(false);
 
   // Active filters applied
   const [appliedFilters, setAppliedFilters] = useState({
@@ -324,6 +390,11 @@ export default function CareerPage() {
     toast.success(`${label} copied to clipboard!`);
   };
 
+  // Always re-closed when a different (or no) candidate is opened, so it never carries over open.
+  useEffect(() => {
+    setIsModalStatusOpen(false);
+  }, [viewingCandidate?.id]);
+
   // Close dropdowns on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -341,7 +412,7 @@ export default function CareerPage() {
   }, []);
 
   // Filter options
-  const statusOptions = ['All Status', 'New', 'Shortlisted', 'Under Review'];
+  const statusOptions = ['All Status', ...Object.values(STATUS_LABELS)];
   const branchOptions = ['All Branches', ...Array.from(new Set(candidates.map((c) => c.branch)))];
   const positionOptions = ['All Positions', ...Array.from(new Set(candidates.map((c) => c.position)))];
   const sourceOptions = [
@@ -369,7 +440,7 @@ export default function CareerPage() {
         (c.source && c.source.toLowerCase().includes(q));
       if (!match) return false;
     }
-    if (appliedFilters.status !== 'All Status' && c.status !== appliedFilters.status) return false;
+    if (appliedFilters.status !== 'All Status' && c.statusLabel !== appliedFilters.status) return false;
     if (appliedFilters.branch !== 'All Branches' && c.branch !== appliedFilters.branch) return false;
     if (appliedFilters.position !== 'All Positions' && c.position !== appliedFilters.position) return false;
     if (appliedFilters.source !== 'All Sources') {
@@ -456,13 +527,13 @@ export default function CareerPage() {
   };
 
   const handleUpdateStatus = (id: string, newStatus: string) => {
-    const status = LABEL_TO_CANDIDATE_STATUS[newStatus] || newStatus;
-    updateStatusMutation.mutate({ id, status }, {
+    updateStatusMutation.mutate({ id, status: newStatus }, {
       onSuccess: () => {
         if (viewingCandidate && viewingCandidate.id === id) {
-          setViewingCandidate({ ...viewingCandidate, status: newStatus });
+          setViewingCandidate({ ...viewingCandidate, status: newStatus, statusLabel: STATUS_LABELS[newStatus] || newStatus });
         }
-        toast.success(`Candidate status updated to "${newStatus}"`);
+        toast.success(`Candidate status updated to "${STATUS_LABELS[newStatus] || newStatus}"`);
+        setIsModalStatusOpen(false);
       },
     });
   };
@@ -1125,7 +1196,7 @@ export default function CareerPage() {
 
                     {/* Source */}
                     <td className="py-2.5 px-3 whitespace-nowrap">
-                      {renderSourceBadge(c.source)}
+                      {renderSourceBadge(c.source, c.sourceSite, c.sourceUrl)}
                     </td>
 
                     {/* Branch */}
@@ -1168,16 +1239,10 @@ export default function CareerPage() {
                     {/* Status Badge */}
                     <td className="py-2.5 px-3 text-center whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border ${c.status === 'New'
-                          ? 'bg-sky-50 text-sky-600 border-sky-200'
-                          : c.status === 'Shortlisted'
-                            ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                            : c.status === 'Under Review'
-                              ? 'bg-amber-50 text-amber-700 border-amber-200'
-                              : 'bg-rose-50 text-rose-600 border-rose-200'
+                        className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border ${STATUS_BADGE_CLASS[c.status] || 'bg-rose-50 text-rose-600 border-rose-200'
                           }`}
                       >
-                        {c.status}
+                        {c.statusLabel}
                       </span>
                     </td>
 
@@ -1271,16 +1336,10 @@ export default function CareerPage() {
                   <div className="flex items-center gap-2">
                     <h2 className="text-base font-bold text-zinc-900">{viewingCandidate.name}</h2>
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border shadow-2xs ${viewingCandidate.status === 'New'
-                        ? 'bg-sky-50 text-sky-700 border-sky-200'
-                        : viewingCandidate.status === 'Shortlisted'
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : viewingCandidate.status === 'Under Review'
-                            ? 'bg-amber-50 text-amber-700 border-amber-200'
-                            : 'bg-rose-50 text-rose-700 border-rose-200'
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border shadow-2xs ${STATUS_BADGE_CLASS[viewingCandidate.status] || 'bg-rose-50 text-rose-700 border-rose-200'
                         }`}
                     >
-                      ● {viewingCandidate.status}
+                      ● {viewingCandidate.statusLabel}
                     </span>
                   </div>
                   <p className="text-xs font-semibold text-indigo-600 mt-0.5 flex items-center gap-1.5">
@@ -1338,7 +1397,7 @@ export default function CareerPage() {
                     <Globe className="w-3 h-3 text-emerald-500" /> Source
                   </div>
                   <div className="mt-1">
-                    {renderSourceBadge(viewingCandidate.source || 'Career Website')}
+                    {renderSourceBadge(viewingCandidate.source || 'Career Website', viewingCandidate.sourceSite, viewingCandidate.sourceUrl)}
                   </div>
                 </div>
               </div>
@@ -1431,20 +1490,35 @@ export default function CareerPage() {
                   Add to Candidates
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
-                <button
-                  onClick={() => handleUpdateStatus(viewingCandidate.id, 'Shortlisted')}
-                  className="h-8 px-3 bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-700/50 rounded-md text-[11px] font-semibold transition-colors shadow-2xs flex items-center gap-1.5"
-                >
-                  <Check className="w-3.5 h-3.5" />
-                  Shortlist
-                </button>
-                <button
-                  onClick={() => handleUpdateStatus(viewingCandidate.id, 'Under Review')}
-                  className="h-8 px-3 bg-amber-500 hover:bg-amber-600 text-white border border-amber-600/50 rounded-md text-[11px] font-semibold transition-colors shadow-2xs flex items-center gap-1.5"
-                >
-                  <Clock className="w-3.5 h-3.5" />
-                  Under Review
-                </button>
+                {/* Status dropdown — every real recruitment stage (see STATUS_LABELS), the same
+                    vocabulary Candidate Pipeline / HOD Evaluation already use, not just the two
+                    quick actions this used to offer. */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalStatusOpen((open) => !open)}
+                    className="h-8 px-3 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 rounded-md text-[11px] font-semibold transition-colors shadow-2xs flex items-center gap-1.5"
+                  >
+                    <Check className="w-3.5 h-3.5 text-indigo-600" />
+                    Update Status
+                    <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
+                  </button>
+                  {isModalStatusOpen && (
+                    <div className="absolute left-0 bottom-full mb-1 w-48 bg-white border border-zinc-200 shadow-lg rounded-md py-1 z-50 max-h-64 overflow-y-auto">
+                      {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => handleUpdateStatus(viewingCandidate.id, value)}
+                          className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50 text-left"
+                        >
+                          <span className="truncate">{label}</span>
+                          {viewingCandidate.status === value && <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               <button
                 onClick={() => setViewingCandidate(null)}

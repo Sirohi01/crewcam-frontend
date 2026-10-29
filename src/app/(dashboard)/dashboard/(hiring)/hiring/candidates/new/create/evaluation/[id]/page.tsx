@@ -41,7 +41,13 @@ export default function HODReviewTab() {
     });
   }, [candidate?._id, candidate?.screeningData, candidateId]);
 
-  const defaultStrengths = screeningData?.matchedSkills || aiData?.strengths || parsedResume?.skills || [];
+  // A candidate synced in from a connected career site has no screeningData/aiData/parsedResume
+  // of HR-CRM's own making — its real resume skills live at applicationDetails.skills (see
+  // syncCareerSiteApplicants), which previously wasn't checked here at all, so these always fell
+  // through to the hardcoded 'Relevant Experience, Leadership Skills' placeholder regardless of
+  // who the candidate actually was.
+  const websiteSkills: string[] = Array.isArray(candidate?.applicationDetails?.skills) ? candidate.applicationDetails.skills : [];
+  const defaultStrengths = screeningData?.matchedSkills?.length ? screeningData.matchedSkills : aiData?.strengths?.length ? aiData.strengths : parsedResume?.skills?.length ? parsedResume.skills : websiteSkills;
   const defaultConcerns = screeningData?.missingSkills || aiData?.weaknesses || aiData?.missingSkills || [];
 
   const [strengths, setStrengths] = React.useState<string[]>(defaultStrengths.length > 0 ? defaultStrengths : ['Relevant Experience', 'Leadership Skills']);
@@ -87,7 +93,11 @@ export default function HODReviewTab() {
     try {
       setIsSubmitting(true);
       
-      let newStatus = 'INTERVIEW_SCHEDULED';
+      // 'SHORTLISTED' (not 'INTERVIEW_SCHEDULED') — no interview has actually been scheduled
+      // yet at this point, just approved by the HOD. It routes to the Interviews list (below)
+      // to actually get one scheduled; Selected Candidates is where it lands once that
+      // interview is completed with a real score (see submitInterviewFeedback on the backend).
+      let newStatus = 'SHORTLISTED';
       if (recommendation === 'Hold / Consider') newStatus = 'Hold';
       if (recommendation === 'Not Recommended') newStatus = 'Rejected';
 
@@ -108,9 +118,13 @@ export default function HODReviewTab() {
         localStorage.setItem('ai_completed_rounds_map', JSON.stringify(storedMap));
       } catch (e) {}
 
-      // Routing
-      if (newStatus === 'INTERVIEW_SCHEDULED' || newStatus === 'ASSESSMENT') {
-        router.push(`/dashboard/hiring/candidates/new/create/interview-process/${targetId}`);
+      // Routing — a positive recommendation goes to the Interviews list, where this candidate
+      // now shows up as a "Not Scheduled" row with its own Schedule action (see
+      // InterviewWorkspace.tsx — any SHORTLISTED candidate without an interview yet appears
+      // there). It'll show up in Selected Candidates on its own once that interview is
+      // completed with a real score.
+      if (newStatus === 'SHORTLISTED') {
+        router.push('/dashboard/hiring/interviews/list');
       } else {
         router.push(`/dashboard/all-candidates?status=${newStatus}`);
       }
@@ -279,7 +293,14 @@ export default function HODReviewTab() {
           </CardHeader>
           <CardContent className="p-4">
             {(() => {
-              const overallScore = screeningData?.fitScore ?? (parseInt(String(candidate?.aiScore)) || 87);
+              // A candidate synced in from a connected career site already carries its own AI
+              // match score (applicationDetails.matchScore — see syncCareerSiteApplicants);
+              // that's the real screening result and takes priority over the placeholder 87
+              // used when nothing at all has screened this candidate yet.
+              const websiteMatchScore = Number(candidate?.applicationDetails?.matchScore);
+              const overallScore = screeningData?.fitScore
+                ?? (Number.isFinite(websiteMatchScore) ? websiteMatchScore : undefined)
+                ?? (parseInt(String(candidate?.aiScore)) || 87);
               const skillsMatch = screeningData?.fitScore ? Math.min(100, screeningData.fitScore + 3) : (aiData?.metrics?.skillsMatch || 90);
               const expMatch = screeningData?.fitScore ? Math.max(0, screeningData.fitScore - 2) : (aiData?.metrics?.experienceMatch || 85);
               const eduMatch = screeningData?.fitScore ? Math.max(0, screeningData.fitScore - 7) : (aiData?.metrics?.educationMatch || 80);

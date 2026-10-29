@@ -90,11 +90,19 @@ const STATIC_RECRUITMENT_PROCESS_ITEMS: SidebarItem[] = [
   { _id: 'rp1', section: 'Recruitment Process', label: 'Recruitment Dashboard', href: '/dashboard/hr-dashboard', icon: 'LayoutDashboard', order: 1 },
   { _id: 'rp2', section: 'Recruitment Process', label: 'Job Requisition', href: '/dashboard/hiring/manpower', icon: 'Briefcase', order: 2 },
   { _id: 'rp3', section: 'Recruitment Process', label: 'New Job', href: '/dashboard/hiring/jobs', icon: 'PlusSquare', order: 3 },
-  { _id: 'rp4', section: 'Recruitment Process', label: 'Candidate', href: '/dashboard/hiring/candidates', icon: 'UserPlus', order: 4 },
-  { _id: 'rp5', section: 'Recruitment Process', label: 'Candidate Pipeline', href: '/dashboard/hiring/pipeline', icon: 'ListTree', order: 6 },
+  { _id: 'rp3a', section: 'Recruitment Process', label: 'Career', href: '/dashboard/career', icon: 'Briefcase', order: 4 },
+  // Grouped under one "Candidate" dropdown (same parent/children pattern as the other
+  // sections' collapsible groups below) so every stage of the pipeline — including Hold,
+  // Rejected and HOD Evaluation, which previously had no sidebar entry anywhere — is reachable
+  // from Recruitment Process without needing the separate WORKSPACE > Requirement menu.
+  { _id: 'rp4', section: 'Recruitment Process', label: 'All Candidates', href: '/dashboard/hiring/candidates', icon: 'UserPlus', order: 4.1, parent: 'Candidate' },
+  { _id: 'rp4b', section: 'Recruitment Process', label: 'Selected Candidate', href: '/dashboard/hiring/candidates/selected', icon: 'CheckCircle2', order: 4.2, parent: 'Candidate' },
+  { _id: 'rp4c', section: 'Recruitment Process', label: 'Hold Candidates', href: '/dashboard/hiring/candidates/hold', icon: 'Clock', order: 4.3, parent: 'Candidate' },
+  { _id: 'rp4d', section: 'Recruitment Process', label: 'Rejected Candidates', href: '/dashboard/rejected-candidates', icon: 'Circle', order: 4.4, parent: 'Candidate' },
+  { _id: 'rp4e', section: 'Recruitment Process', label: 'HOD Evaluation', href: '/dashboard/hiring/hod-evaluation', icon: 'ShieldCheck', order: 4.5, parent: 'Candidate' },
+  { _id: 'rp5', section: 'Recruitment Process', label: 'Candidate Pipeline', href: '/dashboard/hiring/pipeline', icon: 'ListTree', order: 4.6, parent: 'Candidate' },
   { _id: 'rp6', section: 'Recruitment Process', label: 'Interviews', href: '/dashboard/hiring/interviews/list', icon: 'MessageSquare', order: 7 },
   { _id: 'rp7', section: 'Recruitment Process', label: 'Interview Statistics', href: '/dashboard/report-analytics', icon: 'TrendingUp', order: 8 },
-  { _id: 'rp4b', section: 'Recruitment Process', label: 'Selected Candidate', href: '/dashboard/hiring/candidates/selected', icon: 'CheckCircle2', order: 9 },
 ];
 
 export default function DynamicSidebar() {
