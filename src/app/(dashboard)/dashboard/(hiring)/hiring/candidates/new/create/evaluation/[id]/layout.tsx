@@ -16,6 +16,15 @@ export function useCandidate() {
   return React.useContext(CandidateContext);
 }
 
+function formatExperience(exp: string) {
+  if (!exp) return '—';
+  return /year/i.test(exp) ? exp : `${exp} Years`;
+}
+function formatCTC(ctc: string) {
+  if (!ctc) return '—';
+  return ctc.trim().startsWith('₹') ? ctc : `₹ ${ctc}`;
+}
+
 export default function HODEvaluationLayout({ children }: { children: React.ReactNode }) {
   const [candidate, setCandidate] = useState<any>(null);
 
@@ -188,15 +197,15 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
               <div className="flex flex-col xl:flex-row gap-4">
 
                 {/* Left: Photo & Contact */}
-                <div className="flex-1 xl:flex-[1] flex gap-3 border-r border-transparent xl:border-zinc-100 xl:pr-4">
-                  <div className="w-[104px] h-[104px] rounded-xl bg-zinc-200 overflow-hidden shrink-0 relative">
+                <div className="flex-1 xl:flex-[1] flex items-start gap-3 border-r border-transparent xl:border-zinc-100 xl:pr-4">
+                  <div className="w-[120px] h-[120px] rounded-xl bg-zinc-200 overflow-hidden shrink-0 relative">
                     <img
                       src={candidate.profileImageUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(candidate.fullName || candidate._id || 'candidate')}`}
                       alt={candidate.fullName || 'Candidate'}
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <div className="flex flex-col justify-center min-w-0">
+                  <div className="flex flex-col justify-start min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
                       <h2 className="text-[16px] font-bold text-zinc-900 truncate">{candidate.fullName}</h2>
                       <span className="bg-emerald-50 text-emerald-600 text-[9px] font-bold px-1.5 py-0.5 rounded border border-emerald-100 whitespace-nowrap">AI Screened</span>
@@ -221,22 +230,22 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
                 </div>
 
                 {/* Right: Job Details */}
-                <div className="flex-1 grid grid-cols-2 gap-y-2 gap-x-4 content-center xl:pl-2">
+                <div className="flex-1 grid grid-cols-3 gap-y-2 gap-x-3 content-center xl:pl-2">
                   <div className="min-w-0">
                     <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide truncate">Applied For</p>
                     <p className="text-[12px] font-semibold text-zinc-900 truncate" title={candidate.appliedFor}>{candidate.appliedFor}</p>
                   </div>
                   <div className="min-w-0">
                     <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide truncate">Experience</p>
-                    <p className="text-[12px] font-semibold text-zinc-900 truncate">{candidate.totalExperience} Years</p>
+                    <p className="text-[12px] font-semibold text-zinc-900 truncate">{formatExperience(candidate.totalExperience)}</p>
                   </div>
                   <div className="min-w-0">
                     <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide truncate">Department</p>
-                    <p className="text-[12px] font-semibold text-zinc-900 truncate" title={candidate.department}>{candidate.department}</p>
+                    <p className="text-[12px] font-semibold text-zinc-900 truncate" title={candidate.department}>{candidate.department || '—'}</p>
                   </div>
                   <div className="min-w-0">
                     <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide truncate">Expected CTC</p>
-                    <p className="text-[12px] font-semibold text-zinc-900 truncate">₹ {candidate.expectedCTC}</p>
+                    <p className="text-[12px] font-semibold text-zinc-900 truncate">{formatCTC(candidate.expectedCTC)}</p>
                   </div>
                   <div className="min-w-0">
                     <p className="text-[11px] font-semibold text-zinc-400 mb-0.5 uppercase tracking-wide truncate">Employment Type</p>

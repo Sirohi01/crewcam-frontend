@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useForm, Controller } from 'react-hook-form';
 import ApiSelect from '@/components/common/ApiSelect';
@@ -12,8 +12,6 @@ import { Breadcrumb } from '@/components/ui/breadCrumb';
 import { FormInput } from '@/components/ui/form-input';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-// Dummy data / static mockup — matches the approved design 1:1. No backend
-// wiring yet; this is a visual reference for the "Post New Job" flow.
 
 const KPIS = [
   { label: 'Total Open Positions', value: '42', icon: Briefcase, accent: 'bg-blue-50 text-blue-600', trend: '8 from last month', up: true },
@@ -191,6 +189,75 @@ export default function PostNewJobPage() {
     enabled: isPostMode,
   });
 
+  // Already posted = this requisition has been published to channels before, so the
+  // page/button should read as an edit of that post rather than a first-time publish.
+  const isAlreadyPosted = Boolean(
+    existingRequest?.recruitmentStatus === 'Posted' ||
+    (Array.isArray(existingRequest?.publishChannels) && existingRequest.publishChannels.length > 0)
+  );
+
+  // Unsaved-changes guard: `initializedRef` stays false while the form is being
+  // populated (either from existingRequest in post mode, or the one-time jobCode
+  // auto-generation below) so that population itself never counts as a user edit.
+  // Once true, any further change — registered field, or the extra state below that
+  // react-hook-form doesn't track — flips hasUnsavedChanges and arms the leave guards.
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const initializedRef = useRef(false);
+  const hasUnsavedRef = useRef(false);
+  // Guards the one-time history.pushState below — it must fire synchronously the
+  // instant a field changes (not on a later render's effect), otherwise a back-button
+  // press that lands between the click and the effect running slips through unguarded.
+  const dirtyGuardArmedRef = useRef(false);
+  const markDirty = () => {
+    if (!initializedRef.current) return;
+    hasUnsavedRef.current = true;
+    setHasUnsavedChanges(true);
+    if (!dirtyGuardArmedRef.current) {
+      dirtyGuardArmedRef.current = true;
+      window.history.pushState(null, '', window.location.href);
+    }
+  };
+
+  useEffect(() => {
+    const subscription = watch(() => markDirty());
+    return () => subscription.unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watch]);
+
+  // Warn on tab close / refresh / typing a new URL. Browsers don't allow a custom
+  // dialog here (security restriction) — the native prompt is unavoidable for this case.
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (!hasUnsavedChanges) return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [hasUnsavedChanges]);
+
+  // Intercept the back arrow / Alt+Left while dirty. The dummy entry pushed by markDirty
+  // absorbs the first back press (landing back on this same URL); instead of letting it
+  // through, re-arm the trap and show our own confirmation dialog.
+  useEffect(() => {
+    const handlePopState = () => {
+      if (!hasUnsavedRef.current) return;
+      window.history.pushState(null, '', window.location.href);
+      setShowLeaveConfirm(true);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const confirmLeave = () => {
+    hasUnsavedRef.current = false;
+    setHasUnsavedChanges(false);
+    setShowLeaveConfirm(false);
+    router.push('/dashboard/hiring/jobs');
+  };
+  const cancelLeave = () => setShowLeaveConfirm(false);
+
   useEffect(() => {
     if (!existingRequest) return;
     const expMatch = String(existingRequest.experienceReq || '').match(/(\d+(?:\.\d+)?)\D+(\d+(?:\.\d+)?)/);
@@ -255,6 +322,7 @@ export default function PostNewJobPage() {
     }
     setIsReplacement(Boolean(existingRequest.replacedEmployeeId || existingRequest.replacementReason));
     setPriority(existingRequest.priority || 'High');
+    initializedRef.current = true;
   }, [existingRequest, setValue]);
 
   const getArray = (res: any) => Array.isArray(res?.data) ? res.data : (res?.data?.data || []);
@@ -295,6 +363,7 @@ export default function PostNewJobPage() {
   useEffect(() => {
     if (!isPostMode) {
       setValue('jobCode', `JOB-${Math.floor(1000 + Math.random() * 9000)}`);
+      initializedRef.current = true;
     }
   }, [isPostMode, setValue]);
 
@@ -309,6 +378,7 @@ export default function PostNewJobPage() {
       const url = data.url || (typeof data === 'string' ? data : '');
       if (url) {
         setAttachments(prev => [...prev, url]);
+        markDirty();
         toast.success('File uploaded successfully');
       }
     } catch (err) {
@@ -320,6 +390,7 @@ export default function PostNewJobPage() {
 
   const togglePublishChannel = (channel: string) => {
     setPublishChannelsState(prev => prev.includes(channel) ? prev.filter(c => c !== channel) : [...prev, channel]);
+    markDirty();
   };
 
   const onSubmit = async (data: any) => {
@@ -370,8 +441,10 @@ export default function PostNewJobPage() {
       if (failed.length > 0) {
         toast.error(`Job posted, but publishing failed for: ${failed.join(', ')}`, { duration: 8000 });
       } else {
-        toast.success(`Job posted to ${publishChannelsState.join(', ')}`);
+        toast.success(isAlreadyPosted ? `Channels updated: ${publishChannelsState.join(', ')}` : `Job posted to ${publishChannelsState.join(', ')}`);
       }
+      hasUnsavedRef.current = false;
+      setHasUnsavedChanges(false);
       router.push('/dashboard/hiring/jobs');
     } catch (error: any) {
       toast.error('Failed to post job');
@@ -391,6 +464,9 @@ export default function PostNewJobPage() {
     toast.error(`Please fill in the required field${missing.length > 1 ? 's' : ''}: ${missing.join(', ')}`);
   };
 
+  const pageTitle = !isPostMode ? 'Post New Job' : (isAlreadyPosted ? 'Edit Post Job to Channels' : 'Post Job to Channels');
+  const submitLabel = !isPostMode ? 'Submit for Approval' : (isAlreadyPosted ? 'Update Channels' : 'Post to Selected Channels');
+
   return (
     <div className="font-sans">
       <div className="mx-auto max-w-[1500px] p-1">
@@ -398,12 +474,12 @@ export default function PostNewJobPage() {
           <div className="space-y-1">
             {/* Header */}
             <div>
-              <h1 className="text-xl font-bold text-zinc-900">{isPostMode ? 'Post Job to Channels' : 'Post New Job'}</h1>
+              <h1 className="text-xl font-bold text-zinc-900">{pageTitle}</h1>
               <Breadcrumb
                 items={[
                   { label: "Recruitment", href: "/dashboard/hiring/pipeline" },
                   { label: "Job Openings", href: "/dashboard/hiring/jobs" },
-                  { label: isPostMode ? 'Post Job to Channels' : 'Post New Job' },
+                  { label: pageTitle },
                 ]}
               />
             </div>
@@ -463,7 +539,7 @@ export default function PostNewJobPage() {
                         <div className="mt-1 flex h-8 items-center gap-2">
                           {['High', 'Medium', 'Low'].map((p) => (
                             <label key={p} className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-700 whitespace-nowrap">
-                              <input type="radio" name="priority" checked={priority === p} onChange={() => setPriority(p)} className="h-3.5 w-3.5 accent-rose-500" />
+                              <input type="radio" name="priority" checked={priority === p} onChange={() => { setPriority(p); markDirty(); }} className="h-3.5 w-3.5 accent-rose-500" />
                               {p}
                             </label>
                           ))}
@@ -494,14 +570,14 @@ export default function PostNewJobPage() {
                         <div className="mt-1 flex items-center gap-2">
                           <button
                             type="button"
-                            onClick={() => setIsReplacement(false)}
+                            onClick={() => { setIsReplacement(false); markDirty(); }}
                             className={`rounded-none px-2.5 py-1 text-[10px] font-semibold ${!isReplacement ? 'bg-zinc-200 text-zinc-700' : 'bg-zinc-100 text-zinc-400'}`}
                           >
                             No
                           </button>
                           <button
                             type="button"
-                            onClick={() => setIsReplacement(true)}
+                            onClick={() => { setIsReplacement(true); markDirty(); }}
                             className={`rounded-none px-2.5 py-1 text-[10px] font-semibold ${isReplacement ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-400'}`}
                           >
                             Yes
@@ -536,17 +612,19 @@ export default function PostNewJobPage() {
                             const newResp = [...keyResponsibilities];
                             newResp[i] = e.target.value;
                             setKeyResponsibilities(newResp);
+                            markDirty();
                           }} />
                           <button type="button" onClick={() => {
                             const newResp = [...keyResponsibilities];
                             newResp.splice(i, 1);
                             setKeyResponsibilities(newResp);
+                            markDirty();
                           }} className="text-zinc-400 hover:text-rose-500"><X size={14} /></button>
                         </div>
                       ))}
                     </div>
                     <div className="text-right mt-1">
-                      <button type="button" onClick={() => setKeyResponsibilities([...keyResponsibilities, ''])} className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors ml-auto">
+                      <button type="button" onClick={() => { setKeyResponsibilities([...keyResponsibilities, '']); markDirty(); }} className="flex items-center gap-1.5 rounded-md bg-indigo-700 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-800 shadow-sm transition-colors ml-auto">
                         <Plus size={11} /> Add More
                       </button>
                     </div>
@@ -578,6 +656,7 @@ export default function PostNewJobPage() {
                           if (selectedSkill && !skills.includes(selectedSkill)) {
                             setSkills([...skills, selectedSkill]);
                             setSelectedSkill('');
+                            markDirty();
                           }
                         }} className="flex h-8 shrink-0 items-center gap-1 rounded-none border border-zinc-200 px-2.5 text-[10.5px] font-semibold text-indigo-600 hover:bg-indigo-50/50">
                           <Plus size={12} /> Add
@@ -587,7 +666,7 @@ export default function PostNewJobPage() {
                         <div className="mt-2 flex flex-wrap gap-1.5">
                           {skills.map(s => (
                             <span key={s} className="flex items-center gap-1 rounded-none bg-indigo-50 px-2 py-0.5 text-[9.5px] font-semibold text-indigo-600">
-                              {s} <X size={10} className="cursor-pointer hover:text-indigo-800" onClick={() => setSkills(skills.filter(sk => sk !== s))} />
+                              {s} <X size={10} className="cursor-pointer hover:text-indigo-800" onClick={() => { setSkills(skills.filter(sk => sk !== s)); markDirty(); }} />
                             </span>
                           ))}
                         </div>
@@ -612,7 +691,7 @@ export default function PostNewJobPage() {
                       {attachments.map((url, i) => (
                         <div key={i} className="flex items-center justify-between rounded bg-zinc-50 px-2 py-1 text-[10px]">
                           <a href={url} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline truncate max-w-[200px]">{url.split('/').pop()}</a>
-                          <X size={12} className="cursor-pointer text-zinc-400 hover:text-rose-500" onClick={() => setAttachments(attachments.filter((_, idx) => idx !== i))} />
+                          <X size={12} className="cursor-pointer text-zinc-400 hover:text-rose-500" onClick={() => { setAttachments(attachments.filter((_, idx) => idx !== i)); markDirty(); }} />
                         </div>
                       ))}
                     </div>
@@ -643,7 +722,7 @@ export default function PostNewJobPage() {
                 <Save size={12} /> Save as Draft
               </button>
               <button type="submit" form="jobForm" className="flex w-full items-center justify-center gap-1.5 rounded-none bg-indigo-600 px-2 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700">
-                {isPostMode ? 'Post to Selected Channels' : 'Submit for Approval'}
+                {submitLabel}
               </button>
             </div>
 
@@ -740,6 +819,37 @@ export default function PostNewJobPage() {
           </div>
         </div>
       </div>
+
+      {showLeaveConfirm && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm rounded-md border border-zinc-200 bg-white shadow-xl">
+            <div className="border-b border-zinc-100 px-4 py-3">
+              <h3 className="text-sm font-bold text-zinc-900">Unsaved changes</h3>
+            </div>
+            <div className="px-4 py-3">
+              <p className="text-[12.5px] leading-snug text-zinc-600">
+                You have unsaved changes on this page — including any field, channel, or document updates. If you leave now, they will be lost.
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-2 border-t border-zinc-100 px-4 py-3">
+              <button
+                type="button"
+                onClick={cancelLeave}
+                className="rounded-none border border-zinc-200 bg-white px-3 py-1.5 text-[11.5px] font-semibold text-zinc-700 hover:bg-zinc-50"
+              >
+                Stay &amp; Keep Editing
+              </button>
+              <button
+                type="button"
+                onClick={confirmLeave}
+                className="rounded-none bg-rose-600 px-3 py-1.5 text-[11.5px] font-semibold text-white hover:bg-rose-700"
+              >
+                Leave Without Saving
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

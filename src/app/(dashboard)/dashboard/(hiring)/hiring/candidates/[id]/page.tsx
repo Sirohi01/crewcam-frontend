@@ -307,65 +307,71 @@ export default function CandidateDetailsPage() {
 
         {/* Profile banner */}
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-[3fr_1fr]">
-          <div className="grid grid-cols-[auto_1fr] gap-x-4 rounded-[2px] border border-zinc-200 bg-white p-2.5 shadow-sm">
-            <div className="row-span-2 shrink-0 text-center">
+          <div className="flex items-start gap-4 rounded-[2px] border border-zinc-200 bg-white p-2.5 shadow-sm">
+            <div className="shrink-0 text-center">
               {profileImageUrl ? (
-                <div className="h-16 w-16 overflow-hidden rounded-[2px]">
+                <div className="h-20 w-20 overflow-hidden rounded-[2px]">
                   <img src={profileImageUrl} alt={fullName} className="h-full w-full object-cover" />
                 </div>
               ) : (
-                <span className="grid h-16 w-16 place-items-center rounded-[2px] bg-zinc-100 text-[14px] font-bold text-zinc-500">
+                <span className="grid h-20 w-20 place-items-center rounded-[2px] bg-zinc-100 text-[14px] font-bold text-zinc-500">
                   {firstName.charAt(0)}{lastName ? lastName.charAt(0) : ''}
                 </span>
               )}
               <span className="mt-1.5 inline-block rounded-[2px] bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-600 uppercase tracking-wide">{displayStatus}</span>
             </div>
 
-            <div className="flex flex-wrap items-start gap-4">
-              <div className="min-w-[220px] flex-1">
-                <p className="flex items-center gap-1.5 text-[15px] font-bold text-zinc-900">
-                  {fullName}
-                  <Link2 size={13} className="text-blue-500" />
-                  <Mail size={13} className="text-zinc-400" />
-                </p>
-                <p className="mt-0.5 flex items-center gap-1.5 text-[11.5px] text-zinc-600">
-                  {jobRole}
-                  <span className="rounded-[2px] bg-blue-50 px-2 py-0.5 text-[9.5px] font-semibold text-blue-600">{displayStatus}</span>
-                </p>
-                <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10.5px] text-zinc-500">
-                  <span className="flex items-center gap-1"><Phone size={11} className="text-zinc-400" /> {phone}</span>
-                  <span className="flex items-center gap-1"><Mail size={11} className="text-zinc-400" /> {email}</span>
-                  <span className="flex items-center gap-1"><MapPin size={11} className="text-zinc-400" /> {location}</span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="min-w-[220px]">
+                  <p className="flex items-center gap-1.5 text-[15px] font-bold text-zinc-900">
+                    {fullName}
+                    <Link2 size={13} className="text-blue-500" />
+                    <Mail size={13} className="text-zinc-400" />
+                  </p>
+                  <p className="mt-0.5 flex items-center gap-1.5 text-[11.5px] text-zinc-600">
+                    {jobRole}
+                    <span className="rounded-[2px] bg-blue-50 px-2 py-0.5 text-[9.5px] font-semibold text-blue-600">{displayStatus}</span>
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10.5px] text-zinc-500">
+                    <span className="flex items-center gap-1"><Phone size={11} className="text-zinc-400" /> {phone}</span>
+                    <span className="flex items-center gap-1"><Mail size={11} className="text-zinc-400" /> {email}</span>
+                    <span className="flex items-center gap-1"><MapPin size={11} className="text-zinc-400" /> {location}</span>
+                  </div>
+                </div>
+
+                <div className="shrink-0 grid grid-cols-[auto_auto] gap-x-6 gap-y-1.5 text-[10.5px]">
+                  <span className="text-zinc-400">Candidate ID</span><span className="font-semibold text-zinc-800">{id.slice(-6).toUpperCase()}</span>
+                  <span className="text-zinc-400">Current Company</span><span className="font-semibold text-zinc-800">{appDetails.currentCompany || 'N/A'}</span>
+                  <span className="text-zinc-400">Current Designation</span><span className="font-semibold text-zinc-800">{appDetails.highestQualification || 'N/A'}</span>
                 </div>
               </div>
 
-              <div className="shrink-0 space-y-1 text-[10.5px]">
-                <div className="flex items-center gap-6"><span className="text-zinc-400">Candidate ID</span><span className="ml-auto font-semibold text-zinc-800">{id.slice(-6).toUpperCase()}</span></div>
-                <div className="flex items-center gap-6"><span className="text-zinc-400">Current Company</span><span className="ml-auto font-semibold text-zinc-800">{appDetails.currentCompany || 'N/A'}</span></div>
-                <div className="flex items-center gap-6"><span className="text-zinc-400">Current Designation</span><span className="ml-auto font-semibold text-zinc-800">{appDetails.highestQualification || 'N/A'}</span></div>
+              <div className="mt-1.5 grid grid-cols-2 gap-2 border-t border-zinc-100 pt-1.5 text-[10.5px] leading-tight sm:grid-cols-3 lg:grid-cols-6">
+                <div><p className="text-zinc-400 leading-tight">Total Experience</p><p className="font-semibold leading-tight text-zinc-800">{experience}</p></div>
+                <div><p className="text-zinc-400 leading-tight">Current CTC</p><p className="font-semibold leading-tight text-zinc-800">{currentCtc}</p></div>
+                <div><p className="text-zinc-400 leading-tight">Expected CTC</p><p className="font-semibold leading-tight text-zinc-800">{expectedCtc}</p></div>
+                <div><p className="text-zinc-400 leading-tight">Notice Period</p><p className="font-semibold leading-tight text-zinc-800">{noticePeriod}</p></div>
+                <div><p className="text-zinc-400 leading-tight">Availability</p><p className="font-semibold leading-tight text-zinc-800">{appDetails.availableFrom || 'N/A'}</p></div>
+                <div><p className="text-zinc-400 leading-tight">Source</p><p className="font-semibold leading-tight text-zinc-800">{source || 'N/A'}</p></div>
               </div>
-            </div>
-
-            <div className="mt-1.5 grid grid-cols-2 gap-2 border-t border-zinc-100 pt-1.5 text-[10.5px] leading-tight sm:grid-cols-3 lg:grid-cols-6">
-              <div><p className="text-zinc-400 leading-tight">Total Experience</p><p className="font-semibold leading-tight text-zinc-800">{experience}</p></div>
-              <div><p className="text-zinc-400 leading-tight">Current CTC</p><p className="font-semibold leading-tight text-zinc-800">{currentCtc}</p></div>
-              <div><p className="text-zinc-400 leading-tight">Expected CTC</p><p className="font-semibold leading-tight text-zinc-800">{expectedCtc}</p></div>
-              <div><p className="text-zinc-400 leading-tight">Notice Period</p><p className="font-semibold leading-tight text-zinc-800">{noticePeriod}</p></div>
-              <div><p className="text-zinc-400 leading-tight">Availability</p><p className="font-semibold leading-tight text-zinc-800">{appDetails.availableFrom || 'N/A'}</p></div>
-              <div><p className="text-zinc-400 leading-tight">Source</p><p className="font-semibold leading-tight text-zinc-800">{source || 'N/A'}</p></div>
             </div>
           </div>
 
-          <div className="rounded-[2px] border border-zinc-200 bg-white p-2.5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-indigo-600">Profile Completion</span>
-              <span className="text-[14px] font-bold text-zinc-900">85%</span>
+          <div className="flex h-full flex-col justify-between rounded-[2px] border border-zinc-200 bg-white p-2.5 shadow-sm">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-indigo-600">Profile Completion</span>
+                <span className="text-[14px] font-bold text-zinc-900">85%</span>
+              </div>
+              <div className="mt-1.5 h-1.5 overflow-hidden rounded-[2px] bg-zinc-100">
+                <div className="h-full rounded-[2px] bg-emerald-500" style={{ width: `85%` }} />
+              </div>
             </div>
-            <div className="mt-1.5 h-1.5 overflow-hidden rounded-[2px] bg-zinc-100">
-              <div className="h-full rounded-[2px] bg-emerald-500" style={{ width: `85%` }} />
+            <div>
+              <p className="text-[10px] text-zinc-400">Last Updated</p>
+              <p className="text-[11px] font-semibold text-zinc-700">{appliedDate}</p>
             </div>
-            <p className="mt-2 text-[10px] text-zinc-400">Last Updated</p>
-            <p className="text-[11px] font-semibold text-zinc-700">{appliedDate}</p>
           </div>
         </div>
 
