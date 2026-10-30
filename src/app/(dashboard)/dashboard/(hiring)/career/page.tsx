@@ -11,8 +11,8 @@ import {
   Building2, Users, MapPin, Briefcase, Globe, Copy, ExternalLink,
   FileText, ShieldCheck, Clock, RefreshCw, X, ChevronLeft, ChevronRight,
   Filter, CheckCircle2, FileCheck, Phone, Mail, Award, Calendar,
-  Key, Code2, Server, EyeOff, Radio, Terminal, Activity, Zap, Lock, Database,
-  Cpu, Layers, CheckCircle, ArrowRight, UserPlus
+  Key, Code2, Server, Terminal, Activity, Zap,
+  Layers, ArrowRight, UserPlus
 } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 
@@ -256,19 +256,6 @@ function mapCandidateDoc(doc: any, siteById: Record<string, { siteKey?: string; 
   };
 }
 
-const COMPANIES = [
-  'Namo Gange Wellness Pvt Ltd',
-  'Encodency Pvt Ltd',
-  'Arogya Peeth Foundation'
-];
-
-const BRANCHES = [
-  'Head Office - New Delhi',
-  'Noida Branch - Sector 62',
-  'Gurugram Branch - Cyber City',
-  'Mumbai Branch - Andheri'
-];
-
 export default function CareerPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -293,9 +280,46 @@ export default function CareerPage() {
     });
     return map;
   }, [integrationsData]);
+  // Every currently connected career-site integration for this tenant (used by the API &
+  // Webhook Integration modal below — a tenant may have more than one connected site).
+  const careerSiteIntegrations = useMemo(
+    () => (Array.isArray(integrationsData) ? integrationsData : []).filter((i: any) => i.provider === 'career-site' && i.isActive),
+    [integrationsData]
+  );
+  const primaryCareerSite = careerSiteIntegrations[0] as any | undefined;
+  const careerSiteBaseUrl: string | undefined = primaryCareerSite?.credentials?.baseUrl;
+  const isCareerSiteConnected = Boolean(careerSiteBaseUrl);
   const candidates = useMemo(
     () => ((Array.isArray(candidatesData) ? candidatesData : candidatesData?.data || []) as any[]).map((doc) => mapCandidateDoc(doc, siteById)),
     [candidatesData, siteById]
+  );
+  // "Live Submission Logs" tab — real synced candidates (newest first) in place of a
+  // fictional request log that was never actually populated by anything.
+  const recentSyncedCandidates = useMemo(
+    () => candidates
+      .filter((c: any) => c.sourceSite || c.source === 'Career Website')
+      .sort((a: any, b: any) => new Date(b._raw?.createdAt || 0).getTime() - new Date(a._raw?.createdAt || 0).getTime())
+      .slice(0, 25),
+    [candidates]
+  );
+
+  // Company Dropdown / Dynamic Branch Dropdown — this tenant's own companies and branches
+  // only (previously a hardcoded list that mixed in other tenants' company names).
+  const { data: companiesData } = useQuery({
+    queryKey: ['career-page-companies'],
+    queryFn: async () => (await api.get('/companies')).data,
+  });
+  const { data: branchesData } = useQuery({
+    queryKey: ['career-page-branches'],
+    queryFn: async () => (await api.get('/companies/branches?limit=200')).data,
+  });
+  const companyNames = useMemo(
+    () => Array.from(new Set((Array.isArray(companiesData) ? companiesData : []).map((c: any) => c.name).filter(Boolean))),
+    [companiesData]
+  );
+  const branchNames = useMemo(
+    () => Array.from(new Set(((branchesData?.data || []) as any[]).map((b: any) => b.name).filter(Boolean))),
+    [branchesData]
   );
 
   const deleteMutation = useMutation({
@@ -336,8 +360,17 @@ export default function CareerPage() {
   const [positionFilter, setPositionFilter] = useState('All Positions');
   const [sourceFilter, setSourceFilter] = useState('All Sources');
 
-  const [selectedCompany, setSelectedCompany] = useState(COMPANIES[0]);
-  const [selectedBranch, setSelectedBranch] = useState(BRANCHES[0]);
+  const [selectedCompany, setSelectedCompany] = useState('');
+  const [selectedBranch, setSelectedBranch] = useState('');
+
+  // Default to this tenant's first company/branch once loaded, instead of leaving the
+  // dropdown blank or pointing at a name from the old hardcoded cross-tenant list.
+  useEffect(() => {
+    if (!selectedCompany && companyNames.length > 0) setSelectedCompany(companyNames[0] as string);
+  }, [companyNames, selectedCompany]);
+  useEffect(() => {
+    if (!selectedBranch && branchNames.length > 0) setSelectedBranch(branchNames[0] as string);
+  }, [branchNames, selectedBranch]);
 
   // Dropdown toggles
   const [isCompanyOpen, setIsCompanyOpen] = useState(false);
@@ -365,21 +398,12 @@ export default function CareerPage() {
   const [cvPreviewCandidate, setCvPreviewCandidate] = useState<any | null>(null);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [activeModalTab, setActiveModalTab] = useState<'credentials' | 'fields' | 'snippets' | 'logs'>('credentials');
-  const [codeTab, setCodeTab] = useState<'js' | 'react' | 'curl' | 'html' | 'php'>('js');
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [showWebhookSecret, setShowWebhookSecret] = useState(false);
+  const [codeTab, setCodeTab] = useState<'pull' | 'push-status' | 'push-job'>('pull');
   const [isSyncing, setIsSyncing] = useState(false);
   const [isPinging, setIsPinging] = useState(false);
-  const [pingResult, setPingResult] = useState<{ status: number; latency: number; timestamp: string } | null>({
-    status: 200,
-    latency: 38,
-    timestamp: 'Just now',
-  });
-  const [selectedLogPayload, setSelectedLogPayload] = useState<any | null>(null);
+  const [pingResult, setPingResult] = useState<{ status: number; latency: number; timestamp: string } | null>(null);
+  const [inspectCandidate, setInspectCandidate] = useState<any | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
-
-  // Live incoming API submission logs
-  const [apiLogs, setApiLogs] = useState<any[]>([]);
 
   const filterRef = useRef<HTMLDivElement>(null);
 
@@ -539,7 +563,8 @@ export default function CareerPage() {
   };
 
   const copyPortalLink = () => {
-    navigator.clipboard.writeText('https://namogangewellness.com/careers');
+    if (!careerSiteBaseUrl) return;
+    navigator.clipboard.writeText(careerSiteBaseUrl);
     toast.success('Career Portal URL copied to clipboard!');
   };
 
@@ -548,18 +573,26 @@ export default function CareerPage() {
     syncMutation.mutate(undefined, { onSettled: () => setIsSyncing(false) });
   };
 
-  const handlePingAPI = () => {
+  const handlePingAPI = async () => {
+    if (!primaryCareerSite?._id) {
+      toast.error('No career site is connected yet — add one under Settings → Integrations.');
+      return;
+    }
     setIsPinging(true);
-    setTimeout(() => {
+    try {
+      const { data } = await api.get(`/settings/integrations/${primaryCareerSite._id}/ping`);
+      setPingResult({ status: data.status, latency: data.latency, timestamp: new Date().toLocaleTimeString() });
+      if (data.status === 200) {
+        toast.success(`Gateway reachable! Responded in ${data.latency}ms (200 OK)`);
+      } else {
+        toast.error(data.error ? `Gateway unreachable: ${data.error}` : `Gateway responded with HTTP ${data.status}`);
+      }
+    } catch (err: any) {
+      setPingResult({ status: 0, latency: 0, timestamp: new Date().toLocaleTimeString() });
+      toast.error(err?.response?.data?.message || 'Failed to ping the connected career site.');
+    } finally {
       setIsPinging(false);
-      const latency = Math.floor(Math.random() * 20) + 32;
-      setPingResult({
-        status: 200,
-        latency,
-        timestamp: new Date().toLocaleTimeString(),
-      });
-      toast.success(`Gateway Healthy! Responded in ${latency}ms (200 OK)`);
-    }, 650);
+    }
   };
 
   const handleExport = () => {
@@ -793,17 +826,20 @@ export default function CareerPage() {
                 >
                   <span className="flex items-center gap-1.5 truncate">
                     <Building2 className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                    <span className="truncate">{selectedCompany}</span>
+                    <span className="truncate">{selectedCompany || 'No company found'}</span>
                   </span>
                   <ChevronDown className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                 </button>
                 {isCompanyOpen && (
                   <div className="absolute left-0 top-full mt-1 w-64 bg-white border border-zinc-200 shadow-lg rounded-md py-1 z-50">
-                    {COMPANIES.map((comp) => (
+                    {companyNames.length === 0 && (
+                      <p className="px-3 py-1.5 text-[11px] text-zinc-400">No companies set up for this tenant yet.</p>
+                    )}
+                    {companyNames.map((comp) => (
                       <button
-                        key={comp}
+                        key={comp as string}
                         onClick={() => {
-                          setSelectedCompany(comp);
+                          setSelectedCompany(comp as string);
                           setIsCompanyOpen(false);
                         }}
                         className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50 text-left"
@@ -833,17 +869,20 @@ export default function CareerPage() {
                 >
                   <span className="flex items-center gap-1.5 truncate">
                     <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                    <span className="truncate">{selectedBranch}</span>
+                    <span className="truncate">{selectedBranch || 'No branch found'}</span>
                   </span>
                   <ChevronDown className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                 </button>
                 {isBranchOpen && (
                   <div className="absolute left-0 top-full mt-1 w-72 bg-white border border-zinc-200 shadow-lg rounded-md py-1 z-50">
-                    {BRANCHES.map((br) => (
+                    {branchNames.length === 0 && (
+                      <p className="px-3 py-1.5 text-[11px] text-zinc-400">No branches set up for this tenant yet.</p>
+                    )}
+                    {branchNames.map((br) => (
                       <button
-                        key={br}
+                        key={br as string}
                         onClick={() => {
-                          setSelectedBranch(br);
+                          setSelectedBranch(br as string);
                           setIsBranchOpen(false);
                         }}
                         className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50 text-left"
@@ -860,27 +899,31 @@ export default function CareerPage() {
 
           {/* Live Career Portal Link Badge */}
           <div className="flex items-center gap-2 bg-zinc-50/80 border border-zinc-200 rounded-md px-2.5 py-1 text-[11px] shrink-0 self-start lg:self-end">
-            <span className="text-zinc-600 font-mono text-[11px] flex items-center gap-1">
+            <span className="text-zinc-600 font-mono text-[11px] flex items-center gap-1 truncate max-w-[220px]">
               <Globe className="w-3 h-3 text-indigo-600 shrink-0" />
-              https://namogangewellness.com/careers
+              {careerSiteBaseUrl || 'No career site connected'}
             </span>
-            <button
-              onClick={copyPortalLink}
-              className="h-6 px-2 bg-white border border-zinc-200 rounded text-[10px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors flex items-center gap-1 shadow-2xs"
-            >
-              <Copy className="w-3 h-3" /> Copy Link
-            </button>
-            <a
-              href="https://namogangewellness.com/careers"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="h-6 px-2 bg-white border border-zinc-200 rounded text-[10px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors flex items-center gap-1 shadow-2xs"
-            >
-              <ExternalLink className="w-3 h-3" /> Open Site
-            </a>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              Live Connected API
+            {careerSiteBaseUrl && (
+              <>
+                <button
+                  onClick={copyPortalLink}
+                  className="h-6 px-2 bg-white border border-zinc-200 rounded text-[10px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors flex items-center gap-1 shadow-2xs"
+                >
+                  <Copy className="w-3 h-3" /> Copy Link
+                </button>
+                <a
+                  href={careerSiteBaseUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-6 px-2 bg-white border border-zinc-200 rounded text-[10px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors flex items-center gap-1 shadow-2xs"
+                >
+                  <ExternalLink className="w-3 h-3" /> Open Site
+                </a>
+              </>
+            )}
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border ${isCareerSiteConnected ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-zinc-100 text-zinc-500 border-zinc-200'}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${isCareerSiteConnected ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'}`}></span>
+              {isCareerSiteConnected ? 'Connected' : 'Not Connected'}
             </span>
           </div>
         </div>
@@ -1165,7 +1208,7 @@ export default function CareerPage() {
                     </td>
 
                     {/* Candidate Name & Contact */}
-                    <td className="py-2.5 px-3">
+                    <td className="py-2.5 px-3 max-w-[210px]">
                       <div className="flex items-center gap-2.5">
                         <div className="relative shrink-0">
                           <img
@@ -1175,11 +1218,11 @@ export default function CareerPage() {
                           />
                           <span className="w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white absolute -bottom-0.5 -right-0.5"></span>
                         </div>
-                        <div className="flex flex-col leading-tight">
-                          <span className="font-bold text-zinc-800 text-[11px] hover:text-indigo-600 transition-colors cursor-pointer" onClick={() => setViewingCandidate(c)}>
+                        <div className="flex flex-col leading-tight min-w-0">
+                          <span className="font-bold text-zinc-800 text-[11px] hover:text-indigo-600 transition-colors cursor-pointer truncate" onClick={() => setViewingCandidate(c)}>
                             {c.name}
                           </span>
-                          <span className="text-[10px] text-zinc-500 flex items-center gap-1">
+                          <span className="text-[10px] text-zinc-500 whitespace-nowrap truncate">
                             {c.email} • {c.phone}
                           </span>
                         </div>
@@ -1187,10 +1230,10 @@ export default function CareerPage() {
                     </td>
 
                     {/* Applied Position */}
-                    <td className="py-2.5 px-3">
+                    <td className="py-2.5 px-3 max-w-[180px]">
                       <div className="flex flex-col">
-                        <span className="font-semibold text-zinc-800 text-[11px] whitespace-nowrap">{c.position}</span>
-                        <span className="text-[10px] text-zinc-500">{c.department}</span>
+                        <span className="font-semibold text-zinc-800 text-[11px] break-words">{c.position}</span>
+                        <span className="text-[10px] text-zinc-500 truncate">{c.department}</span>
                       </div>
                     </td>
 
@@ -1649,13 +1692,20 @@ export default function CareerPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-bold text-zinc-900 text-base">Career Website API & Webhook Integration</h3>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                      API v1.2 Live Connected
-                    </span>
+                    {isCareerSiteConnected ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Connected
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-100 text-zinc-500 border border-zinc-200 shadow-2xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
+                        Not Connected
+                      </span>
+                    )}
                   </div>
                   <p className="text-[11px] text-zinc-500 mt-0.5">
-                    Connect public website career form, manage security tokens, verify field mappings & monitor inbound submissions.
+                    View your connected career site, pull candidate applications, and push job postings &amp; status updates.
                   </p>
                 </div>
               </div>
@@ -1671,39 +1721,47 @@ export default function CareerPage() {
             {/* Top 4-Metric Live Health Ribbon */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 px-5 py-2.5 bg-zinc-50/70 border-b border-zinc-200 text-[11px]">
               <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-100 animate-pulse shrink-0"></div>
+                <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${isCareerSiteConnected ? 'bg-emerald-500 ring-4 ring-emerald-100 animate-pulse' : 'bg-zinc-300'}`}></div>
                 <div>
                   <span className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider block">API Gateway</span>
-                  <span className="font-bold text-zinc-800 text-xs">200 OK (Active)</span>
+                  <span className="font-bold text-zinc-800 text-xs">
+                    {pingResult ? `${pingResult.status === 200 ? '200 OK' : pingResult.status > 0 ? `HTTP ${pingResult.status}` : 'Unreachable'}` : isCareerSiteConnected ? 'Not yet tested' : 'Not Connected'}
+                  </span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Globe className="w-4 h-4 text-indigo-600 shrink-0" />
                 <div>
                   <span className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider block">Linked Website</span>
-                  <a href="https://namogangewellness.com/careers" target="_blank" rel="noreferrer" className="font-bold text-indigo-600 hover:underline text-xs flex items-center gap-1 truncate max-w-[140px]">
-                    namogangewellness.com <ExternalLink className="w-2.5 h-2.5" />
-                  </a>
+                  {careerSiteBaseUrl ? (
+                    <a href={careerSiteBaseUrl} target="_blank" rel="noreferrer" className="font-bold text-indigo-600 hover:underline text-xs flex items-center gap-1 truncate max-w-[140px]">
+                      {shortHostname(careerSiteBaseUrl)} <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  ) : (
+                    <Link href="/dashboard/settings/integrations" className="font-bold text-zinc-500 hover:underline text-xs">
+                      Connect a site &rarr;
+                    </Link>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-purple-600 shrink-0" />
                 <div>
                   <span className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider block">Total Inbound</span>
-                  <span className="font-bold text-zinc-800 text-xs">1,248 Candidates</span>
+                  <span className="font-bold text-zinc-800 text-xs">{candidates.length.toLocaleString('en-IN')} Candidates</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <RefreshCw className={`w-4 h-4 text-emerald-600 shrink-0 ${isSyncing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-4 h-4 text-indigo-600 shrink-0 ${isSyncing ? 'animate-spin' : ''}`} />
                 <div>
-                  <span className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider block">Auto-Sync Mode</span>
-                  <span className="font-bold text-emerald-700 text-xs">Every 5m (Listening)</span>
+                  <span className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider block">Sync Mode</span>
+                  <span className="font-bold text-zinc-800 text-xs">Manual (Sync Website API)</span>
                 </div>
               </div>
             </div>
 
             {/* Clean Tab Navigation Bar */}
-            <div className="flex items-center border-b border-zinc-200 bg-white px-5 gap-1 pt-1 overflow-x-auto text-[11px] font-semibold text-zinc-600">
+            <div className="flex flex-wrap items-center border-b border-zinc-200 bg-white px-5 gap-1 pt-1 text-[11px] font-semibold text-zinc-600">
               <button
                 onClick={() => setActiveModalTab('credentials')}
                 className={`flex items-center gap-1.5 py-2.5 px-3 border-b-2 transition-colors whitespace-nowrap ${activeModalTab === 'credentials'
@@ -1744,7 +1802,7 @@ export default function CareerPage() {
                 <Activity className="w-3.5 h-3.5" />
                 Live Submission Logs
                 <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-zinc-100 text-zinc-600 border border-zinc-200">
-                  {apiLogs.length}
+                  {recentSyncedCandidates.length}
                 </span>
               </button>
             </div>
@@ -1756,193 +1814,142 @@ export default function CareerPage() {
               {activeModalTab === 'credentials' && (
                 <div className="space-y-3 animate-in fade-in duration-150">
 
-                  {/* Card 1: REST API Endpoint */}
-                  <div className="bg-white border border-zinc-200 rounded-lg p-3.5 shadow-2xs">
-                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-100">
-                      <div className="flex items-center gap-1.5">
-                        <Globe className="w-3.5 h-3.5 text-indigo-600" />
-                        <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">REST API Submission Endpoint</h4>
-                      </div>
-                      <span className="text-[10px] font-bold uppercase text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded">
-                        POST (multipart/form-data)
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <div className="flex-1 flex items-center bg-zinc-50 border border-zinc-200 rounded-md overflow-hidden text-xs font-mono">
-                        <span className="px-2.5 py-1.5 bg-zinc-100 border-r border-zinc-200 text-zinc-600 text-[10px] font-bold">
-                          POST
-                        </span>
-                        <input
-                          type="text"
-                          readOnly
-                          value="https://api.crewcam.com/v1/career/namo-gange/submit-application"
-                          className="w-full bg-transparent px-2.5 py-1 text-zinc-800 text-[11px] outline-none font-mono selection:bg-indigo-100"
-                        />
-                      </div>
-                      <button
-                        onClick={() => copyToClipboard('https://api.crewcam.com/v1/career/namo-gange/submit-application', 'API Endpoint')}
-                        className="h-8 px-3 bg-white hover:bg-zinc-50 border border-zinc-200 rounded-md text-[11px] font-semibold text-zinc-700 flex items-center gap-1.5 shadow-2xs shrink-0 transition-colors"
+                  {!primaryCareerSite ? (
+                    <div className="bg-white border border-dashed border-zinc-300 rounded-lg p-5 text-center">
+                      <Globe className="w-6 h-6 text-zinc-300 mx-auto mb-1.5" />
+                      <h4 className="font-bold text-zinc-800 text-xs">No career site connected yet</h4>
+                      <p className="text-[11px] text-zinc-500 mt-1">
+                        Connect your public career website under Settings → Integrations to pull candidate applications here.
+                      </p>
+                      <Link
+                        href="/dashboard/settings/integrations"
+                        className="inline-flex items-center gap-1.5 h-8 px-3 mt-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-[11px] font-semibold transition-colors"
                       >
-                        {copiedKey === 'API Endpoint' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-zinc-500" />}
-                        <span>{copiedKey === 'API Endpoint' ? 'Copied!' : 'Copy Endpoint'}</span>
-                      </button>
+                        Go to Settings → Integrations <ExternalLink className="w-3 h-3" />
+                      </Link>
                     </div>
-                    <p className="text-[10px] text-zinc-400 mt-1.5">
-                      Point your public website career page form action directly to this URL. Submissions are parsed and indexed immediately in real-time.
-                    </p>
-                  </div>
-
-                  {/* Card 2: Bearer Secret Token */}
-                  <div className="bg-white border border-zinc-200 rounded-lg p-3.5 shadow-2xs">
-                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-100">
-                      <div className="flex items-center gap-1.5">
-                        <Key className="w-3.5 h-3.5 text-indigo-600" />
-                        <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">Portal Secret Key (Bearer Authorization Token)</h4>
-                      </div>
-                      <span className="text-[10px] text-zinc-400 flex items-center gap-1">
-                        <ShieldCheck className="w-3 h-3 text-emerald-600" /> AES-256 Encrypted
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <div className="flex-1 flex items-center bg-zinc-50 border border-zinc-200 rounded-md overflow-hidden text-xs font-mono px-2.5 py-1 text-zinc-800">
-                        <span className="truncate text-[11px]">
-                          {showApiKey ? 'cc_live_9f83a8b27c6e11409d784a9e22b01c59' : '••••••••••••••••••••••••••••••••••••••••••••'}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => setShowApiKey(!showApiKey)}
-                        className="h-8 px-2.5 bg-white hover:bg-zinc-50 border border-zinc-200 rounded-md text-[11px] font-semibold text-zinc-700 flex items-center gap-1 shadow-2xs shrink-0 transition-colors"
-                        title={showApiKey ? 'Hide Secret Key' : 'Show Secret Key'}
-                      >
-                        {showApiKey ? <EyeOff className="w-3.5 h-3.5 text-zinc-500" /> : <Eye className="w-3.5 h-3.5 text-zinc-500" />}
-                        <span>{showApiKey ? 'Hide' : 'Show'}</span>
-                      </button>
-                      <button
-                        onClick={() => copyToClipboard('cc_live_9f83a8b27c6e11409d784a9e22b01c59', 'Secret API Key')}
-                        className="h-8 px-3 bg-white hover:bg-zinc-50 border border-zinc-200 rounded-md text-[11px] font-semibold text-zinc-700 flex items-center gap-1.5 shadow-2xs shrink-0 transition-colors"
-                      >
-                        {copiedKey === 'Secret API Key' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-zinc-500" />}
-                        <span>{copiedKey === 'Secret API Key' ? 'Copied!' : 'Copy Key'}</span>
-                      </button>
-                    </div>
-                    <p className="text-[10px] text-zinc-400 mt-1.5">
-                      Include header: <code className="bg-zinc-100 text-zinc-700 px-1.5 py-0.5 rounded border border-zinc-200 font-mono text-[10px]">Authorization: Bearer cc_live_...</code> on every POST submission.
-                    </p>
-                  </div>
-
-                  {/* Card 3: Webhook HMAC Signature Secret */}
-                  <div className="bg-white border border-zinc-200 rounded-lg p-3.5 shadow-2xs">
-                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-100">
-                      <div className="flex items-center gap-1.5">
-                        <Lock className="w-3.5 h-3.5 text-indigo-600" />
-                        <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">Webhook HMAC Signature Secret</h4>
-                      </div>
-                      <span className="text-[10px] text-zinc-400 font-mono">HMAC-SHA256</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <div className="flex-1 flex items-center bg-zinc-50 border border-zinc-200 rounded-md overflow-hidden text-xs font-mono px-2.5 py-1 text-zinc-800">
-                        <span className="truncate text-[11px]">
-                          {showWebhookSecret ? 'whsec_8849bca74e2d398f01a742e917d4' : '••••••••••••••••••••••••••••••••'}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => setShowWebhookSecret(!showWebhookSecret)}
-                        className="h-8 px-2.5 bg-white hover:bg-zinc-50 border border-zinc-200 rounded-md text-[11px] font-semibold text-zinc-700 flex items-center gap-1 shadow-2xs shrink-0 transition-colors"
-                      >
-                        {showWebhookSecret ? <EyeOff className="w-3.5 h-3.5 text-zinc-500" /> : <Eye className="w-3.5 h-3.5 text-zinc-500" />}
-                        <span>{showWebhookSecret ? 'Hide' : 'Show'}</span>
-                      </button>
-                      <button
-                        onClick={() => copyToClipboard('whsec_8849bca74e2d398f01a742e917d4', 'Webhook Secret')}
-                        className="h-8 px-3 bg-white hover:bg-zinc-50 border border-zinc-200 rounded-md text-[11px] font-semibold text-zinc-700 flex items-center gap-1.5 shadow-2xs shrink-0 transition-colors"
-                      >
-                        {copiedKey === 'Webhook Secret' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-zinc-500" />}
-                        <span>{copiedKey === 'Webhook Secret' ? 'Copied!' : 'Copy Secret'}</span>
-                      </button>
-                    </div>
-                    <p className="text-[10px] text-zinc-400 mt-1.5">
-                      Verify inbound payloads from your website backend using the header <code className="bg-zinc-100 text-zinc-700 px-1.5 py-0.5 rounded border border-zinc-200 font-mono text-[10px]">X-CrewCam-Signature</code>.
-                    </p>
-                  </div>
-
-                  {/* Card 4: Allowed Origins & Security Guardrails */}
-                  <div className="bg-white border border-zinc-200 rounded-lg p-3.5 shadow-2xs">
-                    <div className="flex items-center gap-1.5 pb-2 mb-2 border-b border-zinc-100">
-                      <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
-                      <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">CORS Whitelist & Safeguards</h4>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
-                      <div className="p-2.5 bg-zinc-50 border border-zinc-200 rounded-md">
-                        <span className="text-[10px] font-bold text-zinc-500 uppercase block">Allowed Origin Domains</span>
-                        <span className="font-mono text-[11px] text-indigo-700 font-semibold block mt-0.5 truncate">
-                          *.namogangewellness.com
-                        </span>
-                      </div>
-                      <div className="p-2.5 bg-zinc-50 border border-zinc-200 rounded-md">
-                        <span className="text-[10px] font-bold text-zinc-500 uppercase block">Rate Limiting</span>
-                        <span className="font-semibold text-zinc-800 block mt-0.5">
-                          60 submissions / min / IP
-                        </span>
-                      </div>
-                      <div className="p-2.5 bg-zinc-50 border border-zinc-200 rounded-md">
-                        <span className="text-[10px] font-bold text-zinc-500 uppercase block">CV File Restrictions</span>
-                        <span className="font-semibold text-zinc-800 block mt-0.5">
-                          PDF, DOCX (Max 10 MB)
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Card 5: Interactive Gateway Ping */}
-                  <div className="bg-white border border-zinc-200 rounded-lg p-3.5 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center shrink-0">
-                        <Zap className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-zinc-900 text-xs">Live API Gateway Health Diagnostic</h4>
-                        <p className="text-[10px] text-zinc-500">
-                          {pingResult ? (
-                            <span className="text-emerald-700 font-semibold">
-                              ● Connected • Status {pingResult.status} OK • Latency: {pingResult.latency}ms • Tested at {pingResult.timestamp}
+                  ) : (
+                    <>
+                      {/* Card 1: Connected Site */}
+                      <div className="bg-white border border-zinc-200 rounded-lg p-3.5 shadow-2xs">
+                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-100">
+                          <div className="flex items-center gap-1.5">
+                            <Globe className="w-3.5 h-3.5 text-indigo-600" />
+                            <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">Connected Career Site</h4>
+                          </div>
+                          <span className="text-[10px] font-bold uppercase text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded">
+                            {primaryCareerSite.credentials?.siteKey || shortHostname(careerSiteBaseUrl)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <div className="flex-1 flex items-center bg-zinc-50 border border-zinc-200 rounded-md overflow-hidden text-xs font-mono">
+                            <span className="px-2.5 py-1.5 bg-zinc-100 border-r border-zinc-200 text-zinc-600 text-[10px] font-bold">
+                              GET
                             </span>
-                          ) : (
-                            'Test direct latency and reachability from your browser to the ATS inbound router.'
-                          )}
+                            <input
+                              type="text"
+                              readOnly
+                              value={`${careerSiteBaseUrl}${primaryCareerSite.credentials?.applicationsPath || '/api/careers/integrations/applications'}`}
+                              className="w-full bg-transparent px-2.5 py-1 text-zinc-800 text-[11px] outline-none font-mono selection:bg-indigo-100"
+                            />
+                          </div>
+                          <button
+                            onClick={() => copyToClipboard(`${careerSiteBaseUrl}${primaryCareerSite.credentials?.applicationsPath || '/api/careers/integrations/applications'}`, 'Applications Endpoint')}
+                            className="h-8 px-3 bg-white hover:bg-zinc-50 border border-zinc-200 rounded-md text-[11px] font-semibold text-zinc-700 flex items-center gap-1.5 shadow-2xs shrink-0 transition-colors"
+                          >
+                            {copiedKey === 'Applications Endpoint' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-zinc-500" />}
+                            <span>{copiedKey === 'Applications Endpoint' ? 'Copied!' : 'Copy'}</span>
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-zinc-400 mt-1.5">
+                          CrewCam pulls applied candidates from this website by calling this URL — there is no inbound submission endpoint on CrewCam's side. Edit the connection under Settings → Integrations.
                         </p>
                       </div>
-                    </div>
-                    <button
-                      onClick={handlePingAPI}
-                      disabled={isPinging}
-                      className="h-8 px-3 bg-zinc-900 hover:bg-zinc-800 text-white rounded-md text-[11px] font-semibold flex items-center justify-center gap-1.5 shadow-2xs transition-colors shrink-0 disabled:opacity-60"
-                    >
-                      <RefreshCw className={`w-3.5 h-3.5 ${isPinging ? 'animate-spin' : ''}`} />
-                      {isPinging ? (
-                        <span>Pinging Gateway...</span>
-                      ) : (
-                        <span className="flex items-center gap-1">
-                          <Zap className="w-3 h-3 text-amber-400" />
-                          Test Connection Ping
-                        </span>
-                      )}
-                    </button>
-                  </div>
+
+                      {/* Card 2: API Key status */}
+                      <div className="bg-white border border-zinc-200 rounded-lg p-3.5 shadow-2xs">
+                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-100">
+                          <div className="flex items-center gap-1.5">
+                            <Key className="w-3.5 h-3.5 text-indigo-600" />
+                            <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">Website API Key (x-api-key header)</h4>
+                          </div>
+                          <span className="text-[10px] text-zinc-400 flex items-center gap-1">
+                            <ShieldCheck className="w-3 h-3 text-emerald-600" /> Encrypted at rest
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <div className="flex-1 flex items-center bg-zinc-50 border border-zinc-200 rounded-md overflow-hidden text-xs font-mono px-2.5 py-1 text-zinc-800">
+                            <span className="truncate text-[11px]">
+                              {primaryCareerSite.credentials?.apiKey ? '•••••••••••••••••••••••••••••••• (configured)' : 'Not configured'}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-zinc-400 mt-1.5">
+                          Issued by your website, not by CrewCam — sent as the <code className="bg-zinc-100 text-zinc-700 px-1.5 py-0.5 rounded border border-zinc-200 font-mono text-[10px]">x-api-key</code> header on every pull/push call. The real value is never sent back to this screen once saved; update it under Settings → Integrations.
+                        </p>
+                      </div>
+
+                      {/* Card 3: Interactive Gateway Ping */}
+                      <div className="bg-white border border-zinc-200 rounded-lg p-3.5 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center shrink-0">
+                            <Zap className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-zinc-900 text-xs">Live Reachability Check</h4>
+                            <p className="text-[10px] text-zinc-500">
+                              {pingResult ? (
+                                pingResult.status === 200 ? (
+                                  <span className="text-emerald-700 font-semibold">
+                                    ● Reachable • HTTP {pingResult.status} • Latency: {pingResult.latency}ms • Tested at {pingResult.timestamp}
+                                  </span>
+                                ) : (
+                                  <span className="text-rose-600 font-semibold">
+                                    ● {pingResult.status > 0 ? `HTTP ${pingResult.status}` : 'Unreachable'} • Tested at {pingResult.timestamp}
+                                  </span>
+                                )
+                              ) : (
+                                "Sends a real GET request from CrewCam's server to this site's jobs endpoint and times the response."
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={handlePingAPI}
+                          disabled={isPinging}
+                          className="h-8 px-3 bg-zinc-900 hover:bg-zinc-800 text-white rounded-md text-[11px] font-semibold flex items-center justify-center gap-1.5 shadow-2xs transition-colors shrink-0 disabled:opacity-60"
+                        >
+                          <RefreshCw className={`w-3.5 h-3.5 ${isPinging ? 'animate-spin' : ''}`} />
+                          {isPinging ? (
+                            <span>Pinging...</span>
+                          ) : (
+                            <span className="flex items-center gap-1">
+                              <Zap className="w-3 h-3 text-amber-400" />
+                              Test Connection Ping
+                            </span>
+                          )}
+                        </button>
+                      </div>
+                    </>
+                  )}
 
                 </div>
               )}
 
-              {/* TAB 2: INBOUND FORM SCHEMA & FIELD MAPPING */}
+              {/* TAB 2: APPLICATIONS RESPONSE SCHEMA */}
               {activeModalTab === 'fields' && (
                 <div className="space-y-3 animate-in fade-in duration-150">
                   <div className="bg-white border border-zinc-200 rounded-lg p-3.5 shadow-2xs">
                     <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-100">
                       <div className="flex items-center gap-1.5">
                         <Layers className="w-3.5 h-3.5 text-indigo-600" />
-                        <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">Expected Form Keys & Data Types</h4>
+                        <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">Fields CrewCam Reads Per Application</h4>
                       </div>
-                      <span className="text-[10px] text-zinc-400">Content-Type: multipart/form-data</span>
+                      <span className="text-[10px] text-zinc-400">GET {primaryCareerSite?.credentials?.applicationsPath || '/api/careers/integrations/applications'}</span>
                     </div>
+                    <p className="text-[10px] text-zinc-500 mb-2">
+                      Your website isn't sent anything — CrewCam calls this URL (with the <code className="bg-zinc-100 text-zinc-700 px-1 py-0.5 rounded border border-zinc-200 font-mono text-[10px]">x-api-key</code> header) and expects a JSON array shaped like this for each candidate who applied.
+                    </p>
 
                     <div className="border border-zinc-200 rounded-md overflow-hidden text-[11px]">
                       <table className="w-full text-left border-collapse">
@@ -1950,77 +1957,31 @@ export default function CareerPage() {
                           <tr>
                             <th className="py-2 px-3">Field Key</th>
                             <th className="py-2 px-3">Type</th>
-                            <th className="py-2 px-3">Requirement</th>
-                            <th className="py-2 px-3">Allowed Formats</th>
                             <th className="py-2 px-3">Description</th>
-                            <th className="py-2 px-3">Sample Value</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-100 text-zinc-700">
-                          <tr className="hover:bg-zinc-50/60">
-                            <td className="py-2 px-3 font-mono font-bold text-indigo-600">name</td>
-                            <td className="py-2 px-3">String</td>
-                            <td className="py-2 px-3"><span className="text-rose-600 font-bold text-[10px]">Required</span></td>
-                            <td className="py-2 px-3">Text (2 - 80 chars)</td>
-                            <td className="py-2 px-3">Full legal name of candidate</td>
-                            <td className="py-2 px-3 font-mono text-[10px] text-zinc-500">"Rohit Sharma"</td>
-                          </tr>
-                          <tr className="hover:bg-zinc-50/60">
-                            <td className="py-2 px-3 font-mono font-bold text-indigo-600">email</td>
-                            <td className="py-2 px-3">Email</td>
-                            <td className="py-2 px-3"><span className="text-rose-600 font-bold text-[10px]">Required</span></td>
-                            <td className="py-2 px-3">Valid RFC 5322 Email</td>
-                            <td className="py-2 px-3">Primary candidate contact email</td>
-                            <td className="py-2 px-3 font-mono text-[10px] text-zinc-500">"rohit.s@gmail.com"</td>
-                          </tr>
-                          <tr className="hover:bg-zinc-50/60">
-                            <td className="py-2 px-3 font-mono font-bold text-indigo-600">phone</td>
-                            <td className="py-2 px-3">String</td>
-                            <td className="py-2 px-3"><span className="text-rose-600 font-bold text-[10px]">Required</span></td>
-                            <td className="py-2 px-3">10-15 Digits (+Country)</td>
-                            <td className="py-2 px-3">Contact mobile phone number</td>
-                            <td className="py-2 px-3 font-mono text-[10px] text-zinc-500">"+91 9876543210"</td>
-                          </tr>
-                          <tr className="hover:bg-zinc-50/60">
-                            <td className="py-2 px-3 font-mono font-bold text-indigo-600">position</td>
-                            <td className="py-2 px-3">String</td>
-                            <td className="py-2 px-3"><span className="text-rose-600 font-bold text-[10px]">Required</span></td>
-                            <td className="py-2 px-3">Role Title</td>
-                            <td className="py-2 px-3">Applied position title</td>
-                            <td className="py-2 px-3 font-mono text-[10px] text-zinc-500">"Senior Full Stack Developer"</td>
-                          </tr>
-                          <tr className="hover:bg-zinc-50/60">
-                            <td className="py-2 px-3 font-mono font-bold text-indigo-600">branch</td>
-                            <td className="py-2 px-3">String</td>
-                            <td className="py-2 px-3"><span className="text-zinc-400 font-semibold text-[10px]">Optional</span></td>
-                            <td className="py-2 px-3">Branch Name or ID</td>
-                            <td className="py-2 px-3">Preferred company work branch</td>
-                            <td className="py-2 px-3 font-mono text-[10px] text-zinc-500">"Head Office - New Delhi"</td>
-                          </tr>
-                          <tr className="hover:bg-zinc-50/60">
-                            <td className="py-2 px-3 font-mono font-bold text-indigo-600">experience</td>
-                            <td className="py-2 px-3">String</td>
-                            <td className="py-2 px-3"><span className="text-zinc-400 font-semibold text-[10px]">Optional</span></td>
-                            <td className="py-2 px-3">Years/Months string</td>
-                            <td className="py-2 px-3">Total work experience</td>
-                            <td className="py-2 px-3 font-mono text-[10px] text-zinc-500">"4.5 Yrs"</td>
-                          </tr>
-                          <tr className="hover:bg-zinc-50/60">
-                            <td className="py-2 px-3 font-mono font-bold text-indigo-600">noticePeriod</td>
-                            <td className="py-2 px-3">String</td>
-                            <td className="py-2 px-3"><span className="text-zinc-400 font-semibold text-[10px]">Optional</span></td>
-                            <td className="py-2 px-3">Duration string</td>
-                            <td className="py-2 px-3">Notice period required to join</td>
-                            <td className="py-2 px-3 font-mono text-[10px] text-zinc-500">"15 Days"</td>
-                          </tr>
-                          <tr className="hover:bg-zinc-50/60">
-                            <td className="py-2 px-3 font-mono font-bold text-indigo-600">resume</td>
-                            <td className="py-2 px-3">Binary File</td>
-                            <td className="py-2 px-3"><span className="text-rose-600 font-bold text-[10px]">Required</span></td>
-                            <td className="py-2 px-3">.pdf, .doc, .docx (≤10MB)</td>
-                            <td className="py-2 px-3">Candidate Resume / CV file</td>
-                            <td className="py-2 px-3 font-mono text-[10px] text-zinc-500">"Rohit_Sharma_CV.pdf"</td>
-                          </tr>
+                          {[
+                            ['_id', 'String', 'Application record id on the website'],
+                            ['applicationId', 'String', 'Human-readable application reference'],
+                            ['jobId / jobTitle', 'String', 'The job this application was submitted against'],
+                            ['status', 'String', "Candidate's own progress on the public apply form"],
+                            ['submittedAt', 'ISO Date', 'When the application was submitted'],
+                            ['matchScore', 'Number', 'AI screening match score (0-100), if scored'],
+                            ['candidate.name / email / phone', 'String', 'Primary contact details'],
+                            ['candidate.location', 'String', 'Current location'],
+                            ['candidate.resumeUrl / resumeFileName', 'String', 'CV file hosted on the website'],
+                            ['candidate.skills / education / experience', 'Array', 'Structured resume data'],
+                            ['candidate.currentCompany / currentDesignation', 'String', 'Current employment'],
+                            ['candidate.totalExperience / noticePeriod', 'String', 'Experience & notice period'],
+                            ['candidate.currentCTC / expectedCTC', 'String', 'Compensation details'],
+                          ].map(([key, type, desc]) => (
+                            <tr key={key} className="hover:bg-zinc-50/60">
+                              <td className="py-2 px-3 font-mono font-bold text-indigo-600">{key}</td>
+                              <td className="py-2 px-3">{type}</td>
+                              <td className="py-2 px-3">{desc}</td>
+                            </tr>
+                          ))}
                         </tbody>
                       </table>
                     </div>
@@ -2029,18 +1990,22 @@ export default function CareerPage() {
                   {/* Schema Preview / Copy Card */}
                   <div className="bg-white border border-zinc-200 rounded-lg p-3.5 shadow-2xs">
                     <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-100">
-                      <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">Sample JSON Representation</h4>
+                      <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">Sample Response Shape</h4>
                       <button
                         onClick={() => {
                           const jsonSample = JSON.stringify({
-                            name: "Rohit Sharma",
-                            email: "rohit.s@gmail.com",
-                            phone: "+91 9876543210",
-                            position: "Senior Full Stack Developer",
-                            branch: "Head Office - New Delhi",
-                            experience: "4.5 Yrs",
-                            noticePeriod: "15 Days",
-                            resume: "<binary multipart data>"
+                            success: true,
+                            count: 1,
+                            data: [{
+                              _id: '...', applicationId: 'APP-1024', jobId: '...', jobTitle: 'Senior Full Stack Developer',
+                              status: 'SUBMITTED', submittedAt: '2026-10-20T10:15:00.000Z', matchScore: 82,
+                              candidate: {
+                                name: 'Rohit Sharma', email: 'rohit.s@gmail.com', phone: '+91 9876543210',
+                                location: 'New Delhi', resumeUrl: 'https://.../Rohit_Sharma_CV.pdf',
+                                resumeFileName: 'Rohit_Sharma_CV.pdf', skills: ['Node.js', 'React'],
+                                totalExperience: '4.5 Yrs', noticePeriod: '15 Days',
+                              },
+                            }],
                           }, null, 2);
                           copyToClipboard(jsonSample, 'JSON Schema');
                         }}
@@ -2051,14 +2016,25 @@ export default function CareerPage() {
                     </div>
                     <pre className="p-3 bg-zinc-900 text-zinc-200 rounded-md font-mono text-[10.5px] overflow-x-auto leading-relaxed">
                       {`{
-  "name": "Rohit Sharma",
-  "email": "rohit.s@gmail.com",
-  "phone": "+91 9876543210",
-  "position": "Senior Full Stack Developer",
-  "branch": "Head Office - New Delhi",
-  "experience": "4.5 Yrs",
-  "noticePeriod": "15 Days",
-  "resume": "(binary file: application/pdf)"
+  "success": true,
+  "count": 1,
+  "data": [{
+    "applicationId": "APP-1024",
+    "jobTitle": "Senior Full Stack Developer",
+    "status": "SUBMITTED",
+    "submittedAt": "2026-10-20T10:15:00.000Z",
+    "matchScore": 82,
+    "candidate": {
+      "name": "Rohit Sharma",
+      "email": "rohit.s@gmail.com",
+      "phone": "+91 9876543210",
+      "location": "New Delhi",
+      "resumeUrl": "https://.../Rohit_Sharma_CV.pdf",
+      "skills": ["Node.js", "React"],
+      "totalExperience": "4.5 Yrs",
+      "noticePeriod": "15 Days"
+    }
+  }]
 }`}
                     </pre>
                   </div>
@@ -2066,223 +2042,115 @@ export default function CareerPage() {
               )}
 
               {/* TAB 3: DEVELOPER CODE SNIPPETS */}
-              {activeModalTab === 'snippets' && (
-                <div className="space-y-3 animate-in fade-in duration-150">
-                  <div className="bg-white border border-zinc-200 rounded-lg p-3.5 shadow-2xs">
+              {activeModalTab === 'snippets' && (() => {
+                const base = careerSiteBaseUrl || 'https://your-career-site.example.com';
+                const applicationsPath = primaryCareerSite?.credentials?.applicationsPath || '/api/careers/integrations/applications';
+                const jobsPath = primaryCareerSite?.credentials?.jobsPath || '/api/careers/jobs';
+                const postPath = primaryCareerSite?.credentials?.postPath || '/api/careers/integrations/jobs';
+                const snippets: Record<typeof codeTab, string> = {
+                  pull: `# What CrewCam's backend runs to pull applied candidates from your site\ncurl -X GET "${base}${applicationsPath}" \\\n  -H "x-api-key: YOUR_WEBSITE_API_KEY"\n\n# Supports ?since=<ISO date> to fetch only what changed since the last sync.\n# Your website must implement this route and return the shape shown in the\n# "Inbound Form Schema" tab. Triggered by "Sync Website API" / "Trigger Instant Sync Now".`,
+                  'push-status': `# What CrewCam's backend runs when a candidate's HR status changes here\ncurl -X PATCH "${base}${applicationsPath}/:applicationId/status" \\\n  -H "x-api-key: YOUR_WEBSITE_API_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d '{ "hrStatus": "SHORTLISTED" }'\n\n# Keeps the candidate's recruitment-stage status in sync on your website\n# whenever it changes in CrewCam. Fired automatically — no manual step needed.`,
+                  'push-job': `# What CrewCam's backend runs when you post a job to this site\ncurl -X POST "${base}${postPath}" \\\n  -H "x-api-key: YOUR_WEBSITE_API_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d '{\n    "title": "Senior Full Stack Developer",\n    "department": "Engineering",\n    "location": "Head Office - New Delhi",\n    "status": "OPEN"\n  }'\n\n# Your website should upsert on CrewCam's job id (sent as "_id" on updates)\n# so re-sending the same job updates it instead of duplicating it.\n# CrewCam reads jobs back the same way it reads applications: GET ${base}${jobsPath}`,
+                };
+                return (
+                  <div className="space-y-3 animate-in fade-in duration-150">
+                    <div className="bg-white border border-zinc-200 rounded-lg p-3.5 shadow-2xs">
 
-                    {/* Language Switcher Bar */}
-                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-100">
-                      <div className="flex items-center gap-1.5">
-                        <Terminal className="w-3.5 h-3.5 text-indigo-600" />
-                        <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">Select Implementation Language</h4>
+                      {/* Call Switcher Bar */}
+                      <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-100 flex-wrap gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <Terminal className="w-3.5 h-3.5 text-indigo-600" />
+                          <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">Real Server-to-Server Calls</h4>
+                        </div>
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <button
+                            onClick={() => setCodeTab('pull')}
+                            className={`px-2.5 py-1 rounded text-[10px] font-semibold transition-colors ${codeTab === 'pull' ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                              }`}
+                          >
+                            Pull Applications
+                          </button>
+                          <button
+                            onClick={() => setCodeTab('push-status')}
+                            className={`px-2.5 py-1 rounded text-[10px] font-semibold transition-colors ${codeTab === 'push-status' ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                              }`}
+                          >
+                            Push Status Update
+                          </button>
+                          <button
+                            onClick={() => setCodeTab('push-job')}
+                            className={`px-2.5 py-1 rounded text-[10px] font-semibold transition-colors ${codeTab === 'push-job' ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                              }`}
+                          >
+                            Post Job
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <p className="text-[10px] text-zinc-500 mb-2">
+                        These three calls are the entire integration — all made by CrewCam's own backend, not by code running on your website. There is no front-end form, submission endpoint, or client-side SDK to install.
+                      </p>
+
+                      {/* Code Container */}
+                      <div className="relative">
+                        <pre className="p-3.5 bg-zinc-900 text-zinc-100 rounded-lg font-mono text-[10.5px] overflow-x-auto leading-relaxed border border-zinc-800">
+                          {snippets[codeTab]}
+                        </pre>
                         <button
-                          onClick={() => setCodeTab('js')}
-                          className={`px-2.5 py-1 rounded text-[10px] font-semibold transition-colors ${codeTab === 'js' ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
-                            }`}
+                          onClick={() => copyToClipboard(snippets[codeTab], `${codeTab} snippet`)}
+                          className="absolute top-2.5 right-2.5 px-2 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-[10px] font-semibold border border-zinc-700 transition-colors flex items-center gap-1 shadow-2xs"
                         >
-                          JavaScript (Fetch)
-                        </button>
-                        <button
-                          onClick={() => setCodeTab('react')}
-                          className={`px-2.5 py-1 rounded text-[10px] font-semibold transition-colors ${codeTab === 'react' ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
-                            }`}
-                        >
-                          React / Next.js
-                        </button>
-                        <button
-                          onClick={() => setCodeTab('curl')}
-                          className={`px-2.5 py-1 rounded text-[10px] font-semibold transition-colors ${codeTab === 'curl' ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
-                            }`}
-                        >
-                          cURL
-                        </button>
-                        <button
-                          onClick={() => setCodeTab('html')}
-                          className={`px-2.5 py-1 rounded text-[10px] font-semibold transition-colors ${codeTab === 'html' ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
-                            }`}
-                        >
-                          HTML Form
-                        </button>
-                        <button
-                          onClick={() => setCodeTab('php')}
-                          className={`px-2.5 py-1 rounded text-[10px] font-semibold transition-colors ${codeTab === 'php' ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
-                            }`}
-                        >
-                          PHP / WordPress
+                          <Copy className="w-3 h-3" /> Copy Snippet
                         </button>
                       </div>
-                    </div>
-
-                    {/* Code Container */}
-                    <div className="relative">
-                      <pre className="p-3.5 bg-zinc-900 text-zinc-100 rounded-lg font-mono text-[10.5px] overflow-x-auto leading-relaxed border border-zinc-800">
-                        {codeTab === 'js' && `// Client-side or Node.js JavaScript Submission
-const formElement = document.querySelector('#career-portal-form');
-const resumeFileInput = document.querySelector('#resume-file-input');
-
-const formData = new FormData();
-formData.append('name', formElement.name.value);
-formData.append('email', formElement.email.value);
-formData.append('phone', formElement.phone.value);
-formData.append('position', formElement.position.value);
-formData.append('branch', 'Head Office - New Delhi');
-formData.append('experience', '4.5 Yrs');
-formData.append('noticePeriod', '15 Days');
-formData.append('resume', resumeFileInput.files[0]);
-
-const response = await fetch('https://api.crewcam.com/v1/career/namo-gange/submit-application', {
-  method: 'POST',
-  headers: {
-    'Authorization': 'Bearer cc_live_9f83a8b27c6e11409d784a9e22b01c59'
-  },
-  body: formData
-});
-
-const result = await response.json();
-console.log('Application Submitted Successfully:', result);`}
-
-                        {codeTab === 'react' && `// Next.js / React Handler with Axios
-import axios from 'axios';
-
-export async function submitCareerApplication(candidateData: any, file: File) {
-  const data = new FormData();
-  data.append('name', candidateData.name);
-  data.append('email', candidateData.email);
-  data.append('phone', candidateData.phone);
-  data.append('position', candidateData.position);
-  data.append('branch', candidateData.branch || 'Head Office - New Delhi');
-  data.append('resume', file);
-
-  const res = await axios.post(
-    'https://api.crewcam.com/v1/career/namo-gange/submit-application',
-    data,
-    {
-      headers: {
-        'Authorization': 'Bearer cc_live_9f83a8b27c6e11409d784a9e22b01c59',
-        'Content-Type': 'multipart/form-data'
-      }
-    }
-  );
-  return res.data;
-}`}
-
-                        {codeTab === 'curl' && `# cURL CLI Test Command
-curl -X POST https://api.crewcam.com/v1/career/namo-gange/submit-application \\
-  -H "Authorization: Bearer cc_live_9f83a8b27c6e11409d784a9e22b01c59" \\
-  -F "name=Rohit Sharma" \\
-  -F "email=rohit.s@gmail.com" \\
-  -F "phone=+919876543210" \\
-  -F "position=Senior Full Stack Developer" \\
-  -F "branch=Head Office - New Delhi" \\
-  -F "experience=4.5 Yrs" \\
-  -F "noticePeriod=15 Days" \\
-  -F "resume=@/path/to/Rohit_Sharma_CV.pdf"`}
-
-                        {codeTab === 'html' && `<!-- Plain HTML5 Career Submission Form -->
-<form action="https://api.crewcam.com/v1/career/namo-gange/submit-application" method="POST" enctype="multipart/form-data">
-  <!-- Note: When submitting via HTML form action directly, authorize via API reverse proxy or CORS server -->
-  <input type="text" name="name" placeholder="Full Name" required />
-  <input type="email" name="email" placeholder="Email Address" required />
-  <input type="tel" name="phone" placeholder="Phone Number" required />
-  <input type="text" name="position" value="Senior Full Stack Developer" required />
-  <input type="text" name="branch" value="Head Office - New Delhi" />
-  <input type="file" name="resume" accept=".pdf,.docx" required />
-  
-  <button type="submit">Submit Career Application</button>
-</form>`}
-
-                        {codeTab === 'php' && `<?php
-// WordPress Functions.php or Custom PHP Endpoint
-$apiUrl = 'https://api.crewcam.com/v1/career/namo-gange/submit-application';
-$apiToken = 'cc_live_9f83a8b27c6e11409d784a9e22b01c59';
-
-$cFile = new CURLFile($_FILES['resume']['tmp_name'], $_FILES['resume']['type'], $_FILES['resume']['name']);
-
-$postData = [
-  'name'         => sanitize_text_field($_POST['name']),
-  'email'        => sanitize_email($_POST['email']),
-  'phone'        => sanitize_text_field($_POST['phone']),
-  'position'     => sanitize_text_field($_POST['position']),
-  'branch'       => sanitize_text_field($_POST['branch']),
-  'resume'       => $cFile
-];
-
-$ch = curl_init($apiUrl);
-curl_setopt($ch, CURLOPT_POST, 1);
-curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-  'Authorization: Bearer ' . $apiToken
-]);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-$response = curl_exec($ch);
-curl_close($ch);
-?>`}
-                      </pre>
-                      <button
-                        onClick={() => {
-                          const snippets: Record<string, string> = {
-                            js: `const formElement = document.querySelector('#career-portal-form');\nconst resumeFileInput = document.querySelector('#resume-file-input');\n\nconst formData = new FormData();\nformData.append('name', formElement.name.value);\nformData.append('email', formElement.email.value);\nformData.append('phone', formElement.phone.value);\nformData.append('position', formElement.position.value);\nformData.append('branch', 'Head Office - New Delhi');\nformData.append('experience', '4.5 Yrs');\nformData.append('noticePeriod', '15 Days');\nformData.append('resume', resumeFileInput.files[0]);\n\nconst response = await fetch('https://api.crewcam.com/v1/career/namo-gange/submit-application', {\n  method: 'POST',\n  headers: { 'Authorization': 'Bearer cc_live_9f83a8b27c6e11409d784a9e22b01c59' },\n  body: formData\n});\nconst result = await response.json();`,
-                            react: `import axios from 'axios';\n\nexport async function submitCareerApplication(candidateData: any, file: File) {\n  const data = new FormData();\n  data.append('name', candidateData.name);\n  data.append('email', candidateData.email);\n  data.append('phone', candidateData.phone);\n  data.append('position', candidateData.position);\n  data.append('branch', candidateData.branch || 'Head Office - New Delhi');\n  data.append('resume', file);\n\n  const res = await axios.post(\n    'https://api.crewcam.com/v1/career/namo-gange/submit-application',\n    data,\n    { headers: { 'Authorization': 'Bearer cc_live_9f83a8b27c6e11409d784a9e22b01c59', 'Content-Type': 'multipart/form-data' } }\n  );\n  return res.data;\n}`,
-                            curl: `curl -X POST https://api.crewcam.com/v1/career/namo-gange/submit-application \\\n  -H "Authorization: Bearer cc_live_9f83a8b27c6e11409d784a9e22b01c59" \\\n  -F "name=Rohit Sharma" \\\n  -F "email=rohit.s@gmail.com" \\\n  -F "phone=+919876543210" \\\n  -F "position=Senior Full Stack Developer" \\\n  -F "branch=Head Office - New Delhi" \\\n  -F "experience=4.5 Yrs" \\\n  -F "noticePeriod=15 Days" \\\n  -F "resume=@/path/to/Rohit_Sharma_CV.pdf"`,
-                            html: `<form action="https://api.crewcam.com/v1/career/namo-gange/submit-application" method="POST" enctype="multipart/form-data">\n  <input type="text" name="name" placeholder="Full Name" required />\n  <input type="email" name="email" placeholder="Email Address" required />\n  <input type="tel" name="phone" placeholder="Phone Number" required />\n  <input type="text" name="position" value="Senior Full Stack Developer" required />\n  <input type="text" name="branch" value="Head Office - New Delhi" />\n  <input type="file" name="resume" accept=".pdf,.docx" required />\n  <button type="submit">Submit Career Application</button>\n</form>`,
-                            php: `<?php\n$apiUrl = 'https://api.crewcam.com/v1/career/namo-gange/submit-application';\n$apiToken = 'cc_live_9f83a8b27c6e11409d784a9e22b01c59';\n\n$cFile = new CURLFile($_FILES['resume']['tmp_name'], $_FILES['resume']['type'], $_FILES['resume']['name']);\n\n$postData = [\n  'name'         => sanitize_text_field($_POST['name']),\n  'email'        => sanitize_email($_POST['email']),\n  'phone'        => sanitize_text_field($_POST['phone']),\n  'position'     => sanitize_text_field($_POST['position']),\n  'branch'       => sanitize_text_field($_POST['branch']),\n  'resume'       => $cFile\n];\n\n$ch = curl_init($apiUrl);\ncurl_setopt($ch, CURLOPT_POST, 1);\ncurl_setopt($ch, CURLOPT_POSTFIELDS, $postData);\ncurl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $apiToken]);\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, true);\n$response = curl_exec($ch);\ncurl_close($ch);\n?>`
-                          };
-                          copyToClipboard(snippets[codeTab], `${codeTab.toUpperCase()} Code Snippet`);
-                        }}
-                        className="absolute top-2.5 right-2.5 px-2 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-[10px] font-semibold border border-zinc-700 transition-colors flex items-center gap-1 shadow-2xs"
-                      >
-                        <Copy className="w-3 h-3" /> Copy Snippet
-                      </button>
                     </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
-              {/* TAB 4: LIVE WEBHOOK & SUBMISSION AUDIT LOGS */}
+              {/* TAB 4: RECENT SYNCED CANDIDATES */}
               {activeModalTab === 'logs' && (
                 <div className="space-y-3 animate-in fade-in duration-150">
                   <div className="bg-white border border-zinc-200 rounded-lg p-3.5 shadow-2xs">
                     <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-100">
                       <div className="flex items-center gap-1.5">
                         <Activity className="w-3.5 h-3.5 text-indigo-600" />
-                        <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">Recent Inbound API Calls</h4>
+                        <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide">Recently Synced Candidates</h4>
                       </div>
-                      <span className="text-[10px] text-zinc-500 font-medium">Real-time HTTP 201 Logs</span>
+                      <span className="text-[10px] text-zinc-500 font-medium">From your connected career site(s)</span>
                     </div>
 
                     <div className="border border-zinc-200 rounded-md overflow-hidden text-[11px]">
                       <table className="w-full text-left border-collapse">
                         <thead className="bg-zinc-50 border-b border-zinc-200 text-[10px] text-zinc-500 uppercase font-bold">
                           <tr>
-                            <th className="py-2 px-2.5">Log ID</th>
-                            <th className="py-2 px-2.5">Timestamp</th>
                             <th className="py-2 px-2.5">Candidate Name</th>
                             <th className="py-2 px-2.5">Position</th>
+                            <th className="py-2 px-2.5">Applied</th>
                             <th className="py-2 px-2.5 text-center">Status</th>
-                            <th className="py-2 px-2.5">Latency</th>
-                            <th className="py-2 px-2.5">Client IP</th>
-                            <th className="py-2 px-2.5 text-center">Payload</th>
+                            <th className="py-2 px-2.5 text-center">Record</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-100 text-zinc-700">
-                          {apiLogs.map((log) => (
-                            <tr key={log.id} className="hover:bg-zinc-50/70 transition-colors">
-                              <td className="py-2 px-2.5 font-mono text-[10px] text-zinc-500 font-semibold">{log.id}</td>
-                              <td className="py-2 px-2.5 text-[10px] text-zinc-500 whitespace-nowrap">{log.timestamp}</td>
-                              <td className="py-2 px-2.5 font-bold text-zinc-800 text-[11px] whitespace-nowrap">{log.candidate}</td>
-                              <td className="py-2 px-2.5 text-zinc-600 text-[11px] truncate max-w-[150px]">{log.position}</td>
+                          {recentSyncedCandidates.length === 0 && (
+                            <tr>
+                              <td colSpan={5} className="py-6 text-center text-zinc-400">
+                                No candidates synced from a career site yet.
+                              </td>
+                            </tr>
+                          )}
+                          {recentSyncedCandidates.map((c: any) => (
+                            <tr key={c.id} className="hover:bg-zinc-50/70 transition-colors">
+                              <td className="py-2 px-2.5 font-bold text-zinc-800 text-[11px] whitespace-nowrap">{c.name}</td>
+                              <td className="py-2 px-2.5 text-zinc-600 text-[11px] truncate max-w-[150px]">{c.position}</td>
+                              <td className="py-2 px-2.5 text-[10px] text-zinc-500 whitespace-nowrap">{c.appliedDate}</td>
                               <td className="py-2 px-2.5 text-center whitespace-nowrap">
                                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                  201 Created
+                                  {c.statusLabel}
                                 </span>
                               </td>
-                              <td className="py-2 px-2.5 font-mono text-[10px] text-zinc-500">{log.latency}</td>
-                              <td className="py-2 px-2.5 font-mono text-[10px] text-zinc-500">{log.ip}</td>
                               <td className="py-2 px-2.5 text-center whitespace-nowrap">
                                 <button
-                                  onClick={() => setSelectedLogPayload(log)}
+                                  onClick={() => setInspectCandidate(c)}
                                   className="h-6 px-2 bg-white hover:bg-zinc-50 border border-zinc-200 rounded text-[10px] font-semibold text-indigo-600 shadow-2xs transition-colors"
                                 >
                                   Inspect JSON
@@ -2295,25 +2163,25 @@ curl_close($ch);
                     </div>
                   </div>
 
-                  {/* Selected Log Payload Modal / Inspector */}
-                  {selectedLogPayload && (
+                  {/* Inspect real candidate record */}
+                  {inspectCandidate && (
                     <div className="bg-white border border-zinc-200 rounded-lg p-3.5 shadow-2xs border-l-4 border-l-indigo-600 animate-in fade-in duration-150">
                       <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-100">
                         <div className="flex items-center gap-2">
                           <Code2 className="w-3.5 h-3.5 text-indigo-600" />
                           <h4 className="text-[11px] font-bold text-zinc-800">
-                            Payload Inspector: {selectedLogPayload.id} ({selectedLogPayload.candidate})
+                            Candidate Record: {inspectCandidate.name}
                           </h4>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <button
-                            onClick={() => copyToClipboard(JSON.stringify(selectedLogPayload.payload, null, 2), 'Log Payload')}
+                            onClick={() => copyToClipboard(JSON.stringify(inspectCandidate._raw || inspectCandidate, null, 2), 'Candidate Record')}
                             className="h-6 px-2 bg-zinc-100 hover:bg-zinc-200 rounded text-[10px] font-semibold text-zinc-700 flex items-center gap-1 transition-colors"
                           >
                             <Copy className="w-3 h-3" /> Copy JSON
                           </button>
                           <button
-                            onClick={() => setSelectedLogPayload(null)}
+                            onClick={() => setInspectCandidate(null)}
                             className="p-1 text-zinc-400 hover:text-zinc-700 rounded transition-colors"
                           >
                             <X className="w-3.5 h-3.5" />
@@ -2321,7 +2189,7 @@ curl_close($ch);
                         </div>
                       </div>
                       <pre className="p-3 bg-zinc-900 text-emerald-400 rounded-md font-mono text-[10.5px] overflow-x-auto leading-relaxed">
-                        {JSON.stringify(selectedLogPayload.payload, null, 2)}
+                        {JSON.stringify(inspectCandidate._raw || inspectCandidate, null, 2)}
                       </pre>
                     </div>
                   )}

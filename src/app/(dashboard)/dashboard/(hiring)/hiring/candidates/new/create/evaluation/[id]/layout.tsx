@@ -111,7 +111,7 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
             status: 'HOD Review',
             aiScore: '87%',
             candidateCode: `APP-${candidateId?.slice(-6).toUpperCase() || '100124'}`,
-            profileImageUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026704d'
+            profileImageUrl: ''
           });
         }
       };
@@ -147,7 +147,7 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
         </div>
 
         {/* Steps */}
-        <div className="flex-1 max-w-[480px] w-full flex items-start justify-between relative px-1">
+        <div className="flex-1 max-w-auto w-full flex items-start justify-between relative px-1">
           <div className="absolute left-[16px] right-[16px] top-[9px] h-[2px] bg-zinc-200 -z-0"></div>
           {steps.map((step, idx) => (
             <div key={idx} className="relative z-10 flex flex-col items-center gap-1 px-0.5">
@@ -165,7 +165,7 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
         </div>
 
         {/* Buttons */}
-        <div className="flex items-center gap-1.5 shrink-0 flex-wrap sm:flex-nowrap mt-1 lg:mt-0">
+        <div className="flex items-center gap-1.5 shrink-0 flex-wrap sm:flex-nowrap mt-1 lg:mt-0 lg:ml-auto">
           <Button variant="outline" onClick={() => router.push(`/dashboard/hiring/candidates/new/create/ai-screening-application-evaluation/${candidateId}`)} className="h-7 lg:h-8 px-1 lg:px-1 text-[10px] font-semibold text-indigo-700 border-indigo-200 hover:bg-indigo-50 shadow-sm">
             Back <span className="hidden sm:inline">&nbsp;to AI Screening</span>
           </Button>
@@ -188,9 +188,13 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
               <div className="flex flex-col xl:flex-row gap-4">
 
                 {/* Left: Photo & Contact */}
-                <div className="flex-1 flex gap-3 border-r border-transparent xl:border-zinc-100 xl:pr-4">
-                  <div className="w-[80px] h-[80px] rounded-xl bg-zinc-200 overflow-hidden shrink-0 relative">
-                    <img src={candidate.profileImageUrl || 'https://i.pravatar.cc/150?u=a042581f4e29026704d'} alt="Candidate" className="w-full h-full object-cover" />
+                <div className="flex-1 xl:flex-[1] flex gap-3 border-r border-transparent xl:border-zinc-100 xl:pr-4">
+                  <div className="w-[104px] h-[104px] rounded-xl bg-zinc-200 overflow-hidden shrink-0 relative">
+                    <img
+                      src={candidate.profileImageUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(candidate.fullName || candidate._id || 'candidate')}`}
+                      alt={candidate.fullName || 'Candidate'}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div className="flex flex-col justify-center min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
@@ -199,17 +203,17 @@ export default function HODEvaluationLayout({ children }: { children: React.Reac
                     </div>
                     <p className="text-[12px] text-zinc-600 mb-1.5 font-medium">{candidate.appliedFor}</p>
 
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-y-2 gap-x-4">
+                    <div className="grid grid-cols-1 xl:grid-cols-[auto_minmax(0,1fr)] gap-y-2 gap-x-2">
                       <div className="flex items-center gap-1.5 text-[12px] text-zinc-600 truncate font-medium">
                         <Phone className="w-3.5 h-3.5 text-zinc-400 shrink-0" /> {candidate.mobile}
                       </div>
-                      <div className="flex items-center gap-1.5 text-[12px] text-zinc-600 truncate font-medium">
+                      <div className="flex items-center gap-1.5 text-[12px] text-zinc-600 truncate font-medium min-w-0" title={candidate.email}>
                         <Mail className="w-3.5 h-3.5 text-zinc-400 shrink-0" /> {candidate.email}
                       </div>
                       <div className="flex items-center gap-1.5 text-[12px] text-zinc-600 truncate font-medium">
                         <MapPin className="w-3.5 h-3.5 text-zinc-400 shrink-0" /> {candidate.currentLocation}
                       </div>
-                      <div className="flex items-center gap-1.5 text-[12px] text-indigo-600 truncate font-medium hover:underline cursor-pointer" onClick={() => window.open(candidate.linkedin, '_blank')}>
+                      <div className="flex items-center gap-1.5 text-[12px] text-indigo-600 truncate font-medium min-w-0 hover:underline cursor-pointer" onClick={() => window.open(candidate.linkedin, '_blank')}>
                         <LinkIcon className="w-3.5 h-3.5 shrink-0" /> {candidate.linkedin}
                       </div>
                     </div>

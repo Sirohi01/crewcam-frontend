@@ -183,7 +183,7 @@ export default function PostNewJobPage() {
   const requisitionId = searchParams.get('requisitionId');
   const isPostMode = Boolean(requisitionId);
 
-  const { register, control, handleSubmit, setValue, getValues, watch } = useForm();
+  const { register, control, handleSubmit, setValue, getValues, watch, formState: { errors } } = useForm();
 
   const { data: existingRequest } = useQuery({
     queryKey: ['manpower-request', requisitionId],
@@ -378,6 +378,19 @@ export default function PostNewJobPage() {
     }
   };
 
+  // Department / Designation / Job Location are required (see the Controller `rules` below), so
+  // react-hook-form blocks the submit whenever they're empty — but with no formState.errors ever
+  // read anywhere, that block was completely silent: clicking "Post to Selected Channels" did
+  // nothing visible at all. This is react-hook-form's second handleSubmit callback, fired
+  // instead of onSubmit specifically when validation fails.
+  const FIELD_LABELS: Record<string, string> = {
+    jobTitle: 'Job Title', departmentId: 'Department', designationId: 'Designation', locationBranchId: 'Job Location',
+  };
+  const onInvalid = (formErrors: any) => {
+    const missing = Object.keys(formErrors).map((key) => FIELD_LABELS[key] || key);
+    toast.error(`Please fill in the required field${missing.length > 1 ? 's' : ''}: ${missing.join(', ')}`);
+  };
+
   return (
     <div className="font-sans">
       <div className="mx-auto max-w-[1500px] p-1">
@@ -396,11 +409,14 @@ export default function PostNewJobPage() {
             </div>
 
             {/* Form */}
-            <form id="jobForm" className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
+            <form id="jobForm" className="space-y-2" onSubmit={handleSubmit(onSubmit, onInvalid)}>
               <SectionCard number={1} title="Job Details">
                 <div className="grid grid-cols-1 gap-2 lg:grid-cols-[2fr_1fr]">
                   <div className="grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-3">
-                    <Field title="Job Title" required><FormInput variant="hiring" placeholder="Enter job title" {...register('jobTitle', { required: true })} /></Field>
+                    <Field title="Job Title" required>
+                      <FormInput variant="hiring" placeholder="Enter job title" {...register('jobTitle', { required: true })} />
+                      {errors.jobTitle && <p className="mt-0.5 text-[10px] font-medium text-rose-500">Job Title is required.</p>}
+                    </Field>
                     <Field title="Job Code"><FormInput variant="hiring" className="bg-zinc-50 text-zinc-800" readOnly {...register('jobCode')} /></Field>
                     <Field title="Department" required>
                       <Controller
@@ -411,6 +427,7 @@ export default function PostNewJobPage() {
                           <ApiSelect apiType="department" className={selectCls} placeholderText="Select Department" value={field.value || ''} onChange={(e) => field.onChange(e.target.value)} />
                         )}
                       />
+                      {errors.departmentId && <p className="mt-0.5 text-[10px] font-medium text-rose-500">Department is required.</p>}
                     </Field>
 
                     <Field title="Designation" required>
@@ -422,6 +439,7 @@ export default function PostNewJobPage() {
                           <ApiSelect apiType="designation" className={selectCls} placeholderText="Select Designation" value={field.value || ''} onChange={(e) => field.onChange(e.target.value)} />
                         )}
                       />
+                      {errors.designationId && <p className="mt-0.5 text-[10px] font-medium text-rose-500">Designation is required.</p>}
                     </Field>
                     <SelectField title="Job Category" required options={['Select Category', 'Full Time', 'Internship']} {...register('jobCategory')} />
                     <SelectField title="Employment Type" required options={['Select Employment Type', 'Permanent', 'Contract']} {...register('employmentType')} />
@@ -435,6 +453,7 @@ export default function PostNewJobPage() {
                           <ApiSelect apiType="branch" className={selectCls} placeholderText="Select Location" value={field.value || ''} onChange={(e) => field.onChange(e.target.value)} />
                         )}
                       />
+                      {errors.locationBranchId && <p className="mt-0.5 text-[10px] font-medium text-rose-500">Job Location is required.</p>}
                     </Field>
                     <SelectField title="Work Mode" required options={['Select Work Mode', 'On-site', 'Remote', 'Hybrid']} {...register('workMode')} />
                     <Field title="No. of Openings" required><FormInput variant="hiring" placeholder="Enter number of openings" {...register('numberOfPositions')} /></Field>

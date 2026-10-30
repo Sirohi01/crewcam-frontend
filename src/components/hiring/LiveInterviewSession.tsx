@@ -28,13 +28,11 @@ const RECOMMENDATION_STYLE: Record<string, string> = {
 };
 
 const ROUND_FOCUS: Record<string, string> = {
-  'Walk-In': 'Confirm background accuracy, availability and immediate fit. Keep it quick and simple.',
-  Telephonic: 'First-call screening — gauge communication clarity, motivation and notice period before investing more rounds.',
-  Technical: 'Deep technical assessment — probe hands-on depth in the role’s required skills and real problem-solving.',
-  HR: 'Behavioral and culture fit — past conduct, teamwork, conflict handling and soft-skill scenarios.',
-  'HR & HOD': 'Combined behavioral and role fit — culture fit alongside whether experience matches the job requirements.',
-  Managerial: 'Ownership and leadership — decision-making, prioritization and how they’d approach the key responsibilities.',
-  Final: 'Closing round — career goals, compensation expectations, and any open concerns before an offer.',
+  'AI Screening Interview': 'First-pass screening — gauge communication clarity, motivation and notice period before investing more rounds.',
+  'Technical Interview': 'Deep technical assessment — probe hands-on depth in the role’s required skills and real problem-solving.',
+  'Managerial Interview': 'Ownership and leadership — decision-making, prioritization and how they’d approach the key responsibilities.',
+  'Written Assessment': 'Structured, scenario-based questions answerable in writing — applied knowledge and judgment, not conversation.',
+  'Offer (HR Round)': 'Closing round — career goals, compensation expectations, culture fit, and any open concerns before an offer.',
 };
 
 const STATUS_BADGE: Record<string, string> = {
@@ -106,12 +104,14 @@ export default function LiveInterviewSession({ interviewId }: { interviewId: str
     .filter((iv) => iv._id !== interviewId)
     .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
 
-  const isTelephonic = interview?.roundType === 'Telephonic';
+  // Written Assessment is answered in text, same as the old "Telephonic" round this replaces —
+  // no camera/recording, just typed notes per question.
+  const isTextOnly = interview?.roundType === 'Written Assessment';
   const sessionLive = interview?.status === 'In_Progress';
   const sessionEnded = interview?.status === 'Completed';
 
   useEffect(() => {
-    if (isTelephonic || !interview || sessionEnded) return;
+    if (isTextOnly || !interview || sessionEnded) return;
     let active = true;
     navigator.mediaDevices?.getUserMedia({ video: { width: { ideal: 854 }, height: { ideal: 480 } }, audio: true })
       .then((stream) => {
@@ -126,7 +126,7 @@ export default function LiveInterviewSession({ interviewId }: { interviewId: str
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     };
-  }, [isTelephonic, Boolean(interview), sessionEnded]);
+  }, [isTextOnly, Boolean(interview), sessionEnded]);
 
   const startSession = useMutation({
     mutationFn: async () => (await api.post(`/ai/hiring/interviews/${interviewId}/start`)).data,
@@ -197,7 +197,7 @@ export default function LiveInterviewSession({ interviewId }: { interviewId: str
 
   const activeQuestion = questions[currentIndex];
   const activeRecordingState = recordingStateByIndex[currentIndex] || 'idle';
-  const showSplitLayout = questions.length > 0 && !sessionEnded && !isTelephonic;
+  const showSplitLayout = questions.length > 0 && !sessionEnded && !isTextOnly;
 
   return (
     <div className="mx-auto w-full space-y-4 pb-12">
@@ -233,13 +233,13 @@ export default function LiveInterviewSession({ interviewId }: { interviewId: str
               <Circle size={8} className={sessionLive ? 'fill-purple-500 text-purple-500 animate-pulse' : sessionEnded ? 'fill-emerald-500 text-emerald-500' : 'fill-blue-500 text-blue-500'} />
               {interview.roundType} Round — {interview.status === 'In_Progress' ? 'In Progress' : interview.status.replace('_', ' ')}
             </span>
-            {!isTelephonic && questions.length > 0 && !sessionEnded && (
+            {!isTextOnly && questions.length > 0 && !sessionEnded && (
               <p className="text-[11px] text-zinc-400 mt-1.5">Question {Math.min(currentIndex + 1, questions.length)} of {questions.length}</p>
             )}
           </div>
         </div>
 
-        {!isTelephonic && questions.length > 0 && !sessionEnded && (
+        {!isTextOnly && questions.length > 0 && !sessionEnded && (
           <div className="mt-3 h-1.5 w-full rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
             <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all" style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }} />
           </div>
@@ -317,9 +317,9 @@ export default function LiveInterviewSession({ interviewId }: { interviewId: str
             </Card>
           )}
 
-          {questions.length > 0 && !sessionEnded && isTelephonic && (
+          {questions.length > 0 && !sessionEnded && isTextOnly && (
             <div className="space-y-2.5">
-              <p className="text-xs text-zinc-500">Telephonic round — no camera. Type what the candidate said per question, then end the session for an overall summary.</p>
+              <p className="text-xs text-zinc-500">Written Assessment — no camera. Type what the candidate wrote per question, then end the session for an overall summary.</p>
               {questions.map((q: any, i: number) => (
                 <Card key={i} className="border-zinc-200 shadow-sm dark:border-zinc-800">
                   <CardContent className="p-4 space-y-2.5">

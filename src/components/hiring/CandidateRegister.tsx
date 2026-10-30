@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import {
   Download, Plus, Search, ChevronDown, Check, ChevronLeft, ChevronRight,
   Users, CheckCircle, XCircle, Video, Eye, Link as LinkIcon,
-  Trash, Zap, Edit
+  Trash, Zap, Edit, CalendarClock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -365,6 +365,19 @@ export default function CandidateRegister({
                       </td>
                       <td className="py-2 px-3 text-center">
                         <div className="flex items-center justify-center gap-1.5">
+                          {/* 'Shortlisted' is the display form of real status SHORTLISTED (see the
+                              override above) — set once "Submit Evaluation & Proceed" on HOD
+                              Evaluation approves a candidate (see evaluation/[id]/page.tsx) — so
+                              this only shows once HOD evaluation is actually done. */}
+                          {candidate.status === 'Shortlisted' && (
+                            <button
+                              onClick={() => router.push('/dashboard/hiring/interviews/list')}
+                              className="p-1.5 bg-zinc-50 text-zinc-500 hover:bg-indigo-50 hover:text-indigo-600 border border-zinc-200 hover:border-indigo-200 rounded-md transition-colors"
+                              title="Schedule Interview"
+                            >
+                              <CalendarClock className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                           <button
                             onClick={() => {
                               const path = customViewPath ? customViewPath(candidate._id) : `/dashboard/hiring/candidates/${candidate._id}`;

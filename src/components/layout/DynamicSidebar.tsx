@@ -194,7 +194,12 @@ export default function DynamicSidebar() {
       'Admin UI',
     ]);
 
-    let filteredItems = items.filter(item => !EXCLUDED_LABELS.has(item.label));
+    // Hiring Process should list every step of the pipeline, so the EXCLUDED_LABELS
+    // filter (meant for other sections' duplicate/legacy entries) is skipped for it.
+    let filteredItems = items.filter(item => {
+      if (item.section === 'Hiring Process') return true;
+      return !EXCLUDED_LABELS.has(item.label);
+    });
 
     // When logged in as employee / non-employer role, never show company admin exclusive sections
     if (loginType === 'employee') {

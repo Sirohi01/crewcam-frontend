@@ -14,15 +14,24 @@ import api from '@/lib/axios';
 
 type View = 'new' | 'list' | 'statistics' | 'walk-in' | 'telephonic' | 'hr-hod' | 'final';
 
-const ROUND_TYPES = ['Walk-In', 'Telephonic', 'Technical', 'HR', 'HR & HOD', 'Managerial', 'Final'];
+// The fixed 5-round hiring journey (see interview-process/[id]/page.tsx for the same naming on
+// the candidate-facing side) — replaces the old 7 generic round types (Walk-In, Telephonic, HR,
+// HR & HOD, ...) everywhere an actual Interview gets scheduled.
+const ROUND_TYPES = ['AI Screening Interview', 'Technical Interview', 'Managerial Interview', 'Written Assessment', 'Offer (HR Round)'];
+// Display-only — "Round 1 - AI Screening Interview", "Round 2 - Technical Interview", etc. The
+// underlying value stored and filtered on is still the plain round name (see ROUND_TYPES).
+const roundLabel = (type: string) => {
+  const idx = ROUND_TYPES.indexOf(type);
+  return idx === -1 ? type : `Round ${idx + 1} - ${type}`;
+};
 const VIEW_META: Record<View, { title: string; description: string; rounds?: string[] }> = {
   new: { title: 'Add New Interview', description: 'Schedule a candidate interview with owner, date, mode and location.' },
   list: { title: 'Interview Register', description: 'A separate, candidate-linked interview table for all scheduling, feedback and outcomes.' },
   statistics: { title: 'Interview Statistics', description: 'Live operational summary of interview volume, outcomes and round performance.' },
-  'walk-in': { title: 'Level 1 - Walk-In Round', description: 'Walk-in round queue and outcomes.', rounds: ['Walk-In'] },
-  telephonic: { title: 'Level 1 - Telephonic Round', description: 'First-call screening queue and outcomes.', rounds: ['Telephonic'] },
-  'hr-hod': { title: 'Level 2 - HR & HOD Round', description: 'HR, HOD and managerial evaluation queue.', rounds: ['HR', 'HR & HOD', 'Managerial'] },
-  final: { title: 'Level 3 - HR Final Round', description: 'Final decision-round queue and outcomes.', rounds: ['Final'] },
+  'walk-in': { title: 'Round 1 - AI Screening Interview', description: 'AI screening round queue and outcomes.', rounds: ['AI Screening Interview'] },
+  telephonic: { title: 'Round 1 - AI Screening Interview', description: 'AI screening round queue and outcomes.', rounds: ['AI Screening Interview'] },
+  'hr-hod': { title: 'Round 2-3 - Technical & Managerial', description: 'Technical and managerial round queue and outcomes.', rounds: ['Technical Interview', 'Managerial Interview'] },
+  final: { title: 'Round 5 - Offer (HR Round)', description: 'Final decision-round queue and outcomes.', rounds: ['Offer (HR Round)'] },
 };
 
 const STATUS_DOT: Record<string, string> = {
@@ -36,7 +45,7 @@ const STATUS_DOT: Record<string, string> = {
 const inputClass = 'w-full rounded-[2px] border border-slate-200 bg-white px-3 py-2 text-xs focus:border-[#0d3c68] focus:ring-1 focus:ring-[#0d3c68] outline-none';
 const labelClass = 'mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-700';
 
-const EMPTY_FORM = { candidateId: '', interviewerId: '', roundType: 'Telephonic', scheduledDate: '', mode: 'Video', location: '', meetingLink: '' };
+const EMPTY_FORM = { candidateId: '', interviewerId: '', roundType: 'AI Screening Interview', scheduledDate: '', mode: 'Video', location: '', meetingLink: '' };
 
 function unwrapList(payload: any) {
   if (Array.isArray(payload)) return { rows: payload, meta: { page: 1, totalPages: 1, total: payload.length } };
@@ -70,7 +79,9 @@ function Avatar({ name, src }: { name: string; src?: string }) {
   );
 }
 
-const sel = 'border border-slate-200 rounded-[2px] text-xs px-2.5 py-1.5 bg-white outline-none focus:border-[#0d3c68] focus:ring-1 focus:ring-[#0d3c68]';
+// min-w so the full label (the longest is "Round 5 - Offer (HR Round)") isn't clipped — plain
+// <select> elements size themselves off the currently selected option only, not the widest one.
+const sel = 'min-w-[210px] border border-slate-200 rounded-[2px] text-xs px-2.5 py-1.5 bg-white outline-none focus:border-[#0d3c68] focus:ring-1 focus:ring-[#0d3c68]';
 
 export default function InterviewWorkspace({ view }: { view: View }) {
   const meta = VIEW_META[view];
@@ -138,6 +149,25 @@ export default function InterviewWorkspace({ view }: { view: View }) {
   const { data: candidatePayload = [] } = useQuery<any>({ queryKey: ['candidates-picker'], queryFn: async () => (await api.get('/hiring/candidates')).data });
   const candidates = Array.isArray(candidatePayload) ? candidatePayload : candidatePayload?.data || [];
   const { data: employees = [] } = useQuery<any[]>({ queryKey: ['employees-picker'], queryFn: async () => (await api.get('/employees')).data.data || [] });
+
+  // Candidates approved by HOD evaluation (status SHORTLISTED) with no interview of their own
+  // yet — shown as extra rows at the top of the Register with a "Schedule" action, so a
+  // candidate who's ready for an interview is reachable from this list instead of only turning
+  // up here after one is already scheduled. Needs its own unfiltered fetch, since the paginated
+  // `interviews` above only reflects whatever status/round/search filters are active.
+  const { data: allInterviewsForPending } = useQuery<any>({
+    queryKey: ['interviews-all-for-pending'],
+    queryFn: async () => unwrapList((await api.get('/hiring/interviews', { params: { limit: 1000 } })).data).rows,
+    enabled: view === 'list',
+  });
+  const scheduledCandidateIds = new Set(
+    (allInterviewsForPending || [])
+      .filter((iv: any) => iv.status !== 'Cancelled')
+      .map((iv: any) => String(iv.candidateId?._id || iv.candidateId))
+  );
+  const pendingCandidates = view === 'list'
+    ? candidates.filter((c: any) => c.status === 'SHORTLISTED' && !scheduledCandidateIds.has(String(c._id)))
+    : [];
   const refresh = () => { queryClient.invalidateQueries({ queryKey: ['interviews'] }); queryClient.invalidateQueries({ queryKey: ['interview-stats'] }); };
 
   const closeModal = () => { setModalOpen(false); setEditingId(null); setForm(EMPTY_FORM); };
@@ -155,7 +185,14 @@ export default function InterviewWorkspace({ view }: { view: View }) {
     onSuccess: () => { refresh(); setFeedbackId(null); setFeedback({ status: 'Completed', rating: 3, feedback: '' }); },
   });
 
-  const openAddModal = () => { setEditingId(null); setForm({ ...EMPTY_FORM, roundType: meta.rounds?.[0] || 'Telephonic' }); setModalOpen(true); };
+  const openAddModal = () => { setEditingId(null); setForm({ ...EMPTY_FORM, roundType: meta.rounds?.[0] || 'AI Screening Interview' }); setModalOpen(true); };
+  /** Opens the same dialog pre-filled for one specific candidate — used by the "Schedule" action
+   * on a pending candidate's row below, instead of making HR find them again in the picker. */
+  const openAddModalFor = (candidateId: string) => {
+    setEditingId(null);
+    setForm({ ...EMPTY_FORM, roundType: meta.rounds?.[0] || 'AI Screening Interview', candidateId });
+    setModalOpen(true);
+  };
   const openEditModal = (item: any) => {
     setEditingId(item._id);
     setForm({
@@ -233,7 +270,7 @@ export default function InterviewWorkspace({ view }: { view: View }) {
             {!meta.rounds && (
               <select className={sel} value={round} onChange={(e) => setRound(e.target.value)}>
                 <option value="All">All Rounds</option>
-                {ROUND_TYPES.map((type) => <option key={type}>{type}</option>)}
+                {ROUND_TYPES.map((type) => <option key={type} value={type}>{roundLabel(type)}</option>)}
               </select>
             )}
             <select className={sel} value={status} onChange={(e) => setStatus(e.target.value)}>
@@ -270,7 +307,45 @@ export default function InterviewWorkspace({ view }: { view: View }) {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {isLoading && <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-500 text-sm">Loading interviews...</td></tr>}
-                {!isLoading && !visible.length && <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-500 text-sm">No interviews match this view.</td></tr>}
+                {!isLoading && !visible.length && !pendingCandidates.length && <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-500 text-sm">No interviews match this view.</td></tr>}
+                {!isLoading && pendingCandidates.map((c: any) => (
+                  <tr key={`pending-${c._id}`} className="bg-amber-50/40 hover:bg-amber-50 transition-colors">
+                    <td className="px-4 py-2 border-r border-slate-100">
+                      <Link href={`/dashboard/hiring/candidates/${c._id}`} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+                        <Avatar name={candidateName(c)} src={c.profileImageUrl} />
+                        <div>
+                          <p className="font-semibold text-[#0d3c68] hover:underline leading-tight">{candidateName(c)}</p>
+                          <p className="text-[11px] text-slate-500 leading-tight">{c.email}</p>
+                        </div>
+                      </Link>
+                    </td>
+                    <td className="px-4 py-2 border-r border-slate-100 text-slate-600">
+                      <span className="inline-flex items-center gap-1.5"><Briefcase size={12} className="text-slate-400" /> {c.jobRole || '-'}</span>
+                    </td>
+                    <td className="px-4 py-2 border-r border-slate-100 text-slate-400">—</td>
+                    <td className="px-4 py-2 border-r border-slate-100 text-slate-400">—</td>
+                    <td className="px-4 py-2 border-r border-slate-100 text-slate-400">—</td>
+                    <td className="px-4 py-2 border-r border-slate-100 text-slate-400">—</td>
+                    <td className="px-4 py-2 border-r border-slate-100">
+                      <span className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold bg-amber-50 text-amber-700">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                        Not Scheduled
+                      </span>
+                    </td>
+                    <td className="px-4 py-2 border-r border-slate-100 text-slate-400">—</td>
+                    <td className="px-4 py-2 text-center">
+                      <div className="flex justify-end items-center gap-1.5">
+                        <Button
+                          size="sm"
+                          className="h-7 px-2.5 rounded-[2px] bg-[#0d3c68] hover:bg-[#0a2e50] text-white text-[10px] font-bold uppercase"
+                          onClick={() => openAddModalFor(c._id)}
+                        >
+                          <CalendarClock size={12} className="mr-1" /> Schedule
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
                 {!isLoading && visible.map((item: any) => {
                   const candidate = item.candidateId || {};
                   const interviewer = item.interviewerId || {};
@@ -290,7 +365,7 @@ export default function InterviewWorkspace({ view }: { view: View }) {
                         <span className="inline-flex items-center gap-1.5"><Briefcase size={12} className="text-slate-400" /> {candidate.jobRole || '-'}</span>
                       </td>
                       <td className="px-4 py-2 border-r border-slate-100">
-                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold text-slate-700">{item.roundType}</span>
+                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold text-slate-700">{roundLabel(item.roundType)}</span>
                       </td>
                       <td className="px-4 py-2 border-r border-slate-100 text-slate-600 font-medium">{interviewer.firstName ? `${interviewer.firstName} ${interviewer.lastName || ''}` : 'Unassigned'}</td>
                       <td className="px-4 py-2 border-r border-slate-100 text-slate-500">
@@ -407,7 +482,7 @@ export default function InterviewWorkspace({ view }: { view: View }) {
               )}
             </label>
             <label><span className={labelClass}>Interviewer</span><select className={inputClass} value={form.interviewerId} onChange={(e) => setForm({ ...form, interviewerId: e.target.value })}><option value="">Select interviewer...</option>{employees.map((e: any) => <option key={e._id} value={e._id}>{e.firstName} {e.lastName}</option>)}</select></label>
-            <label><span className={labelClass}>Round</span><select className={inputClass} value={form.roundType} onChange={(e) => setForm({ ...form, roundType: e.target.value })}>{ROUND_TYPES.map((type) => <option key={type}>{type}</option>)}</select></label>
+            <label><span className={labelClass}>Round</span><select className={inputClass} value={form.roundType} onChange={(e) => setForm({ ...form, roundType: e.target.value })}>{ROUND_TYPES.map((type) => <option key={type} value={type}>{roundLabel(type)}</option>)}</select></label>
             <label><span className={labelClass}>Schedule date & time</span><input className={inputClass} type="datetime-local" value={form.scheduledDate} onChange={(e) => setForm({ ...form, scheduledDate: e.target.value })} /></label>
             <label><span className={labelClass}>Mode</span><select className={inputClass} value={form.mode} onChange={(e) => setForm({ ...form, mode: e.target.value })}><option>Video</option><option>Phone</option><option>In-person</option></select></label>
             <label><span className={labelClass}>Location / venue</span><input className={inputClass} placeholder="Branch, room, city or call details" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></label>

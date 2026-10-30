@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, Search } from 'lucide-react';
+import { ChevronDown, Search, X } from 'lucide-react';
 
 interface Option {
   label: string;
@@ -120,7 +120,21 @@ export function SearchableDropdown({ options, value, onChange, placeholder = "Se
         <span className={value ? 'text-slate-900 truncate pr-2 text-xs' : 'text-slate-400 truncate pr-2 text-xs'}>
           {displayValue}
         </span>
-        <ChevronDown size={14} className={`text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <span className="flex items-center gap-1 shrink-0">
+          {value && !disabled && (
+            <X
+              size={14}
+              className="text-slate-400 hover:text-slate-600"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsOpen(false);
+                setSearchTerm('');
+                onChange('');
+              }}
+            />
+          )}
+          <ChevronDown size={14} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        </span>
       </button>
 
       {isOpen && typeof window !== 'undefined' && createPortal(

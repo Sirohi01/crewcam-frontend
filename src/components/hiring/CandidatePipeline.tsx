@@ -6,11 +6,21 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
 import {
-  Users, Send, Filter, Mail, UserCheck, XCircle,
+  Users, Send, Filter, Mail, UserCheck, XCircle, ShieldCheck,
   Search, Calendar, ChevronDown, Plus
 } from 'lucide-react';
 
-const STAGES = ['Applied', 'Screening', 'Interviewing', 'Offered', 'Hired', 'Rejected'];
+// The real Candidate.status enum value, not a display label — see STAGE_LABELS below. The
+// "Move"/"Back" buttons use STAGES[index ± 1] directly as the new status (see their onClick
+// handlers), so every entry here must be a value that field actually accepts; every other
+// stage already happens to read fine as its own label ('Applied', 'Screening', ...), but the
+// real HOD-evaluation status is 'HOD_APPROVAL' (see evaluation/[id]/page.tsx), not "HOD Evaluation".
+const STAGES = ['Applied', 'Screening', 'HOD_APPROVAL', 'Interviewing', 'Offered', 'Hired', 'Rejected'];
+
+const STAGE_LABELS: Record<string, string> = {
+  HOD_APPROVAL: 'HOD Evaluation',
+};
+const stageLabel = (stage: string) => STAGE_LABELS[stage] || stage;
 
 const STAGE_CONFIG: Record<string, { color: string; border: string; bg: string; icon: any; emptyDesc: string }> = {
   'Applied': {
@@ -20,6 +30,10 @@ const STAGE_CONFIG: Record<string, { color: string; border: string; bg: string; 
   'Screening': {
     color: 'text-sky-600', border: 'border-sky-500', bg: 'bg-sky-50',
     icon: Filter, emptyDesc: 'Move candidates here to start screening.'
+  },
+  'HOD_APPROVAL': {
+    color: 'text-amber-600', border: 'border-amber-500', bg: 'bg-amber-50',
+    icon: ShieldCheck, emptyDesc: 'Candidates whose screening is done wait here for HOD review.'
   },
   'Interviewing': {
     color: 'text-orange-600', border: 'border-orange-500', bg: 'bg-orange-50',
@@ -51,8 +65,12 @@ function formatDate(dateString: string) {
 
 function mapStatusToStage(status: string): string {
   if (['New', 'Applied', 'Draft'].includes(status)) return 'Applied';
-  if (['Screening', 'Shortlisted', 'SHORTLISTED', 'AI Screening', 'AI_SCREENING', 'HOD Approval', 'HOD_APPROVAL'].includes(status)) return 'Screening';
-  if (['Interviewing', 'Interview Scheduled', 'INTERVIEW_SCHEDULED'].includes(status)) return 'Interviewing';
+  if (['Screening', 'AI Screening', 'AI_SCREENING'].includes(status)) return 'Screening';
+  if (['HOD Approval', 'HOD_APPROVAL'].includes(status)) return 'HOD_APPROVAL';
+  // SHORTLISTED is what "Submit Evaluation & Proceed" on the HOD Evaluation page sets once
+  // HOD review is actually done (see evaluation/[id]/page.tsx) — the candidate is past HOD
+  // Evaluation and ready to be interviewed, not still being screened.
+  if (['Shortlisted', 'SHORTLISTED', 'Interviewing', 'Interview Scheduled', 'INTERVIEW_SCHEDULED'].includes(status)) return 'Interviewing';
   if (['Offered', 'Ready for Offer', 'Offer Released', 'Offer Accepted', 'Selected'].includes(status)) return 'Offered';
   if (['Hired', 'Joined'].includes(status)) return 'Hired';
   if (['Rejected', 'Offer Declined', 'Hold'].includes(status)) return 'Rejected';
@@ -79,7 +97,7 @@ export default function CandidatePipeline() {
   let aiMap: any = {};
   try {
     if (typeof window !== 'undefined') aiMap = JSON.parse(localStorage.getItem('ai_completed_rounds_map') || '{}');
-  } catch(e) {}
+  } catch (e) { }
 
   const candidatesList = Array.isArray(candidates) ? candidates : (candidates?.data || []);
 
@@ -88,7 +106,7 @@ export default function CandidatePipeline() {
     const fullName = `${c.firstName || ''} ${c.lastName || ''}`.trim();
     const slug = fullName.toLowerCase().replace(/\s+/g, '-');
     const completedRounds = aiMap[c._id] || aiMap[c.id] || aiMap[slug] || 0;
-    
+
     if (overrideStatus === 'INTERVIEW_SCHEDULED') overrideStatus = 'Interview Scheduled';
     if (overrideStatus === 'SHORTLISTED') overrideStatus = 'Shortlisted';
     if (overrideStatus === 'HOD_APPROVAL') overrideStatus = 'HOD Approval';
@@ -117,7 +135,7 @@ export default function CandidatePipeline() {
   const totalCount = filteredCandidates.length;
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto space-y-2 mb-10 px-2 lg:px-4">
+    <div className="w-full max-w-auto mx-auto space-y-2 mb-0 px-2">
       {/* Header Section */}
       <div className="bg-white rounded-[4px] shadow-sm border border-slate-200 overflow-hidden">
         <div className="bg-slate-50 px-3 py-3 flex flex-wrap items-center justify-between gap-3">
@@ -139,7 +157,7 @@ export default function CandidatePipeline() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mx-2">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mx-2">
         {/* Total Card */}
         <div className="flex flex-col justify-between rounded-[4px] border border-slate-200 bg-white p-3 shadow-sm">
           <div className="flex items-center gap-2.5">
@@ -166,7 +184,7 @@ export default function CandidatePipeline() {
                   <Icon size={16} strokeWidth={2.5} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 leading-none mb-1">{stage}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 leading-none mb-1">{stageLabel(stage)}</p>
                   <h3 className="text-lg font-extrabold text-slate-800 leading-none">{count}</h3>
                 </div>
               </div>
@@ -240,7 +258,7 @@ export default function CandidatePipeline() {
                 {/* Column Header */}
                 <div className="flex items-center justify-between p-3 border-b border-slate-200 bg-white mt-1">
                   <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-800">
-                    {stage}
+                    {stageLabel(stage)}
                   </h2>
                   <span className={`rounded-[2px] px-2 py-0.5 text-[10px] font-bold ${config.bg} ${config.color}`}>
                     {rows.length}
@@ -298,7 +316,7 @@ export default function CandidatePipeline() {
                             {formatDate(candidate.createdAt)}
                           </div>
                           <div className={`rounded-[2px] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${config.bg} ${config.color}`}>
-                            {stage}
+                            {stageLabel(stage)}
                           </div>
                         </div>
 

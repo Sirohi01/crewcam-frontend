@@ -11,7 +11,7 @@ import StepGate from './StepGate';
 
 const inputClass = 'w-full !h-9 rounded-md border border-zinc-300 px-3 py-1.5 text-xs leading-normal bg-white text-zinc-900 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-100';
 
-const ROUND_TYPES = ['Telephonic', 'Technical', 'HR', 'Managerial', 'Final'];
+const ROUND_TYPES = ['AI Screening Interview', 'Technical Interview', 'Managerial Interview', 'Written Assessment', 'Offer (HR Round)'];
 
 interface Interview {
   _id: string;
@@ -27,7 +27,7 @@ export default function InterviewStepPanel({
   candidateId, employees, gate,
 }: { candidateId: string; employees: any[]; gate: { unlocked: boolean; blockedBy: string[] } }) {
   const queryClient = useQueryClient();
-  const [form, setForm] = useState({ roundType: 'Telephonic', interviewerId: '', scheduledDate: '', meetingLink: '' });
+  const [form, setForm] = useState({ roundType: 'AI Screening Interview', interviewerId: '', scheduledDate: '', meetingLink: '' });
   const [feedbackOpenFor, setFeedbackOpenFor] = useState<string | null>(null);
   const [feedbackForm, setFeedbackForm] = useState({ status: 'Completed', rating: 3, feedback: '' });
 
@@ -42,7 +42,7 @@ export default function InterviewStepPanel({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['interviews', candidateId] });
       queryClient.invalidateQueries({ queryKey: ['candidate-pipeline', candidateId] });
-      setForm({ roundType: 'Telephonic', interviewerId: '', scheduledDate: '', meetingLink: '' });
+      setForm({ roundType: 'AI Screening Interview', interviewerId: '', scheduledDate: '', meetingLink: '' });
     },
   });
 
