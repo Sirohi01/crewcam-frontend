@@ -1,20 +1,20 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import { useMyDetails } from '@/hooks/useMyProfile';
+import { useProfileSectionEditor } from '@/hooks/useProfileSectionEditor';
+import { ProfileEntryDialog } from '@/components/profile/ProfileEntryDialog';
+import { EMERGENCY_FIELDS } from '@/components/profile/profileFields';
 import { BookOpen, Bell, Shield, Plus, Flame, ShieldAlert, Phone, MessageSquare, Pencil, MapPin, HeartPulse, DoorOpen, CheckCircle2, AlertTriangle, PlusCircle, FileText, } from 'lucide-react';
 
-// Dummy data matching the screenshot — no backend endpoint for this yet.
+// Company-level safety content below (helplines, office info, alerts) has no admin
+// screen yet and is still sample data. "My Emergency Contacts" is live (/me/details).
 const helplines = [
   { label: 'Security Helpline', number: '+91 98765 43210', icon: Shield, accent: 'bg-blue-50 text-blue-600' },
   { label: 'Medical Assistance', number: '+91 98765 43211', icon: Plus, accent: 'bg-emerald-50 text-emerald-600' },
   { label: 'Fire Safety', number: '+91 98765 43212', icon: Flame, accent: 'bg-orange-50 text-orange-600' },
   { label: 'Women Safety Helpline', number: '+91 98765 43213', icon: ShieldAlert, accent: 'bg-violet-50 text-violet-600' },
-];
-
-const emergencyContacts = [
-  { name: 'Neha Mehta', phone: '+91 98765 12121', relation: 'Wife', tag: 'Primary', avatar: 'https://randomuser.me/api/portraits/women/44.jpg' },
-  { name: 'Rakesh Mehta', phone: '+91 98765 23232', relation: 'Father', tag: 'Secondary', avatar: 'https://randomuser.me/api/portraits/men/66.jpg' },
-  { name: 'Pooja Mehta', phone: '+91 98765 34343', relation: 'Sister', tag: 'Secondary', avatar: 'https://randomuser.me/api/portraits/women/65.jpg' },
-  { name: 'Arjun Sharma', phone: '+91 98765 45454', relation: 'Friend', tag: 'Secondary', avatar: 'https://randomuser.me/api/portraits/men/23.jpg' },
 ];
 
 const importantInfo = [
@@ -61,6 +61,9 @@ function ViewLink({ href, label = 'View All' }: { href: string; label?: string }
 }
 
 export default function EmergencyPage() {
+  const { data: details, isLoading } = useMyDetails();
+  const contacts = useProfileSectionEditor('emergencyContacts', details?.emergencyContacts, 'Emergency Contact');
+
   return (
     <div className="bg-[#fafbfc] font-sans">
       <div className="mx-auto max-w-[1400px] space-y-2 p-1">
@@ -122,27 +125,32 @@ export default function EmergencyPage() {
             title="My Emergency Contacts"
             action={<ViewLink href="/dashboard/employee/family" label="Manage Contacts" />}
             footer={(
-              <button type="button" className="flex w-full items-center justify-center gap-1.5 text-[11px] font-semibold text-blue-600 hover:text-blue-700">
+              <button type="button" onClick={contacts.openAdd} className="flex w-full items-center justify-center gap-1.5 text-[11px] font-semibold text-blue-600 hover:text-blue-700">
                 <PlusCircle size={13} /> Add Emergency Contact
               </button>
             )}
           >
             <div className="space-y-2">
-              {emergencyContacts.map((c) => (
-                <div key={c.name} className="flex items-center gap-2.5">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={c.avatar} alt={c.name} className="h-9 w-9 shrink-0 rounded-full object-cover" />
+              {isLoading && <p className="py-3 text-center text-[10px] text-zinc-400">Loading…</p>}
+              {!isLoading && contacts.rows.length === 0 && (
+                <p className="py-3 text-center text-[10px] text-zinc-500">No emergency contacts yet. Add someone we can reach if you need help.</p>
+              )}
+              {contacts.rows.map((c) => (
+                <div key={c._id || c.name} className="flex items-center gap-2.5">
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-blue-50 text-[12px] font-bold text-blue-600">
+                    {c.name.charAt(0).toUpperCase()}
+                  </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[11.5px] font-semibold text-[#1a1c21]">{c.name}</p>
-                    <p className="truncate text-[10px] text-zinc-500">{c.phone}</p>
+                    <p className="truncate text-[11.5px] font-semibold text-[#1a1c21]">{c.name} <span className="font-normal text-zinc-400">· {c.relationship}</span></p>
+                    <p className="truncate text-[10px] text-zinc-500">{c.mobile}</p>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
-                    <span className={`whitespace-nowrap rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${c.tag === 'Primary' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>{c.tag}</span>
+                    <span className={`whitespace-nowrap rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${c.isPrimary ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>{c.isPrimary ? 'Primary' : 'Secondary'}</span>
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
-                    <button type="button" className="grid h-6 w-6 place-items-center rounded-md border border-zinc-200 text-emerald-600 hover:bg-emerald-50"><Phone size={11} /></button>
-                    <button type="button" className="grid h-6 w-6 place-items-center rounded-md border border-zinc-200 text-blue-600 hover:bg-blue-50"><MessageSquare size={11} /></button>
-                    <button type="button" className="grid h-6 w-6 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:bg-zinc-50"><Pencil size={10} /></button>
+                    <a href={`tel:${c.mobile.replace(/\s+/g, '')}`} aria-label={`Call ${c.name}`} className="grid h-6 w-6 place-items-center rounded-md border border-zinc-200 text-emerald-600 hover:bg-emerald-50"><Phone size={11} /></a>
+                    <a href={`sms:${c.mobile.replace(/\s+/g, '')}`} aria-label={`Message ${c.name}`} className="grid h-6 w-6 place-items-center rounded-md border border-zinc-200 text-blue-600 hover:bg-blue-50"><MessageSquare size={11} /></a>
+                    <button type="button" aria-label={`Edit ${c.name}`} onClick={() => contacts.openEdit(c)} className="grid h-6 w-6 place-items-center rounded-md border border-zinc-200 text-zinc-500 hover:bg-zinc-50"><Pencil size={10} /></button>
                   </div>
                 </div>
               ))}
@@ -218,6 +226,7 @@ export default function EmergencyPage() {
           </button>
         </div>
       </div>
+      <ProfileEntryDialog fields={EMERGENCY_FIELDS} {...contacts.dialog} />
     </div>
   );
 }
