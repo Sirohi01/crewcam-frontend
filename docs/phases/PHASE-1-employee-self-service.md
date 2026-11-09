@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Branch** | `agent_changes` |
-| **Status** | 🚧 In progress. Slices 1B and 1C done |
+| **Status** | 🚧 In progress. Slices 1B, 1C and 1C-2 done |
 | **Backend** | `crewcam-backend/docs/phases/PHASE-1-employee-self-service.md` (the `/api/v1/me` API, slice 1A) |
 
 ## Slice 1B — My Profile pages wired to real data
@@ -115,3 +115,39 @@ A blank end date means "current role".
 | Backend `me.test.ts` | 9/9 pass, including the new experience fields and invalid reference email |
 
 **Not done:** manual browser click-through. Before release: open **My Profile** from the sidebar, then add, edit and delete an experience and a skill. Confirm the Family/Emergency/Education data matches the standalone pages, and that PAN and Aadhaar show masked.
+
+---
+
+## Slice 1C-2 — Leave, Apply Leave, Payslip, Reimbursement
+
+All four pages linked from the employee sidebar were fully hard-coded. The layout of each is unchanged.
+
+| Page | Now live | Still placeholder (and why) |
+|---|---|---|
+| **Leave** (`/dashboard/employee-leave`) | Balance card per company leave type, using the original palette in order. History with working tabs and pagination (6/page). Upcoming leaves; yearly summary and utilisation donut. "Policy highlights" lists each type's real entitlement instead of invented rules. | — |
+| **Apply Leave** (`/employee-apply-leave`) | Leave types from the company. Submits to `/leaves/apply`, with half day + session, contact during leave, and attachment uploaded first via `/upload`. Shows the available balance and warns when a request exceeds it. Right column shows real balances, entitlements and the real approval flow (you → your manager → HR). Server errors (overlap, bad type) are shown. | — |
+| **Payslip & Income Tax** | From issued slips and `/me/salary-structure`: take-home, annual gross, deductions, TDS deducted this FY. Payslip history with an FY filter (Indian April–March) and pagination. **View** (breakdown dialog) and **Download** (printable payslip, "Save as PDF"; every value HTML-escaped). Earnings-vs-deductions chart and year-to-date totals. | Income-tax tabs, Form 16, declarations, investment proofs and the tax dashboard need the statutory engine (**Phase 4**); they say so. "Taxable Income" was removed because it can't be computed yet. |
+| **Reimbursement** | **Submit New Request** dialog (new: the page had no way to submit). Type, amount, date (not future), description, receipt upload. Request list with status tabs, search and pagination; detail dialog with reviewer comments and the receipt. Stats: pending, approved this month, reimbursed this FY, average turnaround. FY summary donut. | Imprest (cash-advance) balance, top-up and history: not modelled yet (finance ledger port, Phase 3); shown as coming soon. |
+
+**Removed, because they were fake or dead:**
+
+- "Cancelled" leave tab (no such status); the "⋮" row menu; "Save as Draft"; the link to a non-existent leave-policy page;
+- "5 / page" and "10 / page" selects; Filter and Date-range buttons that did nothing;
+- the duplicate "All Requests" tab (employees only ever see their own).
+
+**Text corrections:**
+
+- The "How it works" steps say **Finance Review** (approval requires `FINANCE_WRITE`), not "Manager Review".
+- The apply page no longer promises email notification of the decision.
+
+**New files:**
+
+- `services/leaveService.ts`, `services/payslipService.ts` (INR formatting, FY helpers, print view), `services/expenseService.ts`
+- `hooks/useMyLeave.ts`
+
+**Not done:** browser click-through. Before release:
+
+1. Apply for a full-day and a half-day leave (one with an attachment) and check both appear in history.
+2. Check the half day costs 0.5 days.
+3. Submit a claim with a receipt.
+4. Open and print a payslip. HR must have generated at least one slip.

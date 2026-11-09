@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import moment from 'moment';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import {
   ChevronRight,
@@ -15,122 +16,39 @@ import {
   ShieldCheck,
   CheckCircle2,
   Headset,
-  MoreVertical,
-  ArrowRight,
   ChevronLeft,
 } from 'lucide-react';
+import { useMyLeaveBalances, useMyLeaveRequests } from '@/hooks/useMyLeave';
+import { requestDays, type LeaveBalance } from '@/services/leaveService';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Data
+// Styling — the original card palette, applied to the company's leave types in order
 // ─────────────────────────────────────────────────────────────────────────────
 
-const leaveBalances = [
-  {
-    key: 'CL',
-    label: 'Casual Leave (CL)',
-    icon: TreePine,
-    iconBg: 'bg-emerald-50',
-    iconColor: 'text-emerald-500',
-    value: '8.5',
-    valueColor: 'text-emerald-500',
-    taken: '3.5 / 12 Days',
-    barColor: 'bg-emerald-500',
-    barPct: (3.5 / 12) * 100,
-  },
-  {
-    key: 'PL',
-    label: 'Privilege Leave (PL)',
-    icon: Plane,
-    iconBg: 'bg-blue-50',
-    iconColor: 'text-blue-500',
-    value: '12',
-    valueColor: 'text-blue-600',
-    taken: '8 / 20 Days',
-    barColor: 'bg-blue-600',
-    barPct: (8 / 20) * 100,
-  },
-  {
-    key: 'SL',
-    label: 'Sick Leave (SL)',
-    icon: HeartPulse,
-    iconBg: 'bg-orange-50',
-    iconColor: 'text-orange-500',
-    value: '6',
-    valueColor: 'text-orange-500',
-    taken: '2 / 8 Days',
-    barColor: 'bg-orange-500',
-    barPct: (2 / 8) * 100,
-  },
-  {
-    key: 'WFH',
-    label: 'Work From Home (WFH)',
-    icon: Home,
-    iconBg: 'bg-violet-50',
-    iconColor: 'text-violet-500',
-    value: '4',
-    valueColor: 'text-violet-600',
-    taken: '2 / 6 Days',
-    barColor: 'bg-violet-600',
-    barPct: (2 / 6) * 100,
-  },
-  {
-    key: 'CompOff',
-    label: 'Comp Off',
-    icon: Clock,
-    iconBg: 'bg-zinc-100',
-    iconColor: 'text-zinc-500',
-    value: '3',
-    valueColor: 'text-zinc-800',
-    taken: '1 / 4 Days',
-    barColor: 'bg-zinc-700',
-    barPct: (1 / 4) * 100,
-  },
+const PALETTE = [
+  { icon: TreePine, iconBg: 'bg-emerald-50', iconColor: 'text-emerald-500', valueColor: 'text-emerald-500', barColor: 'bg-emerald-500', badge: 'bg-emerald-50 text-emerald-600' },
+  { icon: Plane, iconBg: 'bg-blue-50', iconColor: 'text-blue-500', valueColor: 'text-blue-600', barColor: 'bg-blue-600', badge: 'bg-blue-50 text-blue-600' },
+  { icon: HeartPulse, iconBg: 'bg-orange-50', iconColor: 'text-orange-500', valueColor: 'text-orange-500', barColor: 'bg-orange-500', badge: 'bg-orange-50 text-orange-600' },
+  { icon: Home, iconBg: 'bg-violet-50', iconColor: 'text-violet-500', valueColor: 'text-violet-600', barColor: 'bg-violet-600', badge: 'bg-violet-50 text-violet-600' },
+  { icon: Clock, iconBg: 'bg-zinc-100', iconColor: 'text-zinc-500', valueColor: 'text-zinc-800', barColor: 'bg-zinc-700', badge: 'bg-zinc-100 text-zinc-600' },
 ];
-
-const TYPE_BADGE: Record<string, string> = {
-  CL: 'bg-emerald-50 text-emerald-600',
-  PL: 'bg-blue-50 text-blue-600',
-  SL: 'bg-orange-50 text-orange-600',
-  WFH: 'bg-violet-50 text-violet-600',
-};
+const styleAt = (i: number) => PALETTE[i % PALETTE.length];
 
 const STATUS_BADGE: Record<string, string> = {
   Approved: 'bg-emerald-50 text-emerald-600',
   Pending: 'bg-amber-50 text-amber-600',
   Rejected: 'bg-rose-50 text-rose-600',
-  Cancelled: 'bg-zinc-100 text-zinc-500',
 };
 
-const leaveHistory = [
-  { type: 'CL', from: '12 May 2025', to: '12 May 2025', days: 1, reason: 'Personal Work', status: 'Approved', applied: '08 May 2025' },
-  { type: 'PL', from: '05 May 2025', to: '09 May 2025', days: 5, reason: 'Family Vacation', status: 'Approved', applied: '28 Apr 2025' },
-  { type: 'SL', from: '22 Apr 2025', to: '23 Apr 2025', days: 2, reason: 'Fever & Cold', status: 'Approved', applied: '21 Apr 2025' },
-  { type: 'WFH', from: '18 Apr 2025', to: '18 Apr 2025', days: 1, reason: 'Work from Home', status: 'Approved', applied: '17 Apr 2025' },
-  { type: 'CL', from: '10 Apr 2025', to: '10 Apr 2025', days: 1, reason: 'Personal Work', status: 'Rejected', applied: '09 Apr 2025' },
-  { type: 'PL', from: '01 Apr 2025', to: '03 Apr 2025', days: 3, reason: 'Family Function', status: 'Cancelled', applied: '27 Mar 2025' },
-];
+const historyTabs = ['All', 'Approved', 'Pending', 'Rejected'] as const;
+const PAGE_SIZE = 6;
 
-const historyTabs = ['All', 'Approved', 'Pending', 'Rejected', 'Cancelled'];
+/** "Casual Leave" -> "CL", used for the compact type badge. */
+const abbreviation = (name?: string) =>
+  (name || '?').split(/\s+/).filter(Boolean).map((w) => w[0]?.toUpperCase()).join('').slice(0, 4);
 
-const leaveSummary = [
-  { label: 'Total Entitlement', value: '44 Days', color: '#3b82f6' },
-  { label: 'Taken', value: '16.5 Days', color: '#22c55e' },
-  { label: 'Approved', value: '16.5 Days', color: '#8b5cf6' },
-  { label: 'Pending', value: '0 Days', color: '#f59e0b' },
-  { label: 'Balance', value: '27.5 Days', color: '#d4d4d8' },
-];
-
-const summaryChartData = [
-  { name: 'Utilized', value: 37.5, color: '#2563eb' },
-  { name: 'Remaining', value: 62.5, color: '#e4e4e7' },
-];
-
-const policyHighlights = [
-  'Casual Leave cannot be availed for more than 2 days continuously.',
-  'Please apply for leave at least 2 days in advance.',
-  'Sick Leave requires upload of medical certificate if more than 2 days.',
-  'Comp Off must be availed within 3 months from the date of credit.',
-];
+const fmt = (d: string) => moment(d).format('DD MMM YYYY');
+const daysLabel = (n: number) => `${Number.isInteger(n) ? n : n.toFixed(1)} Day${n === 1 ? '' : 's'}`;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Small pieces
@@ -144,24 +62,31 @@ function Card({ className = '', children }: { className?: string; children: Reac
   );
 }
 
-function BalanceCard({ b }: { b: (typeof leaveBalances)[number] }) {
-  const Icon = b.icon;
+function BalanceCard({ b, index }: { b: LeaveBalance; index: number }) {
+  const style = styleAt(index);
+  const Icon = style.icon;
+  const entitlement = b.defaultDays + b.creditedDays;
+  const pct = entitlement > 0 ? Math.min(100, (b.takenThisYear / entitlement) * 100) : 0;
   return (
     <Card className="p-2 min-w-0 flex flex-col justify-between">
       <div className="flex items-center gap-1.5">
-        <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${b.iconBg} ${b.iconColor}`}>
+        <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${style.iconBg} ${style.iconColor}`}>
           <Icon size={14} />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="whitespace-nowrap tracking-tight text-[11px] font-semibold text-zinc-600">{b.label}</p>
-          <p className={`mt-1.5 text-[18px] font-bold leading-none ${b.valueColor}`}>{b.value}</p>
+          <p className="truncate tracking-tight text-[11px] font-semibold text-zinc-600" title={b.leaveTypeName}>
+            {b.leaveTypeName} ({abbreviation(b.leaveTypeName)})
+          </p>
+          <p className={`mt-1.5 text-[18px] font-bold leading-none ${style.valueColor}`}>{Math.max(0, b.balance)}</p>
           <p className="mt-1 whitespace-nowrap text-[11px] font-medium text-zinc-500">Days Available</p>
         </div>
       </div>
       <div className="mt-1.5">
-        <p className="mb-1.5 whitespace-nowrap text-[10.5px] font-semibold text-zinc-600">Taken: {b.taken}</p>
+        <p className="mb-1.5 whitespace-nowrap text-[10.5px] font-semibold text-zinc-600">
+          Taken: {b.takenThisYear} / {entitlement} Days{b.pendingDays > 0 && <span className="text-amber-600"> · {b.pendingDays} pending</span>}
+        </p>
         <div className="h-1.5 w-full rounded-full bg-zinc-100 overflow-hidden">
-          <div className={`h-full rounded-full ${b.barColor}`} style={{ width: `${b.barPct}%` }} />
+          <div className={`h-full rounded-full ${style.barColor}`} style={{ width: `${pct}%` }} />
         </div>
       </div>
     </Card>
@@ -173,11 +98,48 @@ function BalanceCard({ b }: { b: (typeof leaveBalances)[number] }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function LeaveManagementPage() {
-  const [activeTab, setActiveTab] = useState('All');
+  const [activeTab, setActiveTab] = useState<(typeof historyTabs)[number]>('All');
   const [page, setPage] = useState(1);
+  const { data: balances = [], isLoading: balancesLoading } = useMyLeaveBalances();
+  const { data: requests = [], isLoading: requestsLoading } = useMyLeaveRequests();
 
-  const filtered =
-    activeTab === 'All' ? leaveHistory : leaveHistory.filter((l) => l.status === activeTab);
+  // Type badge colour follows the type's position in the balance cards.
+  const typeStyle = useMemo(() => {
+    const map = new Map<string, string>();
+    balances.forEach((b, i) => map.set(String(b.leaveTypeId), styleAt(i).badge));
+    return map;
+  }, [balances]);
+
+  const filtered = activeTab === 'All' ? requests : requests.filter((l) => l.status === activeTab);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pageRows = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  const today = moment().startOf('day');
+  const upcoming = requests
+    .filter((r) => r.status !== 'Rejected' && moment(r.endDate).isSameOrAfter(today))
+    .sort((a, b) => moment(a.startDate).valueOf() - moment(b.startDate).valueOf())
+    .slice(0, 3);
+
+  const summary = useMemo(() => {
+    const entitlement = balances.reduce((s, b) => s + b.defaultDays + b.creditedDays, 0);
+    const taken = balances.reduce((s, b) => s + b.takenThisYear, 0);
+    const pending = balances.reduce((s, b) => s + b.pendingDays, 0);
+    const balance = Math.max(0, entitlement - taken);
+    const utilized = entitlement > 0 ? Math.round((taken / entitlement) * 1000) / 10 : 0;
+    return { entitlement, taken, pending, balance, utilized };
+  }, [balances]);
+
+  const leaveSummary = [
+    { label: 'Total Entitlement', value: daysLabel(summary.entitlement), color: '#3b82f6' },
+    { label: 'Taken (Approved)', value: daysLabel(summary.taken), color: '#22c55e' },
+    { label: 'Pending', value: daysLabel(summary.pending), color: '#f59e0b' },
+    { label: 'Balance', value: daysLabel(summary.balance), color: '#d4d4d8' },
+  ];
+  const summaryChartData = [
+    { name: 'Utilized', value: summary.utilized, color: '#2563eb' },
+    { name: 'Remaining', value: Math.max(0, 100 - summary.utilized), color: '#e4e4e7' },
+  ];
 
   return (
     <main className=" space-y-1 pb-2 px-2 sm:px-3">
@@ -206,12 +168,18 @@ export default function LeaveManagementPage() {
 
       {/* Leave Balance */}
       <Card className="p-2 min-w-0">
-        <h2 className="mb-1.5 text-[14px] font-bold text-zinc-900">My Leave Balance (as on 24 May 2025)</h2>
-        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-5">
-          {leaveBalances.map((b) => (
-            <BalanceCard key={b.key} b={b} />
-          ))}
-        </div>
+        <h2 className="mb-1.5 text-[14px] font-bold text-zinc-900">My Leave Balance (as on {moment().format('DD MMM YYYY')})</h2>
+        {balancesLoading ? (
+          <p className="py-4 text-center text-[12px] text-zinc-400">Loading…</p>
+        ) : balances.length === 0 ? (
+          <p className="py-4 text-center text-[12px] text-zinc-500">No leave types are set up for your company yet. Please contact HR.</p>
+        ) : (
+          <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-5">
+            {balances.map((b, i) => (
+              <BalanceCard key={String(b.leaveTypeId)} b={b} index={i} />
+            ))}
+          </div>
+        )}
       </Card>
 
       {/* History + right column */}
@@ -220,9 +188,6 @@ export default function LeaveManagementPage() {
         <Card className="min-w-0 p-2 h-fit">
           <div className="mb-1.5 flex items-center justify-between">
             <h2 className="text-[14px] font-bold text-zinc-900">Leave History</h2>
-            <Link href="/dashboard/leaves" className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-blue-600 hover:text-blue-700">
-              View All <ArrowRight size={13} />
-            </Link>
           </div>
 
           <div className="mb-1.5 flex items-center gap-1.5 border-b border-zinc-100">
@@ -252,32 +217,39 @@ export default function LeaveManagementPage() {
                   <th className="py-2 pr-2 font-semibold">Reason</th>
                   <th className="py-2 pr-2 font-semibold">Status</th>
                   <th className="py-2 pr-2 font-semibold">Applied On</th>
-                  <th className="py-2 pr-0 font-semibold" />
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((row, i) => (
-                  <tr key={i} className="border-t border-zinc-200 text-[12.5px]">
+                {requestsLoading && (
+                  <tr><td colSpan={7} className="py-4 text-center text-[12px] text-zinc-400">Loading…</td></tr>
+                )}
+                {!requestsLoading && pageRows.length === 0 && (
+                  <tr><td colSpan={7} className="py-4 text-center text-[12px] text-zinc-500">
+                    {activeTab === 'All' ? "You haven't applied for any leave yet." : `No ${activeTab.toLowerCase()} requests.`}
+                  </td></tr>
+                )}
+                {pageRows.map((row) => (
+                  <tr key={row._id} className="border-t border-zinc-200 text-[12.5px]">
                     <td className="py-2 pr-2">
-                      <span className={`inline-block rounded-md px-2 py-0.5 text-[11px] font-semibold ${TYPE_BADGE[row.type]}`}>
-                        {row.type}
+                      <span
+                        className={`inline-block rounded-md px-2 py-0.5 text-[11px] font-semibold ${typeStyle.get(String(row.leaveTypeId?._id)) || 'bg-zinc-100 text-zinc-600'}`}
+                        title={row.leaveTypeId?.name}
+                      >
+                        {abbreviation(row.leaveTypeId?.name)}
                       </span>
                     </td>
-                    <td className="py-2 pr-2 whitespace-nowrap text-zinc-600">{row.from}</td>
-                    <td className="py-2 pr-2 whitespace-nowrap text-zinc-600">{row.to}</td>
-                    <td className="py-2 pr-2 text-zinc-600">{row.days}</td>
-                    <td className="py-2 pr-2 text-zinc-600">{row.reason}</td>
+                    <td className="py-2 pr-2 whitespace-nowrap text-zinc-600">{fmt(row.startDate)}</td>
+                    <td className="py-2 pr-2 whitespace-nowrap text-zinc-600">{fmt(row.endDate)}</td>
+                    <td className="py-2 pr-2 text-zinc-600">
+                      {requestDays(row)}{row.isHalfDay && <span className="text-zinc-400"> ({row.halfDaySession === 'first' ? '1st' : '2nd'} half)</span>}
+                    </td>
+                    <td className="py-2 pr-2 text-zinc-600 max-w-[220px] truncate" title={row.rejectionReason ? `${row.reason} — Rejected: ${row.rejectionReason}` : row.reason}>{row.reason}</td>
                     <td className="py-2 pr-2">
                       <span className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${STATUS_BADGE[row.status]}`}>
                         {row.status}
                       </span>
                     </td>
-                    <td className="py-2 pr-2 whitespace-nowrap text-zinc-600">{row.applied}</td>
-                    <td className="py-2 pr-0 text-right">
-                      <button className="text-zinc-400 hover:text-zinc-600">
-                        <MoreVertical size={15} />
-                      </button>
-                    </td>
+                    <td className="py-2 pr-2 whitespace-nowrap text-zinc-600">{fmt(row.createdAt)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -285,29 +257,41 @@ export default function LeaveManagementPage() {
           </div>
 
           <div className="mt-1.5 flex items-center justify-between text-[12px] text-zinc-400">
-            <span>Showing 1 to {filtered.length} of 12 entries</span>
-            <div className="flex items-center gap-1.5">
-              <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-400 hover:bg-zinc-50">
-                <ChevronLeft size={14} />
-              </button>
-              <button
-                onClick={() => setPage(1)}
-                className={`grid h-7 w-7 place-items-center rounded-md text-[12px] font-semibold ${page === 1 ? 'bg-blue-600 text-white' : 'border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
-                  }`}
-              >
-                1
-              </button>
-              <button
-                onClick={() => setPage(2)}
-                className={`grid h-7 w-7 place-items-center rounded-md text-[12px] font-semibold ${page === 2 ? 'bg-blue-600 text-white' : 'border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
-                  }`}
-              >
-                2
-              </button>
-              <button className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-400 hover:bg-zinc-50">
-                <ChevronRight size={14} />
-              </button>
-            </div>
+            <span>
+              {filtered.length === 0
+                ? 'No entries'
+                : `Showing ${(currentPage - 1) * PAGE_SIZE + 1} to ${Math.min(currentPage * PAGE_SIZE, filtered.length)} of ${filtered.length} entries`}
+            </span>
+            {pageCount > 1 && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  aria-label="Previous page"
+                  disabled={currentPage === 1}
+                  onClick={() => setPage(currentPage - 1)}
+                  className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-400 hover:bg-zinc-50 disabled:opacity-40"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => setPage(n)}
+                    className={`grid h-7 w-7 place-items-center rounded-md text-[12px] font-semibold ${currentPage === n ? 'bg-blue-600 text-white' : 'border border-zinc-200 text-zinc-500 hover:bg-zinc-50'
+                      }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+                <button
+                  aria-label="Next page"
+                  disabled={currentPage === pageCount}
+                  onClick={() => setPage(currentPage + 1)}
+                  className="grid h-7 w-7 place-items-center rounded-md border border-zinc-200 text-zinc-400 hover:bg-zinc-50 disabled:opacity-40"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            )}
           </div>
         </Card>
 
@@ -318,18 +302,34 @@ export default function LeaveManagementPage() {
             <h2 className="mb-1 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
               <Calendar size={16} className="text-blue-600" /> Upcoming Leaves
             </h2>
-            <div className="flex flex-col items-center justify-center py-3 text-center">
-              <span className="mb-1.5 grid h-16 w-16 place-items-center rounded-2xl bg-blue-50 text-blue-500">
-                <Calendar size={28} />
-              </span>
-              <p className="text-[13px] font-bold text-zinc-800">No Upcoming Leaves</p>
-              <p className="mt-1 text-[12px] text-zinc-400">You don&apos;t have any upcoming leaves.</p>
-            </div>
+            {upcoming.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-3 text-center">
+                <span className="mb-1.5 grid h-16 w-16 place-items-center rounded-2xl bg-blue-50 text-blue-500">
+                  <Calendar size={28} />
+                </span>
+                <p className="text-[13px] font-bold text-zinc-800">No Upcoming Leaves</p>
+                <p className="mt-1 text-[12px] text-zinc-400">You don&apos;t have any upcoming leaves.</p>
+              </div>
+            ) : (
+              <div className="space-y-1.5 py-1">
+                {upcoming.map((r) => (
+                  <div key={r._id} className="flex items-center justify-between gap-2 rounded-lg border border-zinc-100 px-2 py-1.5">
+                    <div className="min-w-0">
+                      <p className="truncate text-[12.5px] font-semibold text-zinc-800">{r.leaveTypeId?.name || 'Leave'}</p>
+                      <p className="text-[11px] text-zinc-500">
+                        {fmt(r.startDate)}{r.startDate.slice(0, 10) !== r.endDate.slice(0, 10) && ` – ${fmt(r.endDate)}`} · {daysLabel(requestDays(r))}
+                      </p>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${STATUS_BADGE[r.status]}`}>{r.status}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
 
           {/* Leave Summary */}
           <Card className="min-w-0 p-3">
-            <h2 className="mb-2 text-[14px] font-bold text-zinc-900">Leave Summary (Year 2025)</h2>
+            <h2 className="mb-2 text-[14px] font-bold text-zinc-900">Leave Summary (Year {moment().year()})</h2>
             <div className="flex items-center gap-2">
               <div className="relative h-[130px] w-[130px] shrink-0">
                 <ResponsiveContainer width="100%" height="100%">
@@ -343,14 +343,14 @@ export default function LeaveManagementPage() {
                       endAngle={-270}
                       stroke="none"
                     >
-                      {summaryChartData.map((entry, i) => (
-                        <Cell key={i} fill={entry.color} />
+                      {summaryChartData.map((entry) => (
+                        <Cell key={entry.name} fill={entry.color} />
                       ))}
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-[18px] font-bold text-zinc-900">37.5%</span>
+                  <span className="text-[18px] font-bold text-zinc-900">{summary.utilized}%</span>
                   <span className="text-[9.5px] text-zinc-400">Utilized</span>
                 </div>
               </div>
@@ -372,16 +372,19 @@ export default function LeaveManagementPage() {
 
       {/* Bottom row */}
       <div className="grid w-full grid-cols-1 gap-1.5 lg:grid-cols-[1fr_340px]">
-        {/* Leave Policy Highlights */}
+        {/* Leave Policy Highlights — the company's configured entitlements */}
         <Card className="min-w-0 p-2">
           <h2 className="mb-1.5 flex items-center gap-2 text-[14px] font-bold text-zinc-900">
             <ShieldCheck size={16} className="text-blue-600" /> Leave Policy Highlights
           </h2>
           <div className="space-y-1">
-            {policyHighlights.map((item, i) => (
-              <div key={i} className="flex items-start gap-2">
+            {balances.length === 0 && <p className="text-[12.5px] text-zinc-500">Your company&apos;s leave policy will appear here once HR sets up leave types.</p>}
+            {balances.map((b) => (
+              <div key={String(b.leaveTypeId)} className="flex items-start gap-2">
                 <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-emerald-500" />
-                <span className="text-[12.5px] text-zinc-600">{item}</span>
+                <span className="text-[12.5px] text-zinc-600">
+                  {b.leaveTypeName}: {b.defaultDays} days per year{b.creditedDays > 0 && `, plus ${b.creditedDays} credited to you`}.
+                </span>
               </div>
             ))}
           </div>

@@ -1,14 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import moment from 'moment';
+import toast from 'react-hot-toast';
+import { useMyProfile } from '@/hooks/useMyProfile';
+import { useApplyLeave, useMyLeaveBalances } from '@/hooks/useMyLeave';
+import { uploadFile } from '@/services/leaveService';
 import {
   ChevronRight,
   ClipboardList,
   Calendar as CalendarIcon,
   UploadCloud,
   Send,
-  Save,
+  Loader2,
   ShieldCheck,
   CheckCircle2,
   Users,
@@ -21,26 +27,9 @@ import {
 // Data
 // ─────────────────────────────────────────────────────────────────────────────
 
-const leaveBalanceSummary = [
-  { type: 'CL', badge: 'bg-emerald-50 text-emerald-600', available: '8.5 Days', taken: '3.5 Days', entitlement: '12 Days' },
-  { type: 'PL', badge: 'bg-blue-50 text-blue-600', available: '12 Days', taken: '8 Days', entitlement: '20 Days' },
-  { type: 'SL', badge: 'bg-orange-50 text-orange-600', available: '6 Days', taken: '2 Days', entitlement: '8 Days' },
-  { type: 'WFH', badge: 'bg-violet-50 text-violet-600', available: '4 Days', taken: '2 Days', entitlement: '6 Days' },
-  { type: 'CO', badge: 'bg-zinc-100 text-zinc-500', available: '3 Days', taken: '1 Day', entitlement: '4 Days' },
-];
-
-const policyHighlights = [
-  'CL cannot be availed for more than 2 days continuously.',
-  'Please apply for leave at least 2 days in advance.',
-  'Sick Leave requires upload of medical certificate if more than 2 days.',
-  'Comp Off must be availed within 3 months from the date of credit.',
-];
-
-const approvalFlow = [
-  { role: 'Employee', name: 'Rohan Mehta' },
-  { role: 'Reporting Manager', name: 'Amit Kumar' },
-  { role: 'HR Department', name: '' },
-];
+const BADGES = ['bg-emerald-50 text-emerald-600', 'bg-blue-50 text-blue-600', 'bg-orange-50 text-orange-600', 'bg-violet-50 text-violet-600', 'bg-zinc-100 text-zinc-500'];
+const abbreviation = (name: string) => name.split(/\s+/).filter(Boolean).map((w) => w[0]?.toUpperCase()).join('').slice(0, 4);
+const MAX_FILE_BYTES = 5 * 1024 * 1024; // matches the /upload limit
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Small pieces
@@ -80,7 +69,6 @@ export default function ApplyLeavePage() {
   const [toDate, setToDate] = useState('');
   const [halfDay, setHalfDay] = useState(false);
   const [session, setSession] = useState<'first' | 'second' | ''>('');
-  const [numDays, setNumDays] = useState(0);
   const [reason, setReason] = useState('');
   const [mobile, setMobile] = useState('');
   const [email, setEmail] = useState('');
@@ -90,17 +78,27 @@ export default function ApplyLeavePage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
 
-  // Auto-calculate days
-  React.useEffect(() => {
-    if (fromDate && toDate) {
-      const from = new Date(fromDate);
-      const to = new Date(toDate);
-      const diff = Math.max(0, Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)) + 1);
-      setNumDays(halfDay ? 0.5 : diff);
-    } else {
-      setNumDays(0);
-    }
+  const router = useRouter();
+  const { data: profile } = useMyProfile();
+  const { data: balances = [] } = useMyLeaveBalances();
+  const applyLeave = useApplyLeave();
+  const [uploading, setUploading] = useState(false);
+  const submitting = uploading || applyLeave.isPending;
+
+  // Days requested — derived, never stored.
+  const numDays = useMemo(() => {
+    if (!fromDate || !toDate) return 0;
+    if (halfDay) return 0.5;
+    return Math.max(0, moment(toDate).diff(moment(fromDate), 'days') + 1);
   }, [fromDate, toDate, halfDay]);
+
+  const selectedBalance = balances.find((b) => String(b.leaveTypeId) === leaveType);
+  const manager = profile?.reportingToId;
+  const approvalFlow = [
+    { role: 'Employee', name: profile ? `${profile.firstName} ${profile.lastName}` : '' },
+    { role: 'Reporting Manager', name: manager ? `${manager.firstName} ${manager.lastName}` : 'Not assigned' },
+    { role: 'HR Department', name: '' },
+  ];
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -109,6 +107,9 @@ export default function ApplyLeavePage() {
     if (!toDate) errs.toDate = 'To date is required.';
     if (fromDate && toDate && new Date(toDate) < new Date(fromDate))
       errs.toDate = 'To date cannot be before from date.';
+    if (halfDay && fromDate && toDate && fromDate !== toDate) errs.toDate = 'A half day must start and end on the same date.';
+    if (halfDay && !session) errs.session = 'Choose the first or second half.';
+    if (file && file.size > MAX_FILE_BYTES) errs.file = 'File must be 5 MB or smaller.';
     if (!reason.trim()) errs.reason = 'Reason is required.';
     else if (reason.trim().length < 10) errs.reason = 'Reason must be at least 10 characters.';
     if (!mobile.trim()) errs.mobile = 'Mobile number is required.';
@@ -123,8 +124,34 @@ export default function ApplyLeavePage() {
     setSubmitted(true);
     const errs = validate();
     setErrors(errs);
-    if (Object.keys(errs).length === 0) {
-      alert('Leave request submitted successfully!');
+    if (Object.keys(errs).length > 0) return;
+    void submit();
+  };
+
+  const submit = async () => {
+    try {
+      let attachmentUrl: string | undefined;
+      if (file) {
+        setUploading(true);
+        attachmentUrl = await uploadFile(file);
+        setUploading(false);
+      }
+      await applyLeave.mutateAsync({
+        leaveTypeId: leaveType,
+        startDate: fromDate,
+        endDate: toDate,
+        reason: reason.trim(),
+        isHalfDay: halfDay,
+        ...(halfDay && session && { halfDaySession: session }),
+        contactNumber: mobile || undefined,
+        contactEmail: email || undefined,
+        attachmentUrl,
+      });
+      toast.success('Leave request submitted');
+      router.push('/dashboard/employee-leave');
+    } catch (err: any) {
+      setUploading(false);
+      toast.error(err?.response?.data?.message || 'Could not submit your leave request');
     }
   };
 
@@ -139,7 +166,8 @@ export default function ApplyLeavePage() {
   const ic = (field: string) =>
     `w-full rounded-lg border ${errors[field] ? 'border-rose-400 focus:border-rose-400 focus:ring-rose-100' : 'border-zinc-200 focus:border-blue-500'} bg-white px-2.5 py-1.5 text-[12px] text-zinc-600 outline-none focus:ring-2 transition-colors`;
 
-  const ErrorMsg = ({ field }: { field: string }) =>
+  // A plain helper, not a component: defining components inside render remounts them every time.
+  const errorMsg = (field: string) =>
     errors[field] ? <p className="mt-1 text-[10.5px] text-rose-500">{errors[field]}</p> : null;
 
   return (
@@ -180,14 +208,18 @@ export default function ApplyLeavePage() {
                     className={ic('leaveType')}
                   >
                     <option value="">-- Select Leave Type --</option>
-                    <option value="CL">Casual Leave (CL)</option>
-                    <option value="PL">Privilege Leave (PL)</option>
-                    <option value="SL">Sick Leave (SL)</option>
-                    <option value="WFH">Work From Home (WFH)</option>
-                    <option value="CO">Comp Off</option>
+                    {balances.map((b) => (
+                      <option key={String(b.leaveTypeId)} value={String(b.leaveTypeId)}>
+                        {b.leaveTypeName} ({abbreviation(b.leaveTypeName)})
+                      </option>
+                    ))}
                   </select>
-                  <ErrorMsg field="leaveType" />
-                  <p className="mt-1 text-[11px] text-zinc-400">Choose the type of leave you want to apply for.</p>
+                  {errorMsg('leaveType')}
+                  <p className="mt-1 text-[11px] text-zinc-400">
+                    {selectedBalance
+                      ? `${Math.max(0, selectedBalance.balance)} day(s) available.${numDays > selectedBalance.balance ? ' This request exceeds your balance; HR may treat the extra days as unpaid.' : ''}`
+                      : 'Choose the type of leave you want to apply for.'}
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
@@ -203,7 +235,7 @@ export default function ApplyLeavePage() {
                       />
                       <CalendarIcon size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                     </div>
-                    <ErrorMsg field="fromDate" />
+                    {errorMsg('fromDate')}
                   </div>
                   <div>
                     <Label required>To Date</Label>
@@ -217,7 +249,7 @@ export default function ApplyLeavePage() {
                       />
                       <CalendarIcon size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                     </div>
-                    <ErrorMsg field="toDate" />
+                    {errorMsg('toDate')}
                   </div>
                 </div>
 
@@ -246,6 +278,7 @@ export default function ApplyLeavePage() {
                       Second Half (After 1:00 PM)
                     </label>
                   </div>
+                  {errorMsg('session')}
                 </div>
 
                 <div>
@@ -264,7 +297,7 @@ export default function ApplyLeavePage() {
                     rows={2}
                     className={ic('reason').replace('rounded-lg', 'rounded-lg resize-none')}
                   />
-                  <ErrorMsg field="reason" />
+                  {errorMsg('reason')}
                   <p className="mt-1 text-[11px] text-zinc-400">Minimum 10 characters</p>
                 </div>
 
@@ -285,7 +318,7 @@ export default function ApplyLeavePage() {
                         placeholder="e.g. 9876543210"
                         className={ic('mobile')}
                       />
-                      <ErrorMsg field="mobile" />
+                      {errorMsg('mobile')}
                     </div>
                     <div>
                       <Label>Email Address</Label>
@@ -298,7 +331,7 @@ export default function ApplyLeavePage() {
                         placeholder="Enter email address"
                         className={ic('email')}
                       />
-                      <ErrorMsg field="email" />
+                      {errorMsg('email')}
                     </div>
                   </div>
                 </div>
@@ -332,16 +365,17 @@ export default function ApplyLeavePage() {
                       <p className="text-[10.5px] text-zinc-400">Supported formats: PDF, JPG, PNG (Max. 5MB)</p>
                     </label>
                   )}
+                  {errorMsg('file')}
                 </div>
 
                 {/* Actions */}
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                  <button type="submit" className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-[13px] font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors">
-                    <Send size={14} /> Submit Leave Request
+                  <button type="submit" disabled={submitting} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-[13px] font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors disabled:opacity-60">
+                    {submitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />} {uploading ? 'Uploading…' : 'Submit Leave Request'}
                   </button>
-                  <button type="button" className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-[13px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
-                    <Save size={14} /> Save as Draft
-                  </button>
+                  <Link href="/dashboard/employee-leave" className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-[13px] font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
+                    Cancel
+                  </Link>
                 </div>
               </form>
             </Card>
@@ -355,7 +389,7 @@ export default function ApplyLeavePage() {
                 <h2 className="flex items-center gap-2 text-[14px] font-bold text-zinc-900">
                   <ClipboardList size={16} className="text-blue-600" /> Leave Balance Summary
                 </h2>
-                <span className="whitespace-nowrap text-[11px] text-zinc-400">As on 24 May 2025</span>
+                <span className="whitespace-nowrap text-[11px] text-zinc-400">As on {moment().format('DD MMM YYYY')}</span>
               </div>
 
               <table className="w-full border-collapse">
@@ -368,22 +402,25 @@ export default function ApplyLeavePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {leaveBalanceSummary.map((row) => (
-                    <tr key={row.type} className="border-t border-zinc-100 text-[12.5px] text-zinc-600">
+                  {balances.length === 0 && (
+                    <tr><td colSpan={4} className="py-3 text-center text-[12px] text-zinc-400">No leave types set up yet.</td></tr>
+                  )}
+                  {balances.map((row, i) => (
+                    <tr key={String(row.leaveTypeId)} className="border-t border-zinc-100 text-[12.5px] text-zinc-600">
                       <td className="py-2 pr-2">
-                        <span className={`inline-block rounded-md px-2 py-0.5 text-[11px] font-semibold ${row.badge}`}>
-                          {row.type}
+                        <span className={`inline-block rounded-md px-2 py-0.5 text-[11px] font-semibold ${BADGES[i % BADGES.length]}`} title={row.leaveTypeName}>
+                          {abbreviation(row.leaveTypeName)}
                         </span>
                       </td>
-                      <td className="py-2 pr-2 whitespace-nowrap">{row.available}</td>
-                      <td className="py-2 pr-2 whitespace-nowrap">{row.taken}</td>
-                      <td className="py-2 whitespace-nowrap">{row.entitlement}</td>
+                      <td className="py-2 pr-2 whitespace-nowrap">{Math.max(0, row.balance)} Days</td>
+                      <td className="py-2 pr-2 whitespace-nowrap">{row.takenThisYear} Days</td>
+                      <td className="py-2 whitespace-nowrap">{row.defaultDays + row.creditedDays} Days</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
-              <Link href="/dashboard/leaves" className="mt-1.5 inline-flex items-center gap-1 text-[12.5px] font-semibold text-blue-600 hover:text-blue-700">
+              <Link href="/dashboard/employee-leave" className="mt-1.5 inline-flex items-center gap-1 text-[12.5px] font-semibold text-blue-600 hover:text-blue-700">
                 View All Balances <ArrowRight size={13} />
               </Link>
             </Card>
@@ -394,16 +431,17 @@ export default function ApplyLeavePage() {
                 <ShieldCheck size={16} className="text-blue-600" /> Leave Policy Highlights
               </h2>
               <div className="space-y-1">
-                {policyHighlights.map((item, i) => (
-                  <div key={i} className="flex items-start gap-2">
+                {balances.map((b) => (
+                  <div key={String(b.leaveTypeId)} className="flex items-start gap-2">
                     <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-500" />
-                    <span className="text-[12px] text-zinc-600">{item}</span>
+                    <span className="text-[12px] text-zinc-600">{b.leaveTypeName}: {b.defaultDays} days per year.</span>
                   </div>
                 ))}
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-500" />
+                  <span className="text-[12px] text-zinc-600">Requests can&apos;t overlap a leave you already have pending or approved.</span>
+                </div>
               </div>
-              <Link href="/dashboard/leaves/policy" className="mt-1.5 inline-flex items-center gap-1 text-[12.5px] font-semibold text-blue-600 hover:text-blue-700">
-                View Leave Policy <ArrowRight size={13} />
-              </Link>
             </Card>
 
             {/* Approval Flow */}
@@ -425,7 +463,7 @@ export default function ApplyLeavePage() {
                 ))}
               </div>
               <p className="mt-1.5 text-[11.5px] text-zinc-400">
-                You will be notified via email and dashboard once your leave request is approved or rejected.
+                Track the status of your request on your Leave page.
               </p>
             </Card>
           </div>
