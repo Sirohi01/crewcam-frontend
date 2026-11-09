@@ -1,18 +1,23 @@
+'use client';
+
 import React from 'react';
+import { useMyDetails } from '@/hooks/useMyProfile';
+import { useProfileSectionEditor } from '@/hooks/useProfileSectionEditor';
+import { ProfileEntryDialog } from '@/components/profile/ProfileEntryDialog';
+import { EMERGENCY_FIELDS } from '@/components/profile/profileFields';
 import {
   ShieldAlert, PhoneCall, Plus, Shield, Activity, Flame, MessageCircle, MapPin, Building2,
-  Users, HeartPulse, DoorOpen, Map, FileText, CheckCircle2, MoreVertical, Edit2, Trash2, Phone, MessageSquare
+  Users, HeartPulse, DoorOpen, Map, FileText, CheckCircle2, Edit2, Trash2, Phone, MessageSquare
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
-const contacts = [
-  { name: 'Neha Mehta', relation: 'Sister', phone: '+91 98765 12345', priority: 'Primary', avatar: 'https://randomuser.me/api/portraits/women/44.jpg' },
-  { name: 'Rajesh Mehta', relation: 'Father', phone: '+91 98110 11222', priority: 'Secondary', avatar: 'https://randomuser.me/api/portraits/men/66.jpg' },
-  { name: 'Sushma Mehta', relation: 'Mother', phone: '+91 98110 11333', priority: 'Secondary', avatar: 'https://randomuser.me/api/portraits/women/65.jpg' },
-  { name: 'Aryan Mehta', relation: 'Brother', phone: '+91 98765 54321', priority: 'Secondary', avatar: 'https://randomuser.me/api/portraits/men/22.jpg' },
-];
+// Helplines, office info and safety tips below are company-level content with no admin
+// screen yet (sample data). "My Emergency Contacts" is live (/me/details).
 
 export function EmergencyTab({ profileCard }: { profileCard?: React.ReactNode }) {
+  const { data: details, isLoading } = useMyDetails();
+  const contacts = useProfileSectionEditor('emergencyContacts', details?.emergencyContacts, 'Emergency Contact');
+
   return (
     <div className="flex flex-col gap-2 h-full">
       {/* Header */}
@@ -93,10 +98,9 @@ export function EmergencyTab({ profileCard }: { profileCard?: React.ReactNode })
                   <h3 className="text-[12px] font-bold text-zinc-900">My Emergency Contacts</h3>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <button className="flex items-center gap-1 text-[10px] font-bold text-[#1d4ed8] hover:bg-blue-50 px-2 py-1 rounded transition-colors">
+                  <button onClick={contacts.openAdd} className="flex items-center gap-1 text-[10px] font-bold text-[#1d4ed8] hover:bg-blue-50 px-2 py-1 rounded transition-colors">
                     <Plus size={12} /> Add Contact
                   </button>
-                  <MoreVertical size={14} className="text-zinc-400 cursor-pointer" />
                 </div>
               </div>
               <div className="flex-1 overflow-x-auto">
@@ -111,27 +115,33 @@ export function EmergencyTab({ profileCard }: { profileCard?: React.ReactNode })
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-50 text-[11px]">
-                    {contacts.map((c, i) => (
-                      <tr key={i} className="hover:bg-zinc-50/50 transition-colors">
+                    {isLoading && (
+                      <tr><td colSpan={5} className="py-4 text-center text-[10px] text-zinc-400">Loading…</td></tr>
+                    )}
+                    {!isLoading && contacts.rows.length === 0 && (
+                      <tr><td colSpan={5} className="py-4 text-center text-[10px] text-zinc-500">No emergency contacts yet. Add someone we can reach if you need help.</td></tr>
+                    )}
+                    {contacts.rows.map((c) => (
+                      <tr key={c._id || c.name} className="hover:bg-zinc-50/50 transition-colors">
                         <td className="py-2.5">
                           <div className="flex items-center gap-2">
-                            <img src={c.avatar} alt="" className="h-7 w-7 rounded-full object-cover shadow-sm border border-zinc-100" />
+                            <div className="grid h-7 w-7 place-items-center rounded-full shadow-sm border border-zinc-100 bg-blue-50 text-[10px] font-bold text-[#1d4ed8]">{c.name.charAt(0).toUpperCase()}</div>
                             <span className="font-bold text-zinc-900">{c.name}</span>
                           </div>
                         </td>
-                        <td className="py-2.5 text-zinc-600 font-medium">{c.relation}</td>
-                        <td className="py-2.5 text-zinc-800 font-medium">{c.phone}</td>
+                        <td className="py-2.5 text-zinc-600 font-medium">{c.relationship}</td>
+                        <td className="py-2.5 text-zinc-800 font-medium">{c.mobile}</td>
                         <td className="py-2.5 text-center">
-                          <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[9px] font-bold border ${c.priority === 'Primary' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
-                            {c.priority}
+                          <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[9px] font-bold border ${c.isPrimary ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
+                            {c.isPrimary ? 'Primary' : 'Secondary'}
                           </span>
                         </td>
                         <td className="py-2.5">
                           <div className="flex items-center justify-end gap-1.5 pr-2">
-                            <button className="p-1 rounded text-emerald-500 bg-emerald-50 hover:bg-emerald-100 transition-colors" title="Call"><Phone size={12} /></button>
-                            <button className="p-1 rounded text-blue-500 bg-blue-50 hover:bg-blue-100 transition-colors" title="Message"><MessageSquare size={12} /></button>
-                            <button className="p-1 rounded text-zinc-400 border border-zinc-200 hover:bg-zinc-50 transition-colors" title="Edit"><Edit2 size={12} /></button>
-                            <button className="p-1 rounded text-rose-500 border border-rose-100 hover:bg-rose-50 transition-colors" title="Delete"><Trash2 size={12} /></button>
+                            <a href={`tel:${c.mobile.replace(/\s+/g, '')}`} className="p-1 rounded text-emerald-500 bg-emerald-50 hover:bg-emerald-100 transition-colors" title="Call"><Phone size={12} /></a>
+                            <a href={`sms:${c.mobile.replace(/\s+/g, '')}`} className="p-1 rounded text-blue-500 bg-blue-50 hover:bg-blue-100 transition-colors" title="Message"><MessageSquare size={12} /></a>
+                            <button onClick={() => contacts.openEdit(c)} className="p-1 rounded text-zinc-400 border border-zinc-200 hover:bg-zinc-50 transition-colors" title="Edit"><Edit2 size={12} /></button>
+                            <button onClick={() => contacts.remove(c)} disabled={contacts.isSaving} className="p-1 rounded text-rose-500 border border-rose-100 hover:bg-rose-50 transition-colors disabled:opacity-50" title="Delete"><Trash2 size={12} /></button>
                           </div>
                         </td>
                       </tr>
@@ -244,6 +254,7 @@ export function EmergencyTab({ profileCard }: { profileCard?: React.ReactNode })
           </button>
         </div>
       </div>
+      <ProfileEntryDialog fields={EMERGENCY_FIELDS} {...contacts.dialog} />
     </div>
   );
 }

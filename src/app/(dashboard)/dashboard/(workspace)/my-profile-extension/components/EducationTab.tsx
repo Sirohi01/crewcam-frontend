@@ -1,33 +1,45 @@
-import React from 'react';
+'use client';
+
+import React, { useMemo } from 'react';
+import moment from 'moment';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { GraduationCap, Award, CalendarDays, FileText, ChevronDown, Eye, Pencil, Plus, Info, Trash2 } from 'lucide-react';
+import { GraduationCap, Award, CalendarDays, FileText, Pencil, Plus, Info, Trash2 } from 'lucide-react';
+import { useMyDetails } from '@/hooks/useMyProfile';
+import { useProfileSectionEditor } from '@/hooks/useProfileSectionEditor';
+import { ProfileEntryDialog } from '@/components/profile/ProfileEntryDialog';
+import { CERTIFICATION_FIELDS, COURSE_FIELDS, EDUCATION_FIELDS } from '@/components/profile/profileFields';
 
-export const EDUCATION_SUMMARY_DATA = {
-  total: { value: "5", sub: "All Degrees/Diplomas" },
-  highest: { value: "MBA (Marketing)", sub: "Post Graduation" },
-  years: { value: "17 Years", sub: "Till Post Graduation" },
-  certifications: { value: "3", sub: "Additional Certificates" }
-};
+const fmt = (d?: string) => (d ? moment(d).format('DD MMM YYYY') : '-');
+const entriesText = (n: number) => (n === 0 ? 'No entries' : `Showing 1 to ${n} of ${n} entries`);
 
-export const ACADEMIC_QUALIFICATIONS_DATA = [
-  { qual: 'MBA (Marketing)', inst: 'Symbiosis Pune', board: 'Symbiosis Int', year: '2021', score: '78.60%', mode: 'Full Time', spec: 'Marketing' },
-  { qual: 'BBA', inst: 'Delhi University', board: 'DU', year: '2018', score: '72.30%', mode: 'Full Time', spec: 'General' },
-  { qual: '12th (CBSE)', inst: 'Kendriya Vidyalaya', board: 'CBSE', year: '2015', score: '81.20%', mode: 'Full Time', spec: 'Commerce' },
-  { qual: '10th (CBSE)', inst: 'Kendriya Vidyalaya', board: 'CBSE', year: '2013', score: '85.60%', mode: 'Full Time', spec: 'N/A' },
-];
+function EmptyRow({ colSpan, text }: { colSpan: number; text: string }) {
+  return (
+    <tr>
+      <td colSpan={colSpan} className="px-2 py-4 text-center text-xs normal-case text-zinc-400">{text}</td>
+    </tr>
+  );
+}
 
-export const CERTIFICATIONS_DATA = [
-  { name: 'Google Ads Certification', issuer: 'Google', issue: '10 Jan 2023', expiry: '-', id: 'GOOG-AD-45678' },
-  { name: 'HubSpot Inbound Marketing', issuer: 'HubSpot Academy', issue: '15 Jun 2022', expiry: '-', id: 'HS-IM-78945' },
-  { name: 'Advanced Excel Certification', issuer: 'Coursera', issue: '20 Sep 2021', expiry: '-', id: 'CRS-EX-12345' },
-];
+function RowActions({ onEdit, onDelete, disabled }: { onEdit: () => void; onDelete: () => void; disabled?: boolean }) {
+  return (
+    <div className="flex items-center justify-center gap-1">
+      <button aria-label="Edit" onClick={onEdit} className="text-blue-500 hover:text-blue-700 transition-colors"><Pencil size={13} /></button>
+      <button aria-label="Delete" onClick={onDelete} disabled={disabled} className="text-rose-500 hover:text-rose-700 transition-colors disabled:opacity-50"><Trash2 size={11} /></button>
+    </div>
+  );
+}
 
-export const ADD_ON_COURSES_DATA = [
-  { name: 'Financial Modeling', inst: 'Udemy', year: '2022', duration: '2 Months' },
-  { name: 'Brand Management', inst: 'IIM Bangalore (Executive Ed.)', year: '2021', duration: '1 Month' },
-];
+/** Education tab of the unified My Profile page. Same data and editors as /dashboard/my-profile/education-details. */
+export function EducationTab({ profileCard }: { comingSoon?: (what: string) => () => void, profileCard?: React.ReactNode }) {
+  const { data: details, isLoading } = useMyDetails();
+  const education = useProfileSectionEditor('education', details?.education, 'Qualification');
+  const certifications = useProfileSectionEditor('certifications', details?.certifications, 'Certification');
+  const courses = useProfileSectionEditor('courses', details?.courses, 'Course');
+  const latest = useMemo(
+    () => [...education.rows].filter((e) => e.yearOfPassing).sort((a, b) => (b.yearOfPassing || 0) - (a.yearOfPassing || 0))[0],
+    [education.rows]
+  );
 
-export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: string) => () => void, profileCard?: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
       <div className="flex flex-col xl:flex-row gap-1 h-full">
@@ -43,10 +55,10 @@ export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: s
               <CardTitle className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">Education Summary</CardTitle>
             </CardHeader>
             <CardContent className="p-1.5 grid grid-cols-2 lg:grid-cols-4 gap-1.5">
-              <StatTile icon={GraduationCap} bg="bg-blue-50 dark:bg-blue-900/20" color="text-blue-600" label="Total Qualifications" value={EDUCATION_SUMMARY_DATA.total.value} sub={EDUCATION_SUMMARY_DATA.total.sub} />
-              <StatTile icon={Award} bg="bg-emerald-50 dark:bg-emerald-900/20" color="text-emerald-600" label="Highest Qualification" value={EDUCATION_SUMMARY_DATA.highest.value} sub={EDUCATION_SUMMARY_DATA.highest.sub} />
-              <StatTile icon={CalendarDays} bg="bg-amber-50 dark:bg-amber-900/20" color="text-amber-600" label="Years of Education" value={EDUCATION_SUMMARY_DATA.years.value} sub={EDUCATION_SUMMARY_DATA.years.sub} />
-              <StatTile icon={FileText} bg="bg-purple-50 dark:bg-purple-900/20" color="text-purple-600" label="Certifications" value={EDUCATION_SUMMARY_DATA.certifications.value} sub={EDUCATION_SUMMARY_DATA.certifications.sub} />
+              <StatTile icon={GraduationCap} bg="bg-blue-50 dark:bg-blue-900/20" color="text-blue-600" label="Total Qualifications" value={String(education.rows.length)} sub="All Degrees/Diplomas" />
+              <StatTile icon={Award} bg="bg-emerald-50 dark:bg-emerald-900/20" color="text-emerald-600" label="Highest Qualification" value={latest ? `${latest.qualification}${latest.specialization ? ` (${latest.specialization})` : ''}` : '-'} sub="Most recently completed" />
+              <StatTile icon={CalendarDays} bg="bg-amber-50 dark:bg-amber-900/20" color="text-amber-600" label="Latest Year of Passing" value={latest?.yearOfPassing ? String(latest.yearOfPassing) : '-'} sub={latest?.institution} />
+              <StatTile icon={FileText} bg="bg-purple-50 dark:bg-purple-900/20" color="text-purple-600" label="Certifications" value={String(certifications.rows.length)} sub="Additional Certificates" />
             </CardContent>
           </Card>
 
@@ -59,12 +71,6 @@ export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: s
                 </div>
                 Academic Qualifications
               </CardTitle>
-              <div className="flex items-center gap-1.5">
-                <a href="#" className="text-[11px] font-medium text-blue-600 hover:text-blue-700">View Timeline</a>
-                <button className="text-[11px] font-medium text-zinc-600 border border-zinc-200 dark:border-zinc-700 rounded px-2 py-1 flex items-center gap-1 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
-                  All <ChevronDown size={11} />
-                </button>
-              </div>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto pb-8">
@@ -78,29 +84,23 @@ export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: s
                       <th className="h-9 px-2 text-left align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Percentage / CGPA</th>
                       <th className="h-9 px-2 text-left align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Mode</th>
                       <th className="h-9 px-2 text-left align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Specialization</th>
-                      <th className="h-9 px-2 text-center align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Document</th>
                       <th className="h-9 px-2 text-center align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Action</th>
                     </tr>
                   </thead>
                   <tbody className="capitalize">
-                    {ACADEMIC_QUALIFICATIONS_DATA.map((row, i) => (
-                      <tr key={i} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30">
-                        <td className="px-2 py-1.5 align-middle text-xs font-semibold text-zinc-800 dark:text-zinc-200">{row.qual}</td>
-                        <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 max-w-[200px] truncate" title={row.inst}>{row.inst}</td>
-                        <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 max-w-[200px] truncate" title={row.board}>{row.board}</td>
-                        <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{row.year}</td>
-                        <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{row.score}</td>
-                        <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300">{row.mode}</td>
-                        <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300">{row.spec}</td>
-                        <td className="px-2 py-1.5 align-middle text-center">
-                          <button onClick={comingSoon('View Document')} className="inline-flex p-1 text-zinc-600 hover:text-zinc-900 rounded transition-colors"><FileText size={13} /></button>
-                        </td>
+                    {isLoading && <EmptyRow colSpan={8} text="Loading…" />}
+                    {!isLoading && education.rows.length === 0 && <EmptyRow colSpan={8} text="No qualifications added yet." />}
+                    {education.rows.map((row) => (
+                      <tr key={row._id || row.qualification} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30">
+                        <td className="px-2 py-1.5 align-middle text-xs font-semibold text-zinc-800 dark:text-zinc-200">{row.qualification}</td>
+                        <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 max-w-[200px] truncate" title={row.institution}>{row.institution}</td>
+                        <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 max-w-[200px] truncate" title={row.board}>{row.board || '-'}</td>
+                        <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{row.yearOfPassing ?? '-'}</td>
+                        <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{row.score || '-'}</td>
+                        <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300">{row.mode || '-'}</td>
+                        <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300">{row.specialization || '-'}</td>
                         <td className="px-2 py-1.5 align-middle">
-                          <div className="flex items-center justify-center gap-1">
-                            <button onClick={comingSoon('View Record')} className="text-blue-500 hover:text-blue-700 transition-colors"><Eye size={11} /></button>
-                            <button onClick={comingSoon('Edit Record')} className="text-blue-500 hover:text-blue-700 transition-colors"><Pencil size={13} /></button>
-                            <button onClick={comingSoon('Delete Record')} className="text-rose-500 hover:text-rose-700 transition-colors"><Trash2 size={11} /></button>
-                          </div>
+                          <RowActions onEdit={() => education.openEdit(row)} onDelete={() => education.remove(row)} disabled={education.isSaving} />
                         </td>
                       </tr>
                     ))}
@@ -108,7 +108,7 @@ export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: s
                 </table>
               </div>
               <div className="px-2 py-1.5 border-t border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 mt-8">
-                <p className="text-[11px] text-zinc-500 font-medium">Showing 1 to 4 of 4 entries</p>
+                <p className="text-[11px] text-zinc-500 font-medium">{entriesText(education.rows.length)}</p>
               </div>
             </CardContent>
           </Card>
@@ -126,7 +126,7 @@ export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: s
               </div>
               Certifications
             </CardTitle>
-            <button onClick={comingSoon('Add Certification')} className="text-[12px] font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1">
+            <button onClick={certifications.openAdd} className="text-[12px] font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1">
               <Plus size={13} /> Add Certification
             </button>
           </CardHeader>
@@ -140,27 +140,20 @@ export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: s
                     <th className="h-7 px-2 text-left align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Issue Date</th>
                     <th className="h-7 px-2 text-left align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Expiry Date</th>
                     <th className="h-7 px-2 text-left align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Credential ID</th>
-                    <th className="h-7 px-2 text-center align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Document</th>
                     <th className="h-7 px-2 text-center align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Action</th>
                   </tr>
                 </thead>
                 <tbody className="capitalize">
-                  {CERTIFICATIONS_DATA.map((row, i) => (
-                    <tr key={i} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30">
+                  {!isLoading && certifications.rows.length === 0 && <EmptyRow colSpan={6} text="No certifications added yet." />}
+                  {certifications.rows.map((row) => (
+                    <tr key={row._id || row.name} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30">
                       <td className="px-2 py-1.5 align-middle text-xs font-semibold text-zinc-800 dark:text-zinc-200 whitespace-nowrap">{row.name}</td>
-                      <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{row.issuer}</td>
-                      <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{row.issue}</td>
-                      <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{row.expiry}</td>
-                      <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{row.id}</td>
-                      <td className="px-2 py-1.5 align-middle text-center">
-                        <button onClick={comingSoon('View Document')} className="inline-flex p-1 text-zinc-600 hover:text-zinc-900 rounded transition-colors"><FileText size={13} /></button>
-                      </td>
+                      <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{row.issuedBy || '-'}</td>
+                      <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{fmt(row.issueDate)}</td>
+                      <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{fmt(row.expiryDate)}</td>
+                      <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{row.credentialId || '-'}</td>
                       <td className="px-2 py-1.5 align-middle">
-                        <div className="flex items-center justify-center gap-1">
-                          <button onClick={comingSoon('View Record')} className="text-blue-500 hover:text-blue-700 transition-colors"><Eye size={11} /></button>
-                          <button onClick={comingSoon('Edit Record')} className="text-blue-500 hover:text-blue-700 transition-colors"><Pencil size={13} /></button>
-                          <button onClick={comingSoon('Delete Record')} className="text-rose-500 hover:text-rose-700 transition-colors"><Trash2 size={11} /></button>
-                        </div>
+                        <RowActions onEdit={() => certifications.openEdit(row)} onDelete={() => certifications.remove(row)} disabled={certifications.isSaving} />
                       </td>
                     </tr>
                   ))}
@@ -168,7 +161,7 @@ export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: s
               </table>
             </div>
             <div className="px-2 py-1.5 border-t border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 mt-auto">
-              <p className="text-[11px] text-zinc-500 font-medium">Showing 1 to 3 of 3 entries</p>
+              <p className="text-[11px] text-zinc-500 font-medium">{entriesText(certifications.rows.length)}</p>
             </div>
           </CardContent>
         </Card>
@@ -182,7 +175,7 @@ export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: s
               </div>
               Add-on Courses / Workshops
             </CardTitle>
-            <button onClick={comingSoon('Add Course')} className="text-[12px] font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1">
+            <button onClick={courses.openAdd} className="text-[12px] font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1">
               <Plus size={13} /> Add Course
             </button>
           </CardHeader>
@@ -195,26 +188,19 @@ export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: s
                     <th className="h-7 px-2 text-left align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Institute / Provider</th>
                     <th className="h-7 px-2 text-left align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Year</th>
                     <th className="h-7 px-2 text-left align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Duration</th>
-                    <th className="h-7 px-2 text-center align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Document</th>
                     <th className="h-7 px-2 text-center align-middle text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Action</th>
                   </tr>
                 </thead>
                 <tbody className="capitalize">
-                  {ADD_ON_COURSES_DATA.map((row, i) => (
-                    <tr key={i} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30">
+                  {!isLoading && courses.rows.length === 0 && <EmptyRow colSpan={5} text="No courses added yet." />}
+                  {courses.rows.map((row) => (
+                    <tr key={row._id || row.name} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30">
                       <td className="px-2 py-1.5 align-middle text-xs font-semibold text-zinc-800 dark:text-zinc-200 whitespace-nowrap">{row.name}</td>
-                      <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{row.inst}</td>
-                      <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{row.year}</td>
-                      <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{row.duration}</td>
-                      <td className="px-2 py-1.5 align-middle text-center">
-                        <button onClick={comingSoon('View Document')} className="inline-flex p-1 text-zinc-600 hover:text-zinc-900 rounded transition-colors"><FileText size={13} /></button>
-                      </td>
+                      <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{row.provider || '-'}</td>
+                      <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{row.year ?? '-'}</td>
+                      <td className="px-2 py-1.5 align-middle text-xs font-medium text-zinc-700 dark:text-zinc-300 whitespace-nowrap">{row.duration || '-'}</td>
                       <td className="px-2 py-1.5 align-middle">
-                        <div className="flex items-center justify-center gap-1">
-                          <button onClick={comingSoon('View Record')} className="text-blue-500 hover:text-blue-700 transition-colors"><Eye size={11} /></button>
-                          <button onClick={comingSoon('Edit Record')} className="text-blue-500 hover:text-blue-700 transition-colors"><Pencil size={13} /></button>
-                          <button onClick={comingSoon('Delete Record')} className="text-rose-500 hover:text-rose-700 transition-colors"><Trash2 size={11} /></button>
-                        </div>
+                        <RowActions onEdit={() => courses.openEdit(row)} onDelete={() => courses.remove(row)} disabled={courses.isSaving} />
                       </td>
                     </tr>
                   ))}
@@ -222,7 +208,7 @@ export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: s
               </table>
             </div>
             <div className="px-2 py-1.5 border-t border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 mt-auto">
-              <p className="text-[11px] text-zinc-500 font-medium">Showing 1 to 2 of 2 entries</p>
+              <p className="text-[11px] text-zinc-500 font-medium">{entriesText(courses.rows.length)}</p>
             </div>
           </CardContent>
         </Card>
@@ -238,6 +224,10 @@ export function EducationTab({ comingSoon, profileCard }: { comingSoon: (what: s
           Keep your educational information updated. It helps us in internal assessments, registrations and career development opportunities.
         </p>
       </div>
+
+      <ProfileEntryDialog fields={EDUCATION_FIELDS} {...education.dialog} />
+      <ProfileEntryDialog fields={CERTIFICATION_FIELDS} {...certifications.dialog} />
+      <ProfileEntryDialog fields={COURSE_FIELDS} {...courses.dialog} />
     </div>
   );
 }

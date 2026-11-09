@@ -5,7 +5,7 @@ import type { DetailsSection, MyDetails } from '@/services/meService';
 import { useSaveMyDetailsSection } from './useMyProfile';
 
 type Row<S extends DetailsSection> = MyDetails[S] extends Array<infer R> ? R & { _id?: string } : never;
-type ListSection = { [K in DetailsSection]: MyDetails[K] extends any[] ? K : never }[DetailsSection];
+export type ListSection = { [K in DetailsSection]: MyDetails[K] extends any[] ? K : never }[DetailsSection];
 
 /**
  * Add / edit / delete for one list section of My Profile. The server replaces the whole
@@ -52,3 +52,5 @@ export function useProfileSectionEditor<S extends ListSection>(section: S, rows:
     isSaving: save.isPending,
   };
 }
+
+export type ProfileSectionEditor<S extends ListSection> = ReturnType<typeof useProfileSectionEditor<S>>;

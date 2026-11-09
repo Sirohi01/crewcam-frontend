@@ -5,8 +5,8 @@ import moment from 'moment';
 import { Mail, Phone, Calendar, MapPin, CheckCircle2 } from 'lucide-react';
 import type { MyProfile } from '@/services/meService';
 
-/** Initials avatar, used when the employee has no profile photo. */
-function Avatar({ src, name, className }: { src?: string; name: string; className: string }) {
+/** Profile photo, or the person's initials when they have none (no stock photos). */
+export function ProfileAvatar({ src, name, className }: { src?: string; name: string; className: string }) {
   if (src) return <img src={src} alt={name} className={`${className} object-cover`} />;
   const initials = name.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('');
   return (
@@ -44,7 +44,7 @@ export function ProfileSummaryCard({ profile, isLoading }: { profile?: MyProfile
     <div className="col-span-1 h-full">
       <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm flex flex-col items-center text-center h-full">
         <div className="relative mb-4">
-          <Avatar src={profile.profilePictureUrl} name={name} className="h-24 w-24 rounded-full border border-zinc-200 p-1 bg-white shadow-sm text-xl" />
+          <ProfileAvatar src={profile.profilePictureUrl} name={name} className="h-24 w-24 rounded-full border border-zinc-200 p-1 bg-white shadow-sm text-xl" />
         </div>
         <h2 className="flex items-center gap-2 text-[10px] font-bold text-zinc-900">
           {name} {isActive && <CheckCircle2 size={12} className="text-emerald-500 fill-emerald-100" />}
@@ -91,7 +91,7 @@ export function ProfileSummaryCard({ profile, isLoading }: { profile?: MyProfile
 
           {manager && (
             <div className="mt-4 pt-4 border-t border-zinc-100 flex items-center gap-3">
-              <Avatar src={manager.profilePictureUrl} name={managerName} className="h-9 w-9 rounded-full border border-zinc-200 text-[10px]" />
+              <ProfileAvatar src={manager.profilePictureUrl} name={managerName} className="h-9 w-9 rounded-full border border-zinc-200 text-[10px]" />
               <div>
                 <p className="text-[10px] text-zinc-500">Reporting To</p>
                 <p className="text-[10px] font-semibold text-[#1d4ed8]">{managerName}</p>

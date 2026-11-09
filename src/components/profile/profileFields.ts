@@ -62,6 +62,47 @@ export const CERTIFICATION_FIELDS: EntryField[] = [
   { key: 'credentialId', label: 'Credential ID', type: 'text' },
 ];
 
+export const EXPERIENCE_FIELDS: EntryField[] = [
+  { key: 'company', label: 'Company', type: 'text', required: true },
+  { key: 'designation', label: 'Designation / Role', type: 'text', required: true },
+  { key: 'startDate', label: 'Start Date', type: 'date' },
+  { key: 'endDate', label: 'End Date (leave blank if current)', type: 'date' },
+  { key: 'location', label: 'Location', type: 'text' },
+  { key: 'employmentType', label: 'Employment Type', type: 'select', options: ['Full-Time', 'Part-Time', 'Contract', 'Internship', 'Freelance'].map((v) => ({ value: v, label: v })) },
+  { key: 'industry', label: 'Industry', type: 'text', placeholder: 'e.g. IT Services' },
+  { key: 'companyWebsite', label: 'Company Website', type: 'text' },
+  { key: 'responsibilities', label: 'Key Responsibilities (one per line)', type: 'textarea' },
+  { key: 'referenceName', label: 'Reference Name', type: 'text' },
+  { key: 'referencePhone', label: 'Reference Phone', type: 'tel' },
+  { key: 'referenceEmail', label: 'Reference Email', type: 'email' },
+];
+
+const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((v) => ({ value: v, label: v }));
+
+/** The only User fields an employee may change themselves (PATCH /me/profile). */
+export const PROFILE_FIELDS: EntryField[] = [
+  { key: 'mobileNumber', label: 'Mobile Number', type: 'tel' },
+  { key: 'bloodGroup', label: 'Blood Group', type: 'select', options: BLOOD_GROUPS },
+  { key: 'maritalStatus', label: 'Marital Status', type: 'select', options: ['single', 'married', 'divorced', 'widowed'].map((v) => ({ value: v, label: v[0].toUpperCase() + v.slice(1) })) },
+  { key: 'currentAddress', label: 'Current Address', type: 'textarea' },
+  { key: 'currentCity', label: 'Current City', type: 'text' },
+  { key: 'currentState', label: 'Current State', type: 'text' },
+  { key: 'currentPincode', label: 'Current Pincode', type: 'text' },
+  { key: 'permanentAddress', label: 'Permanent Address', type: 'textarea' },
+];
+
+export const SKILL_FIELDS: EntryField[] = [
+  { key: 'name', label: 'Skill Name', type: 'text', required: true },
+  { key: 'category', label: 'Category', type: 'select', options: ['Core Skill', 'Soft Skill', 'Technical Skill'].map((v) => ({ value: v, label: v })) },
+  { key: 'level', label: 'Proficiency', type: 'select', options: [
+    { value: 'Beginner', label: 'Beginner (25%)' },
+    { value: 'Intermediate', label: 'Intermediate (50%)' },
+    { value: 'Advanced', label: 'Advanced (75%)' },
+    { value: 'Expert', label: 'Expert (100%)' },
+  ] },
+  { key: 'yearsOfExperience', label: 'Years of Experience', type: 'number' },
+];
+
 export const COURSE_FIELDS: EntryField[] = [
   { key: 'name', label: 'Course / Workshop', type: 'text', required: true },
   { key: 'provider', label: 'Institute / Provider', type: 'text' },

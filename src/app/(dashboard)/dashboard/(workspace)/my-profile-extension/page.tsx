@@ -12,6 +12,12 @@ import {
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
+import { useMyDetails, useMyProfile, useUpdateMyProfile } from '@/hooks/useMyProfile';
+import toast from 'react-hot-toast';
+import { useProfileSectionEditor } from '@/hooks/useProfileSectionEditor';
+import { ProfileEntryDialog } from '@/components/profile/ProfileEntryDialog';
+import { PROFILE_FIELDS, SKILL_FIELDS } from '@/components/profile/profileFields';
+import { ProfileAvatar } from '@/components/profile/ProfileSummaryCard';
 import moment from 'moment';
 import Link from 'next/link';
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -47,58 +53,6 @@ const TABS: { key: TabKey; label: string; icon: LucideIcon }[] = [
 
 // Sample/demo values for sections the backend doesn't persist yet (family, bank,
 // education, experience, skills, documents, assets) — display-only, not editable.
-const DUMMY = {
-  photo: 'https://randomuser.me/api/portraits/men/32.jpg',
-  firstName: 'Rohan',
-  lastName: 'Mehta',
-  employeeCode: 'EMP10234',
-  designation: 'Executive - Sales',
-  email: 'rohan.mehta@crewcam.com',
-  phone: '+91 98765 43210',
-  dateOfJoining: '15 Mar 2023',
-  branch: 'Noida Office',
-  reportingManager: { name: 'Amit Kumar', designation: 'Sales Manager', photo: 'https://randomuser.me/api/portraits/men/45.jpg' },
-  dateOfBirth: '12 Aug 1996 (27 Yrs)',
-  panNumber: 'ABCDE1234F',
-  aadhaarNumber: '123412341234',
-  gender: 'Male',
-  maritalStatus: 'Single',
-  bloodGroup: 'B+',
-  nationality: 'Indian',
-  totalExperience: '5 Yrs 3 Mths',
-  ctc: '8,50,000',
-  nextIncrement: '01 Jan 2027',
-  managerPhoto: '',
-  family: [
-    { name: 'Neha', relation: 'Sister', dob: '18 Feb 1993', occupation: 'Software Engineer' },
-    { name: 'Rajesh', relation: 'Father', dob: '10 Jan 1965', occupation: 'Business' },
-    { name: 'Sushma', relation: 'Mother', dob: '12 Mar 1968', occupation: 'Homemaker' },
-  ],
-  bank: { name: 'HDFC Bank', accountNumber: '5010 XXXX 5678 90', ifsc: 'HDFC0001234', type: 'Savings Account', branch: 'Sector 18 Branch', primary: 'Yes' },
-  education: [
-    { qualification: 'MBA (Marketing)', institute: 'Symbiosis Pune', year: '2021', pct: '78.60%' },
-    { qualification: 'BBA', institute: 'Delhi University', year: '2018', pct: '72.30%' },
-    { qualification: '12th (CBSE)', institute: 'Kendriya Vidyalaya', year: '2015', pct: '81.20%' },
-    { qualification: '10th (CBSE)', institute: 'Kendriya Vidyalaya', year: '2013', pct: '85.60%' },
-  ],
-  experience: [
-    { company: 'XYZ Solutions Pvt. Ltd.', designation: 'Sales Executive', duration: '1 Yr 6 Mths', ctc: '3,25,000', lastDrawn: '24,500' },
-    { company: 'ABC Technologies', designation: 'Sales Associate', duration: '1 Yr 2 Mths', ctc: '2,40,000', lastDrawn: '18,000' },
-    { company: 'Global Services', designation: 'Trainee - Sales', duration: '6 Mths', ctc: '1,80,000', lastDrawn: '15,000' },
-  ],
-  skills: [
-    { name: 'Communication', pct: 90 },
-    { name: 'Sales & Negotiation', pct: 85 },
-    { name: 'CRM (Salesforce)', pct: 80 },
-    { name: 'MS Office', pct: 75 },
-    { name: 'Team Collaboration', pct: 70 },
-  ],
-  assets: [
-    { name: 'Laptop - Dell Latitude', tag: 'AST-1042', allocatedOn: '15 Mar 2023' },
-    { name: 'ID Card', tag: 'AST-1043', allocatedOn: '15 Mar 2023' },
-  ],
-  emergency: { name: 'Anjali Mehta', relation: 'Spouse', number: '+91 90000 11223' },
-};
 
 const DOC_CATEGORY_STYLE: Record<string, string> = {
   'Identity Proof': 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
@@ -147,41 +101,9 @@ const SKILL_CATEGORY_STYLE: Record<string, { badge: string; color: string }> = {
   'Technical Skill': { badge: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', color: '#3b82f6' },
 };
 
-const SKILL_STATS = { total: 12, core: 7, avgProficiency: 78, certifications: 4 };
-
-const SKILL_LIST = [
-  { name: 'Sales Strategy', category: 'Core Skill', pct: 90, updated: '20 May 2025' },
-  { name: 'Client Relationship Management', category: 'Core Skill', pct: 85, updated: '18 May 2025' },
-  { name: 'Business Development', category: 'Core Skill', pct: 80, updated: '18 May 2025' },
-  { name: 'Negotiation', category: 'Core Skill', pct: 75, updated: '15 May 2025' },
-  { name: 'Communication', category: 'Soft Skill', pct: 85, updated: '15 May 2025' },
-  { name: 'Presentation', category: 'Soft Skill', pct: 80, updated: '12 May 2025' },
-  { name: 'Team Leadership', category: 'Soft Skill', pct: 70, updated: '12 May 2025' },
-  { name: 'CRM Software (Salesforce)', category: 'Technical Skill', pct: 75, updated: '10 May 2025' },
-  { name: 'Microsoft Excel', category: 'Technical Skill', pct: 80, updated: '10 May 2025' },
-  { name: 'Data Analysis', category: 'Technical Skill', pct: 65, updated: '08 May 2025' },
-];
-
-const SKILL_CATEGORY_BREAKDOWN = [
-  { name: 'Core Skills', count: 7, pct: 58, color: '#22c55e' },
-  { name: 'Soft Skills', count: 3, pct: 25, color: '#a855f7' },
-  { name: 'Technical Skills', count: 2, pct: 17, color: '#3b82f6' },
-];
-
-const TOP_SKILLS = [
-  { name: 'Sales Strategy', pct: 90 },
-  { name: 'Client Relationship Management', pct: 85 },
-  { name: 'Communication', pct: 85 },
-  { name: 'Microsoft Excel', pct: 80 },
-  { name: 'Business Development', pct: 80 },
-];
-
-const SKILL_CERTIFICATIONS = [
-  { name: 'Salesforce Administrator', issued: '15 Feb 2024' },
-  { name: 'Advanced Excel Certification', issued: '10 Dec 2023' },
-  { name: 'Effective Communication Specialist', issued: '05 Aug 2023' },
-  { name: 'Negotiation Skills Professional', issued: '12 Jun 2023' },
-];
+/** Skill levels stored by the API, shown as the design's proficiency percentage. */
+const LEVEL_PCT: Record<string, number> = { Beginner: 25, Intermediate: 50, Advanced: 75, Expert: 100 };
+const FALLBACK_SKILL_STYLE = { badge: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300', color: '#71717a' };
 
 function InfoField({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -289,34 +211,34 @@ function ProfileSummaryCard({ employee, tenure, comingSoon, className }: {
     <Card className={`border-zinc-200/70 shadow-sm dark:border-zinc-800 ${className || ''}`}>
       <CardContent className="p-1.5 flex flex-col items-center text-center">
         <div className="relative">
-          <img src={employee?.profilePictureUrl || DUMMY.photo} alt="" className="h-16 w-16 rounded-full object-cover border-4 border-zinc-100 dark:border-zinc-800" />
+          <ProfileAvatar src={employee?.profilePictureUrl} name={`${employee?.firstName || ''} ${employee?.lastName || ''}`.trim()} className="h-16 w-16 rounded-full border-4 border-zinc-100 dark:border-zinc-800 text-base" />
           <button onClick={comingSoon('Photo upload')} className="absolute bottom-0 right-0 h-7 w-7 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-800">
             <Camera size={12} className="text-zinc-600 dark:text-zinc-300" />
           </button>
         </div>
         <div className="flex items-center gap-1.5 mt-1.5">
-          <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">{employee?.firstName || DUMMY.firstName} {employee?.lastName || DUMMY.lastName}</p>
+          <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">{employee?.firstName || '—'} {employee?.lastName || '—'}</p>
           <CheckCircle2 size={11} className="text-emerald-500" />
         </div>
-        <p className="text-xs text-zinc-500 mt-0.5">{employee?.employeeCode || DUMMY.employeeCode}</p>
-        <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">{employee?.designationId?.name || DUMMY.designation}</p>
+        <p className="text-xs text-zinc-500 mt-0.5">{employee?.employeeCode || '—'}</p>
+        <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">{employee?.designationId?.name || '—'}</p>
         <span className={`mt-1 inline-flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full ${employee?.isActive ?? true ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'}`}>
           <span className={`h-1.5 w-1.5 rounded-full ${employee?.isActive ?? true ? 'bg-emerald-500' : 'bg-zinc-400'}`} /> {(employee?.isActive ?? true) ? 'Active' : 'Inactive'}
         </span>
 
         <div className="w-full flex flex-col gap-1.5 mt-1 text-left">
           <div className="flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-400">
-            <Mail size={13} className="text-zinc-400 shrink-0" /> <span className="truncate">{employee?.email || DUMMY.email}</span>
+            <Mail size={13} className="text-zinc-400 shrink-0" /> <span className="truncate">{employee?.email || '—'}</span>
           </div>
           <div className="flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-400">
-            <Phone size={13} className="text-zinc-400 shrink-0" /> {employee?.mobileNumber || DUMMY.phone}
+            <Phone size={13} className="text-zinc-400 shrink-0" /> {employee?.mobileNumber || '—'}
           </div>
           <div className="flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-400">
             <CalendarDays size={13} className="text-zinc-400 shrink-0" />
-            <span>{employee?.dateOfJoining ? moment(employee.dateOfJoining).format('DD MMM YYYY') : DUMMY.dateOfJoining}{tenure && ` · ${tenure.years} Yrs ${tenure.months} Mths`}</span>
+            <span>{employee?.dateOfJoining ? moment(employee.dateOfJoining).format('DD MMM YYYY') : '—'}{tenure && ` · ${tenure.years} Yrs ${tenure.months} Mths`}</span>
           </div>
           <div className="flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-400">
-            <MapPin size={13} className="text-zinc-400 shrink-0" /> {employee?.branchId?.name || DUMMY.branch}
+            <MapPin size={13} className="text-zinc-400 shrink-0" /> {employee?.branchId?.name || '—'}
           </div>
         </div>
 
@@ -337,11 +259,9 @@ function ProfileSummaryCard({ employee, tenure, comingSoon, className }: {
             </>
           ) : (
             <>
-              <img src={DUMMY.reportingManager.photo} alt="" className="h-6 w-6 rounded-full object-cover shrink-0" />
               <div className="min-w-0">
                 <p className="text-[10px] text-zinc-400">Reporting To</p>
-                <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate">{DUMMY.reportingManager.name}</p>
-                <p className="text-[10px] text-zinc-400 truncate">{DUMMY.reportingManager.designation}</p>
+                <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate">Not assigned</p>
               </div>
             </>
           )}
@@ -353,14 +273,49 @@ function ProfileSummaryCard({ employee, tenure, comingSoon, className }: {
 
 export default function MyProfilePage() {
   const [tab, setTab] = useState<TabKey>('personal');
+  const { data: myDetails } = useMyDetails();
+  const skillsEditor = useProfileSectionEditor('skills', myDetails?.skills, 'Skill');
+  const experienceEditor = useProfileSectionEditor('experience', myDetails?.experience, 'Experience');
+  const [profileEditOpen, setProfileEditOpen] = useState(false);
+  const updateProfile = useUpdateMyProfile();
+  const skillView = useMemo(() => {
+    const list = skillsEditor.rows.map((row) => ({
+      row,
+      name: row.name,
+      category: row.category || 'Other',
+      pct: LEVEL_PCT[row.level || ''] ?? 0,
+      updated: myDetails?.updatedAt ? moment(myDetails.updatedAt).format('DD MMM YYYY') : '—',
+    }));
+    const counts = new Map<string, number>();
+    list.forEach((sk) => counts.set(sk.category, (counts.get(sk.category) || 0) + 1));
+    const rated = list.filter((sk) => sk.pct > 0);
+    return {
+      list,
+      stats: {
+        total: list.length,
+        core: list.filter((sk) => sk.category === 'Core Skill').length,
+        avgProficiency: rated.length ? Math.round(rated.reduce((acc, sk) => acc + sk.pct, 0) / rated.length) : 0,
+        certifications: myDetails?.certifications?.length || 0,
+      },
+      breakdown: Array.from(counts.entries()).map(([name, count]) => ({
+        name: `${name}s`,
+        count,
+        pct: list.length ? Math.round((count / list.length) * 100) : 0,
+        color: (SKILL_CATEGORY_STYLE[name] || FALLBACK_SKILL_STYLE).color,
+      })),
+      top: [...rated].sort((x, y) => y.pct - x.pct).slice(0, 5),
+      certs: (myDetails?.certifications || []).slice(0, 4).map((c) => ({
+        name: c.name,
+        issued: c.issueDate ? moment(c.issueDate).format('DD MMM YYYY') : '—',
+        expired: !!c.expiryDate && moment(c.expiryDate).isBefore(moment()),
+      })),
+    };
+  }, [skillsEditor.rows, myDetails]);
   const [showAadhaar, setShowAadhaar] = useState(false);
   const [docSubTab, setDocSubTab] = useState<'all' | 'mine' | 'shared'>('all');
 
-  const { data: employeeRes, isLoading } = useQuery({
-    queryKey: ['current-employee'],
-    queryFn: async () => (await api.get('/employees/current')).data,
-  });
-  const employee = employeeRes?.data;
+  // /me/profile masks PAN/Aadhaar/UAN server-side; /employees/current returned them in clear.
+  const { data: employee, isLoading } = useMyProfile() as { data: any; isLoading: boolean };
 
   const { data: leaveStats } = useQuery({
     queryKey: ['my-leave-statistics'],
@@ -369,7 +324,7 @@ export default function MyProfilePage() {
 
   const { data: appraisals } = useQuery({
     queryKey: ['my-appraisals'],
-    queryFn: async () => (await api.get('/appraisals/my')).data,
+    queryFn: async () => (await api.get('/pms/appraisals/my')).data,
   });
 
   const { data: myTodos } = useQuery({
@@ -406,11 +361,12 @@ export default function MyProfilePage() {
     return typeof value === 'number' ? value : null;
   }, [appraisals]);
 
+  const dateOfJoining = employee?.dateOfJoining;
   const tenure = useMemo(() => {
-    if (!employee?.dateOfJoining) return null;
-    const d = moment.duration(moment().diff(moment(employee.dateOfJoining)));
+    if (!dateOfJoining) return null;
+    const d = moment.duration(moment().diff(moment(dateOfJoining)));
     return { years: Math.floor(d.asYears()), months: d.months() };
-  }, [employee?.dateOfJoining]);
+  }, [dateOfJoining]);
 
   const age = employee?.dateOfBirth ? moment().diff(moment(employee.dateOfBirth), 'years') : null;
 
@@ -466,17 +422,17 @@ export default function MyProfilePage() {
       <CardContent className="p-0 flex flex-col h-full">
         <div className="flex flex-col items-center p-2 pb-1.5 border-b border-gray-100">
           <div className="relative mb-1.5">
-            <img src={employee?.profilePictureUrl || "https://randomuser.me/api/portraits/men/32.jpg"} alt={`${employee?.firstName || 'Rohan'} ${employee?.lastName || 'Mehta'}`} className="w-[64px] h-[64px] rounded-full object-cover border-4 border-white shadow-sm" />
+            <ProfileAvatar src={employee?.profilePictureUrl} name={`${employee?.firstName || ''} ${employee?.lastName || ''}`.trim()} className="w-[64px] h-[64px] rounded-full border-4 border-white shadow-sm text-[18px]" />
             <div className="absolute bottom-1 right-1 bg-white p-1.5 rounded-full shadow-md border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
               <Camera size={11} className="text-gray-600" />
             </div>
           </div>
           <div className="text-center">
             <h2 className="text-[18px] font-bold text-gray-900 flex items-center justify-center gap-1.5 capitalize">
-              {employee?.firstName || 'Rohan'} {employee?.lastName || 'Mehta'} <CheckCircle2 size={13} className="text-emerald-500 fill-emerald-50" />
+              {employee?.firstName} {employee?.lastName} <CheckCircle2 size={13} className="text-emerald-500 fill-emerald-50" />
             </h2>
-            <p className="text-[12px] font-medium text-gray-500 mt-1">{employee?.employeeCode || 'EMP10234'}</p>
-            <p className="text-[13px] font-semibold text-gray-900 mt-1 capitalize">{employee?.designationId?.name || 'Executive - Sales'}</p>
+            <p className="text-[12px] font-medium text-gray-500 mt-1">{employee?.employeeCode || '—'}</p>
+            <p className="text-[13px] font-semibold text-gray-900 mt-1 capitalize">{employee?.designationId?.name || employee?.designation || '—'}</p>
             <span className={`inline-block mt-1 px-2 py-1 ${employee?.isActive !== false ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-gray-50 text-gray-600 border-gray-200'} text-[11px] font-semibold rounded-full border`}>
               {employee?.isActive !== false ? 'Active' : 'Inactive'}
             </span>
@@ -486,11 +442,11 @@ export default function MyProfilePage() {
         <div className="p-2 space-y-1">
           <div className="flex items-center gap-1.5">
             <Mail size={12} className="text-gray-400 shrink-0" />
-            <p className="text-[12px] text-gray-600 break-all leading-tight">{employee?.email || 'rohan.mehta@crewcam.com'}</p>
+            <p className="text-[12px] text-gray-600 break-all leading-tight">{employee?.email}</p>
           </div>
           <div className="flex items-center gap-1.5">
             <Phone size={12} className="text-gray-400 shrink-0" />
-            <p className="text-[12px] text-gray-600">{employee?.mobileNumber || '+91 98765 43210'}</p>
+            <p className="text-[12px] text-gray-600">{employee?.mobileNumber || '—'}</p>
           </div>
           <div className="flex items-center gap-1.5">
             <CalendarDays size={12} className="text-gray-400 shrink-0" />
@@ -503,7 +459,7 @@ export default function MyProfilePage() {
             <MapPin size={12} className="text-gray-400 shrink-0" />
             <div>
               <p className="text-[10px] text-gray-500">Work Location</p>
-              <p className="text-[12px] text-gray-900 font-medium capitalize">{employee?.branchId?.name || 'Noida Office'}</p>
+              <p className="text-[12px] text-gray-900 font-medium capitalize">{employee?.branchId?.name || '—'}</p>
             </div>
           </div>
         </div>
@@ -518,11 +474,11 @@ export default function MyProfilePage() {
                 {employee.reportingToId.firstName?.[0]}{employee.reportingToId.lastName?.[0]}
               </div>
             ) : (
-              <img src="https://i.pravatar.cc/150?u=40" alt="Amit Kumar" className="w-8 h-8 rounded-full object-cover shadow-sm border border-gray-200" />
+              <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-[10px] font-semibold text-zinc-400 shrink-0 border border-gray-200">—</div>
             )}
             <div>
-              <p className="text-[12px] font-semibold text-gray-900 capitalize">{employee?.reportingToId ? `${employee.reportingToId.firstName} ${employee.reportingToId.lastName}` : 'Amit Kumar'}</p>
-              <p className="text-[10px] text-gray-500 capitalize">{employee?.reportingToId?.designationId?.name || 'Sales Manager'}</p>
+              <p className="text-[12px] font-semibold text-gray-900 capitalize">{employee?.reportingToId ? `${employee.reportingToId.firstName} ${employee.reportingToId.lastName}` : 'Not assigned'}</p>
+              <p className="text-[10px] text-gray-500 capitalize">{employee?.reportingToId?.designation || ''}</p>
             </div>
           </div>
         </div>
@@ -539,6 +495,17 @@ export default function MyProfilePage() {
 
   return (
     <div className="flex flex-col gap-1 animate-in fade-in duration-300 pb-1 w-full">
+      <ProfileEntryDialog fields={SKILL_FIELDS} {...skillsEditor.dialog} />
+      <ProfileEntryDialog
+        open={profileEditOpen}
+        title="Edit Personal Information"
+        fields={PROFILE_FIELDS}
+        initial={employee}
+        saving={updateProfile.isPending}
+        onClose={() => setProfileEditOpen(false)}
+        // /me/profile is strict: send only the editable fields, never the record's _id.
+        onSubmit={({ _id, ...values }) => updateProfile.mutate(values, { onSuccess: () => setProfileEditOpen(false) })}
+      />
       <div className="flex items-center text-[11px] font-medium text-zinc-500 mb-0.5">
         <span className="hover:text-indigo-600 cursor-pointer transition-colors">Dashboard</span>
         <ChevronRight size={12} className="mx-1" />
@@ -572,7 +539,7 @@ export default function MyProfilePage() {
         <div className="flex items-center gap-1">
           {tab === 'experience' ? (
             <button
-              onClick={comingSoon('Add Experience')}
+              onClick={experienceEditor.openAdd}
               className="text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1.5 rounded-lg inline-flex items-center gap-1.5 shadow-sm shadow-indigo-600/20 transition-colors"
             >
               <Plus size={13} /> Add Experience
@@ -585,7 +552,7 @@ export default function MyProfilePage() {
                 <Eye size={13} /> View Public Profile
               </Link>
               <button
-                onClick={comingSoon('Profile editing')}
+                onClick={() => setProfileEditOpen(true)}
                 className="text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1.5 rounded-lg inline-flex items-center gap-1.5 shadow-sm shadow-indigo-600/20 transition-colors"
               >
                 <Pencil size={13} /> Edit Profile
@@ -616,71 +583,7 @@ export default function MyProfilePage() {
 
             {/* Left: Profile Card */}
             <div className="w-full xl:w-[220px] shrink-0">
-              <Card className="border-gray-200 shadow-sm rounded-xl overflow-hidden bg-white h-full flex flex-col hover:shadow-md transition-shadow duration-200">
-                <CardContent className="p-0 flex flex-col h-full">
-                  <div className="flex flex-col items-center p-2 pb-1.5 border-b border-gray-100">
-                    <div className="relative mb-1.5">
-                      <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Rohan Mehta" className="w-[64px] h-[64px] rounded-full object-cover border-4 border-white shadow-sm" />
-                      <div className="absolute bottom-1 right-1 bg-white p-1.5 rounded-full shadow-md border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
-                        <Camera size={11} className="text-gray-600" />
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <h2 className="text-[18px] font-bold text-gray-900 flex items-center justify-center gap-1.5">
-                        Rohan Mehta <CheckCircle2 size={13} className="text-emerald-500 fill-emerald-50" />
-                      </h2>
-                      <p className="text-[12px] font-medium text-gray-500 mt-1">EMP10234</p>
-                      <p className="text-[13px] font-semibold text-gray-900 mt-1">Executive - Sales</p>
-                      <span className="inline-block mt-1 px-2 py-1 bg-emerald-50 text-emerald-600 text-[11px] font-semibold rounded-full border border-emerald-100">
-                        Active
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="p-2 space-y-1 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <Mail size={12} className="text-gray-400 shrink-0" />
-                      <p className="text-[12px] text-gray-600 break-all leading-tight">rohan.mehta@crewcam.com</p>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Phone size={12} className="text-gray-400 shrink-0" />
-                      <p className="text-[12px] text-gray-600">+91 98765 43210</p>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <CalendarDays size={12} className="text-gray-400 shrink-0" />
-                      <div>
-                        <p className="text-[12px] text-gray-900 font-medium">15 Mar 2023</p>
-                        <p className="text-[10px] text-gray-500">Date of Joining</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <MapPin size={12} className="text-gray-400 shrink-0" />
-                      <div>
-                        <p className="text-[12px] text-gray-900 font-medium">Noida Office</p>
-                        <p className="text-[10px] text-gray-500">Work Location</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="px-2 py-1.5 border-t border-gray-100 bg-gray-50/50">
-                    <p className="text-[10px] text-gray-500 font-medium mb-1.5">Reporting to</p>
-                    <div className="flex items-center gap-1.5">
-                      <img src="https://i.pravatar.cc/150?u=40" alt="Amit Kumar" className="w-8 h-8 rounded-full object-cover shadow-sm border border-gray-200" />
-                      <div>
-                        <p className="text-[12px] font-semibold text-gray-900">Amit Kumar</p>
-                        <p className="text-[10px] text-gray-500">Sales Manager</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-1.5 border-t border-gray-100">
-                    <button className="w-full flex items-center justify-center gap-1 rounded-full border border-blue-200 bg-white px-2 py-2 text-[13px] font-semibold text-blue-600 hover:bg-blue-50 transition-colors">
-                      <Download size={13} />
-                      Download ID Card
-                    </button>
-                  </div>
-                </CardContent>
-              </Card>
+              {profileCardContent}
             </div>
 
             {/* Right: The 3 Sections */}
@@ -693,7 +596,7 @@ export default function MyProfilePage() {
                   <CardContent className="p-2 flex-1 flex flex-col">
                     <div className="flex items-center justify-between mb-1.5 pb-1 border-b border-gray-100">
                       <h3 className="text-[15px] font-semibold text-gray-900">Personal Information</h3>
-                      <button className="text-[11px] font-semibold text-blue-600 border border-blue-200 rounded-full px-2 py-0.5 hover:bg-blue-50 transition-colors bg-white">Edit</button>
+                      <button onClick={() => setProfileEditOpen(true)} className="text-[11px] font-semibold text-blue-600 border border-blue-200 rounded-full px-2 py-0.5 hover:bg-blue-50 transition-colors bg-white">Edit</button>
                     </div>
                     <div className="flex-1 grid grid-cols-3 gap-y-3 gap-x-2 items-start">
                       <div>
@@ -702,46 +605,46 @@ export default function MyProfilePage() {
                       </div>
                       <div>
                         <p className="text-[11px] text-gray-500 mb-0.5">Marital Status</p>
-                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap capitalize">{employee?.maritalStatus || DUMMY.maritalStatus}</p>
+                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap capitalize">{employee?.maritalStatus || '—'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] text-gray-500 mb-0.5">Aadhaar Number</p>
                         <p className="text-[12px] font-semibold text-gray-900 flex items-center gap-1 whitespace-nowrap">
-                          {employee?.aadhaarNumber || DUMMY.aadhaarNumber} <Eye size={12} className="text-gray-400 cursor-pointer" />
+                          {employee?.aadhaarNumber || '—'} <Eye size={12} className="text-gray-400 cursor-pointer" />
                         </p>
                       </div>
                       <div>
                         <p className="text-[11px] text-gray-500 mb-0.5">Date of Birth</p>
-                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.dateOfBirth ? moment(employee.dateOfBirth).format('DD MMM YYYY') : DUMMY.dateOfBirth}</p>
+                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.dateOfBirth ? moment(employee.dateOfBirth).format('DD MMM YYYY') : '—'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] text-gray-500 mb-0.5">Blood Group</p>
-                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.bloodGroup || DUMMY.bloodGroup}</p>
+                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.bloodGroup || '—'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] text-gray-500 mb-0.5">PAN Number</p>
-                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.panNumber || DUMMY.panNumber}</p>
+                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.panNumber || '—'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] text-gray-500 mb-0.5">Gender</p>
-                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap capitalize">{employee?.gender || DUMMY.gender}</p>
+                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap capitalize">{employee?.gender || '—'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] text-gray-500 mb-0.5">Phone Number</p>
-                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.mobileNumber || DUMMY.phone}</p>
+                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.mobileNumber || '—'}</p>
                       </div>
                       <div className="row-span-2">
                         <p className="text-[11px] text-gray-500 mb-0.5">Emergency Contact</p>
-                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap capitalize">{employee?.emergencyContactName || DUMMY.emergency.name} <span className="text-gray-400 text-[10px] font-normal">({employee?.emergencyContactRelation || DUMMY.emergency.relation})</span></p>
-                        <p className="text-[12px] font-semibold text-gray-900 mt-0.5 whitespace-nowrap">{employee?.emergencyContactNumber || DUMMY.emergency.number}</p>
+                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap capitalize">{employee?.emergencyContactName || '—'} <span className="text-gray-400 text-[10px] font-normal">({employee?.emergencyContactRelation || '—'})</span></p>
+                        <p className="text-[12px] font-semibold text-gray-900 mt-0.5 whitespace-nowrap">{employee?.emergencyContactNumber || '—'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] text-gray-500 mb-0.5">Nationality</p>
-                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.nationality || DUMMY.nationality}</p>
+                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.nationality || '—'}</p>
                       </div>
                       <div className="min-w-0">
                         <p className="text-[11px] text-gray-500 mb-0.5">Personal Email</p>
-                        <p className="text-[12px] font-semibold text-gray-900 break-all leading-tight">{employee?.personalEmail || 'rohan.personal@gmail.com'}</p>
+                        <p className="text-[12px] font-semibold text-gray-900 break-all leading-tight">{employee?.personalEmail || '—'}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -752,32 +655,32 @@ export default function MyProfilePage() {
                   <CardContent className="p-2 flex-1 flex flex-col">
                     <div className="flex items-center justify-between mb-1.5 pb-1 border-b border-gray-100">
                       <h3 className="text-[15px] font-semibold text-gray-900">Work Information</h3>
-                      <button className="text-[11px] font-semibold text-blue-600 border border-blue-200 rounded-full px-2 py-0.5 hover:bg-blue-50 transition-colors bg-white">Edit</button>
+                      <button onClick={() => toast('Work details are managed by HR. Please contact HR to change them.', { icon: 'ℹ️' })} className="text-[11px] font-semibold text-blue-600 border border-blue-200 rounded-full px-2 py-0.5 hover:bg-blue-50 transition-colors bg-white">Edit</button>
                     </div>
                     <div className="flex-1 grid grid-cols-2 gap-y-3 gap-x-2 items-start">
                       <div>
                         <p className="text-[11px] text-gray-500 mb-0.5">Employee ID</p>
-                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.employeeCode || DUMMY.employeeCode}</p>
+                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.employeeCode || '—'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] text-gray-500 mb-0.5">Date of Joining</p>
-                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.dateOfJoining ? moment(employee.dateOfJoining).format('DD MMM YYYY') : DUMMY.dateOfJoining}</p>
+                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.dateOfJoining ? moment(employee.dateOfJoining).format('DD MMM YYYY') : '—'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] text-gray-500 mb-0.5">Department</p>
-                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.departmentId?.name || 'Sales & Marketing'}</p>
+                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.departmentId?.name || '—'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] text-gray-500 mb-0.5">Employment Type</p>
-                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.employmentType || 'Full Time'}</p>
+                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.employmentType || '—'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] text-gray-500 mb-0.5">Designation</p>
-                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.designationId?.name || DUMMY.designation}</p>
+                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.designationId?.name || '—'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] text-gray-500 mb-0.5">Work Location</p>
-                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.branchId?.name || DUMMY.branch}</p>
+                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.branchId?.name || '—'}</p>
                       </div>
                       <div>
                         <p className="text-[11px] text-gray-500 mb-0.5">Grade</p>
@@ -785,7 +688,7 @@ export default function MyProfilePage() {
                       </div>
                       <div>
                         <p className="text-[11px] text-gray-500 mb-0.5">Probation Period</p>
-                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.probationStatus || 'Completed'}</p>
+                        <p className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">{employee?.probationStatus || '—'}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -886,15 +789,15 @@ export default function MyProfilePage() {
                       <div className="h-px bg-gray-100 my-1.5" />
                       <div className="flex items-center justify-between gap-1">
                         <span className="text-[10px] text-gray-500 flex items-center gap-1 whitespace-nowrap"><ShieldCheck size={10} className="text-gray-400" /> PF Num</span>
-                        <span className="text-[10px] text-gray-700 font-mono">{employee?.bankPayrollInfo?.pfNumber || 'PY/NOI/12345/00'}</span>
+                        <span className="text-[10px] text-gray-700 font-mono">{employee?.bankPayrollInfo?.pfNumber || '—'}</span>
                       </div>
                       <div className="flex items-center justify-between gap-1">
                         <span className="text-[10px] text-gray-500 flex items-center gap-1 whitespace-nowrap"><ShieldCheck size={10} className="text-gray-400" /> ESIC Num</span>
-                        <span className="text-[10px] text-gray-700 font-mono">{employee?.bankPayrollInfo?.esicNumber || '5345678901'}</span>
+                        <span className="text-[10px] text-gray-700 font-mono">{employee?.bankPayrollInfo?.esicNumber || '—'}</span>
                       </div>
                       <div className="flex items-center justify-between gap-1">
                         <span className="text-[10px] text-gray-500 flex items-center gap-1 whitespace-nowrap"><ShieldCheck size={10} className="text-gray-400" /> UAN Num</span>
-                        <span className="text-[10px] text-gray-700 font-mono">{employee?.bankPayrollInfo?.uanNumber || '1012345678'}</span>
+                        <span className="text-[10px] text-gray-700 font-mono">{employee?.uanNumber || '—'}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -1170,7 +1073,7 @@ export default function MyProfilePage() {
 
       {
         tab === 'experience' && (
-          <ExperienceTab comingSoon={comingSoon} profileCard={profileCardContent} />
+          <ExperienceTab editor={experienceEditor} profileCard={profileCardContent} />
         )
       }
 
@@ -1256,7 +1159,7 @@ export default function MyProfilePage() {
                               <span className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${DOC_CATEGORY_STYLE[d.category]}`}>{d.category}</span>
                             </td>
                             <td className="px-2 py-1.5 text-xs text-zinc-600 dark:text-zinc-400 whitespace-nowrap">{d.uploadedOn}</td>
-                            <td className="px-2 py-1.5 text-xs text-zinc-600 dark:text-zinc-400 whitespace-nowrap">{employee?.firstName || DUMMY.firstName} {employee?.lastName || DUMMY.lastName}</td>
+                            <td className="px-2 py-1.5 text-xs text-zinc-600 dark:text-zinc-400 whitespace-nowrap">{employee?.firstName || '—'} {employee?.lastName || '—'}</td>
                             <td className="px-2 py-1.5 text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{d.expiry}</td>
                             <td className="px-2 py-1.5">
                               <span className={`inline-flex items-center gap-1 text-[10.5px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${d.status === 'Verified' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
@@ -1343,10 +1246,10 @@ export default function MyProfilePage() {
 
             <div className="lg:col-span-7 flex flex-col gap-1">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-1">
-                <StatTile icon={GraduationCap} bg="bg-blue-50 dark:bg-blue-900/20" color="text-blue-600" label="Total Skills" value={String(SKILL_STATS.total)} sub="All Skills Added" />
-                <StatTile icon={Star} bg="bg-emerald-50 dark:bg-emerald-900/20" color="text-emerald-600" label="Core Skills" value={String(SKILL_STATS.core)} sub="Key Expertise Areas" />
-                <StatTile icon={BarChart3} bg="bg-amber-50 dark:bg-amber-900/20" color="text-amber-600" label="Average Proficiency" value={`${SKILL_STATS.avgProficiency}%`} sub="Across All Skills" />
-                <StatTile icon={Award} bg="bg-violet-50 dark:bg-violet-900/20" color="text-violet-600" label="Certifications" value={String(SKILL_STATS.certifications)} sub="Related to Skills" />
+                <StatTile icon={GraduationCap} bg="bg-blue-50 dark:bg-blue-900/20" color="text-blue-600" label="Total Skills" value={String(skillView.stats.total)} sub="All Skills Added" />
+                <StatTile icon={Star} bg="bg-emerald-50 dark:bg-emerald-900/20" color="text-emerald-600" label="Core Skills" value={String(skillView.stats.core)} sub="Key Expertise Areas" />
+                <StatTile icon={BarChart3} bg="bg-amber-50 dark:bg-amber-900/20" color="text-amber-600" label="Average Proficiency" value={`${skillView.stats.avgProficiency}%`} sub="Across All Skills" />
+                <StatTile icon={Award} bg="bg-violet-50 dark:bg-violet-900/20" color="text-violet-600" label="Certifications" value={String(skillView.stats.certifications)} sub="Related to Skills" />
               </div>
 
               <Card className="border-zinc-200/70 shadow-sm dark:border-zinc-800 overflow-hidden">
@@ -1366,10 +1269,13 @@ export default function MyProfilePage() {
                         </tr>
                       </thead>
                       <tbody className="capitalize">
-                        {SKILL_LIST.map(s => {
-                          const style = SKILL_CATEGORY_STYLE[s.category];
+                        {skillView.list.length === 0 && (
+                          <tr><td colSpan={5} className="px-2 py-4 text-center text-xs text-zinc-400">No skills added yet.</td></tr>
+                        )}
+                        {skillView.list.map(s => {
+                          const style = SKILL_CATEGORY_STYLE[s.category] || FALLBACK_SKILL_STYLE;
                           return (
-                            <tr key={s.name} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30">
+                            <tr key={s.row._id || s.name} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30">
                               <td className="px-2 py-1.5">
                                 <div className="flex items-center gap-1">
                                   <div className="h-6 w-6 rounded-full flex items-center justify-center shrink-0" style={{ background: `${style.color}1A` }}>
@@ -1392,8 +1298,8 @@ export default function MyProfilePage() {
                               <td className="px-2 py-1.5 text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{s.updated}</td>
                               <td className="px-2 py-1.5">
                                 <div className="flex items-center gap-1">
-                                  <button onClick={comingSoon('Editing skill')} className="h-6 w-6 rounded text-zinc-400 hover:text-indigo-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center"><Pencil size={12} /></button>
-                                  <button onClick={comingSoon('Deleting skill')} className="h-6 w-6 rounded text-zinc-400 hover:text-rose-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center"><Trash2 size={12} /></button>
+                                  <button aria-label={`Edit ${s.name}`} onClick={() => skillsEditor.openEdit(s.row)} className="h-6 w-6 rounded text-zinc-400 hover:text-indigo-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center"><Pencil size={12} /></button>
+                                  <button aria-label={`Delete ${s.name}`} disabled={skillsEditor.isSaving} onClick={() => skillsEditor.remove(s.row)} className="h-6 w-6 rounded text-zinc-400 hover:text-rose-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center"><Trash2 size={12} /></button>
                                 </div>
                               </td>
                             </tr>
@@ -1403,8 +1309,7 @@ export default function MyProfilePage() {
                     </table>
                   </div>
                   <div className="flex flex-col items-center gap-1 px-2 py-1.5 border-t border-zinc-100 dark:border-zinc-800">
-                    <span className="text-xs text-zinc-500">Showing 1 to {SKILL_LIST.length} of {SKILL_STATS.total} skills</span>
-                    <button onClick={comingSoon('Viewing all skills')} className="text-xs font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">View All Skills <ChevronDown size={12} /></button>
+                    <span className="text-xs text-zinc-500">Showing 1 to {skillView.list.length} of {skillView.stats.total} skills</span>
                   </div>
                 </CardContent>
               </Card>
@@ -1419,7 +1324,7 @@ export default function MyProfilePage() {
                         <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Keep your skills up to date to help us understand your strengths better and recommend relevant opportunities.</p>
                       </div>
                     </div>
-                    <button onClick={comingSoon('Adding a new skill')} className="text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-2 rounded-lg inline-flex items-center gap-1.5 shadow-sm shadow-indigo-600/20 transition-colors shrink-0">
+                    <button onClick={skillsEditor.openAdd} className="text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-2 rounded-lg inline-flex items-center gap-1.5 shadow-sm shadow-indigo-600/20 transition-colors shrink-0">
                       <Plus size={13} /> Add New Skill
                     </button>
                   </div>
@@ -1458,18 +1363,18 @@ export default function MyProfilePage() {
                     <div className="h-[100px] w-[100px] relative shrink-0">
                       <ResponsiveContainer>
                         <PieChart>
-                          <Pie data={SKILL_CATEGORY_BREAKDOWN} dataKey="count" nameKey="name" innerRadius={32} outerRadius={48} paddingAngle={2} stroke="none">
-                            {SKILL_CATEGORY_BREAKDOWN.map(c => <Cell key={c.name} fill={c.color} />)}
+                          <Pie data={skillView.breakdown} dataKey="count" nameKey="name" innerRadius={32} outerRadius={48} paddingAngle={2} stroke="none">
+                            {skillView.breakdown.map(c => <Cell key={c.name} fill={c.color} />)}
                           </Pie>
                         </PieChart>
                       </ResponsiveContainer>
                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <span className="text-base font-bold text-zinc-900 dark:text-zinc-50">{SKILL_STATS.total}</span>
+                        <span className="text-base font-bold text-zinc-900 dark:text-zinc-50">{skillView.stats.total}</span>
                         <span className="text-[9px] text-zinc-500">Total Skills</span>
                       </div>
                     </div>
                     <div className="flex flex-col gap-1.5 text-xs flex-1">
-                      {SKILL_CATEGORY_BREAKDOWN.map(c => (
+                      {skillView.breakdown.map(c => (
                         <div key={c.name} className="flex items-center justify-between gap-1">
                           <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400"><span className="h-2 w-2 rounded-full shrink-0" style={{ background: c.color }} />{c.name}</span>
                           <span className="font-medium text-zinc-800 dark:text-zinc-200 whitespace-nowrap">{c.count} ({c.pct}%)</span>
@@ -1484,14 +1389,13 @@ export default function MyProfilePage() {
                 <CardContent className="p-2">
                   <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-1.5 flex items-center gap-1.5"><Target size={11} className="text-indigo-600" /> Top Skills</p>
                   <div className="flex flex-col gap-1">
-                    {TOP_SKILLS.map(s => (
+                    {skillView.top.map(s => (
                       <div key={s.name} className="flex items-center justify-between gap-1 text-xs">
                         <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400 min-w-0"><Star size={11} className="text-amber-400 shrink-0" /> <span className="truncate">{s.name}</span></span>
                         <span className="text-[10.5px] font-semibold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 shrink-0">{s.pct}%</span>
                       </div>
                     ))}
                   </div>
-                  <button onClick={comingSoon('Viewing all skills')} className="mt-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">View All Skills <ChevronRight size={12} /></button>
                 </CardContent>
               </Card>
 
@@ -1499,7 +1403,8 @@ export default function MyProfilePage() {
                 <CardContent className="p-2">
                   <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 mb-1.5 flex items-center gap-1.5"><BadgeCheck size={11} className="text-indigo-600" /> Certifications Related to Skills</p>
                   <div className="flex flex-col gap-1">
-                    {SKILL_CERTIFICATIONS.map(c => (
+                    {skillView.certs.length === 0 && <p className="text-[11px] text-zinc-400">No certifications yet. Add them in the Education tab.</p>}
+                    {skillView.certs.map(c => (
                       <div key={c.name} className="flex items-start justify-between gap-1">
                         <div className="flex items-start gap-1 min-w-0">
                           <div className="h-7 w-7 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center shrink-0 mt-0.5"><Award size={13} className="text-indigo-600" /></div>
@@ -1508,11 +1413,11 @@ export default function MyProfilePage() {
                             <p className="text-[10.5px] text-zinc-400">Issued on {c.issued}</p>
                           </div>
                         </div>
-                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 shrink-0">Verified</span>
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${c.expired ? 'bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400' : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'}`}>{c.expired ? 'Expired' : 'Valid'}</span>
                       </div>
                     ))}
                   </div>
-                  <button onClick={comingSoon('Viewing all certifications')} className="mt-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">View All Certifications <ChevronRight size={12} /></button>
+                  <button onClick={() => setTab('education')} className="mt-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">View All Certifications <ChevronRight size={12} /></button>
                 </CardContent>
               </Card>
             </div>

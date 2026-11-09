@@ -4,54 +4,11 @@ import React from 'react';
 import Link from 'next/link';
 import moment from 'moment';
 import toast from 'react-hot-toast';
-import { Eye, Edit3, Landmark, Copy, Info, ShieldCheck, FileDigit, UploadCloud } from 'lucide-react';
+import { Eye, Edit3, Landmark, Info, ShieldCheck, FileDigit, UploadCloud } from 'lucide-react';
+import { BankBadge as Badge, BankField as Field, HR_MANAGED_BANK as HR_MANAGED } from '@/components/profile/BankFields';
 import { useMyBankDetails, useMyDetails, useMyProfile } from '@/hooks/useMyProfile';
 import { ProfileSummaryCard } from '@/components/profile/ProfileSummaryCard';
 import { ProfileTabs } from '@/components/profile/ProfileTabs';
-
-// Changing the salary account is the classic payroll-fraud vector, so bank details are
-// read-only here; HR captures and verifies them (hiring step 7). Self-service change
-// requests with HR approval are planned as Phase 1E.
-const HR_MANAGED = 'Bank details are managed by HR. Please contact HR to add or change an account.';
-
-const copy = async (label: string, value?: string) => {
-  if (!value) return;
-  try {
-    await navigator.clipboard.writeText(value);
-    toast.success(`${label} copied`);
-  } catch {
-    toast.error('Could not copy');
-  }
-};
-
-function Field({ label, value, copyable }: { label: string; value?: string; copyable?: boolean }) {
-  return (
-    <div className={`grid grid-cols-5 ${copyable ? 'items-center' : ''}`}>
-      <span className="col-span-2 text-zinc-500">{label}</span>
-      {copyable ? (
-        <div className="col-span-3 flex items-center gap-1.5">
-          <span className="font-medium text-zinc-900">{value || '—'}</span>
-          {value && (
-            <button aria-label={`Copy ${label}`} onClick={() => copy(label, value)} className="rounded bg-blue-50/50 border border-blue-100 p-0.5 text-[#1d4ed8] hover:bg-blue-100">
-              <Copy size={10} />
-            </button>
-          )}
-        </div>
-      ) : (
-        <span className="col-span-3 font-medium text-zinc-900 whitespace-pre-line leading-tight">{value || '—'}</span>
-      )}
-    </div>
-  );
-}
-
-function Badge({ children, tone = 'green' }: { children: React.ReactNode; tone?: 'green' | 'amber' | 'grey' }) {
-  const tones = {
-    green: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-    amber: 'bg-amber-50 text-amber-600 border-amber-100',
-    grey: 'bg-zinc-100 text-zinc-500 border-zinc-200',
-  };
-  return <span className={`col-span-3 inline-block w-max rounded px-2 py-0.5 text-[10px] font-semibold border ${tones[tone]}`}>{children}</span>;
-}
 
 export default function BankDetailsPage() {
   const { data: profile, isLoading: profileLoading } = useMyProfile();

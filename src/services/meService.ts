@@ -20,6 +20,7 @@ export interface MyProfile {
   currentCity?: string;
   currentState?: string;
   currentPincode?: string;
+  currentCountry?: string;
   permanentAddress?: string;
   panNumber?: string;
   aadhaarNumber?: string;
@@ -101,7 +102,12 @@ export interface ExperienceEntry {
   endDate?: string;
   location?: string;
   employmentType?: string;
-  responsibilities?: string;
+  industry?: string;
+  companyWebsite?: string;
+  responsibilities?: string; // one per line
+  referenceName?: string;
+  referencePhone?: string;
+  referenceEmail?: string;
 }
 
 export interface SkillEntry {
@@ -121,6 +127,7 @@ export interface MyDetails {
   courses: CourseEntry[];
   experience: ExperienceEntry[];
   skills: SkillEntry[];
+  updatedAt?: string;
 }
 
 export type DetailsSection = keyof MyDetails;
