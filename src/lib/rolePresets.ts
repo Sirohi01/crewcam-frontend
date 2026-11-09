@@ -24,6 +24,8 @@ const EMPLOYER_STANDARD_PERMISSIONS = [
   'EMPLOYEE_READ', 'EMPLOYEE_WRITE',
   'ROLE_ADMIN',
   'RECRUITMENT_APPROVE',
+  'NOTIFICATION_SEND',
+  'KPI_WRITE',
 ];
 
 export interface RolePreset {
@@ -73,4 +75,6 @@ export const EMPLOYER_PERMISSION_CHIPS = [
   { label: 'User Management', permissions: ['EMPLOYEE_READ', 'EMPLOYEE_WRITE'] },
   { label: 'Roles & Permissions', permissions: ['ROLE_ADMIN'] },
   { label: 'Recruitment Approval', permissions: ['RECRUITMENT_APPROVE'] },
+  { label: 'WhatsApp Messages', permissions: ['NOTIFICATION_SEND'] },
+  { label: 'Department KPIs', permissions: ['KPI_WRITE'] },
 ];
