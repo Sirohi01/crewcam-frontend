@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Branch** | `agent_changes` |
-| **Status** | 🚧 In progress. Slices 1B, 1C and 1C-2 done |
+| **Status** | 🚧 In progress. Slices 1B, 1C, 1C-2 and 1E done |
 | **Backend** | `crewcam-backend/docs/phases/PHASE-1-employee-self-service.md` (the `/api/v1/me` API, slice 1A) |
 
 ## Slice 1B — My Profile pages wired to real data
@@ -151,3 +151,32 @@ All four pages linked from the employee sidebar were fully hard-coded. The layou
 2. Check the half day costs 0.5 days.
 3. Submit a claim with a receipt.
 4. Open and print a payslip. HR must have generated at least one slip.
+
+---
+
+## Slice 1E — HR-approved profile changes
+
+**Employee side:**
+
+- **Request change** next to *Personal Information → Edit* on the unified My Profile page opens a form for name, DOB, gender, PAN, Aadhaar and UAN. Only filled-in fields are sent, with an optional note and proof upload.
+- **Edit Bank Details** (standalone bank page) and **Request change** (Bank tab) open the bank version. Before, they only showed "contact HR".
+- **`MyChangeRequestsBanner`** shows pending requests (with *Cancel request*) and requests decided in the last 14 days (approved, or rejected with the reason). It renders nothing when there are none, so page layouts don't change.
+
+**HR side:** a new page, **`/dashboard/change-requests`**, with a sidebar entry under *HR & Admin Department* that requires `EMPLOYEE_WRITE`.
+
+- Status tabs: Pending, Approved, Rejected, Cancelled.
+- The review dialog shows current vs requested values (full requested values, so they can be checked against the proof), the employee's note and the proof link.
+- **Approve & apply**, or **Reject** (disabled until a reason is entered).
+- A user without permission sees an explanation rather than an error.
+
+**New files:**
+
+- `services/changeRequestService.ts`
+- `components/profile/ChangeRequestDialog.tsx`, `components/profile/MyChangeRequestsBanner.tsx`
+- `app/(dashboard)/dashboard/(people)/change-requests/page.tsx`
+
+**Not done:** browser click-through. Check these with two accounts:
+
+1. As an employee, request a PAN change with a proof file and see the pending banner.
+2. As HR, approve it, and check that the employee's PAN updates and the banner turns green.
+3. Request a bank change, reject it with a reason, and check the employee sees the reason.

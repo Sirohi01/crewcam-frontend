@@ -1,10 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import moment from 'moment';
 import { Landmark, FileDigit, UploadCloud, ShieldCheck, Info } from 'lucide-react';
 import { useMyBankDetails, useMyDetails } from '@/hooks/useMyProfile';
 import { BankBadge, BankField, HR_MANAGED_BANK } from '@/components/profile/BankFields';
+import { ChangeRequestDialog } from '@/components/profile/ChangeRequestDialog';
+import { MyChangeRequestsBanner } from '@/components/profile/MyChangeRequestsBanner';
 
 /** Bank tab of the unified My Profile page. Read-only; same data as /dashboard/employee/bank-details. */
 export function BankTab({ profileCard }: { profileCard?: React.ReactNode }) {
@@ -12,9 +14,11 @@ export function BankTab({ profileCard }: { profileCard?: React.ReactNode }) {
   const { data: details } = useMyDetails();
   const nominee = details?.familyInfo;
   const verified = bank?.status === 'Verified';
+  const [requestOpen, setRequestOpen] = useState(false);
 
   return (
     <div className="flex flex-col gap-1">
+      <MyChangeRequestsBanner kind="bank" />
       <div className="flex flex-col xl:flex-row gap-1 h-full">
         {profileCard && (
           <div className="w-full xl:w-[220px] shrink-0 h-full">
@@ -30,6 +34,9 @@ export function BankTab({ profileCard }: { profileCard?: React.ReactNode }) {
                   <Landmark size={12} className="text-[#1d4ed8]" />
                 </div>
                 <h3 className="text-[11px] font-bold text-zinc-900">Primary Bank Account</h3>
+                <button onClick={() => setRequestOpen(true)} className="rounded-md border border-blue-100 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-[#1d4ed8] hover:bg-blue-100">
+                  Request change
+                </button>
                 {bank && (
                   <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 border border-emerald-100">
                     Primary Account
@@ -135,6 +142,7 @@ export function BankTab({ profileCard }: { profileCard?: React.ReactNode }) {
           </div>
         </div>
       </div>
+      <ChangeRequestDialog kind="bank" open={requestOpen} onClose={() => setRequestOpen(false)} />
     </div>
   );
 }

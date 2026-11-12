@@ -18,6 +18,8 @@ import { useProfileSectionEditor } from '@/hooks/useProfileSectionEditor';
 import { ProfileEntryDialog } from '@/components/profile/ProfileEntryDialog';
 import { PROFILE_FIELDS, SKILL_FIELDS } from '@/components/profile/profileFields';
 import { ProfileAvatar } from '@/components/profile/ProfileSummaryCard';
+import { ChangeRequestDialog } from '@/components/profile/ChangeRequestDialog';
+import { MyChangeRequestsBanner } from '@/components/profile/MyChangeRequestsBanner';
 import moment from 'moment';
 import Link from 'next/link';
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -277,6 +279,7 @@ export default function MyProfilePage() {
   const skillsEditor = useProfileSectionEditor('skills', myDetails?.skills, 'Skill');
   const experienceEditor = useProfileSectionEditor('experience', myDetails?.experience, 'Experience');
   const [profileEditOpen, setProfileEditOpen] = useState(false);
+  const [identityRequestOpen, setIdentityRequestOpen] = useState(false);
   const updateProfile = useUpdateMyProfile();
   const skillView = useMemo(() => {
     const list = skillsEditor.rows.map((row) => ({
@@ -496,6 +499,7 @@ export default function MyProfilePage() {
   return (
     <div className="flex flex-col gap-1 animate-in fade-in duration-300 pb-1 w-full">
       <ProfileEntryDialog fields={SKILL_FIELDS} {...skillsEditor.dialog} />
+      <ChangeRequestDialog kind="identity" open={identityRequestOpen} onClose={() => setIdentityRequestOpen(false)} />
       <ProfileEntryDialog
         open={profileEditOpen}
         title="Edit Personal Information"
@@ -577,6 +581,7 @@ export default function MyProfilePage() {
         }
       </div >
 
+      {tab === 'personal' && <MyChangeRequestsBanner kind="identity" />}
       {tab === 'personal' && (
         <div className="flex flex-col gap-1">
           <div className="flex flex-col xl:flex-row gap-1">
@@ -596,7 +601,10 @@ export default function MyProfilePage() {
                   <CardContent className="p-2 flex-1 flex flex-col">
                     <div className="flex items-center justify-between mb-1.5 pb-1 border-b border-gray-100">
                       <h3 className="text-[15px] font-semibold text-gray-900">Personal Information</h3>
-                      <button onClick={() => setProfileEditOpen(true)} className="text-[11px] font-semibold text-blue-600 border border-blue-200 rounded-full px-2 py-0.5 hover:bg-blue-50 transition-colors bg-white">Edit</button>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => setIdentityRequestOpen(true)} title="Name, date of birth, gender, PAN, Aadhaar or UAN — approved by HR" className="text-[11px] font-semibold text-zinc-600 border border-zinc-200 rounded-full px-2 py-0.5 hover:bg-zinc-50 transition-colors bg-white">Request change</button>
+                        <button onClick={() => setProfileEditOpen(true)} className="text-[11px] font-semibold text-blue-600 border border-blue-200 rounded-full px-2 py-0.5 hover:bg-blue-50 transition-colors bg-white">Edit</button>
+                      </div>
                     </div>
                     <div className="flex-1 grid grid-cols-3 gap-y-3 gap-x-2 items-start">
                       <div>

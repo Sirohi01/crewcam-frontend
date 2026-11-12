@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import moment from 'moment';
 import toast from 'react-hot-toast';
@@ -9,6 +9,8 @@ import { BankBadge as Badge, BankField as Field, HR_MANAGED_BANK as HR_MANAGED }
 import { useMyBankDetails, useMyDetails, useMyProfile } from '@/hooks/useMyProfile';
 import { ProfileSummaryCard } from '@/components/profile/ProfileSummaryCard';
 import { ProfileTabs } from '@/components/profile/ProfileTabs';
+import { ChangeRequestDialog } from '@/components/profile/ChangeRequestDialog';
+import { MyChangeRequestsBanner } from '@/components/profile/MyChangeRequestsBanner';
 
 export default function BankDetailsPage() {
   const { data: profile, isLoading: profileLoading } = useMyProfile();
@@ -16,6 +18,7 @@ export default function BankDetailsPage() {
   const { data: details } = useMyDetails();
   const nominee = details?.familyInfo;
   const verified = bank?.status === 'Verified';
+  const [requestOpen, setRequestOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#fafbfc] font-sans">
@@ -38,13 +41,14 @@ export default function BankDetailsPage() {
             <Link href="/dashboard/view-public-profile" className="flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[10px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
               <Eye size={12} /> View Public Profile
             </Link>
-            <button onClick={() => toast(HR_MANAGED, { icon: 'ℹ️' })} className="flex items-center gap-2 rounded-md bg-[#1d4ed8] px-3 py-1.5 text-[10px] font-semibold text-white shadow-sm hover:bg-blue-700">
+            <button onClick={() => setRequestOpen(true)} className="flex items-center gap-2 rounded-md bg-[#1d4ed8] px-3 py-1.5 text-[10px] font-semibold text-white shadow-sm hover:bg-blue-700">
               <Edit3 size={12} /> Edit Bank Details
             </button>
           </div>
         </div>
 
         <ProfileTabs active="Bank Details" />
+        <MyChangeRequestsBanner kind="bank" />
 
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-4">
           <ProfileSummaryCard profile={profile} isLoading={profileLoading} />
@@ -169,6 +173,7 @@ export default function BankDetailsPage() {
         </div>
 
       </div>
+      <ChangeRequestDialog kind="bank" open={requestOpen} onClose={() => setRequestOpen(false)} />
     </div>
   );
 }

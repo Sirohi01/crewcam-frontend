@@ -4,10 +4,10 @@ import React from 'react';
 import toast from 'react-hot-toast';
 import { Copy } from 'lucide-react';
 
-// Changing the salary account is the classic payroll-fraud vector, so bank details are
-// read-only for employees; HR captures and verifies them (hiring step 7). Self-service
-// change requests with HR approval are planned as Phase 1E.
-export const HR_MANAGED_BANK = 'Bank details are managed by HR. Please contact HR to add or change an account.';
+// Changing the salary account is the classic payroll-fraud vector, so employees can't
+// edit bank details directly: they send a change request that HR verifies and approves
+// (Phase 1E, ChangeRequestDialog).
+export const HR_MANAGED_BANK = 'To add or change your salary account, send a change request; HR verifies and approves it.';
 
 const copyToClipboard = async (label: string, value?: string) => {
   if (!value) return;
