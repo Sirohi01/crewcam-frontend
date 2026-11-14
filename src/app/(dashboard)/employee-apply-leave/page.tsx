@@ -7,7 +7,7 @@ import moment from 'moment';
 import toast from 'react-hot-toast';
 import { useMyProfile } from '@/hooks/useMyProfile';
 import { useApplyLeave, useMyLeaveBalances } from '@/hooks/useMyLeave';
-import { uploadFile } from '@/services/leaveService';
+import { uploadFile } from '@/services/uploadService';
 import {
   ChevronRight,
   ClipboardList,

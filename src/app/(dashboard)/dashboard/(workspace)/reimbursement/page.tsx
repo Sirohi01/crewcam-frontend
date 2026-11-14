@@ -14,7 +14,7 @@ import {
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { EXPENSE_TYPES, Expense, ExpenseType, expenseRef, getMyExpenses, submitExpense } from '@/services/expenseService';
-import { uploadFile } from '@/services/leaveService';
+import { uploadFile } from '@/services/uploadService';
 import { currentFinancialYear, financialYearOf, inr } from '@/services/payslipService';
 
 // ─────────────────────────────────────────────────────────────────────────

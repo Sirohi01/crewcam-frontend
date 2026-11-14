@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ChangeRequestKind, submitChangeRequest } from '@/services/changeRequestService';
-import { uploadFile } from '@/services/leaveService';
+import { uploadFile } from '@/services/uploadService';
 
 type Field = { key: string; label: string; type?: 'text' | 'date' | 'select'; options?: string[]; placeholder?: string };
 

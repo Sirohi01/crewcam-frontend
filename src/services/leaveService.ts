@@ -43,12 +43,8 @@ export const getMyLeaveRequests = async (): Promise<MyLeaveRequest[]> => (await 
 
 export const applyForLeave = async (payload: ApplyLeavePayload) => (await api.post('/leaves/apply', payload)).data;
 
-/** Multipart upload through /upload (type/size checked server-side); returns the stored URL. */
-export const uploadFile = async (file: File): Promise<string> => {
-  const form = new FormData();
-  form.append('file', file);
-  return (await api.post('/upload', form, { headers: { 'Content-Type': 'multipart/form-data' } })).data.url;
-};
+// Kept for existing imports; the helper lives in uploadService.
+export { uploadFile } from './uploadService';
 
 /** Days a request consumes — mirrors the backend's leaveDays(). */
 export const requestDays = (r: Pick<MyLeaveRequest, 'startDate' | 'endDate' | 'isHalfDay'>) => {

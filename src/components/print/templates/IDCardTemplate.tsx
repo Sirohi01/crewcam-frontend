@@ -5,8 +5,11 @@ import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
 import { Loader2, User } from "lucide-react";
 import { formatEmployeeId } from '@/lib/utils';
+import { useCompanyProfile } from '@/hooks/useCompanyProfile';
 
 export default function IDCardTemplate({ candidateId }: { candidateId: string }) {
+    // Company name/address on the card come from the company's own profile, never a default.
+    const { data: company } = useCompanyProfile();
     const [employee, setEmployee] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
@@ -112,16 +115,16 @@ export default function IDCardTemplate({ candidateId }: { candidateId: string })
                     const hod = cardData?.hodName ||
                         (manpower?.reportingTo ? `${manpower.reportingTo.firstName || ''} ${manpower.reportingTo.lastName || ''}`.trim() : '') ||
                         position?.reportingManager ||
-                        'Vinay Jayant';
+                        '';
 
                     const hodPhone = cardData?.contactNo ||
                         manpower?.reportingTo?.mobileNumber ||
                         manpower?.reportingTo?.phone ||
-                        '9810247319';
+                        '';
 
                     const hodEmail = cardData?.emailId ||
                         manpower?.reportingTo?.email ||
-                        'vijay@designhouse.co.in';
+                        '';
 
                     const photoUrl = cardData?.photo ||
                         candidateData?.profileImageUrl ||
@@ -140,12 +143,13 @@ export default function IDCardTemplate({ candidateId }: { candidateId: string })
                         residenceAddress: resAddress || '—',
                         emergencyContactName: emgName || '—',
                         emergencyContactNos: emgNos || '—',
-                        hodName: hod,
-                        contactNo: hodPhone,
-                        emailId: hodEmail,
+                        hodName: hod || '—',
+                        contactNo: hodPhone || '—',
+                        emailId: hodEmail || '—',
                         photo: photoUrl,
-                        companyName: cardData?.companyName || 'Design House India Pvt. Ltd.',
-                        headOfficeAddress: cardData?.headOfficeAddress || '12/51, Site II, Loni Road Industrial Area, Mohan Nagar Ghaziabad-201007 Uttar Pradesh, Bharat'
+                        companyName: cardData?.companyName || company?.legalName || company?.name || '',
+                        headOfficeAddress: cardData?.headOfficeAddress
+                            || [company?.address?.registeredOffice, company?.address?.city, company?.address?.state, company?.address?.pincode].filter(Boolean).join(', ')
                     };
 
                     setEmployee(finalData);
@@ -164,7 +168,7 @@ export default function IDCardTemplate({ candidateId }: { candidateId: string })
             }
         };
         fetchEmp();
-    }, [candidateId]);
+    }, [candidateId, company]);
 
     if (loading) {
         return (

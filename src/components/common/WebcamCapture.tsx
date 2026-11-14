@@ -1,11 +1,14 @@
 'use client';
 import React, { useRef, useState, useCallback } from 'react';
-import { Camera, RefreshCw, Check, X } from 'lucide-react';
+import { Camera, RefreshCw, Check, X, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { cn } from '@/lib/utils';
+import { uploadFile } from '@/services/uploadService';
 
 interface WebcamCaptureProps {
   label?: string;
   initialImage?: string | null;
+  /** Receives the uploaded photo's URL (or null when cleared). */
   captureImage: (image: string | null) => void;
   className?: string;
 }
@@ -22,6 +25,7 @@ export const WebcamCapture: React.FC<WebcamCaptureProps> = ({
   const [capturedImage, setCapturedImage] = useState<string | null>(initialImage || null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(!!initialImage);
+  const [uploading, setUploading] = useState(false);
 
   // Update state if initialImage changes (e.g. when editing a different record)
   React.useEffect(() => {
@@ -93,19 +97,30 @@ export const WebcamCapture: React.FC<WebcamCaptureProps> = ({
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Use maximum JPEG quality (1.0)
-        const imageSrc = canvas.toDataURL('image/jpeg', 1.0);
+        // 0.85 is visually indistinguishable from 1.0 at a fraction of the size.
+        const imageSrc = canvas.toDataURL('image/jpeg', 0.85);
         setCapturedImage(imageSrc);
         stopCamera();
       }
     }
   };
 
-  const confirmImage = () => {
-    if (capturedImage) {
-      captureImage(capturedImage);
+  // The photo is uploaded as a file and the parent stores its URL. It used to receive the
+  // base64 data URL, which ended up stored inside the record and sent with every save.
+  const confirmImage = async () => {
+    if (!capturedImage) return;
+    try {
+      setUploading(true);
+      const url = capturedImage.startsWith('data:')
+        ? await uploadFile(await (await fetch(capturedImage)).blob(), 'employee-photo.jpg')
+        : capturedImage;
+      captureImage(url);
       setIsConfirmed(true);
       setIsCameraOpen(false);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Could not upload the photo. Please try again.');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -201,10 +216,11 @@ export const WebcamCapture: React.FC<WebcamCaptureProps> = ({
                 <button
                   type="button"
                   onClick={confirmImage}
-                  className="bg-green-600 text-white p-2 rounded shadow-lg border border-green-500 flex items-center justify-center hover:bg-green-700 transition-all"
-                  title="Confirm & Use Photo"
+                  disabled={uploading}
+                  className="bg-green-600 text-white p-2 rounded shadow-lg border border-green-500 flex items-center justify-center hover:bg-green-700 transition-all disabled:opacity-70"
+                  title={uploading ? 'Uploading…' : 'Confirm & Use Photo'}
                 >
-                  <Check className="h-4 w-4" />
+                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                 </button>
               ) : (
                 <div className="bg-green-600/90 text-white px-2 py-1.5 rounded shadow-lg border border-green-500 flex items-center gap-1.5 backdrop-blur-sm">

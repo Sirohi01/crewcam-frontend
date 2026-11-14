@@ -180,3 +180,25 @@ All four pages linked from the employee sidebar were fully hard-coded. The layou
 1. As an employee, request a PAN change with a proof file and see the pending banner.
 2. As HR, approve it, and check that the employee's PAN updates and the banner turns green.
 3. Request a bank change, reject it with a reason, and check the employee sees the reason.
+
+---
+
+## Slice 1C-3: Attendance page, uploads instead of base64, ID card
+
+### Attendance (`/dashboard/attendance`)
+- **The logs table showed sample data.** `sortedLogs` was hard-wired to `DUMMY_LOGS`, so every employee saw the same fake rows. It now shows the employee's real records, newest first, and the sample array is deleted.
+- **Late and week-off rules come from the assigned shift.** Late means after the shift check-in time plus its late-coming grace (`gracePeriodLC`); week-off days come from the shift's `weekOffDays`. If no shift is assigned, the old defaults apply (late after 9:30 AM, Sunday off) and the page says so, asking the employee to contact HR. The calendar, week strip, month summary, day detail and logs all use the same rules.
+- The location column no longer invents "Noida Office". It shows "Geo-tagged" when GPS was captured at clock-in, otherwise "—".
+- The dead "View All Logs" button is replaced by working Previous / Next pagination, styled to match the card.
+
+### Photos and files go through `/upload`
+- New `src/services/uploadService.ts` (`uploadFile`) is the single multipart upload helper. `leaveService` re-exports it so existing imports keep working.
+- `WebcamCapture` used to put the photo into forms as a base64 data URL, which is why the backend accepted 50 MB bodies. It now uploads the captured JPEG and passes back the file URL, with a spinner while uploading and a toast on failure.
+
+### ID card
+Removed the hard-coded company name, head-office address and HOD fallbacks. The card now uses the tenant's company profile (legal name and address); a missing HOD shows "—".
+
+### Verification
+- `tsc --noEmit` clean; `next build` succeeds.
+- ESLint: the only errors in the touched files are two `set-state-in-effect` errors (attendance page and WebcamCapture). Both were already there before this slice; I checked by linting the stashed original.
+- Not yet clicked through in a browser against live data.

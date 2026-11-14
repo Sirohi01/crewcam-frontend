@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/axios';
+import { useMyProfile } from '@/hooks/useMyProfile';
 import moment from 'moment';
 import {
   ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line,
@@ -36,20 +37,38 @@ function formatHours(hours: number) {
 
 type DayCategory = 'Present' | 'Late' | 'Half Day' | 'On Leave' | 'Absent' | 'Weekly Off' | null;
 
-const LATE_CUTOFF_MIN = 9 * 60 + 30; // 9:30 AM grace cutoff
+/** Attendance rules from the employee's shift (Organization Setup → Shift Timings). */
+interface ShiftRules {
+  lateAfterMinutes: number; // minutes after midnight; clock-ins after this are late
+  weekOffDays: string[];    // e.g. ['Saturday', 'Sunday']
+  fromShift: boolean;       // false = no shift assigned, defaults in use
+}
 
-function classifyDay(dateStr: string, record: any | undefined, isFuture: boolean): DayCategory {
-  const isSunday = moment(dateStr).day() === 0;
+// Used only when the employee has no shift assigned.
+const DEFAULT_RULES: ShiftRules = { lateAfterMinutes: 9 * 60 + 30, weekOffDays: ['Sunday'], fromShift: false };
+
+const rulesFromShift = (shift: any): ShiftRules => {
+  const match = typeof shift?.checkInTime === 'string' ? shift.checkInTime.match(/^(\d{1,2}):(\d{2})/) : null;
+  if (!match) return DEFAULT_RULES;
+  return {
+    lateAfterMinutes: Number(match[1]) * 60 + Number(match[2]) + (Number(shift.gracePeriodLC) || 0),
+    weekOffDays: Array.isArray(shift.weekOffDays) && shift.weekOffDays.length ? shift.weekOffDays : DEFAULT_RULES.weekOffDays,
+    fromShift: true,
+  };
+};
+
+function classifyDay(dateStr: string, record: any | undefined, isFuture: boolean, rules: ShiftRules): DayCategory {
+  const isWeekOff = rules.weekOffDays.includes(moment(dateStr).format('dddd'));
   if (!record) {
     if (isFuture) return null;
-    return isSunday ? 'Weekly Off' : 'Absent';
+    return isWeekOff ? 'Weekly Off' : 'Absent';
   }
   if (record.status === 'Half-Day') return 'Half Day';
   if (record.status === 'On Leave') return 'On Leave';
   if (record.status === 'Absent') return 'Absent';
   if (record.clockInTime) {
     const t = moment(record.clockInTime);
-    if (t.hours() * 60 + t.minutes() > LATE_CUTOFF_MIN) return 'Late';
+    if (t.hours() * 60 + t.minutes() > rules.lateAfterMinutes) return 'Late';
   }
   return 'Present';
 }
@@ -70,15 +89,6 @@ function TrendDot(props: any) {
   return <circle cx={cx} cy={cy} r={3} fill={style?.color || '#6366f1'} stroke="#fff" strokeWidth={1} />;
 }
 
-const DUMMY_LOGS = [
-  { _id: 'd1', date: '2025-05-21', clockInTime: '2025-05-21T09:24:00', clockOutTime: '2025-05-21T18:31:00', totalHours: 9.116, status: 'Present', location: 'Noida Office' },
-  { _id: 'd2', date: '2025-05-20', clockInTime: '2025-05-20T09:18:00', clockOutTime: '2025-05-20T18:28:00', totalHours: 9.166, status: 'Present', location: 'Noida Office' },
-  { _id: 'd3', date: '2025-05-19', clockInTime: '2025-05-19T09:35:00', clockOutTime: '2025-05-19T18:45:00', totalHours: 9.166, status: 'Late (17m)', location: 'Noida Office' },
-  { _id: 'd4', date: '2025-05-18', clockInTime: null, clockOutTime: null, totalHours: null, status: 'Weekly Off', location: '-' },
-  { _id: 'd5', date: '2025-05-17', clockInTime: null, clockOutTime: null, totalHours: null, status: 'Weekly Off', location: '-' },
-  { _id: 'd6', date: '2025-05-16', clockInTime: '2025-05-16T09:22:00', clockOutTime: '2025-05-16T18:20:00', totalHours: 8.966, status: 'Present', location: 'Noida Office' },
-  { _id: 'd7', date: '2025-05-15', clockInTime: '2025-05-15T09:15:00', clockOutTime: '2025-05-15T18:18:00', totalHours: 9.05, status: 'Present', location: 'Noida Office' },
-];
 
 function getStatusStyle(status: string) {
   if (status.includes('Present')) return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
@@ -114,6 +124,9 @@ export default function AttendancePage() {
     queryFn: async () => (await api.get('/employees/current')).data,
   });
   const branch = employeeRes?.data?.branchId;
+  const { data: myProfile } = useMyProfile();
+  const shift = (myProfile as any)?.shiftTimingId;
+  const rules = useMemo(() => rulesFromShift(shift), [shift]);
 
   const requestLocation = () => {
     setIsLocating(true);
@@ -185,7 +198,7 @@ export default function AttendancePage() {
       }
     }
     return { presentDays, workingDays, hours, targetHours: workingDays * 8 };
-  }, [weekStart, recordsByDate]);
+  }, [weekStart, recordsByDate, rules]);
 
   // ---- Month-to-date stats ----
   const mtd = useMemo(() => {
@@ -194,7 +207,7 @@ export default function AttendancePage() {
     const today = moment();
     while (cursor.isSameOrBefore(today, 'day')) {
       const dateStr = cursor.format('YYYY-MM-DD');
-      const cat = classifyDay(dateStr, recordsByDate[dateStr], false);
+      const cat = classifyDay(dateStr, recordsByDate[dateStr], false, rules);
       if (cat && cat !== 'Weekly Off') {
         workingDays++;
         if (cat === 'Present' || cat === 'Late') present++;
@@ -204,7 +217,7 @@ export default function AttendancePage() {
       cursor.add(1, 'day');
     }
     return { present, absent, late, workingDays, pct: workingDays > 0 ? Math.round((present / workingDays) * 100) : 0 };
-  }, [recordsByDate]);
+  }, [recordsByDate, rules]);
 
   // ---- Streak ----
   const streak = useMemo(() => {
@@ -216,7 +229,7 @@ export default function AttendancePage() {
     while (cursor.isSameOrBefore(today, 'day')) {
       const dateStr = cursor.format('YYYY-MM-DD');
       if (cursor.day() !== 0) {
-        const cat = classifyDay(dateStr, recordsByDate[dateStr], false);
+        const cat = classifyDay(dateStr, recordsByDate[dateStr], false, rules);
         if (cat && cat !== 'Absent') run++; else run = 0;
         best = Math.max(best, run);
         current = run;
@@ -224,7 +237,7 @@ export default function AttendancePage() {
       cursor.add(1, 'day');
     }
     return { current, best };
-  }, [recordsByDate]);
+  }, [recordsByDate, rules]);
 
   // ---- Calendar grid ----
   const calendarDays = useMemo(() => {
@@ -250,7 +263,7 @@ export default function AttendancePage() {
     let workingDaysElapsed = 0, presentIsh = 0;
     while (cursor.isSameOrBefore(end, 'day')) {
       const dateStr = cursor.format('YYYY-MM-DD');
-      const cat = classifyDay(dateStr, recordsByDate[dateStr], false);
+      const cat = classifyDay(dateStr, recordsByDate[dateStr], false, rules);
       if (cat) {
         counts[cat] = (counts[cat] || 0) + 1;
         if (cat !== 'Weekly Off') {
@@ -265,7 +278,7 @@ export default function AttendancePage() {
       counts, workingDaysElapsed, totalDays,
       pct: workingDaysElapsed > 0 ? Math.round((presentIsh / workingDaysElapsed) * 100) : 0,
     };
-  }, [calendarMonth, recordsByDate]);
+  }, [calendarMonth, recordsByDate, rules]);
 
   const pieData = useMemo(() => Object.entries(monthSummary.counts)
     .filter(([, v]) => v > 0)
@@ -278,7 +291,7 @@ export default function AttendancePage() {
     for (let i = 29; i >= 0; i--) {
       const d = moment().subtract(i, 'days');
       const dateStr = d.format('YYYY-MM-DD');
-      const cat = classifyDay(dateStr, recordsByDate[dateStr], false);
+      const cat = classifyDay(dateStr, recordsByDate[dateStr], false, rules);
       let value: number | null = null;
       if (cat === 'Present' || cat === 'Late') value = 100;
       else if (cat === 'Half Day') value = 50;
@@ -287,9 +300,18 @@ export default function AttendancePage() {
       arr.push({ label: d.format('DD MMM'), value, category: cat });
     }
     return arr;
-  }, [recordsByDate]);
+  }, [recordsByDate, rules]);
 
-  const sortedLogs = DUMMY_LOGS; // allRecords?.length ? allRecords : DUMMY_LOGS;
+  const sortedLogs = useMemo(
+    () => [...(allRecords || [])]
+      .sort((x, y) => moment(y.date).valueOf() - moment(x.date).valueOf())
+      .map((rec) => ({
+        ...rec,
+        status: classifyDay(moment(rec.date).format('YYYY-MM-DD'), rec, false, rules) || rec.status,
+        location: rec.clockInLocation?.lat ? 'Geo-tagged' : '—',
+      })),
+    [allRecords, rules]
+  );
   const totalLogPages = Math.max(1, Math.ceil(sortedLogs.length / itemsPerPage));
 
   const quickActions = [
@@ -453,7 +475,7 @@ export default function AttendancePage() {
                   {calendarDays.map(({ date, inMonth }) => {
                     const dateStr = date.format('YYYY-MM-DD');
                     const isFuture = date.isAfter(moment(), 'day');
-                    const cat = classifyDay(dateStr, recordsByDate[dateStr], isFuture);
+                    const cat = classifyDay(dateStr, recordsByDate[dateStr], isFuture, rules);
                     const isToday = dateStr === todayStr;
                     const isSelected = dateStr === selectedDate;
                     return (
@@ -484,7 +506,7 @@ export default function AttendancePage() {
                 {calendarDays.filter(d => d.inMonth).map(({ date }) => {
                   const dateStr = date.format('YYYY-MM-DD');
                   const isFuture = date.isAfter(moment(), 'day');
-                  const cat = classifyDay(dateStr, recordsByDate[dateStr], isFuture);
+                  const cat = classifyDay(dateStr, recordsByDate[dateStr], isFuture, rules);
                   const isSelected = dateStr === selectedDate;
                   return (
                     <button
@@ -511,7 +533,7 @@ export default function AttendancePage() {
             {(() => {
               const rec = recordsByDate[selectedDate];
               const isFuture = moment(selectedDate).isAfter(moment(), 'day');
-              const cat = classifyDay(selectedDate, rec, isFuture);
+              const cat = classifyDay(selectedDate, rec, isFuture, rules);
               if (!cat) return <p className="text-xs text-zinc-400 text-center py-8">No data for this date yet.</p>;
               const style = CATEGORY_STYLE[cat];
               return (
@@ -591,6 +613,9 @@ export default function AttendancePage() {
             <CardTitle className="text-sm font-semibold flex items-center gap-2 text-zinc-800 dark:text-zinc-100">
               <History size={16} className="text-indigo-600 dark:text-indigo-400" /> Attendance Logs
             </CardTitle>
+            {!rules.fromShift && (
+              <p className="text-[11px] text-zinc-500">No shift assigned — late after 9:30 AM, Sunday off. Ask HR to assign your shift.</p>
+            )}
           </CardHeader>
           <CardContent className="p-0">
             {isLoading ? (
@@ -631,16 +656,18 @@ export default function AttendancePage() {
                               {record.status}
                             </span>
                           </td>
-                          <td className="px-2.5 py-2.5 align-middle text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{record.location || 'Noida Office'}</td>
+                          <td className="px-2.5 py-2.5 align-middle text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{record.location}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
                   <div className="flex items-center justify-center py-2.5 border-t border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900/50">
-                    <button className="text-sm font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 flex items-center gap-1.5 transition-colors">
-                      View All Logs <ChevronRight size={14} />
-                    </button>
+                    <div className="flex items-center gap-3 text-xs text-zinc-500">
+                      <button type="button" disabled={logsPage <= 1} onClick={() => setLogsPage(logsPage - 1)} className="font-medium text-indigo-600 hover:text-indigo-700 disabled:opacity-40 dark:text-indigo-400">Previous</button>
+                      <span>Page {Math.min(logsPage, totalLogPages)} of {totalLogPages}</span>
+                      <button type="button" disabled={logsPage >= totalLogPages} onClick={() => setLogsPage(logsPage + 1)} className="font-medium text-indigo-600 hover:text-indigo-700 disabled:opacity-40 dark:text-indigo-400 flex items-center gap-1">Next <ChevronRight size={14} /></button>
+                    </div>
                   </div>
               </div>
             )}
