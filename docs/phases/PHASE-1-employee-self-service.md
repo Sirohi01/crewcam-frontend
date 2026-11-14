@@ -202,3 +202,48 @@ Removed the hard-coded company name, head-office address and HOD fallbacks. The 
 - `tsc --noEmit` clean; `next build` succeeds.
 - ESLint: the only errors in the touched files are two `set-state-in-effect` errors (attendance page and WebcamCapture). Both were already there before this slice; I checked by linting the stashed original.
 - Not yet clicked through in a browser against live data.
+
+---
+
+## Slice 1D-1: Helpdesk, Notifications, My Tasks and the topbar bell
+
+All four showed hard-coded sample data. Layouts, spacing and colours are unchanged; only data, links and buttons were wired up.
+
+### Helpdesk (`/dashboard/helpdesk`)
+- Real tickets from `/me/tickets`. Tabs, the category filter, search, pagination and page size all work. The eye button opens the ticket details, including HR's resolution.
+- **Raise New Request** (header, quick action and "Contact Support Team") opens `RaiseTicketDialog`.
+- The "SLA Compliance" card became **Avg. Resolution** (from your own resolved tickets), because no SLA is configured anywhere and the 96% was invented.
+- Removed invented promises ("respond within 30 minutes", "Mon–Fri 9–6"). "Live Chat" (no chat backend exists) became a link to Policies.
+- Knowledge Base items link to real pages: apply leave, policies, reimbursement, profile.
+- The star rating rates your most recent resolved ticket that you haven't rated yet.
+
+### Notifications (`/dashboard/notifications`)
+- Real feed grouped by day. Clicking an item marks it read and opens its link.
+- Tabs show real counts. **Mark all as read**, **Load more** (20 at a time) and the sidebar filters work:
+  - Type: Announcements or Sent to me;
+  - Priority;
+  - Since (date);
+  - Read / Unread.
+- The summary card shows real counts. "Most Recent" refreshes the list.
+
+### Topbar bell
+Shows your real unread count and your 5 latest notifications, and "Mark all as read" works. The chat icon's fake badge of 5 is removed; there is no unread-message source yet.
+
+### My Tasks (`/dashboard/my-tasks`)
+- Real tasks from `/todos` (the same cache key as the older `/dashboard/todos` board, so the two stay in sync).
+- Stats, all six tabs (including **Delegated to Me**) and Overdue (past due and not done) are computed from real data. The priority filter, search and pagination work.
+- **Tasks you assigned yourself:** the checkbox toggles done, the pencil opens `TaskDialog`, and the bin deletes.
+- **Tasks someone else assigned to you:** only the status can be changed, and they can't be deleted. This matches the backend rules.
+- **Assign to Team** appears only if you have direct reports.
+- The sidebar summary, open-tasks-by-priority and upcoming cards are computed from real data. Dead "View Calendar" and "Productivity Insights" buttons were replaced with working actions.
+
+### New shared code
+- **Services:** `helpdeskService.ts`, `notificationFeedService.ts`, `taskService.ts`.
+- **Hooks:** `useMyTickets.ts`, `useMyNotifications.ts`, `useMyTasks.ts`.
+- **Components:** `components/helpdesk/RaiseTicketDialog.tsx`, `components/tasks/TaskDialog.tsx`.
+
+### Verification
+- `tsc --noEmit` clean.
+- `next build` succeeds.
+- ESLint: no errors in the new or changed files. The topbar has 3 warnings that were already there.
+- Not clicked through in a browser against live data.

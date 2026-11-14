@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/axios';
-import { Bell, HelpCircle, Mail, MessageSquare, FileText, Calendar, Clock, RefreshCw, Search, Menu } from 'lucide-react';
+import { Bell, BellRing, HelpCircle, Mail, MessageSquare, FileText, Search, Menu } from 'lucide-react';
+import moment from 'moment';
+import { useMarkAllNotificationsRead, useMarkNotificationRead, useMyNotifications } from '@/hooks/useMyNotifications';
 import Link from 'next/link';
 import { useUIStore } from '@/store/uiStore';
 
@@ -15,6 +17,12 @@ export default function DashboardTopbar() {
   const pathname = usePathname();
   const [currentUser, setCurrentUser] = useState<any>(user);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const router = useRouter();
+  const { data: notifData } = useMyNotifications({});
+  const markNotifRead = useMarkNotificationRead();
+  const markAllNotifRead = useMarkAllNotificationsRead();
+  const latestNotifs = notifData?.pages[0]?.items.slice(0, 5) ?? [];
+  const unreadNotifs = notifData?.pages[0]?.summary.unread ?? 0;
   const [searchQuery, setSearchQuery] = useState('');
 
   const pageTitle = useUIStore((s) => s.pageTitle);
@@ -121,8 +129,8 @@ export default function DashboardTopbar() {
 
         {/* 3 icon buttons */}
         {[
-          { icon: <MessageSquare size={16} />, badge: 5, href: '/dashboard/communications/chat' },
-          { icon: <Bell size={16} />, badge: 1, isBell: true },
+          { icon: <MessageSquare size={16} />, badge: 0, href: '/dashboard/communications/chat' },
+          { icon: <Bell size={16} />, badge: unreadNotifs, isBell: true },
           { icon: <HelpCircle size={16} />, badge: 0, href: '/dashboard/support/faq' },
         ].map(({ icon, badge, href, isBell }, i) => {
           const content = (
@@ -133,7 +141,7 @@ export default function DashboardTopbar() {
                   className="absolute top-1 right-1 h-3.5 min-w-[14px] rounded-full flex items-center justify-center text-[8px] font-bold leading-none px-0.5"
                   style={{ background: '#ef4444', color: '#fff' }}
                 >
-                  {badge}
+                  {badge > 99 ? '99+' : badge}
                 </span>
               )}
             </>
@@ -160,27 +168,31 @@ export default function DashboardTopbar() {
                   <div className="absolute right-0 top-12 w-[380px] rounded-2xl bg-white shadow-xl border border-slate-100 z-50 overflow-hidden">
                     <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
                       <h3 className="font-bold text-slate-800">Notifications</h3>
-                      <button className="text-xs font-semibold text-[#0e4778] hover:underline">Mark all as read</button>
+                      <button onClick={() => markAllNotifRead.mutate()} disabled={!unreadNotifs || markAllNotifRead.isPending} className="text-xs font-semibold text-[#0e4778] hover:underline disabled:opacity-40 disabled:no-underline">Mark all as read</button>
                     </div>
                     <div className="flex flex-col max-h-[280px] overflow-y-auto">
-                      {[
-                        { icon: <FileText size={14} />, title: 'New policy added', desc: 'Leave Policy 2026 has been added.', time: '2m ago', color: 'text-blue-600 bg-blue-50', unread: true },
-                        { icon: <Calendar size={14} />, title: 'Interview scheduled', desc: 'Sohil Sirohi interview on 26 May.', time: '15m ago', color: 'text-emerald-600 bg-emerald-50', unread: true },
-                        { icon: <Clock size={14} />, title: 'Attendance regularization', desc: '3 requests are pending approval.', time: '1h ago', color: 'text-orange-500 bg-orange-50', unread: true },
-                        { icon: <FileText size={14} />, title: 'Payslip generated', desc: 'April 2026 payslip is ready.', time: '3h ago', color: 'text-indigo-600 bg-indigo-50', unread: false },
-                        { icon: <RefreshCw size={14} />, title: 'System update', desc: 'CrewCam will be updated tonight.', time: '1d ago', color: 'text-slate-600 bg-slate-50', unread: false },
-                      ].map((n, idx) => (
-                        <div key={idx} className="flex gap-2.5 px-3 py-2.5 hover:bg-slate-50 transition-colors border-b border-slate-50 cursor-pointer">
-                          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${n.color}`}>
-                            {n.icon}
+                      {latestNotifs.length === 0 && (
+                        <p className="px-3 py-6 text-center text-xs text-slate-400">You&apos;re all caught up.</p>
+                      )}
+                      {latestNotifs.map((n) => (
+                        <div
+                          key={n._id}
+                          onClick={() => {
+                            if (!n.isRead) markNotifRead.mutate(n._id);
+                            if (n.link) { setIsNotifOpen(false); router.push(n.link); }
+                          }}
+                          className="flex gap-2.5 px-3 py-2.5 hover:bg-slate-50 transition-colors border-b border-slate-50 cursor-pointer"
+                        >
+                          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${n.priority === 'High' ? 'text-orange-500 bg-orange-50' : n.isDirect ? 'text-blue-600 bg-blue-50' : 'text-indigo-600 bg-indigo-50'}`}>
+                            {n.priority === 'High' ? <BellRing size={14} /> : n.isDirect ? <Bell size={14} /> : <FileText size={14} />}
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="text-xs font-bold text-slate-800">{n.title}</h4>
-                            <p className="text-[10px] text-slate-500 leading-tight">{n.desc}</p>
+                            <p className="text-[10px] text-slate-500 leading-tight">{n.message}</p>
                           </div>
                           <div className="flex flex-col items-end justify-start gap-1 shrink-0 pt-0.5">
-                            <span className="text-[9px] font-semibold text-slate-400">{n.time}</span>
-                            {n.unread && <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>}
+                            <span className="text-[9px] font-semibold text-slate-400">{moment(n.createdAt).fromNow()}</span>
+                            {!n.isRead && <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>}
                           </div>
                         </div>
                       ))}
