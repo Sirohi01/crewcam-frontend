@@ -38,6 +38,7 @@ const STATUS_BADGE: Record<string, string> = {
   Approved: 'bg-emerald-50 text-emerald-600',
   Pending: 'bg-amber-50 text-amber-600',
   Rejected: 'bg-rose-50 text-rose-600',
+  Cancelled: 'bg-zinc-100 text-zinc-500',
 };
 
 const historyTabs = ['All', 'Approved', 'Pending', 'Rejected'] as const;
@@ -117,7 +118,7 @@ export default function LeaveManagementPage() {
 
   const today = moment().startOf('day');
   const upcoming = requests
-    .filter((r) => r.status !== 'Rejected' && moment(r.endDate).isSameOrAfter(today))
+    .filter((r) => (r.status === 'Pending' || r.status === 'Approved') && moment(r.endDate).isSameOrAfter(today))
     .sort((a, b) => moment(a.startDate).valueOf() - moment(b.startDate).valueOf())
     .slice(0, 3);
 

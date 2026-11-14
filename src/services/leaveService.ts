@@ -18,7 +18,7 @@ export interface MyLeaveRequest {
   startDate: string;
   endDate: string;
   reason: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Cancelled';
   isHalfDay?: boolean;
   halfDaySession?: 'first' | 'second';
   rejectionReason?: string;
@@ -42,6 +42,9 @@ export const getMyLeaveBalances = async (): Promise<LeaveBalance[]> => (await ap
 export const getMyLeaveRequests = async (): Promise<MyLeaveRequest[]> => (await api.get('/leaves/my-leaves')).data;
 
 export const applyForLeave = async (payload: ApplyLeavePayload) => (await api.post('/leaves/apply', payload)).data;
+
+/** Withdraw a leave request that is still pending. */
+export const cancelLeave = async (id: string) => (await api.post(`/leaves/${id}/cancel`)).data;
 
 // Kept for existing imports; the helper lives in uploadService.
 export { uploadFile } from './uploadService';

@@ -24,6 +24,7 @@ export function useApplyLeave() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: KEYS.balances });
       queryClient.invalidateQueries({ queryKey: KEYS.requests });
+      queryClient.invalidateQueries({ queryKey: ['me', 'requests'] });
     },
   });
 }

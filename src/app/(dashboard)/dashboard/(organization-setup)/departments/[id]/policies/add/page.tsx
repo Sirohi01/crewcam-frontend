@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMasterDataStore } from '@/store/masterDataStore';
 import { createCompanyPolicy, getCompanyPolicyById, updateCompanyPolicy } from '@/services/companyPolicyService';
+import { uploadFile } from '@/services/uploadService';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 import {
   FileText, ArrowLeft, Save, Info, UploadCloud, File, Bold, Italic, Underline, AlignLeft, List, Link as LinkIcon,
@@ -32,6 +33,8 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
   const [detailedDescription, setDetailedDescription] = useState('');
   const [reviewDate, setReviewDate] = useState('');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [documentUrl, setDocumentUrl] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const [allEmployees, setAllEmployees] = useState(true);
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
@@ -65,6 +68,7 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
               setIncludeInTraining(policy.settings.includeInTraining ?? false);
               setReviewDate(policy.settings.reviewDate ? new Date(policy.settings.reviewDate).toISOString().split('T')[0] : '');
             }
+            setDocumentUrl(policy.documentUrl || '');
             if (policy.applicability) {
               setAllEmployees(policy.applicability.allEmployees ?? true);
               setSelectedDepartments(policy.applicability.departments || []);
@@ -85,7 +89,14 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
       alert('Please fill out all required fields.');
       return;
     }
+    if (uploadedFile && uploadedFile.size > 5 * 1024 * 1024) {
+      alert('The policy document must be 5 MB or smaller.');
+      return;
+    }
+    setSaving(true);
     try {
+      // The picked file was never sent before — upload it and keep its URL on the policy.
+      const docUrl = uploadedFile ? await uploadFile(uploadedFile, uploadedFile.name) : documentUrl;
       const payload = {
         title, code, category: categoryId, subCategory: subCategoryId || undefined,
         type: policyType, status, effectiveFrom, version, shortDescription, detailedDescription,
@@ -95,7 +106,8 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
           designations: selectedDesignations,
           locations: selectedLocations
         },
-        settings: { requireAck, showInPortal, includeInTraining, reviewDate: reviewDate || undefined }
+        settings: { requireAck, showInPortal, includeInTraining, reviewDate: reviewDate || undefined },
+        ...(docUrl ? { documentUrl: docUrl } : {}),
       };
       if (editId) {
         await updateCompanyPolicy(editId, payload);
@@ -106,6 +118,8 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
     } catch (error: any) {
       console.error('Error saving policy', error);
       alert(error?.response?.data?.message || 'Error saving policy');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -136,7 +150,7 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
           <Link href={`/dashboard/departments/${id}/policies`} className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 bg-white rounded-md text-[11px] font-semibold text-slate-700 hover:bg-slate-50 shadow-sm transition-colors">
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Policies
           </Link>
-          <button onClick={handleSave} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 border border-indigo-600 text-white rounded-md text-[11px] font-semibold hover:bg-indigo-700 shadow-sm transition-colors">
+          <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-3 py-1.5 disabled:opacity-60 bg-indigo-600 border border-indigo-600 text-white rounded-md text-[11px] font-semibold hover:bg-indigo-700 shadow-sm transition-colors">
             <Save className="w-3.5 h-3.5" /> Save Policy
           </button>
         </div>
@@ -288,7 +302,7 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
                   <input 
                     type="file" 
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-                    accept=".pdf,.doc,.docx" 
+                    accept=".pdf,.docx" 
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
                         setUploadedFile(e.target.files[0]);
@@ -309,7 +323,7 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
                         <UploadCloud className="w-4 h-4 text-indigo-600" />
                       </div>
                       <span className="text-[11px] font-bold text-indigo-700">Drag & drop file here <span className="text-slate-600 font-medium">or click to browse</span></span>
-                      <span className="text-[9px] text-slate-500 mt-0.5">Supports PDF, DOC, DOCX (Max. 10MB)</span>
+                      <span className="text-[9px] text-slate-500 mt-0.5">{documentUrl ? 'A document is attached — choose a file to replace it' : 'Supports PDF, DOCX (Max. 5MB)'}</span>
                     </>
                   )}
                 </label>
@@ -561,7 +575,7 @@ export default function AddNewPolicyPage({ params }: { params: Promise<{ id: str
         <button className="px-4 py-1.5 border border-slate-300 rounded-md text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition-colors">
           Cancel
         </button>
-        <button onClick={handleSave} className="flex items-center gap-2 px-4 py-1.5 bg-indigo-600 border border-indigo-600 text-white rounded-md text-[11px] font-bold hover:bg-indigo-700 shadow-sm transition-colors">
+        <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-4 py-1.5 disabled:opacity-60 bg-indigo-600 border border-indigo-600 text-white rounded-md text-[11px] font-bold hover:bg-indigo-700 shadow-sm transition-colors">
           <Save className="w-3.5 h-3.5" /> Save Policy
         </button>
       </div>

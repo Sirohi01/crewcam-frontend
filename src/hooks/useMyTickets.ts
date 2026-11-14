@@ -12,7 +12,13 @@ export function useMyTickets() {
 /** Errors are left to the caller to show. */
 export function useRaiseTicket() {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: raiseTicket, onSuccess: () => queryClient.invalidateQueries({ queryKey: KEY }) });
+  return useMutation({
+    mutationFn: raiseTicket,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: KEY });
+      queryClient.invalidateQueries({ queryKey: ['me', 'requests'] });
+    },
+  });
 }
 
 export function useRateTicket() {

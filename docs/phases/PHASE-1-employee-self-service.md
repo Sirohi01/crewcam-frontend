@@ -247,3 +247,41 @@ Shows your real unread count and your 5 latest notifications, and "Mark all as r
 - `next build` succeeds.
 - ESLint: no errors in the new or changed files. The topbar has 3 warnings that were already there.
 - Not clicked through in a browser against live data.
+
+---
+
+## Slice 1D-2: Policies & Documents, My Requests, withdrawing requests
+
+Layouts, spacing and colours are unchanged; data and actions were wired up.
+
+### Policies & Documents (`/dashboard/policies`)
+- Shows the policies that apply to you (`/me/policies`) instead of sample rows and avatars from randomuser.me.
+- **Stats:** For You, Mandatory, Pending Acknowledgement, Acknowledged, and Updated in the last 30 days. Each link filters the list.
+- **Categories:** built from real policy categories; clicking one filters the list.
+- **List:** tabs (All / Needs Acknowledgement / Recently Updated), search, type and category filters, and working pagination.
+- **Eye button:** opens the full policy and its attached document. Where acknowledgement is required, there's an "I have read and agree" checkbox and an **Acknowledge** button.
+- **Download:** opens the attached document, or is greyed out if there isn't one.
+- **Request New Policy / Request Document:** opens the helpdesk dialog pre-filled as a document request to HR. **Document Requests** lists those tickets.
+- **Removed:** the **Upload Document** button, since employees don't publish policies (HR does from Organization Setup). "Subscribe to Updates" became **View Notifications**, because employees are now notified automatically.
+
+### Admin policy form (`/dashboard/departments/[id]/policies/add`)
+- **Bug fixed:** the chosen policy document was never uploaded, so no policy ever had a document. It's now uploaded on save, and the URL is kept when editing.
+- The label now says PDF/DOCX, 5 MB, matching what the server accepts.
+
+### My Requests (`/dashboard/my-requests`)
+- **List:** the real combined list (`/me/requests`) with real stats and insights. Tabs, type filter, search and pagination work.
+- **Eye button:** shows the reference, decision, who decided, and any note, with a link to the module.
+  - **Withdraw** appears for pending leave, claims and profile changes.
+- **Quick actions:**
+  - Apply for Leave, Raise Reimbursement, Raise Helpdesk Ticket and Request Profile Change.
+  - Work-from-home and travel requests were removed because nothing exists behind them; they're noted as a Phase 6 item.
+- **Contact HR:** opens a helpdesk ticket addressed to HR.
+
+### Leave and Reimbursement pages
+- The status badges now include "Cancelled" and "Withdrawn". Upcoming leave only lists pending or approved requests.
+- The reimbursement details dialog has **Withdraw claim** for pending claims.
+
+### Verification
+- `tsc --noEmit` clean; `next build` succeeds.
+- ESLint: no errors in the files changed in this slice. The one error in `src/hooks` is in `useTenantBranding.ts`, which was already there and isn't touched here.
+- Not clicked through in a browser against live data.

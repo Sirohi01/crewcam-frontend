@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/breadCrumb';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { EXPENSE_TYPES, Expense, ExpenseType, expenseRef, getMyExpenses, submitExpense } from '@/services/expenseService';
+import { EXPENSE_TYPES, Expense, ExpenseType, expenseRef, getMyExpenses, submitExpense, withdrawExpense } from '@/services/expenseService';
 import { uploadFile } from '@/services/uploadService';
 import { currentFinancialYear, financialYearOf, inr } from '@/services/payslipService';
 
@@ -40,12 +40,14 @@ const STATUS_LABEL: Record<Expense['status'], string> = {
   Approved: 'Approved',
   Reimbursed: 'Reimbursed',
   Rejected: 'Rejected',
+  Withdrawn: 'Withdrawn',
 };
 const STATUS_STYLE: Record<Expense['status'], string> = {
   Pending: 'border-amber-200 bg-amber-50 text-amber-600',
   Approved: 'border-emerald-200 bg-emerald-50 text-emerald-600',
   Reimbursed: 'border-violet-200 bg-violet-50 text-violet-600',
   Rejected: 'border-rose-200 bg-rose-50 text-rose-600',
+  Withdrawn: 'border-zinc-200 bg-zinc-50 text-zinc-500',
 };
 
 const PAGE_SIZE = 10;
@@ -514,6 +516,33 @@ function NewRequestDialog({ open, onClose }: { open: boolean; onClose: () => voi
   );
 }
 
+/** Pending claims can be pulled back by the employee before Finance decides. */
+function WithdrawClaimButton({ id, onDone }: { id: string; onDone: () => void }) {
+  const queryClient = useQueryClient();
+  const withdraw = useMutation({
+    mutationFn: withdrawExpense,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['me', 'expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['me', 'requests'] });
+      toast.success('Claim withdrawn');
+      onDone();
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.message || 'Could not withdraw the claim'),
+  });
+  return (
+    <div className="flex justify-end pt-1">
+      <button
+        type="button"
+        disabled={withdraw.isPending}
+        onClick={() => window.confirm('Withdraw this claim? Finance will no longer review it.') && withdraw.mutate(id)}
+        className="rounded-md border border-rose-200 px-3 py-1.5 text-[12px] font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-60"
+      >
+        Withdraw claim
+      </button>
+    </div>
+  );
+}
+
 function RequestDetailDialog({ expense, onClose }: { expense: Expense | null; onClose: () => void }) {
   return (
     <Dialog open={!!expense} onOpenChange={(open) => !open && onClose()}>
@@ -535,6 +564,7 @@ function RequestDetailDialog({ expense, onClose }: { expense: Expense | null; on
                 <Download size={13} /> View receipt
               </a>
             )}
+            {expense.status === 'Pending' && <WithdrawClaimButton id={expense._id} onDone={onClose} />}
           </div>
         )}
       </DialogContent>

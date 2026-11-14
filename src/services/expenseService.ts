@@ -4,7 +4,7 @@ import api from '@/lib/axios';
 
 export const EXPENSE_TYPES = ['Travel', 'Food', 'Fuel', 'Hotel', 'Other'] as const;
 export type ExpenseType = (typeof EXPENSE_TYPES)[number];
-export type ExpenseStatus = 'Pending' | 'Approved' | 'Rejected' | 'Reimbursed';
+export type ExpenseStatus = 'Pending' | 'Approved' | 'Rejected' | 'Reimbursed' | 'Withdrawn';
 
 export interface Expense {
   _id: string;
@@ -30,6 +30,9 @@ export interface NewExpense {
 export const getMyExpenses = async (): Promise<Expense[]> => (await api.get('/finance/expenses')).data;
 
 export const submitExpense = async (payload: NewExpense): Promise<Expense> => (await api.post('/finance/expenses', payload)).data;
+
+/** Pull back a claim that is still pending. */
+export const withdrawExpense = async (id: string) => (await api.post(`/finance/expenses/${id}/withdraw`)).data;
 
 /** Short, stable reference shown to the employee, e.g. "RIM-3FA9C1". */
 export const expenseRef = (e: Pick<Expense, '_id'>) => `RIM-${e._id.slice(-6).toUpperCase()}`;

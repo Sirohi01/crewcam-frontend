@@ -5,28 +5,35 @@ import { Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useRaiseTicket } from '@/hooks/useMyTickets';
-import { TICKET_CATEGORY_LABEL, TicketCategory, TicketPriority } from '@/services/helpdeskService';
+import { NewTicket, TICKET_CATEGORY_LABEL, TicketCategory, TicketPriority } from '@/services/helpdeskService';
 
-/** Employee-side "Raise New Request" form for the helpdesk. */
-export function RaiseTicketDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  title?: string;
+  defaults?: Partial<NewTicket>;
+}
+
+/** Employee-side "Raise New Request" form for the helpdesk. `defaults` pre-fills it (e.g. a document request). */
+export function RaiseTicketDialog({ open, onClose, title = 'Raise a new request', defaults }: Props) {
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
       <DialogContent className="max-w-md sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-[14px]">Raise a new request</DialogTitle>
+          <DialogTitle className="text-[14px]">{title}</DialogTitle>
         </DialogHeader>
-        {open && <TicketForm onClose={onClose} />}
+        {open && <TicketForm onClose={onClose} defaults={defaults} />}
       </DialogContent>
     </Dialog>
   );
 }
 
-function TicketForm({ onClose }: { onClose: () => void }) {
+function TicketForm({ onClose, defaults }: { onClose: () => void; defaults?: Partial<NewTicket> }) {
   const raise = useRaiseTicket();
-  const [department, setDepartment] = useState<TicketCategory>('IT');
-  const [priority, setPriority] = useState<TicketPriority>('Medium');
-  const [subject, setSubject] = useState('');
-  const [description, setDescription] = useState('');
+  const [department, setDepartment] = useState<TicketCategory>(defaults?.department ?? 'IT');
+  const [priority, setPriority] = useState<TicketPriority>(defaults?.priority ?? 'Medium');
+  const [subject, setSubject] = useState(defaults?.subject ?? '');
+  const [description, setDescription] = useState(defaults?.description ?? '');
   const [error, setError] = useState('');
 
   const submit = async (e: React.FormEvent) => {
