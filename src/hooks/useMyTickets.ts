@@ -17,6 +17,7 @@ export function useRaiseTicket() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: KEY });
       queryClient.invalidateQueries({ queryKey: ['me', 'requests'] });
+      queryClient.invalidateQueries({ queryKey: ['me', 'assets'] });
     },
   });
 }

@@ -10,7 +10,7 @@ import {
   Plus, Search, Monitor, Smartphone, Car, Settings, X, Edit2, ArrowLeftRight, Undo2,
 } from 'lucide-react';
 
-const emptyForm = { name: '', type: 'Laptop', serialNumber: '', purchaseDate: '', status: 'Available' };
+const emptyForm = { name: '', type: 'Laptop', serialNumber: '', purchaseDate: '', purchaseValue: '', status: 'Available' };
 const STATUS_OPTIONS = ['Available', 'Allocated', 'Maintenance', 'Retired'];
 const TYPE_OPTIONS = ['Laptop', 'Mobile', 'Tablet', 'Vehicle', 'Other'];
 
@@ -84,6 +84,7 @@ export default function AssetsPage() {
       type: asset.type || 'Laptop',
       serialNumber: asset.serialNumber || '',
       purchaseDate: asset.purchaseDate ? asset.purchaseDate.substring(0, 10) : '',
+      purchaseValue: asset.purchaseValue != null ? String(asset.purchaseValue) : '',
       status: asset.status || 'Available',
     });
     setModalItem(asset);
@@ -317,7 +318,10 @@ export default function AssetsPage() {
               <Select label="Status" value={formData.status} options={STATUS_OPTIONS} onChange={(v) => setFormData({ ...formData, status: v })} />
             </div>
             <Field label="Serial Number / IMEI" value={formData.serialNumber} onChange={(v) => setFormData({ ...formData, serialNumber: v })} required placeholder="e.g., SN123456789" />
-            <Field label="Purchase Date" type="date" value={formData.purchaseDate} onChange={(v) => setFormData({ ...formData, purchaseDate: v })} />
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Purchase Date" type="date" value={formData.purchaseDate} onChange={(v) => setFormData({ ...formData, purchaseDate: v })} />
+              <Field label="Purchase Value (₹)" type="number" min={0} value={formData.purchaseValue} onChange={(v) => setFormData({ ...formData, purchaseValue: v })} placeholder="Optional" />
+            </div>
           </div>
         </Modal>
       )}

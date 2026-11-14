@@ -285,3 +285,41 @@ Layouts, spacing and colours are unchanged; data and actions were wired up.
 - `tsc --noEmit` clean; `next build` succeeds.
 - ESLint: no errors in the files changed in this slice. The one error in `src/hooks` is in `useTenantBranding.ts`, which was already there and isn't touched here.
 - Not clicked through in a browser against live data.
+
+---
+
+## Slice 1D-3a: My Assets and "Report a problem"
+
+### My Assets (`/dashboard/employee/assets`)
+- **Data:** your real assets (`/me/assets`) replace the six sample rows and the invented ₹1,48,750 total.
+- **Stats:** Total, Active, Under Maintenance (assets IT has marked Maintenance) and Returned.
+- **Filters:** tabs (All / Returned), status, category (the asset's type) and search all work.
+- **Picture:** chosen from the existing images by type or name (laptop, phone, headset, bag, card, charger), otherwise a plain icon.
+- **Value:** the asset's purchase value, or "—". The total value card says how many active assets have a value.
+- **Category breakdown:** the donut and legend are computed from your active assets.
+- **Header button:** "Add Asset" (employees don't add assets) became **Report an Issue**.
+  - The new `AssetIssueDialog` asks for the asset, the issue type (not working, damaged, lost, replacement, return request), details and an optional photo, and raises an IT ticket linked to the asset.
+  - The per-row wrench button and "Contact IT Department" open the same dialog.
+- **Row actions:** the eye button shows details and any open issues. The pencil and ⋮ buttons were removed (employees can't edit assets).
+- **Sidebar:** "Need to Return" (nothing records a return deadline) became **Open Issues**. "View Asset Policy" links to Policies.
+
+### HR asset form (`/dashboard/support/assets`)
+New optional **Purchase Value (₹)** field.
+
+### "Report a problem" floating button (`SOSButton`)
+- It used to fake a submission. It now:
+  - saves the screenshot as a JPEG to stay under the 5 MB upload limit;
+  - uploads it;
+  - sends the report with the current page to the CrewCam team;
+  - shows the ticket reference.
+- An **"Attach the captured screen"** checkbox (on by default) lets people leave it out when the screen shows salary or personal data.
+- Errors are shown instead of a fake success.
+- The title changed from "Report an Issue (SOS)" to "Report a Problem", because it's a support channel, not the emergency alert. The real emergency alert is slice 1D-3b.
+
+### Helpdesk ticket details
+Shows the attachment link, and a note when a ticket was a report to CrewCam.
+
+### Verification
+- `tsc --noEmit` clean; `next build` succeeds.
+- ESLint: no errors in the changed files.
+- Not clicked through in a browser against live data.

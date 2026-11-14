@@ -32,6 +32,8 @@ export interface MyTicket {
   resolution?: string;
   resolvedAt?: string;
   rating?: number;
+  channel?: 'helpdesk' | 'platform';
+  attachmentUrl?: string;
   assignedTo?: { firstName: string; lastName: string } | null;
   createdAt: string;
   updatedAt: string;
@@ -48,6 +50,8 @@ export interface NewTicket {
   subject: string;
   description: string;
   priority: TicketPriority;
+  assetId?: string;       // ticket about an asset assigned to you
+  attachmentUrl?: string; // uploaded through /upload
 }
 
 export const getMyTickets = async (): Promise<MyTicketsResponse> => (await api.get('/me/tickets')).data;

@@ -1,7 +1,14 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { Search, ChevronDown, MoreVertical, Eye as EyeIcon, Pencil, ShoppingBag, CheckCircle, Wrench, Clock, Info, ShieldCheck, LifeBuoy, CheckCircle2, Calendar } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import Image, { StaticImageData } from 'next/image';
+import Link from 'next/link';
+import moment from 'moment';
+import { Search, ChevronDown, Eye as EyeIcon, Wrench, ShoppingBag, CheckCircle, Clock, ShieldCheck, LifeBuoy, CheckCircle2, AlertCircle, Package, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AssetIssueDialog } from '@/components/assets/AssetIssueDialog';
+import { useMyAssets } from '@/hooks/useMyAssets';
+import { MyAssetAllocation } from '@/services/myAssetService';
+import { inr } from '@/services/payslipService';
 
 import laptop from '../../../../../../../public/assets/laptop.jpg';
 import iphone from '../../../../../../../public/assets/iphone.jpg';
@@ -11,51 +18,103 @@ import cards from '../../../../../../../public/assets/cards.jpg';
 import charger from '../../../../../../../public/assets/charger.jpg';
 import wallet from '../../../../../../../public/assets/wallet 2.png';
 
-const assetsData = [
-  { id: 1, name: 'Dell Latitude 5440', type: 'Laptop', assetId: 'AST-LAP-0001', category: 'IT Equipment', assignedOn: '15 Apr 2024', status: 'Active', condition: 'Good', value: '75,000', img: laptop, iconBg: 'bg-zinc-800 text-white' },
-  { id: 2, name: 'iPhone 14', type: 'Mobile Phone', assetId: 'AST-MOB-0002', category: 'IT Equipment', assignedOn: '15 Apr 2024', status: 'Active', condition: 'Good', value: '52,000', img: iphone, iconBg: 'bg-[#1d4ed8] text-white' },
-  { id: 3, name: 'Logitech H390 Headset', type: 'Headset', assetId: 'AST-ACC-0003', category: 'Accessories', assignedOn: '15 Apr 2024', status: 'Active', condition: 'Good', value: '4,000', img: headset, iconBg: 'bg-zinc-800 text-white' },
-  { id: 4, name: 'SwissGear Backpack', type: 'Bag', assetId: 'AST-BAG-0004', category: 'Office Utility', assignedOn: '15 Apr 2024', status: 'Active', condition: 'Good', value: '3,500', img: bag, iconBg: 'bg-zinc-800 text-white' },
-  { id: 5, name: 'Access Card', type: 'Access Card', assetId: 'AST-ACC-0005', category: 'Access', assignedOn: '15 Apr 2024', status: 'Active', condition: 'Good', value: '1,250', img: cards, iconBg: 'bg-zinc-200 text-zinc-600' },
-  { id: 6, name: 'Laptop Charger', type: 'Charger', assetId: 'AST-ACC-0006', category: 'Accessories', assignedOn: '15 Apr 2024', status: 'Returned', condition: 'Good', value: '1,000', img: charger, iconBg: 'bg-zinc-100 text-zinc-400' },
+// Picture for an asset by its type/name; anything unrecognised gets a plain icon.
+const IMAGES: { match: RegExp; img: StaticImageData }[] = [
+  { match: /laptop|notebook|macbook/i, img: laptop },
+  { match: /mobile|phone|iphone/i, img: iphone },
+  { match: /headset|headphone/i, img: headset },
+  { match: /bag|backpack/i, img: bag },
+  { match: /card|access/i, img: cards },
+  { match: /charger|adapter/i, img: charger },
+];
+const imageFor = (a: { type: string; name: string }) => IMAGES.find((x) => x.match.test(`${a.type} ${a.name}`))?.img;
+
+const CATEGORY_COLORS = ['#3b82f6', '#a855f7', '#fb923c', '#2dd4bf', '#f43f5e', '#84cc16'];
+const CATEGORY_CHIPS = [
+  'bg-blue-50 text-blue-600 border-blue-100',
+  'bg-purple-50 text-purple-600 border-purple-100',
+  'bg-orange-50 text-orange-600 border-orange-100',
+  'bg-teal-50 text-teal-600 border-teal-100',
+  'bg-rose-50 text-rose-600 border-rose-100',
+  'bg-lime-50 text-lime-600 border-lime-100',
 ];
 
-const getCategoryColor = (category: string) => {
-  switch (category) {
-    case 'IT Equipment': return 'bg-blue-50 text-blue-600 border-blue-100';
-    case 'Accessories': return 'bg-purple-50 text-purple-600 border-purple-100';
-    case 'Office Utility': return 'bg-orange-50 text-orange-600 border-orange-100';
-    case 'Access': return 'bg-teal-50 text-teal-600 border-teal-100';
-    default: return 'bg-zinc-50 text-zinc-600 border-zinc-100';
-  }
-};
+/** What the employee sees: returned, under maintenance (still with them), or active. */
+const statusOf = (a: MyAssetAllocation) => (a.status === 'Returned' ? 'Returned' : a.assetId?.status === 'Maintenance' ? 'Maintenance' : 'Active');
 
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'Active': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+    case 'Maintenance': return 'bg-orange-50 text-orange-600 border-orange-100';
     case 'Returned': return 'bg-zinc-100 text-zinc-500 border-zinc-200';
     default: return 'bg-zinc-50 text-zinc-600 border-zinc-100';
   }
 };
 
+type Tab = 'all' | 'returned';
+
 export default function AssetsPage() {
+  const { data, isLoading } = useMyAssets();
   const [mounted, setMounted] = useState(false);
+  const [tab, setTab] = useState<Tab>('all');
+  const [status, setStatus] = useState('');
+  const [category, setCategory] = useState('');
+  const [search, setSearch] = useState('');
+  const [viewing, setViewing] = useState<MyAssetAllocation | null>(null);
+  const [issueFor, setIssueFor] = useState<string | null>(null); // asset id, or '' for "any"
 
   useEffect(() => {
     // Trigger animation after mount
-    setTimeout(() => setMounted(true), 100);
+    const timer = setTimeout(() => setMounted(true), 100);
+    return () => clearTimeout(timer);
   }, []);
 
+  const allocations = useMemo(() => (data?.allocations ?? []).filter((a) => a.assetId), [data]);
+  const active = allocations.filter((a) => a.status === 'Active');
+  const issues = data?.openIssues ?? [];
+
+  const categories = useMemo(() => {
+    const counts = new Map<string, number>();
+    active.forEach((a) => counts.set(a.assetId!.type, (counts.get(a.assetId!.type) || 0) + 1));
+    return [...counts.entries()].sort((x, y) => y[1] - x[1]);
+  }, [active]);
+  const chipFor = (type: string) => {
+    const i = categories.findIndex(([c]) => c === type);
+    return CATEGORY_CHIPS[(i === -1 ? categories.length : i) % CATEGORY_CHIPS.length];
+  };
+
+  const rows = allocations.filter((a) => {
+    const q = search.trim().toLowerCase();
+    return (tab === 'all' || a.status === 'Returned') &&
+      (!status || statusOf(a) === status) &&
+      (!category || a.assetId!.type === category) &&
+      (!q || `${a.assetId!.name} ${a.assetId!.serialNumber} ${a.assetId!.type}`.toLowerCase().includes(q));
+  });
+
+  const valued = active.filter((a) => typeof a.assetId!.purchaseValue === 'number');
+  const totalValue = valued.reduce((sum, a) => sum + (a.assetId!.purchaseValue || 0), 0);
+  const maintenance = active.filter((a) => statusOf(a) === 'Maintenance');
+
+  // Donut segments: each category's share of active assets, with a 1-unit gap between.
   const radius = 15.915;
   const circumference = 100;
+  const segments = useMemo(() => {
+    const total = active.length || 1;
+    const gap = categories.length > 1 ? 1 : 0;
+    let offset = 0;
+    return categories.map(([, count], i) => {
+      const share = (count / total) * 100;
+      const seg = { color: CATEGORY_COLORS[i % CATEGORY_COLORS.length], percent: Math.max(share - gap, 0.5), offset: -offset };
+      offset += share;
+      return seg;
+    });
+  }, [categories, active.length]);
 
-  // IT (33%), Accessories (33%), Office (17%), Access (17%)
-  // Adjusted percentages to leave a gap of 1 between each segment (Total gap = 4, remaining = 96)
-  const segments = [
-    { color: '#3b82f6', percent: 32, offset: 0 },      // Blue (IT Equipment)
-    { color: '#a855f7', percent: 32, offset: -33 },    // Purple (Accessories)
-    { color: '#fb923c', percent: 16, offset: -66 },    // Orange (Office Utility)
-    { color: '#2dd4bf', percent: 16, offset: -83 },    // Teal (Access)
+  const stats = [
+    { label: 'Total Assets', value: allocations.length, detail: 'Ever assigned to you', icon: ShoppingBag, accent: 'bg-blue-50 text-[#1d4ed8]' },
+    { label: 'Active Assets', value: active.length - maintenance.length, detail: 'Currently in Use', icon: CheckCircle, accent: 'bg-emerald-50 text-emerald-600' },
+    { label: 'Under Maintenance', value: maintenance.length, detail: 'With IT for repair', icon: Wrench, accent: 'bg-orange-50 text-orange-600' },
+    { label: 'Returned Assets', value: allocations.length - active.length, detail: 'Already Returned', icon: Clock, accent: 'bg-purple-50 text-purple-600' },
   ];
 
   return (
@@ -76,8 +135,8 @@ export default function AssetsPage() {
             <p className="text-[10px] text-zinc-500 mt-1">View and manage all the assets assigned to you.</p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 rounded-md bg-[#1d4ed8] px-4 py-2 text-[10px] font-semibold text-white shadow-sm hover:bg-blue-700">
-              <span className="text-sm leading-none">+</span> Add Asset
+            <button onClick={() => setIssueFor('')} className="flex items-center gap-2 rounded-md bg-[#1d4ed8] px-4 py-2 text-[10px] font-semibold text-white shadow-sm hover:bg-blue-700">
+              <Wrench size={12} /> Report an Issue
             </button>
           </div>
         </div>
@@ -90,46 +149,18 @@ export default function AssetsPage() {
 
             {/* Top Stat Cards (4 cards) */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-              <div className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm flex items-center gap-3">
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-blue-50 text-[#1d4ed8]">
-                  <ShoppingBag size={16} />
+              {stats.map((s) => (
+                <div key={s.label} className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm flex items-center gap-3">
+                  <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${s.accent}`}>
+                    <s.icon size={16} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-medium text-zinc-500">{s.label}</p>
+                    <p className="text-lg font-bold text-zinc-900 leading-tight">{isLoading ? '…' : s.value}</p>
+                    <p className="text-[9px] text-zinc-400">{s.detail}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[10px] font-medium text-zinc-500">Total Assets</p>
-                  <p className="text-lg font-bold text-zinc-900 leading-tight">6</p>
-                  <p className="text-[9px] text-zinc-400">All Assets Assigned</p>
-                </div>
-              </div>
-              <div className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm flex items-center gap-3">
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-600">
-                  <CheckCircle size={16} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-medium text-zinc-500">Active Assets</p>
-                  <p className="text-lg font-bold text-zinc-900 leading-tight">5</p>
-                  <p className="text-[9px] text-zinc-400">Currently in Use</p>
-                </div>
-              </div>
-              <div className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm flex items-center gap-3">
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-orange-50 text-orange-600">
-                  <Wrench size={16} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-medium text-zinc-500">Under Maintenance</p>
-                  <p className="text-lg font-bold text-zinc-900 leading-tight">0</p>
-                  <p className="text-[9px] text-zinc-400">Not Available</p>
-                </div>
-              </div>
-              <div className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm flex items-center gap-3">
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-purple-50 text-purple-600">
-                  <Clock size={16} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-medium text-zinc-500">Returned Assets</p>
-                  <p className="text-lg font-bold text-zinc-900 leading-tight">1</p>
-                  <p className="text-[9px] text-zinc-400">Already Returned</p>
-                </div>
-              </div>
+              ))}
             </div>
 
             {/* Table Area */}
@@ -138,19 +169,30 @@ export default function AssetsPage() {
               {/* Table Header / Filters */}
               <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 pb-3">
                 <div className="flex gap-4 text-[10px] font-bold">
-                  <span className="text-[#1d4ed8] border-b-[2.5px] border-[#1d4ed8] pb-3 -mb-[14px] cursor-pointer">All Assets</span>
-                  <span className="text-zinc-500 hover:text-zinc-800 cursor-pointer pb-3">Returned Assets</span>
+                  {([['all', 'All Assets'], ['returned', 'Returned Assets']] as const).map(([id, label]) => (
+                    <button
+                      key={id}
+                      onClick={() => setTab(id)}
+                      className={tab === id ? 'text-[#1d4ed8] border-b-[2.5px] border-[#1d4ed8] pb-3 -mb-[14px]' : 'text-zinc-500 hover:text-zinc-800 pb-3'}
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="relative">
-                    <select className="appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] font-semibold text-zinc-700 outline-none hover:bg-zinc-50">
-                      <option>All Status</option>
+                    <select value={status} onChange={(e) => setStatus(e.target.value)} className="appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] font-semibold text-zinc-700 outline-none hover:bg-zinc-50">
+                      <option value="">All Status</option>
+                      <option value="Active">Active</option>
+                      <option value="Maintenance">Under Maintenance</option>
+                      <option value="Returned">Returned</option>
                     </select>
                     <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
                   </div>
                   <div className="relative">
-                    <select className="appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] font-semibold text-zinc-700 outline-none hover:bg-zinc-50">
-                      <option>All Categories</option>
+                    <select value={category} onChange={(e) => setCategory(e.target.value)} className="appearance-none rounded-md border border-zinc-200 bg-white pl-2 pr-6 py-1.5 text-[10px] font-semibold text-zinc-700 outline-none hover:bg-zinc-50">
+                      <option value="">All Categories</option>
+                      {[...new Set(allocations.map((a) => a.assetId!.type))].sort().map((c) => <option key={c} value={c}>{c}</option>)}
                     </select>
                     <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
                   </div>
@@ -158,6 +200,8 @@ export default function AssetsPage() {
                     <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400" />
                     <input
                       type="text"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
                       placeholder="Search assets..."
                       className="w-32 rounded-md border border-zinc-200 bg-white pl-6 pr-2 py-1.5 text-[10px] text-zinc-700 outline-none placeholder:text-zinc-400 focus:border-[#1d4ed8]"
                     />
@@ -176,59 +220,71 @@ export default function AssetsPage() {
                       <th className="pb-3">Assigned On</th>
                       <th className="pb-3 text-center">Status</th>
                       <th className="pb-3">Condition</th>
-                      <th className="pb-3">Current Value (₹)</th>
+                      <th className="pb-3">Value (₹)</th>
                       <th className="pb-3 text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-100">
-                    {assetsData.map((asset) => (
-                      <tr key={asset.id} className="hover:bg-zinc-50/50 transition-colors">
-                        <td className="py-2.5 pl-2">
-                          <div className="flex items-center gap-3">
-                            <div className={`grid h-8 w-8 shrink-0 place-items-center rounded-md overflow-hidden bg-white border border-zinc-200`}>
-                              <Image src={asset.img} alt={asset.name} width={32} height={32} className='w-full h-full object-contain p-1' />
+                    {isLoading && (
+                      <tr><td colSpan={8} className="py-6 text-center text-zinc-400"><Loader2 size={14} className="mx-auto animate-spin" /></td></tr>
+                    )}
+                    {!isLoading && rows.length === 0 && (
+                      <tr><td colSpan={8} className="py-6 text-center text-zinc-500">
+                        {allocations.length === 0 ? 'No assets have been assigned to you yet.' : 'No assets match these filters.'}
+                      </td></tr>
+                    )}
+                    {rows.map((a) => {
+                      const asset = a.assetId!;
+                      const img = imageFor(asset);
+                      const st = statusOf(a);
+                      return (
+                        <tr key={a._id} className="hover:bg-zinc-50/50 transition-colors">
+                          <td className="py-2.5 pl-2">
+                            <div className="flex items-center gap-3">
+                              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md overflow-hidden bg-white border border-zinc-200">
+                                {img ? <Image src={img} alt={asset.name} width={32} height={32} className="w-full h-full object-contain p-1" /> : <Package size={14} className="text-zinc-400" />}
+                              </div>
+                              <div>
+                                <p className="font-semibold text-zinc-900">{asset.name}</p>
+                                <p className="text-[9px] text-zinc-500 mt-0.5">{asset.type}</p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-semibold text-zinc-900">{asset.name}</p>
-                              <p className="text-[9px] text-zinc-500 mt-0.5">{asset.type}</p>
+                          </td>
+                          <td className="py-2.5 text-zinc-600 font-medium">{asset.serialNumber}</td>
+                          <td className="py-2.5">
+                            <span className={`inline-block rounded px-2 py-0.5 text-[9px] font-bold border ${chipFor(asset.type)}`}>
+                              {asset.type}
+                            </span>
+                          </td>
+                          <td className="py-2.5 text-zinc-600 font-medium">{moment(a.allocatedDate).format('DD MMM YYYY')}</td>
+                          <td className="py-2.5 text-center">
+                            <span className={`inline-block rounded px-2 py-0.5 text-[9px] font-bold border ${getStatusColor(st)}`}>
+                              {st === 'Maintenance' ? 'Under Maintenance' : st}
+                            </span>
+                          </td>
+                          <td className="py-2.5 text-zinc-600 font-medium">{a.condition || '—'}</td>
+                          <td className="py-2.5 text-zinc-900 font-semibold">{typeof asset.purchaseValue === 'number' ? asset.purchaseValue.toLocaleString('en-IN') : '—'}</td>
+                          <td className="py-2.5">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button onClick={() => setViewing(a)} title="View details" className="rounded border border-blue-100 p-1 text-[#1d4ed8] hover:bg-blue-50 transition-colors">
+                                <EyeIcon size={10} />
+                              </button>
+                              {a.status === 'Active' && (
+                                <button onClick={() => setIssueFor(asset._id)} title="Report an issue" className="rounded border border-blue-100 p-1 text-[#1d4ed8] hover:bg-blue-50 transition-colors">
+                                  <Wrench size={10} />
+                                </button>
+                              )}
                             </div>
-                          </div>
-                        </td>
-                        <td className="py-2.5 text-zinc-600 font-medium">{asset.assetId}</td>
-                        <td className="py-2.5">
-                          <span className={`inline-block rounded px-2 py-0.5 text-[9px] font-bold border ${getCategoryColor(asset.category)}`}>
-                            {asset.category}
-                          </span>
-                        </td>
-                        <td className="py-2.5 text-zinc-600 font-medium">{asset.assignedOn}</td>
-                        <td className="py-2.5 text-center">
-                          <span className={`inline-block rounded px-2 py-0.5 text-[9px] font-bold border ${getStatusColor(asset.status)}`}>
-                            {asset.status}
-                          </span>
-                        </td>
-                        <td className="py-2.5 text-zinc-600 font-medium">{asset.condition}</td>
-                        <td className="py-2.5 text-zinc-900 font-semibold">{asset.value}</td>
-                        <td className="py-2.5">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <button className="rounded border border-blue-100 p-1 text-[#1d4ed8] hover:bg-blue-50 transition-colors">
-                              <EyeIcon size={10} />
-                            </button>
-                            <button className="rounded border border-blue-100 p-1 text-[#1d4ed8] hover:bg-blue-50 transition-colors">
-                              <Pencil size={10} />
-                            </button>
-                            <button className="p-1 text-zinc-400 hover:text-zinc-700 transition-colors">
-                              <MoreVertical size={12} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
 
               <div className="mt-4 text-[10px] text-zinc-500 font-medium border-t border-zinc-100 pt-3">
-                Showing 1 to 6 of 6 assets
+                {rows.length === 0 ? 'No assets' : `Showing ${rows.length} of ${allocations.length} assets`}
               </div>
             </div>
 
@@ -243,7 +299,7 @@ export default function AssetsPage() {
                   <p className="text-[10px] text-zinc-500 mt-0.5">For any asset related queries or issues, please contact the IT Department.</p>
                 </div>
               </div>
-              <button className="flex items-center gap-2 rounded-md border border-[#1d4ed8] bg-white px-3 py-1.5 text-[10px] font-semibold text-[#1d4ed8] hover:bg-blue-50 transition-colors">
+              <button onClick={() => setIssueFor('')} className="flex items-center gap-2 rounded-md border border-[#1d4ed8] bg-white px-3 py-1.5 text-[10px] font-semibold text-[#1d4ed8] hover:bg-blue-50 transition-colors">
                 <LifeBuoy size={12} /> Contact IT Department
               </button>
             </div>
@@ -259,9 +315,11 @@ export default function AssetsPage() {
               {/* Top: Total Value */}
               <div className="flex items-center justify-between border-b border-zinc-100 p-4">
                 <div>
-                  <p className="text-[11px] font-bold text-zinc-900">Total Current Value (₹)</p>
-                  <p className="text-2xl font-bold text-zinc-900 mt-1.5">₹1,48,750</p>
-                  <p className="text-[10px] font-medium text-zinc-500 mt-1.5">Of Active Assets</p>
+                  <p className="text-[11px] font-bold text-zinc-900">Total Value (₹)</p>
+                  <p className="text-2xl font-bold text-zinc-900 mt-1.5">{valued.length ? inr(totalValue) : '—'}</p>
+                  <p className="text-[10px] font-medium text-zinc-500 mt-1.5">
+                    {valued.length < active.length ? `${valued.length} of ${active.length} active assets have a value` : 'Of Active Assets'}
+                  </p>
                 </div>
                 <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[#f0f4ff]">
                   <Image src={wallet} alt="wallet" className='w-full h-full' />
@@ -271,58 +329,46 @@ export default function AssetsPage() {
               {/* Bottom: Breakdown by Category */}
               <div className="p-4 pt-4">
                 <h3 className="text-[11px] font-bold text-zinc-900 mb-4">Breakdown by Category</h3>
-                <div className="flex items-center gap-4">
-                  {/* Animated SVG Donut Chart */}
-                  <div className="relative h-20 w-20 shrink-0">
-                    <svg viewBox="0 0 42 42" className="w-full h-full -rotate-90">
-                      {segments.map((seg, i) => (
-                        <circle
-                          key={i}
-                          cx="21"
-                          cy="21"
-                          r={radius}
-                          fill="transparent"
-                          stroke={seg.color}
-                          strokeWidth="6"
-                          strokeDasharray={`${mounted ? seg.percent : 0} ${circumference}`}
-                          strokeDashoffset={seg.offset}
-                          className="transition-all duration-1000 ease-out"
-                        />
+                {categories.length === 0 ? (
+                  <p className="text-[10px] text-zinc-500">No active assets.</p>
+                ) : (
+                  <div className="flex items-center gap-4">
+                    {/* Animated SVG Donut Chart */}
+                    <div className="relative h-20 w-20 shrink-0">
+                      <svg viewBox="0 0 42 42" className="w-full h-full -rotate-90">
+                        {segments.map((seg, i) => (
+                          <circle
+                            key={i}
+                            cx="21"
+                            cy="21"
+                            r={radius}
+                            fill="transparent"
+                            stroke={seg.color}
+                            strokeWidth="6"
+                            strokeDasharray={`${mounted ? seg.percent : 0} ${circumference}`}
+                            strokeDashoffset={seg.offset}
+                            className="transition-all duration-1000 ease-out"
+                          />
+                        ))}
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-[14px] font-bold text-zinc-900 leading-none">{active.length}</span>
+                        <span className="text-[9px] text-zinc-500 mt-0.5">Active</span>
+                      </div>
+                    </div>
+                    {/* Legend */}
+                    <div className="flex-1 space-y-2 text-[9px] font-bold">
+                      {categories.map(([name, count], i) => (
+                        <div key={name} className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-zinc-700">
+                            <div className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: CATEGORY_COLORS[i % CATEGORY_COLORS.length] }}></div> {name}
+                          </div>
+                          <div className="text-zinc-900">{count} ({Math.round((count / active.length) * 100)}%)</div>
+                        </div>
                       ))}
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-[14px] font-bold text-zinc-900 leading-none">6</span>
-                      <span className="text-[9px] text-zinc-500 mt-0.5">Total</span>
                     </div>
                   </div>
-                  {/* Legend */}
-                  <div className="flex-1 space-y-2 text-[9px] font-bold">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-zinc-700">
-                        <div className="h-2 w-2 rounded-[2px] bg-blue-500"></div> IT Equipment
-                      </div>
-                      <div className="text-zinc-900">2 (33%)</div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-zinc-700">
-                        <div className="h-2 w-2 rounded-[2px] bg-purple-500"></div> Accessories
-                      </div>
-                      <div className="text-zinc-900">2 (33%)</div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-zinc-700">
-                        <div className="h-2 w-2 rounded-[2px] bg-orange-400"></div> Office Utility
-                      </div>
-                      <div className="text-zinc-900">1 (17%)</div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-zinc-700">
-                        <div className="h-2 w-2 rounded-[2px] bg-teal-400"></div> Access
-                      </div>
-                      <div className="text-zinc-900">1 (17%)</div>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -336,17 +382,21 @@ export default function AssetsPage() {
                   </div>
                   <div className="pt-0.5">
                     <p className="text-[11px] font-bold text-[#1e293b]">Under Maintenance</p>
-                    <p className="text-[10px] font-medium text-slate-500 mt-1">No assets under maintenance</p>
+                    <p className="text-[10px] font-medium text-slate-500 mt-1">
+                      {maintenance.length ? maintenance.map((a) => a.assetId!.name).join(', ') : 'No assets under maintenance'}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-gradient-to-br from-rose-100 to-rose-50/50 text-rose-600 border border-rose-100/50">
-                    <Calendar size={16} />
+                    <AlertCircle size={16} />
                   </div>
                   <div className="pt-0.5">
-                    <p className="text-[11px] font-bold text-[#1e293b]">Need to Return</p>
-                    <p className="text-[15px] font-bold text-[#1e293b] leading-tight my-0.5">0</p>
-                    <p className="text-[10px] font-medium text-slate-500">No assets pending return</p>
+                    <p className="text-[11px] font-bold text-[#1e293b]">Open Issues</p>
+                    <p className="text-[15px] font-bold text-[#1e293b] leading-tight my-0.5">{issues.length}</p>
+                    <p className="text-[10px] font-medium text-slate-500">
+                      {issues.length ? <Link href="/dashboard/helpdesk" className="text-[#1d4ed8] hover:underline">Track in Helpdesk</Link> : 'No asset issues reported'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -369,14 +419,51 @@ export default function AssetsPage() {
                   <CheckCircle2 size={12} className="text-[#1d4ed8] shrink-0 mt-0.5" /> Return assets on or before your last working day.
                 </li>
               </ul>
-              <button className="text-[10px] font-bold text-[#1d4ed8] hover:underline mt-4 text-left">
+              <Link href="/dashboard/policies" className="text-[10px] font-bold text-[#1d4ed8] hover:underline mt-4 text-left">
                 View Asset Policy →
-              </button>
+              </Link>
             </div>
 
           </div>
         </div>
       </div>
+
+      <AssetIssueDialog
+        assets={active}
+        initialAssetId={issueFor || undefined}
+        open={issueFor !== null}
+        onClose={() => setIssueFor(null)}
+      />
+      <AssetDetailDialog allocation={viewing} issues={issues.filter((i) => i.assetId === viewing?.assetId?._id)} onClose={() => setViewing(null)} />
     </div>
+  );
+}
+
+function AssetDetailDialog({ allocation, issues, onClose }: { allocation: MyAssetAllocation | null; issues: { _id: string; subject: string; ticketNumber?: string; status: string }[]; onClose: () => void }) {
+  const asset = allocation?.assetId;
+  return (
+    <Dialog open={!!allocation} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-[14px]">{asset?.name}</DialogTitle>
+        </DialogHeader>
+        {allocation && asset && (
+          <div className="space-y-2 py-1 text-[12px] text-zinc-600">
+            <div className="flex justify-between"><span>Type</span><span className="font-medium text-zinc-800">{asset.type}</span></div>
+            <div className="flex justify-between"><span>Serial / IMEI</span><span className="font-medium text-zinc-800">{asset.serialNumber}</span></div>
+            <div className="flex justify-between"><span>Assigned on</span><span>{moment(allocation.allocatedDate).format('DD MMM YYYY')}</span></div>
+            {allocation.returnDate && <div className="flex justify-between"><span>Returned on</span><span>{moment(allocation.returnDate).format('DD MMM YYYY')}</span></div>}
+            <div className="flex justify-between"><span>Condition</span><span>{allocation.condition || '—'}</span></div>
+            {asset.purchaseDate && <div className="flex justify-between"><span>Purchased</span><span>{moment(asset.purchaseDate).format('DD MMM YYYY')}</span></div>}
+            <div className="flex justify-between"><span>Value</span><span>{typeof asset.purchaseValue === 'number' ? inr(asset.purchaseValue) : '—'}</span></div>
+            {issues.length > 0 && (
+              <div className="rounded-md bg-orange-50 p-2 text-orange-800">
+                {issues.map((i) => <p key={i._id}>{i.ticketNumber ? `#${i.ticketNumber} · ` : ''}{i.subject} — {i.status.replace('_', ' ')}</p>)}
+              </div>
+            )}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

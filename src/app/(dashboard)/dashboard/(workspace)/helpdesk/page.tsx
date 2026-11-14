@@ -497,10 +497,16 @@ function TicketDetailDialog({ ticket, onClose }: { ticket: MyTicket | null; onCl
               <p><span className="text-zinc-500">Raised:</span> {moment(ticket.createdAt).format('DD MMM YYYY, hh:mm A')}</p>
               <p><span className="text-zinc-500">Assigned to:</span> {ticket.assignedTo ? `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName || ''}` : 'Not yet assigned'}</p>
             </div>
+            {ticket.channel === 'platform' && (
+              <p className="rounded-md bg-blue-50 p-2 text-[11px] text-blue-700">Reported to the CrewCam team through &ldquo;Report a problem&rdquo;.</p>
+            )}
             <div>
               <p className="text-[11px] font-semibold text-zinc-500 mb-1">Description</p>
               <p className="whitespace-pre-wrap">{ticket.description}</p>
             </div>
+            {ticket.attachmentUrl && (
+              <a href={ticket.attachmentUrl} target="_blank" rel="noopener noreferrer" className="w-max text-[11px] font-semibold text-blue-600 hover:text-blue-700">View attachment</a>
+            )}
             {ticket.resolution && (
               <div className="rounded-md border border-emerald-100 bg-emerald-50/50 p-2">
                 <p className="text-[11px] font-semibold text-emerald-700 mb-1">Resolution{ticket.resolvedAt ? ` · ${moment(ticket.resolvedAt).format('DD MMM YYYY')}` : ''}</p>

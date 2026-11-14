@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { LifeBuoy, X, Image as ImageIcon, Download, Send, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
+import { uploadFile } from '@/services/uploadService';
+import { PlatformIssueType, sendPlatformReport } from '@/services/platformReportService';
 
 export default function SOSButton() {
   const pathname = usePathname();
@@ -11,11 +13,15 @@ export default function SOSButton() {
   const [isCapturing, setIsCapturing] = useState(false);
   const [screenshot, setScreenshot] = useState<string | null>(null);
   
-  const [issueType, setIssueType] = useState('bug');
+  const [issueType, setIssueType] = useState<PlatformIssueType>('bug');
   const [description, setDescription] = useState('');
-  
+  // The screen may show salary or personal data, so attaching it is the reporter's choice.
+  const [attachScreenshot, setAttachScreenshot] = useState(true);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState('');
+  const [reference, setReference] = useState('');
 
   const captureScreen = async () => {
     setIsCapturing(true);
@@ -32,7 +38,8 @@ export default function SOSButton() {
       
       if (sosBtn) sosBtn.style.visibility = 'visible';
       
-      const image = canvas.toDataURL('image/png');
+      // JPEG keeps full-page captures well under the 5 MB upload limit.
+      const image = canvas.toDataURL('image/jpeg', 0.75);
       setScreenshot(image);
       setIsOpen(true);
     } catch (error) {
@@ -47,24 +54,28 @@ export default function SOSButton() {
     if (!screenshot) return;
     const link = document.createElement('a');
     link.href = screenshot;
-    link.download = `crucam-sos-${new Date().getTime()}.png`;
+    link.download = `crewcam-report-${new Date().getTime()}.jpg`;
     link.click();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Mock API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setError('');
+    try {
+      let screenshotUrl: string | undefined;
+      if (attachScreenshot && screenshot) {
+        const blob = await (await fetch(screenshot)).blob();
+        screenshotUrl = await uploadFile(blob, 'screenshot.jpg');
+      }
+      const res = await sendPlatformReport({ issueType, description: description.trim(), pageUrl: pathname || undefined, screenshotUrl });
+      setReference(res.ticket?.ticketNumber || '');
       setIsSuccess(true);
-      
-      // Auto close after 2 seconds
-      setTimeout(() => {
-        closeModal();
-      }, 2000);
-    }, 1500);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Could not send your report. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const closeModal = () => {
@@ -74,6 +85,9 @@ export default function SOSButton() {
       setIsSuccess(false);
       setDescription('');
       setIssueType('bug');
+      setAttachScreenshot(true);
+      setError('');
+      setReference('');
     }, 300);
   };
 
@@ -115,7 +129,7 @@ export default function SOSButton() {
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
               <div className="flex items-center gap-3 text-red-500">
                 <LifeBuoy size={24} strokeWidth={2.5} />
-                <h2 className="text-lg font-bold text-slate-800">Report an Issue (SOS)</h2>
+                <h2 className="text-lg font-bold text-slate-800">Report a Problem</h2>
               </div>
               <button 
                 onClick={closeModal}
@@ -136,8 +150,9 @@ export default function SOSButton() {
                     </div>
                     <h3 className="mb-2 text-xl font-bold text-slate-800">Issue Reported!</h3>
                     <p className="text-sm text-slate-500 px-4">
-                      Thank you for reporting this issue. Our support team has received the screenshot and will look into it immediately.
+                      Thanks — the CrewCam team has your report{reference ? ` (${reference})` : ''}. You&apos;ll get a notification when they respond, and you can track it under Helpdesk → My Tickets.
                     </p>
+                    <button type="button" onClick={closeModal} className="mt-5 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">Close</button>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -149,7 +164,7 @@ export default function SOSButton() {
                         Issue Type
                       </label>
                       <div className="grid grid-cols-3 gap-2">
-                        {['bug', 'question', 'feedback'].map((type) => (
+                        {(['bug', 'question', 'feedback'] as const).map((type) => (
                           <button
                             key={type}
                             type="button"
@@ -181,6 +196,13 @@ export default function SOSButton() {
                       />
                     </div>
 
+                    <label className="flex items-start gap-2 text-xs text-slate-600">
+                      <input type="checkbox" checked={attachScreenshot} onChange={(e) => setAttachScreenshot(e.target.checked)} className="mt-0.5" />
+                      Attach the captured screen. Untick it if the screen shows salary or other personal details.
+                    </label>
+
+                    {error && <p className="text-xs font-medium text-rose-600">{error}</p>}
+
                     {/* Submit Button */}
                     <button
                       type="submit"
@@ -199,7 +221,7 @@ export default function SOSButton() {
                     </button>
                     
                     <p className="text-center text-xs text-slate-500">
-                      The screenshot and your system details will be sent securely to our support team.
+                      Your report{attachScreenshot ? ', the screenshot' : ''} and the page you were on go to the CrewCam support team — not your company&apos;s helpdesk.
                     </p>
                   </form>
                 )}
