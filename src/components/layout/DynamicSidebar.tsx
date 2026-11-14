@@ -194,10 +194,10 @@ export default function DynamicSidebar() {
       'Admin UI',
     ]);
 
-    // Hiring Process should list every step of the pipeline, so the EXCLUDED_LABELS
-    // filter (meant for other sections' duplicate/legacy entries) is skipped for it.
+    // Hiring Process and Recruitment Process list real pipeline pages (e.g. HOD Evaluation),
+    // so the EXCLUDED_LABELS filter (meant for other sections' legacy entries) is skipped for them.
     let filteredItems = items.filter(item => {
-      if (item.section === 'Hiring Process') return true;
+      if (item.section === 'Hiring Process' || item.section === 'Recruitment Process') return true;
       return !EXCLUDED_LABELS.has(item.label);
     });
 
