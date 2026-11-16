@@ -1,43 +1,43 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import moment from 'moment';
+import toast from 'react-hot-toast';
 import { useMyDetails } from '@/hooks/useMyProfile';
 import { useProfileSectionEditor } from '@/hooks/useProfileSectionEditor';
+import { useCancelAlert, useMyEmergency, useTriggerAlert } from '@/hooks/useEmergency';
 import { ProfileEntryDialog } from '@/components/profile/ProfileEntryDialog';
 import { EMERGENCY_FIELDS } from '@/components/profile/profileFields';
-import { BookOpen, Bell, Shield, Plus, Flame, ShieldAlert, Phone, MessageSquare, Pencil, MapPin, HeartPulse, DoorOpen, CheckCircle2, AlertTriangle, PlusCircle, FileText, } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { EmergencyAlert } from '@/services/emergencyService';
+import { BookOpen, Bell, Shield, Plus, Flame, ShieldAlert, Phone, MessageSquare, Pencil, MapPin, HeartPulse, DoorOpen, CheckCircle2, AlertTriangle, PlusCircle, FileText, Loader2, XCircle, Clock } from 'lucide-react';
 
-// Company-level safety content below (helplines, office info, alerts) has no admin
-// screen yet and is still sample data. "My Emergency Contacts" is live (/me/details).
-const helplines = [
-  { label: 'Security Helpline', number: '+91 98765 43210', icon: Shield, accent: 'bg-blue-50 text-blue-600' },
-  { label: 'Medical Assistance', number: '+91 98765 43211', icon: Plus, accent: 'bg-emerald-50 text-emerald-600' },
-  { label: 'Fire Safety', number: '+91 98765 43212', icon: Flame, accent: 'bg-orange-50 text-orange-600' },
-  { label: 'Women Safety Helpline', number: '+91 98765 43213', icon: ShieldAlert, accent: 'bg-violet-50 text-violet-600' },
+// Icon/colour for a helpline, guessed from its label; HR names the helplines.
+const HELPLINE_STYLES: { match: RegExp; icon: React.ElementType; accent: string }[] = [
+  { match: /fire/i, icon: Flame, accent: 'bg-orange-50 text-orange-600' },
+  { match: /medic|ambulance|doctor|health/i, icon: Plus, accent: 'bg-emerald-50 text-emerald-600' },
+  { match: /women|woman|posh/i, icon: ShieldAlert, accent: 'bg-violet-50 text-violet-600' },
 ];
+const helplineStyle = (label: string) => HELPLINE_STYLES.find((h) => h.match.test(label)) || { icon: Shield, accent: 'bg-blue-50 text-blue-600' };
 
-const importantInfo = [
-  { icon: MapPin, accent: 'bg-blue-50 text-blue-600', label: 'Office Address', detail: 'Plot No. 123, Sector 62,\nNoida, Uttar Pradesh - 201309' },
-  { icon: Plus, accent: 'bg-emerald-50 text-emerald-600', label: 'Nearest Hospital', detail: 'Felix Hospital, Sector 62, Noida\n(2.4 km away)' },
-  { icon: ShieldAlert, accent: 'bg-amber-50 text-amber-600', label: 'Assembly Point', detail: 'Main Parking Area - Gate 2' },
-  { icon: HeartPulse, accent: 'bg-rose-50 text-rose-600', label: 'AED (Defibrillator) Location', detail: 'Ground Floor, Reception Area' },
-  { icon: DoorOpen, accent: 'bg-teal-50 text-teal-600', label: 'Emergency Exits', detail: 'Check floor plan for all exits' },
-];
-
-const recentAlerts = [
-  { icon: CheckCircle2, color: 'text-emerald-500', title: 'Emergency Drill Completed', detail: 'Fire drill conducted on 20 May 2024', date: '20 May 2024', time: '10:30 AM' },
-  { icon: AlertTriangle, color: 'text-amber-500', title: 'Power Outage', detail: 'Power outage in Building A', date: '15 May 2024', time: '02:15 PM' },
-  { icon: CheckCircle2, color: 'text-emerald-500', title: 'System Check', detail: 'Emergency system check completed', date: '10 May 2024', time: '11:20 AM' },
-];
-
-const safetyTips = [
+// General guidance, shown until the company adds its own tips.
+const DEFAULT_TIPS = [
   'Familiarize yourself with exit routes and assembly points',
   'Keep emergency contacts updated always',
   'Do not use elevators during fire or any emergency',
   'Report any unsafe condition to admin immediately',
   'Stay calm and follow instructions during emergencies',
 ];
+
+const ALERT_STATUS: Record<EmergencyAlert['status'], { label: string; icon: React.ElementType; color: string }> = {
+  Active: { label: 'Alert raised', icon: AlertTriangle, color: 'text-rose-500' },
+  Acknowledged: { label: 'Help is on the way', icon: Clock, color: 'text-amber-500' },
+  Resolved: { label: 'Resolved', icon: CheckCircle2, color: 'text-emerald-500' },
+  Cancelled: { label: 'Cancelled', icon: XCircle, color: 'text-zinc-400' },
+};
+
+const personName = (p?: { firstName: string; lastName?: string } | null) => (p ? `${p.firstName} ${p.lastName || ''}`.trim() : '');
 
 function Card({
   title, action, className = '', children, footer,
@@ -63,6 +63,31 @@ function ViewLink({ href, label = 'View All' }: { href: string; label?: string }
 export default function EmergencyPage() {
   const { data: details, isLoading } = useMyDetails();
   const contacts = useProfileSectionEditor('emergencyContacts', details?.emergencyContacts, 'Emergency Contact');
+  const { data: emergency } = useMyEmergency();
+  const cancel = useCancelAlert();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const settings = emergency?.settings;
+  const active = emergency?.activeAlert || null;
+  const tips = settings?.safetyTips?.length ? settings.safetyTips : DEFAULT_TIPS;
+
+  const importantInfo = [
+    { icon: MapPin, accent: 'bg-blue-50 text-blue-600', label: 'Office Address', detail: settings?.officeAddress },
+    { icon: Plus, accent: 'bg-emerald-50 text-emerald-600', label: 'Nearest Hospital', detail: settings?.nearestHospital },
+    { icon: ShieldAlert, accent: 'bg-amber-50 text-amber-600', label: 'Assembly Point', detail: settings?.assemblyPoint },
+    { icon: HeartPulse, accent: 'bg-rose-50 text-rose-600', label: 'AED (Defibrillator) Location', detail: settings?.aedLocation },
+    { icon: DoorOpen, accent: 'bg-teal-50 text-teal-600', label: 'Emergency Exits', detail: settings?.emergencyExits },
+  ].filter((i) => i.detail);
+
+  const cancelActive = async () => {
+    if (!active || !window.confirm('Cancel your emergency alert? Responders will be told it is no longer needed.')) return;
+    try {
+      await cancel.mutateAsync(active._id);
+      toast.success('Alert cancelled');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Could not cancel the alert');
+    }
+  };
 
   return (
     <div className="bg-[#fafbfc] font-sans">
@@ -78,45 +103,80 @@ export default function EmergencyPage() {
             <h1 className="text-2xl font-bold text-[#1a1c21]">Emergency</h1>
             <p className="mt-1 text-[10px] text-zinc-500">Your safety is our priority. Quick access to help, contacts and important information.</p>
           </div>
-          <button type="button" className="flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[10px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
-            <BookOpen size={12} /> Emergency Guide
-          </button>
+          {settings?.guideUrl && (
+            <a href={settings.guideUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-[10px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
+              <BookOpen size={12} /> Emergency Guide
+            </a>
+          )}
         </div>
 
         {/* SOS banner */}
         <div className="flex flex-col items-start justify-between gap-3 rounded-xl border border-rose-100 bg-gradient-to-r from-rose-50 to-white px-3 py-1.5 sm:flex-row sm:items-center">
           <div className="flex items-start gap-3">
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-rose-600 text-[13px] font-extrabold text-white">SOS</span>
-            <div>
-              <p className="text-[14px] font-bold text-[#1a1c21]">In Case of Emergency</p>
-              <p className="text-[11px] text-zinc-500">Tap the button to alert security and notify your emergency contacts.</p>
-            </div>
+            {active ? (
+              <div>
+                <p className="text-[14px] font-bold text-[#1a1c21]">{ALERT_STATUS[active.status].label}</p>
+                <p className="text-[11px] text-zinc-500">
+                  {active.status === 'Acknowledged'
+                    ? `${personName(active.acknowledgedBy) || 'A responder'} saw your alert ${moment(active.acknowledgedAt).fromNow()} and is responding.`
+                    : active.respondersNotified
+                      ? `Raised ${moment(active.createdAt).fromNow()} — ${active.respondersNotified} responder(s) notified. Stay where you are if it is safe.`
+                      : 'Raised — but no responder is set up for your company. Call a helpline below.'}
+                </p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-[14px] font-bold text-[#1a1c21]">In Case of Emergency</p>
+                <p className="text-[11px] text-zinc-500">
+                  Tap the button to alert your company&apos;s responders and your manager{settings?.smsEmergencyContacts ? ', and to text your emergency contacts' : ''}.
+                </p>
+              </div>
+            )}
           </div>
           <div className="flex shrink-0 flex-col items-end gap-1">
-            <button type="button" className="flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2.5 text-[12px] font-bold text-white shadow-sm hover:bg-rose-700">
-              <Bell size={14} /> Trigger Emergency Alert
-            </button>
-            <span className="text-[9.5px] font-medium text-rose-500">Use only in real emergencies</span>
+            {active ? (
+              <button type="button" onClick={cancelActive} disabled={cancel.isPending} className="flex items-center gap-2 rounded-lg border border-rose-200 bg-white px-4 py-2.5 text-[12px] font-bold text-rose-600 shadow-sm hover:bg-rose-50 disabled:opacity-60">
+                <XCircle size={14} /> Cancel Alert
+              </button>
+            ) : (
+              <button type="button" onClick={() => setConfirmOpen(true)} className="flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2.5 text-[12px] font-bold text-white shadow-sm hover:bg-rose-700">
+                <Bell size={14} /> Trigger Emergency Alert
+              </button>
+            )}
+            <span className="text-[9.5px] font-medium text-rose-500">{active ? 'Cancel only if help is no longer needed' : 'Use only in real emergencies'}</span>
           </div>
         </div>
 
         {/* Helpline cards */}
         <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-          {helplines.map((h) => (
-            <div key={h.label} className="flex items-start gap-2.5 rounded-xl border border-zinc-200 bg-white p-2.5 shadow-sm">
-              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${h.accent}`}>
-                <h.icon size={16} />
-              </span>
+          {(settings?.helplines ?? []).map((h) => {
+            const st = helplineStyle(h.label);
+            return (
+              <div key={`${h.label}-${h.number}`} className="flex items-start gap-2.5 rounded-xl border border-zinc-200 bg-white p-2.5 shadow-sm">
+                <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${st.accent}`}>
+                  <st.icon size={16} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[11px] text-zinc-500">{h.label}</p>
+                  <p className="text-[13.5px] font-bold text-[#1a1c21]">{h.number}</p>
+                  <p className={`mb-1 text-[9.5px] font-semibold ${h.available24x7 ? 'text-emerald-600' : 'text-zinc-400'}`}>{h.available24x7 ? '24/7 Available' : 'Office hours'}</p>
+                  <a href={`tel:${h.number.replace(/[\s-]/g, '')}`} className="flex w-max items-center gap-1.5 rounded-md border border-zinc-200 px-2.5 py-1 text-[10.5px] font-semibold text-zinc-700 hover:bg-zinc-50">
+                    <Phone size={11} /> Call Now
+                  </a>
+                </div>
+              </div>
+            );
+          })}
+          {settings && settings.helplines.length === 0 && (
+            <div className="col-span-2 flex items-start gap-2.5 rounded-xl border border-zinc-200 bg-white p-2.5 shadow-sm lg:col-span-4">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-rose-50 text-rose-600"><Phone size={16} /></span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[11px] text-zinc-500">{h.label}</p>
-                <p className="text-[13.5px] font-bold text-[#1a1c21]">{h.number}</p>
-                <p className="mb-1 text-[9.5px] font-semibold text-emerald-600">24/7 Available</p>
-                <button type="button" className="flex items-center gap-1.5 rounded-md border border-zinc-200 px-2.5 py-1 text-[10.5px] font-semibold text-zinc-700 hover:bg-zinc-50">
-                  <Phone size={11} /> Call Now
-                </button>
+                <p className="text-[11.5px] font-semibold text-[#1a1c21]">Your company hasn&apos;t added helpline numbers yet.</p>
+                <p className="text-[10.5px] text-zinc-500">In India, dial <a href="tel:112" className="font-bold text-rose-600">112</a> for police, fire or ambulance.</p>
               </div>
             </div>
-          ))}
+          )}
         </div>
 
         {/* Contacts / Info / Alerts+Tips */}
@@ -157,13 +217,16 @@ export default function EmergencyPage() {
             </div>
           </Card>
 
-          <Card title="Important Information" footer={(
-            <button type="button" className="flex w-full items-center justify-center gap-1.5 rounded-md border border-zinc-200 py-1.5 text-[10.5px] font-semibold text-zinc-700 hover:bg-zinc-50">
+          <Card title="Important Information" footer={settings?.safetyMapUrl ? (
+            <a href={settings.safetyMapUrl} target="_blank" rel="noopener noreferrer" className="flex w-full items-center justify-center gap-1.5 rounded-md border border-zinc-200 py-1.5 text-[10.5px] font-semibold text-zinc-700 hover:bg-zinc-50">
               <BookOpen size={12} /> View Office Safety Map
-            </button>
-          )}
+            </a>
+          ) : undefined}
           >
             <div className="space-y-2">
+              {importantInfo.length === 0 && (
+                <p className="py-3 text-center text-[10px] text-zinc-500">Your company hasn&apos;t added office safety details yet.</p>
+              )}
               {importantInfo.map((info) => (
                 <div key={info.label} className="flex items-start gap-2.5">
                   <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${info.accent}`}>
@@ -179,27 +242,33 @@ export default function EmergencyPage() {
           </Card>
 
           <div className="space-y-2">
-            <Card title="Recent Alerts" action={<ViewLink href="/dashboard/employee/emergency" />}>
+            <Card title="My Recent Alerts">
               <div className="space-y-1">
-                {recentAlerts.map((a) => (
-                  <div key={a.title} className="flex items-start gap-2.5">
-                    <a.icon size={15} className={`mt-0.5 shrink-0 ${a.color}`} />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[11.5px] font-semibold text-[#1a1c21]">{a.title}</p>
-                      <p className="truncate text-[10px] text-zinc-500">{a.detail}</p>
+                {(emergency?.alerts ?? []).length === 0 && <p className="py-2 text-center text-[10px] text-zinc-500">You haven&apos;t raised any alerts.</p>}
+                {(emergency?.alerts ?? []).slice(0, 4).map((a) => {
+                  const st = ALERT_STATUS[a.status];
+                  return (
+                    <div key={a._id} className="flex items-start gap-2.5">
+                      <st.icon size={15} className={`mt-0.5 shrink-0 ${st.color}`} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[11.5px] font-semibold text-[#1a1c21]">{st.label}</p>
+                        <p className="truncate text-[10px] text-zinc-500">
+                          {a.resolutionNote || a.message || (a.status === 'Acknowledged' ? `By ${personName(a.acknowledgedBy)}` : `${a.respondersNotified} responder(s) notified`)}
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="text-[9.5px] text-zinc-400">{moment(a.createdAt).format('DD MMM YYYY')}</p>
+                        <p className="text-[9.5px] text-zinc-400">{moment(a.createdAt).format('hh:mm A')}</p>
+                      </div>
                     </div>
-                    <div className="shrink-0 text-right">
-                      <p className="text-[9.5px] text-zinc-400">{a.date}</p>
-                      <p className="text-[9.5px] text-zinc-400">{a.time}</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </Card>
 
-            <Card title="Safety Tips" action={<ViewLink href="/dashboard/employee/emergency" />}>
+            <Card title="Safety Tips">
               <div className="space-y-1">
-                {safetyTips.map((tip) => (
+                {tips.map((tip) => (
                   <div key={tip} className="flex items-start gap-2">
                     <CheckCircle2 size={13} className="mt-0.5 shrink-0 text-blue-600" />
                     <p className="text-[11px] leading-snug text-zinc-600">{tip}</p>
@@ -218,15 +287,84 @@ export default function EmergencyPage() {
             </span>
             <div>
               <p className="text-[15px] font-bold text-[#1a1c21]">We Care About Your Safety</p>
-              <p className="text-[11px] text-zinc-500">CrewCam is committed to providing a safe and secure work environment.<br className="hidden sm:block" /> In case of any emergency, help is just a click away.</p>
+              <p className="text-[11px] text-zinc-500">Your company is committed to providing a safe and secure work environment.<br className="hidden sm:block" /> In case of any emergency, help is just a click away.</p>
             </div>
           </div>
-          <button type="button" className="flex shrink-0 items-center gap-2 rounded-md border border-zinc-200 bg-white px-4 py-2 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
-            <FileText size={13} /> Safety Guidelines
-          </button>
+          {settings?.guideUrl && (
+            <a href={settings.guideUrl} target="_blank" rel="noopener noreferrer" className="flex shrink-0 items-center gap-2 rounded-md border border-zinc-200 bg-white px-4 py-2 text-[11px] font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50">
+              <FileText size={13} /> Safety Guidelines
+            </a>
+          )}
         </div>
       </div>
       <ProfileEntryDialog fields={EMERGENCY_FIELDS} {...contacts.dialog} />
+      <TriggerDialog open={confirmOpen} onClose={() => setConfirmOpen(false)} />
+    </div>
+  );
+}
+
+/** Confirm before paging responders; optionally share location and a short note. */
+function TriggerDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  return (
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-[15px] text-rose-600">Trigger an emergency alert?</DialogTitle>
+        </DialogHeader>
+        {open && <TriggerForm onClose={onClose} />}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+const currentPosition = () =>
+  new Promise<{ lat: number; lng: number; accuracy?: number } | undefined>((resolve) => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return resolve(undefined);
+    navigator.geolocation.getCurrentPosition(
+      (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy: Math.round(p.coords.accuracy) }),
+      () => resolve(undefined), // denied or unavailable — still send the alert
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
+  });
+
+function TriggerForm({ onClose }: { onClose: () => void }) {
+  const trigger = useTriggerAlert();
+  const [message, setMessage] = useState('');
+  const [shareLocation, setShareLocation] = useState(true);
+  const [locating, setLocating] = useState(false);
+
+  const send = async () => {
+    try {
+      setLocating(shareLocation);
+      const location = shareLocation ? await currentPosition() : undefined;
+      setLocating(false);
+      const res = await trigger.mutateAsync({ message: message.trim() || undefined, location });
+      toast.success(res.message, { duration: 6000 });
+      onClose();
+    } catch (err: any) {
+      setLocating(false);
+      toast.error(err?.response?.data?.message || 'Could not raise the alert — call a helpline now');
+    }
+  };
+
+  const busy = locating || trigger.isPending;
+
+  return (
+    <div className="flex flex-col gap-3 text-[12px] text-zinc-700">
+      <p>Your company&apos;s responders and your manager will be notified immediately. Use this only in a real emergency.</p>
+      <label className="flex flex-col gap-1 text-[11px] text-zinc-600">What&apos;s happening? (optional)
+        <textarea rows={2} maxLength={500} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="e.g. Medical emergency, 3rd floor pantry" className="rounded-md border border-zinc-200 px-2 py-1.5 text-[12px] outline-none focus:border-rose-400" />
+      </label>
+      <label className="flex items-start gap-2 text-[11.5px]">
+        <input type="checkbox" checked={shareLocation} onChange={(e) => setShareLocation(e.target.checked)} className="mt-0.5" />
+        Share my current location with responders
+      </label>
+      <div className="flex justify-end gap-2 pt-1">
+        <button type="button" onClick={onClose} disabled={busy} className="rounded-md border border-zinc-200 px-3 py-2 text-[12px] font-semibold text-zinc-600 hover:bg-zinc-50">Cancel</button>
+        <button type="button" onClick={send} disabled={busy} className="flex items-center gap-1.5 rounded-md bg-rose-600 px-3 py-2 text-[12px] font-bold text-white hover:bg-rose-700 disabled:opacity-60">
+          {busy && <Loader2 size={13} className="animate-spin" />} {locating ? 'Getting location…' : 'Send Alert'}
+        </button>
+      </div>
     </div>
   );
 }
