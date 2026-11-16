@@ -155,6 +155,7 @@ export default function CreateCandidatePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const [resumeUrl, setResumeUrl] = useState('');
+  const [localPreviewUrl, setLocalPreviewUrl] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -529,6 +530,16 @@ export default function CreateCandidatePage() {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
+      // Preview the file the user just picked straight from the browser — no round trip
+      // through the server URL, which is what made the preview blank/download instead
+      // (Google's viewer can't reach a local/private upload URL, and a raw Cloudinary
+      // URL in an iframe can force a download).
+      setLocalPreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return selectedFile.type === 'application/pdf' || /\.pdf$/i.test(selectedFile.name)
+          ? URL.createObjectURL(selectedFile)
+          : '';
+      });
       handleUpload(selectedFile);
     }
   };
@@ -669,24 +680,52 @@ export default function CreateCandidatePage() {
                   <button type="button" onClick={() => setIsMaximized(!isMaximized)} className="grid h-6 w-6 place-items-center rounded-none hover:bg-zinc-100 hover:text-zinc-600">
                     {isMaximized ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
                   </button>
-                  <button type="button" onClick={() => window.open(resumeUrl, '_blank')} className="grid h-6 w-6 place-items-center rounded-none hover:bg-zinc-100 hover:text-zinc-600"><Download size={13} /></button>
+                  <button type="button" onClick={() => window.open(localPreviewUrl || resumeUrl, '_blank')} className="grid h-6 w-6 place-items-center rounded-none hover:bg-zinc-100 hover:text-zinc-600"><Download size={13} /></button>
                 </div>
               )}
               className={`transition-all duration-300 ${isMaximized ? 'fixed inset-4 z-50 bg-white shadow-2xl overflow-y-auto' : 'max-h-[820px] overflow-y-visible'}`}
             >
               {file ? (
-                resumeUrl ? (
-                  <div className={`relative w-full overflow-hidden ${isMaximized ? 'h-[calc(100vh-100px)]' : 'h-[750px]'}`}>
-                    <div style={{ transform: `scale(${cvZoom / 100})`, transformOrigin: 'top center', width: `${100 / (cvZoom / 100)}%`, height: `${100 / (cvZoom / 100)}%` }} className="transition-transform duration-200">
-                      <iframe src={resumeUrl} className="absolute inset-0 w-full h-full border-0" title="Original CV Preview" />
+                (() => {
+                  // Preview source, best first:
+                  //  1. the file just picked, as a blob: URL (PDFs) — instant, needs no server URL
+                  //  2. a stored private/local URL (dev uploads) — Google's viewer can't reach
+                  //     those, so show PDFs directly and fall back to a download link otherwise
+                  //  3. a stored public URL (Cloudinary) — via Google's viewer, since a raw
+                  //     Cloudinary URL / .docx in a plain iframe forces a download
+                  const isPrivateHost = /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0|10\.|192\.168\.)/i.test(resumeUrl);
+                  const isPdfUrl = /\.pdf($|\?)/i.test(resumeUrl);
+                  let src = '';
+                  if (localPreviewUrl) src = localPreviewUrl;
+                  else if (resumeUrl && isPrivateHost) src = isPdfUrl ? resumeUrl : '';
+                  else if (resumeUrl) src = `https://docs.google.com/viewer?url=${encodeURIComponent(resumeUrl)}&embedded=true`;
+
+                  if (src) {
+                    return (
+                      <div className={`relative w-full overflow-hidden ${isMaximized ? 'h-[calc(100vh-100px)]' : 'h-[750px]'}`}>
+                        <div style={{ transform: `scale(${cvZoom / 100})`, transformOrigin: 'top center', width: `${100 / (cvZoom / 100)}%`, height: `${100 / (cvZoom / 100)}%` }} className="transition-transform duration-200">
+                          <iframe src={src} className="absolute inset-0 w-full h-full border-0" title="Original CV Preview" />
+                        </div>
+                      </div>
+                    );
+                  }
+                  if (resumeUrl) {
+                    return (
+                      <div className="flex flex-col items-center justify-center h-64 gap-2 text-zinc-400">
+                        <p className="text-xs">No inline preview available for this file type.</p>
+                        <button type="button" onClick={() => window.open(resumeUrl, '_blank')} className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-700 underline">
+                          Open / Download CV
+                        </button>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="flex flex-col items-center justify-center h-64 text-zinc-400">
+                      <Loader2 className="animate-spin mb-2" />
+                      <p className="text-xs">Loading preview...</p>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-64 text-zinc-400">
-                    <Loader2 className="animate-spin mb-2" />
-                    <p className="text-xs">Loading preview...</p>
-                  </div>
-                )
+                  );
+                })()
               ) : (
                 <div className="flex flex-col items-center justify-center h-64 text-zinc-400">
                   <p className="text-xs">No CV uploaded to preview.</p>

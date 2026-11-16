@@ -121,12 +121,6 @@ const AI_INSIGHTS = [
   '5 candidates are ready for immediate joining.',
 ];
 
-const PENDING_APPROVALS = [
-  { title: 'HR Manager Hiring', status: 'Awaiting Approval' },
-  { title: 'Sales Executive (5 Nos.)', status: 'Pending' },
-  { title: 'Accounts Executive', status: 'Pending' },
-];
-
 // ─────────────────────────────────────────────────────────────────────────
 // Shared pieces
 // ─────────────────────────────────────────────────────────────────────────
@@ -399,16 +393,18 @@ function AIInsights({ insights = [] }: { insights?: string[] }) {
   );
 }
 
-function PendingApprovals() {
+function PendingApprovals({ approvals = [] }: { approvals?: any[] }) {
   return (
     <Card title="Pending Approvals" action={<ViewAllLink href="/dashboard/hiring/manpower" />}>
       <div className="space-y-1">
-        {PENDING_APPROVALS.map((r: any) => (
-          <div key={(r.jobTitle || r.title)} className="flex items-center justify-between gap-2 rounded-lg bg-amber-50/60 dark:bg-amber-500/10 px-2 py-0.5">
+        {approvals.length > 0 ? approvals.map((r: any, idx: number) => (
+          <div key={r._id || r.id || `${r.jobTitle || r.title || 'approval'}-${idx}`} className="flex items-center justify-between gap-2 rounded-lg bg-amber-50/60 dark:bg-amber-500/10 px-2 py-0.5">
             <p className="truncate text-[10.5px] font-semibold text-zinc-800 dark:text-zinc-100">{(r.jobTitle || r.title)}</p>
             <span className="shrink-0 whitespace-nowrap rounded-full bg-amber-100 dark:bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-semibold text-amber-700 dark:text-amber-400">{r.status}</span>
           </div>
-        ))}
+        )) : (
+          <p className="py-4 text-center text-[10.5px] italic text-zinc-400">No pending approvals</p>
+        )}
       </div>
     </Card>
   );
@@ -432,17 +428,32 @@ function TodaysInterviews({ interviews = [] }: { interviews?: any[] }) {
           </tr>
         </thead>
         <tbody>
-          {interviews.length > 0 ? interviews.map((iv) => (
-            <tr key={iv._id || iv.time || new Date(iv.interviewDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + (iv.candidateId?.firstName ? `${iv.candidateId.firstName} ${iv.candidateId.lastName}` : iv.candidate)} className="border-t border-zinc-50 dark:border-zinc-800">
-              <td className="py-1 pr-1 text-[10px] text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{iv.time || new Date(iv.interviewDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-              <td className="truncate py-1 pr-1 text-[10.5px] font-medium text-zinc-800 dark:text-zinc-100">{(iv.candidateId?.firstName ? `${iv.candidateId.firstName} ${iv.candidateId.lastName}` : iv.candidate)}</td>
-              <td className="truncate py-1 pr-1 text-[10.5px] text-zinc-600 dark:text-zinc-300">{iv.position || 'Candidate'}</td>
-              <td className="truncate py-1 pr-1 text-[10.5px] text-zinc-600 dark:text-zinc-300">{(iv.interviewerId?.firstName ? `${iv.interviewerId.firstName} ${iv.interviewerId.lastName}` : iv.interviewer)}</td>
-              <td className="py-1">
-                <span className={`inline-block whitespace-nowrap rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${INTERVIEW_STATUS_STYLE[iv.status] || ''}`}>{iv.status}</span>
-              </td>
-            </tr>
-          )) : (
+          {interviews.length > 0 ? interviews.map((iv, idx) => {
+            const timeStr = iv.time || (iv.scheduledDate || iv.interviewDate
+              ? new Date(iv.scheduledDate || iv.interviewDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              : 'TBD');
+            const candidateName = iv.candidateId?.firstName
+              ? `${iv.candidateId.firstName} ${iv.candidateId.lastName || ''}`.trim()
+              : (iv.candidate || 'Candidate');
+            const interviewerName = iv.interviewerId?.firstName
+              ? `${iv.interviewerId.firstName} ${iv.interviewerId.lastName || ''}`.trim()
+              : (iv.interviewer || 'HR Team');
+            const position = iv.candidateId?.jobRole || iv.position || iv.roundType || 'Candidate';
+
+            return (
+              <tr key={iv._id || iv.id || `${timeStr}-${idx}`} className="border-t border-zinc-50 dark:border-zinc-800">
+                <td className="py-1 pr-1 text-[10px] text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{timeStr}</td>
+                <td className="truncate py-1 pr-1 text-[10.5px] font-medium text-zinc-800 dark:text-zinc-100">{candidateName}</td>
+                <td className="truncate py-1 pr-1 text-[10.5px] text-zinc-600 dark:text-zinc-300">{position}</td>
+                <td className="truncate py-1 pr-1 text-[10.5px] text-zinc-600 dark:text-zinc-300">{interviewerName}</td>
+                <td className="py-1">
+                  <span className={`inline-block whitespace-nowrap rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${INTERVIEW_STATUS_STYLE[iv.status] || 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400'}`}>
+                    {iv.status?.replace('_', ' ') || 'Scheduled'}
+                  </span>
+                </td>
+              </tr>
+            );
+          }) : (
             <tr>
               <td colSpan={5} className="py-10 text-[10.5px] text-center text-zinc-400 italic border-t border-zinc-50 dark:border-zinc-800">
                 No interviews scheduled for today
@@ -459,16 +470,19 @@ function HotCandidates({ candidates = [] }: { candidates?: any[] }) {
   return (
     <Card className="min-h-[180px]" title="Hot Candidates" action={<ViewAllLink href="/dashboard/hiring/candidates" />}>
       <div className="space-y-2">
-        {candidates.length > 0 ? candidates.map((c) => (
-          <div key={(c.firstName ? `${c.firstName} ${c.lastName}` : c.name)} className="flex items-center gap-2">
-            <Avatar name={(c.firstName ? `${c.firstName} ${c.lastName}` : c.name)} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[10.5px] font-semibold text-zinc-800 dark:text-zinc-100">{(c.firstName ? `${c.firstName} ${c.lastName}` : c.name)}</p>
-              <p className="truncate text-[9px] text-zinc-400">{(c.jobRole || c.role)} • {(c.experience ? `${c.experience} Yrs` : c.exp)}</p>
+        {candidates.length > 0 ? candidates.map((c, idx) => {
+          const name = (c.firstName ? `${c.firstName} ${c.lastName || ''}`.trim() : c.name) || 'Candidate';
+          return (
+            <div key={c._id || c.id || `${name}-${idx}`} className="flex items-center gap-2">
+              <Avatar name={name} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[10.5px] font-semibold text-zinc-800 dark:text-zinc-100">{name}</p>
+                <p className="truncate text-[9px] text-zinc-400">{(c.jobRole || c.role || 'Applicant')}{(c.experience || c.exp) ? ` • ${(c.experience ? `${c.experience} Yrs` : c.exp)}` : ''}</p>
+              </div>
+              <span className={`shrink-0 whitespace-nowrap rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${CANDIDATE_STAGE_STYLE[(c.status || c.stage)] || 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400'}`}>{(c.status || c.stage)}</span>
             </div>
-            <span className={`shrink-0 whitespace-nowrap rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${CANDIDATE_STAGE_STYLE[(c.status || c.stage)] || ''}`}>{(c.status || c.stage)}</span>
-          </div>
-        )) : (
+          );
+        }) : (
           <div className="flex h-[100px] items-center justify-center text-[10.5px] text-zinc-400 italic">No candidates available</div>
         )}
       </div>
@@ -480,16 +494,20 @@ function UpcomingJoining({ joinings = [] }: { joinings?: any[] }) {
   return (
     <Card className="min-h-[180px]" title="Upcoming Joining" action={<ViewAllLink href="/dashboard/hiring/joining-confirmation" />}>
       <div className="space-y-2">
-        {joinings.length > 0 ? joinings.map((j) => (
-          <div key={(j.firstName ? `${j.firstName} ${j.lastName}` : j.name)} className="flex items-center gap-2">
-            <Avatar name={(j.firstName ? `${j.firstName} ${j.lastName}` : j.name)} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[10.5px] font-semibold text-zinc-800 dark:text-zinc-100">{(j.firstName ? `${j.firstName} ${j.lastName}` : j.name)}</p>
-              <p className="truncate text-[9px] text-zinc-400">{(j.jobRole || j.role)}</p>
+        {joinings.length > 0 ? joinings.map((j, idx) => {
+          const name = (j.firstName ? `${j.firstName} ${j.lastName || ''}`.trim() : j.name) || 'Candidate';
+          const joinDate = j.requiredJoiningDate || j.joiningDate || j.date || (j.updatedAt ? new Date(j.updatedAt).toLocaleDateString() : 'TBD');
+          return (
+            <div key={j._id || j.id || `${name}-${idx}`} className="flex items-center gap-2">
+              <Avatar name={name} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[10.5px] font-semibold text-zinc-800 dark:text-zinc-100">{name}</p>
+                <p className="truncate text-[9px] text-zinc-400">{(j.jobRole || j.role || 'Hired')}</p>
+              </div>
+              <span className="shrink-0 whitespace-nowrap text-[9.5px] font-medium text-zinc-500 dark:text-zinc-400">{joinDate}</span>
             </div>
-            <span className="shrink-0 whitespace-nowrap text-[9.5px] font-medium text-zinc-500 dark:text-zinc-400">{j.date || 'TBD'}</span>
-          </div>
-        )) : (
+          );
+        }) : (
           <div className="flex h-[100px] items-center justify-center text-[10.5px] text-zinc-400 italic">No upcoming joinings</div>
         )}
       </div>
@@ -513,17 +531,17 @@ function ActiveJobOpenings({ openings = [] }: { openings?: any[] }) {
           </tr>
         </thead>
         <tbody>
-          {openings.length > 0 ? openings.map((r) => (
-            <tr key={(r.jobTitle || r.title)} className="border-t border-zinc-50 dark:border-zinc-800">
+          {openings.length > 0 ? openings.map((r, idx) => (
+            <tr key={r._id || r.id || `${r.jobTitle || r.title || 'job'}-${idx}`} className="border-t border-zinc-50 dark:border-zinc-800">
               <td className="truncate py-px pr-1 text-[10.5px] font-medium text-zinc-800 dark:text-zinc-100">{(r.jobTitle || r.title)}</td>
-              <td className="truncate py-px pr-1 text-[10.5px] text-zinc-600 dark:text-zinc-300">{(r.departmentId?.name || r.dept)}</td>
-              <td className="py-px pr-1 text-[10.5px] text-zinc-600 dark:text-zinc-300">{(r.numberOfPositions || r.vacancies)}</td>
+              <td className="truncate py-px pr-1 text-[10.5px] text-zinc-600 dark:text-zinc-300">{(r.departmentId?.name || r.dept || 'General')}</td>
+              <td className="py-px pr-1 text-[10.5px] text-zinc-600 dark:text-zinc-300">{(r.numberOfPositions || r.vacancies || 1)}</td>
               <td className="py-px pr-1 text-[10.5px] text-zinc-600 dark:text-zinc-300">{(r.applications || 0)}</td>
               <td className="py-px pr-1 text-[10.5px] text-zinc-600 dark:text-zinc-300">{(r.interviews || 0)}</td>
               <td className="py-px pr-1">
-                <span className={`inline-block whitespace-nowrap rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${JOB_STATUS_STYLE[r.status] || ''}`}>{r.status}</span>
+                <span className={`inline-block whitespace-nowrap rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${JOB_STATUS_STYLE[r.status] || 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400'}`}>{r.status || 'Active'}</span>
               </td>
-              <td className="py-px text-[10px] text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{(r.createdAt ? new Date(r.createdAt).toLocaleDateString() : r.postedOn)}</td>
+              <td className="py-px text-[10px] text-zinc-500 dark:text-zinc-400 whitespace-nowrap">{(r.createdAt ? new Date(r.createdAt).toLocaleDateString() : r.postedOn || '-')}</td>
             </tr>
           )) : (
             <tr>
@@ -551,8 +569,8 @@ function SourcePerformance({ performance = [] }: { performance?: any[] }) {
           </tr>
         </thead>
         <tbody>
-          {performance.length > 0 ? performance.map((s) => (
-            <tr key={s.source} className="border-t border-zinc-50 dark:border-zinc-800">
+          {performance.length > 0 ? performance.map((s, idx) => (
+            <tr key={s._id || s.source ? `${s.source}-${idx}` : idx} className="border-t border-zinc-50 dark:border-zinc-800">
               <td className="truncate py-0.5 pr-1 text-[10.5px] font-medium text-zinc-800 dark:text-zinc-100">{s.source}</td>
               <td className="py-0.5 pr-1 text-[10.5px] text-zinc-600 dark:text-zinc-300">{s.candidates}</td>
               <td className="py-0.5 pr-1 text-[10.5px] text-zinc-600 dark:text-zinc-300">{s.hired}</td>
@@ -564,7 +582,7 @@ function SourcePerformance({ performance = [] }: { performance?: any[] }) {
                       style={{ width: `${Math.min(s.rate, 100)}%` }}
                     />
                   </div>
-                  <span className="w-8 shrink-0 text-right text-[9.5px] font-semibold text-zinc-600 dark:text-zinc-300">{s.rate.toFixed(1)}%</span>
+                  <span className="w-8 shrink-0 text-right text-[9.5px] font-semibold text-zinc-600 dark:text-zinc-300">{(s.rate || 0).toFixed(1)}%</span>
                 </div>
               </td>
             </tr>
@@ -594,23 +612,53 @@ export default function RecruiterDashboard() {
     }
   });
 
-  const dynamicKPIS = data ? [
-    { ...KPIS[0], value: data.kpis.openPositions.toString() },
-    { ...KPIS[1], value: data.kpis.activeCandidates.toString() },
-    { ...KPIS[2], value: data.kpis.interviewsScheduled.toString() },
-    { ...KPIS[3], value: data.kpis.offersReleased.toString() },
-    { ...KPIS[4], value: data.kpis.positionsFilled.toString() },
-    { ...KPIS[5] }
-  ] : KPIS.map(k => ({ ...k, value: '0', trend: '-' }));
+  const dynamicKPIS = data?.kpis ? [
+    {
+      ...KPIS[0],
+      value: (data.kpis.openPositions ?? 0).toString(),
+      trend: data.kpis.trends?.openPositions?.trend ?? '0 from last month',
+      up: data.kpis.trends?.openPositions?.up ?? true
+    },
+    {
+      ...KPIS[1],
+      value: (data.kpis.activeCandidates ?? 0).toString(),
+      trend: data.kpis.trends?.activeCandidates?.trend ?? '0 from last month',
+      up: data.kpis.trends?.activeCandidates?.up ?? true
+    },
+    {
+      ...KPIS[2],
+      value: (data.kpis.interviewsScheduled ?? 0).toString(),
+      trend: data.kpis.trends?.interviewsScheduled?.trend ?? '0 from last month',
+      up: data.kpis.trends?.interviewsScheduled?.up ?? true
+    },
+    {
+      ...KPIS[3],
+      value: (data.kpis.offersReleased ?? 0).toString(),
+      trend: data.kpis.trends?.offersReleased?.trend ?? '0 from last month',
+      up: data.kpis.trends?.offersReleased?.up ?? true
+    },
+    {
+      ...KPIS[4],
+      value: (data.kpis.positionsFilled ?? 0).toString(),
+      trend: data.kpis.trends?.positionsFilled?.trend ?? '0 from last month',
+      up: data.kpis.trends?.positionsFilled?.up ?? true
+    },
+    {
+      ...KPIS[5],
+      value: data.kpis.timeToHire || (data.kpis.trends?.timeToHire?.value ?? '0 Days'),
+      trend: data.kpis.trends?.timeToHire?.trend ?? '0 Days from last month',
+      up: data.kpis.trends?.timeToHire?.up ?? false
+    }
+  ] : KPIS.map(k => ({ ...k, value: isLoading ? '—' : '0', trend: isLoading ? 'Loading…' : '-' }));
 
-  const dynamicPipeline = data ? [
-    { ...PIPELINE_STAGES[0], value: data.pipeline.applications },
-    { ...PIPELINE_STAGES[1], value: data.pipeline.shortlisted },
-    { ...PIPELINE_STAGES[2], value: data.pipeline.screening },
-    { ...PIPELINE_STAGES[3], value: data.pipeline.interviewing },
-    { ...PIPELINE_STAGES[4], value: data.pipeline.offered },
-    { ...PIPELINE_STAGES[5], value: data.pipeline.offered },
-    { ...PIPELINE_STAGES[6], value: data.pipeline.joined },
+  const dynamicPipeline = data?.pipeline ? [
+    { ...PIPELINE_STAGES[0], value: data.pipeline.applications || 0 },
+    { ...PIPELINE_STAGES[1], value: data.pipeline.shortlisted || 0 },
+    { ...PIPELINE_STAGES[2], value: data.pipeline.screening || 0 },
+    { ...PIPELINE_STAGES[3], value: data.pipeline.interviewing || 0 },
+    { ...PIPELINE_STAGES[4], value: data.pipeline.offered || 0 },
+    { ...PIPELINE_STAGES[5], value: data.pipeline.offered || 0 },
+    { ...PIPELINE_STAGES[6], value: data.pipeline.joined || 0 },
   ] : PIPELINE_STAGES.map(p => ({ ...p, value: 0 }));
 
   const todaysInterviews = data?.todaysInterviews || [];
@@ -620,6 +668,7 @@ export default function RecruiterDashboard() {
   const hiringOverview = data?.hiringOverview || [];
   const sourcePerformance = data?.sourcePerformance || [];
   const aiInsights = data?.aiInsights || [];
+  const pendingApprovals = data?.pendingApprovals || [];
 
   return (
     <div className="w-full px-2 py-1 mx-auto space-y-2 font-sans text-zinc-900 min-h-screen">
@@ -650,7 +699,7 @@ export default function RecruiterDashboard() {
             <ActionCenter />
             <QuickLinks />
             <AIInsights insights={aiInsights} />
-            <PendingApprovals />
+            <PendingApprovals approvals={pendingApprovals} />
           </div>
         </div>
       </div>

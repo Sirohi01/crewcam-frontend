@@ -337,7 +337,7 @@ export default function ReviewPage() {
 
     const formData = new FormData();
     formData.append('file', file);
-    
+
     setIsUploadingImage(true);
     try {
       const res = await api.post('/upload', formData, {
@@ -537,7 +537,7 @@ export default function ReviewPage() {
             {/* Candidate Overview Header Card */}
             <div className="bg-white rounded-lg mb-4 border-b border-indigo-100 p-2 w-full">
               <div className="flex w-full items-start gap-2">
-                <div 
+                <div
                   className="relative shrink-0 cursor-pointer group"
                   onClick={() => imageInputRef.current?.click()}
                   title="Click to upload profile photo"
@@ -701,11 +701,10 @@ export default function ReviewPage() {
                         type="text"
                         value={candidate.fullName}
                         onChange={(e) => handleInputChange('fullName', e.target.value)}
-                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
-                          errors.fullName
-                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
-                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
-                        }`}
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${errors.fullName
+                          ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                          : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                          }`}
                       />
                       {errors.fullName && <p className="text-[9.5px] font-medium text-rose-500">{errors.fullName}</p>}
                     </div>
@@ -715,11 +714,10 @@ export default function ReviewPage() {
                         type="email"
                         value={candidate.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
-                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
-                          errors.email
-                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
-                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
-                        }`}
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${errors.email
+                          ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                          : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                          }`}
                       />
                       {errors.email && <p className="text-[9.5px] font-medium text-rose-500">{errors.email}</p>}
                     </div>
@@ -729,11 +727,10 @@ export default function ReviewPage() {
                         type="text"
                         value={candidate.mobile}
                         onChange={(e) => handleInputChange('mobile', e.target.value)}
-                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
-                          errors.mobile
-                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
-                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
-                        }`}
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${errors.mobile
+                          ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                          : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                          }`}
                       />
                       {errors.mobile && <p className="text-[9.5px] font-medium text-rose-500">{errors.mobile}</p>}
                     </div>
@@ -743,11 +740,10 @@ export default function ReviewPage() {
                         type="text"
                         value={candidate.currentLocation}
                         onChange={(e) => handleInputChange('currentLocation', e.target.value)}
-                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
-                          errors.currentLocation
-                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
-                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
-                        }`}
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${errors.currentLocation
+                          ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                          : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                          }`}
                       />
                       {errors.currentLocation && <p className="text-[9.5px] font-medium text-rose-500">{errors.currentLocation}</p>}
                     </div>
@@ -793,11 +789,10 @@ export default function ReviewPage() {
                         apiType="manpower-request"
                         value={candidate.manpowerRequestId}
                         onChange={(e: any) => handleInputChange('manpowerRequestId', e.target.value)}
-                        className={`w-full px-1.5 h-8 text-xs rounded focus:outline-none ${
-                          errors.manpowerRequestId
-                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500'
-                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
-                        }`}
+                        className={`w-full px-1.5 h-8 text-xs rounded focus:outline-none ${errors.manpowerRequestId
+                          ? 'bg-rose-50 border border-rose-400 focus:border-rose-500'
+                          : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                          }`}
                       />
                       {errors.manpowerRequestId && <p className="text-[9.5px] font-medium text-rose-500">{errors.manpowerRequestId}</p>}
                     </div>
@@ -807,11 +802,10 @@ export default function ReviewPage() {
                         type="text"
                         value={candidate.appliedFor}
                         onChange={(e) => handleInputChange('appliedFor', e.target.value)}
-                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
-                          errors.appliedFor
-                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
-                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
-                        }`}
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${errors.appliedFor
+                          ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                          : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                          }`}
                       />
                       {errors.appliedFor && <p className="text-[9.5px] font-medium text-rose-500">{errors.appliedFor}</p>}
                     </div>
@@ -821,11 +815,10 @@ export default function ReviewPage() {
                         apiType="department"
                         value={candidate.department}
                         onChange={(e: any) => handleInputChange('department', e.target.value)}
-                        className={`w-full px-1.5 h-8 text-xs rounded focus:outline-none ${
-                          errors.department
-                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500'
-                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
-                        }`}
+                        className={`w-full px-1.5 h-8 text-xs rounded focus:outline-none ${errors.department
+                          ? 'bg-rose-50 border border-rose-400 focus:border-rose-500'
+                          : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                          }`}
                         placeholderText="Select Department"
                       />
                       {errors.department && <p className="text-[9.5px] font-medium text-rose-500">{errors.department}</p>}
@@ -835,11 +828,10 @@ export default function ReviewPage() {
                       <select
                         value={candidate.employmentType}
                         onChange={(e) => handleInputChange('employmentType', e.target.value)}
-                        className={`w-full px-1.5 h-8 text-xs rounded focus:outline-none transition-colors ${
-                          errors.employmentType
-                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500'
-                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
-                        }`}
+                        className={`w-full px-1.5 h-8 text-xs rounded focus:outline-none transition-colors ${errors.employmentType
+                          ? 'bg-rose-50 border border-rose-400 focus:border-rose-500'
+                          : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                          }`}
                       >
                         <option value="Full Time">Full Time</option>
                         <option value="Contract">Contract</option>
@@ -853,11 +845,10 @@ export default function ReviewPage() {
                         type="text"
                         value={candidate.totalExperience}
                         onChange={(e) => handleInputChange('totalExperience', e.target.value)}
-                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
-                          errors.totalExperience
-                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
-                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
-                        }`}
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${errors.totalExperience
+                          ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                          : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                          }`}
                       />
                       {errors.totalExperience && <p className="text-[9.5px] font-medium text-rose-500">{errors.totalExperience}</p>}
                     </div>
@@ -867,11 +858,10 @@ export default function ReviewPage() {
                         type="text"
                         value={candidate.relevantExperience}
                         onChange={(e) => handleInputChange('relevantExperience', e.target.value)}
-                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
-                          errors.relevantExperience
-                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
-                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
-                        }`}
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${errors.relevantExperience
+                          ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                          : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                          }`}
                       />
                       {errors.relevantExperience && <p className="text-[9.5px] font-medium text-rose-500">{errors.relevantExperience}</p>}
                     </div>
@@ -891,11 +881,10 @@ export default function ReviewPage() {
                           type="text"
                           value={candidate.currentCTC}
                           onChange={(e) => handleInputChange('currentCTC', e.target.value)}
-                          className={`w-full pl-6 pr-2 h-8 text-xs rounded focus:outline-none transition-colors ${
-                            errors.currentCTC
-                              ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
-                              : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
-                          }`}
+                          className={`w-full pl-6 pr-2 h-8 text-xs rounded focus:outline-none transition-colors ${errors.currentCTC
+                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                            }`}
                         />
                         <span className="text-[10px] font-semibold text-indigo-900 absolute left-2 top-1/2 -translate-y-1/2">₹</span>
                       </div>
@@ -908,11 +897,10 @@ export default function ReviewPage() {
                           type="text"
                           value={candidate.expectedCTC}
                           onChange={(e) => handleInputChange('expectedCTC', e.target.value)}
-                          className={`w-full pl-6 pr-2 h-8 text-xs rounded focus:outline-none transition-colors ${
-                            errors.expectedCTC
-                              ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
-                              : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
-                          }`}
+                          className={`w-full pl-6 pr-2 h-8 text-xs rounded focus:outline-none transition-colors ${errors.expectedCTC
+                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                            }`}
                         />
                         <span className="text-[10px] font-semibold text-indigo-900 absolute left-2 top-1/2 -translate-y-1/2">₹</span>
                       </div>
@@ -923,11 +911,10 @@ export default function ReviewPage() {
                       <select
                         value={candidate.noticePeriod}
                         onChange={(e) => handleInputChange('noticePeriod', e.target.value)}
-                        className={`w-full px-1.5 h-8 text-xs rounded focus:outline-none transition-colors ${
-                          errors.noticePeriod
-                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500'
-                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
-                        }`}
+                        className={`w-full px-1.5 h-8 text-xs rounded focus:outline-none transition-colors ${errors.noticePeriod
+                          ? 'bg-rose-50 border border-rose-400 focus:border-rose-500'
+                          : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                          }`}
                       >
                         <option value="">Select Notice Period</option>
                         <option value="Immediate">Immediate</option>
@@ -956,11 +943,10 @@ export default function ReviewPage() {
                         type="text"
                         value={candidate.highestQualification}
                         onChange={(e) => handleInputChange('highestQualification', e.target.value)}
-                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
-                          errors.highestQualification
-                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
-                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
-                        }`}
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${errors.highestQualification
+                          ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                          : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                          }`}
                       />
                       {errors.highestQualification && <p className="text-[9.5px] font-medium text-rose-500">{errors.highestQualification}</p>}
                     </div>
@@ -970,11 +956,10 @@ export default function ReviewPage() {
                         type="text"
                         value={candidate.university}
                         onChange={(e) => handleInputChange('university', e.target.value)}
-                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
-                          errors.university
-                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
-                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
-                        }`}
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${errors.university
+                          ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                          : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                          }`}
                       />
                       {errors.university && <p className="text-[9.5px] font-medium text-rose-500">{errors.university}</p>}
                     </div>
@@ -984,11 +969,10 @@ export default function ReviewPage() {
                         type="text"
                         value={candidate.yearOfPassing}
                         onChange={(e) => handleInputChange('yearOfPassing', e.target.value)}
-                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
-                          errors.yearOfPassing
-                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
-                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
-                        }`}
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${errors.yearOfPassing
+                          ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                          : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                          }`}
                       />
                       {errors.yearOfPassing && <p className="text-[9.5px] font-medium text-rose-500">{errors.yearOfPassing}</p>}
                     </div>
@@ -998,11 +982,10 @@ export default function ReviewPage() {
                         type="text"
                         value={candidate.cgpa}
                         onChange={(e) => handleInputChange('cgpa', e.target.value)}
-                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${
-                          errors.cgpa
-                            ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
-                            : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
-                        }`}
+                        className={`w-full px-2 h-8 text-xs rounded focus:outline-none transition-colors ${errors.cgpa
+                          ? 'bg-rose-50 border border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400'
+                          : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500'
+                          }`}
                       />
                       {errors.cgpa && <p className="text-[9.5px] font-medium text-rose-500">{errors.cgpa}</p>}
                     </div>
@@ -1282,7 +1265,12 @@ export default function ReviewPage() {
               <div className="flex-1 overflow-hidden relative">
                 {resumeUrl ? (
                   <div style={{ transform: `scale(${cvZoom / 100})`, transformOrigin: 'top center', width: `${100 / (cvZoom / 100)}%`, height: `${100 / (cvZoom / 100)}%` }} className="transition-transform duration-200">
-                    <iframe src={resumeUrl} className="w-full h-full border-0" title="Original CV Preview" />
+                    {/* Google's viewer fetches the file itself rather than the browser loading the
+                        Cloudinary URL directly — Cloudinary's "raw" resources (and .docx, which a
+                        plain <iframe> can't render inline at all) were triggering a forced download
+                        the instant this page opened, instead of showing a preview. Same fix already
+                        used in evaluation/[id]/resume-documents/page.tsx. */}
+                    <iframe src={`https://docs.google.com/viewer?url=${encodeURIComponent(resumeUrl)}&embedded=true`} className="w-full h-full border-0" title="Original CV Preview" />
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full text-xs text-zinc-400 p-4 text-center">

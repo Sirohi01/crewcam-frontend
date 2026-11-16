@@ -18,6 +18,7 @@ import {
   Phone, Mail, MapPin,
   Minus,
   Maximize2,
+  Minimize2,
   Clock,
   ShieldCheck,
   Star,
@@ -144,6 +145,7 @@ export default function EvaluationPage() {
   const [newNoteText, setNewNoteText] = React.useState<string>("");
   const [activeSubTab, setActiveSubTab] = React.useState<string>(subTabs[0]);
   const [zoom, setZoom] = React.useState<number>(100);
+  const [isResumeMaximized, setIsResumeMaximized] = React.useState(false);
   const [screeningData, setScreeningData] = React.useState<any>(null);
   const [loadingScreening, setLoadingScreening] = React.useState(true);
   const [realCandidateId, setRealCandidateId] = React.useState<string | null>(null);
@@ -269,8 +271,20 @@ export default function EvaluationPage() {
     setNotes([newNote, ...notes]);
     setNewNoteText("");
   };
+  // Google Drive share links (the mock default) need /view -> /preview. A real uploaded
+  // resume (Cloudinary) doesn't match that pattern — opening its raw URL directly forces a
+  // download for any non-PDF (.docx has no inline renderer at all) and sometimes even PDFs,
+  // instead of previewing it. Routing it through Google's viewer fixes that everywhere this
+  // resume gets opened, matching the iframe below and evaluation/[id]/resume-documents/page.tsx.
+  const getPreviewableUrl = (url: string) => {
+    if (!url) return '';
+    if (/drive\.google\.com/.test(url)) return url.replace(/\/view(\?usp=sharing)?$/, '/preview');
+    return `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+  };
+
   const handlePreviewCV = () => {
-    window.open(candidate.resumeUrl, '_blank');
+    const url = candidate.resumeUrl || defaultCandidate.resumeUrl || '';
+    if (url) window.open(getPreviewableUrl(url), '_blank');
   };
 
   const handleDownloadCV = () => {
@@ -708,7 +722,9 @@ export default function EvaluationPage() {
                         </div>
 
                         {/* Resume Preview */}
-                        <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 flex flex-col overflow-hidden h-[380px] sm:col-span-2 lg:col-span-1 lg:h-full">
+                        <div className={isResumeMaximized
+                          ? 'fixed inset-4 z-50 bg-white shadow-2xl rounded-lg border border-slate-200 flex flex-col overflow-hidden p-2'
+                          : 'bg-slate-50 p-2 rounded-lg border border-slate-200 flex flex-col overflow-hidden h-[380px] sm:col-span-2 lg:col-span-1 lg:h-full'}>
                           <div className="flex items-center justify-between mb-1.5">
                             <span className="text-[10px] uppercase font-bold text-indigo-950">Resume Preview</span>
                             <div className="flex items-center gap-0.5 text-slate-500">
@@ -719,14 +735,16 @@ export default function EvaluationPage() {
                               <button onClick={() => setZoom(z => Math.min(150, z + 10))} className="p-0.5 hover:text-indigo-700">
                                 <Plus className="w-3 h-3" />
                               </button>
-                              <button onClick={handlePreviewCV} className="p-0.5 hover:text-indigo-700">
-                                <Maximize2 className="w-3 h-3" />
+                              {/* Enlarges this card in place instead of opening a new tab at the raw
+                                  resume URL — that used to force a download for any non-PDF file. */}
+                              <button onClick={() => setIsResumeMaximized((v) => !v)} className="p-0.5 hover:text-indigo-700">
+                                {isResumeMaximized ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
                               </button>
                             </div>
                           </div>
                           <div className="flex-1 bg-white border border-slate-200 rounded overflow-hidden relative">
                             <iframe
-                              src={(candidate.resumeUrl || defaultCandidate.resumeUrl || '').replace(/\/view(\?usp=sharing)?$/, '/preview')}
+                              src={getPreviewableUrl(candidate.resumeUrl || defaultCandidate.resumeUrl || '')}
                               title="Resume Preview"
                               className="absolute top-0 left-0 border-0"
                               style={{
