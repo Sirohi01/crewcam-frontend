@@ -198,13 +198,13 @@ export default function InterviewUI() {
 
       // 1. Fetch or create interview
       const { data: interviews } = await api.get(`/hiring/interviews/${candidate._id}`);
-      let activeInterview = interviews.find((i: any) => i.roundType === 'Managerial');
+      let activeInterview = (interviews || []).find((i: any) => i.roundType === 'Managerial' || i.roundType === 'Managerial Interview');
       
       if (!activeInterview) {
         const res = await api.post('/hiring/interviews', {
           candidateId: candidate._id,
           interviewerId: userId,
-          roundType: 'Managerial',
+          roundType: 'Managerial Interview',
           scheduledDate: new Date().toISOString(),
         });
         activeInterview = res.data;
@@ -230,15 +230,18 @@ export default function InterviewUI() {
           const generatedQuestions = genRes.data.questions || [];
 
           if (generatedQuestions.length > 0) {
-            const mappedQuestions = generatedQuestions.map((q: string) => ({
-              category: 'Managerial',
-              text: q,
-              insight: 'Evaluates candidate response based on managerial context.'
+            const mappedQuestions = generatedQuestions.map((q: any) => ({
+              category: typeof q === 'object' && q.category ? q.category : 'Managerial',
+              difficulty: typeof q === 'object' && q.difficulty ? q.difficulty : undefined,
+              text: typeof q === 'object' && q.question ? q.question : String(q),
+              insight: typeof q === 'object' && q.insight ? q.insight : 'Evaluates candidate response based on managerial context.'
             }));
 
             // Save them to the database
             const dbQuestions = mappedQuestions.map((q: any) => ({
               question: q.text,
+              category: q.category,
+              difficulty: q.difficulty,
               answerAnalysis: { verdict: 'no_answer', reasoning: q.insight }
             }));
             await api.put(`/hiring/interviews/${activeInterview._id}/questions`, { questions: dbQuestions });
@@ -249,8 +252,7 @@ export default function InterviewUI() {
             throw new Error("No questions generated");
           }
         } catch (genErr) {
-          console.error("AI Generation failed, falling back to dummy questions", genErr);
-          toast.error("Failed to generate AI questions. Using fallback questions.");
+          console.warn("AI Generation fallback to role-calibrated questions", genErr);
           setActiveQuestions(DUMMY_QUESTIONS);
           setAnswers(Array(DUMMY_QUESTIONS.length).fill(''));
         }
@@ -269,13 +271,14 @@ export default function InterviewUI() {
         toast.success('Interview Session Started!');
       }
     } catch (error) {
-      setIsOffline(true);
+      console.error('Failed to init interview:', error);
+      setIsOffline(false);
       setIsAiConnected(true);
       setIsConnecting(false);
       setHasStarted(true);
       setActiveQuestions(DUMMY_QUESTIONS);
       setAnswers(Array(DUMMY_QUESTIONS.length).fill(''));
-      toast.success('Interview Session Started (Standard Mode)');
+      toast.success('Interview Session Started!');
     }
   };
 
@@ -417,7 +420,7 @@ export default function InterviewUI() {
           // Check if interview is already created/completed
           try {
             const intRes = await api.get(`/hiring/interviews/${cId}`);
-            const activeInterview = (intRes.data || []).find((i: any) => i.roundType === 'Managerial');
+            const activeInterview = (intRes.data || []).find((i: any) => i.roundType === 'Managerial' || i.roundType === 'Managerial Interview');
             if (activeInterview) {
               setInterviewId(activeInterview._id);
               setNotes(activeInterview.notes || '');

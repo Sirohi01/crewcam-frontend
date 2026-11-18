@@ -149,12 +149,12 @@ export default function AssessmentRoundPage() {
           const userId = user?._id || user?.id;
           if (userId) {
             const { data: interviews } = await api.get(`/hiring/interviews/${cId}`);
-            let activeInterview = interviews.find((i: any) => i.roundType === 'Written');
+            let activeInterview = (interviews || []).find((i: any) => i.roundType === 'Written' || i.roundType === 'Written Assessment');
             if (!activeInterview) {
               const res = await api.post('/hiring/interviews', {
                 candidateId: cId,
                 interviewerId: userId,
-                roundType: 'Written',
+                roundType: 'Written Assessment',
                 scheduledDate: new Date().toISOString(),
               });
               activeInterview = res.data;
